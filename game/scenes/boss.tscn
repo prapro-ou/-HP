@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/scripts/Boss.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://game/assets/enemy.png" id="2_texture"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boss"]
+size = Vector2(160, 100)
+
+[node name="Boss" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_texture")
+
+[node name="BossDamageShape" type="Area2D" parent="." groups=["boss"]]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BossDamageShape"]
+shape = SubResource("RectangleShape2D_boss")
+debug_color = Color(0.887201, 0.28828, 0.40356, 0.419608)
