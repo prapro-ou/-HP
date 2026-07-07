@@ -7,7 +7,9 @@ extends CharacterBody2D
 @export var max_hp: int = 100
 @export var move_speed: float = 300.0
 @export var parry_window_radius: float = 50.0  # ガード範囲（能動ガードのため、少し広めの50pxに変更）
-@export var fire_rate: float = 20.0 / 60.0  # 射撃間隔
+@export var fire_rate: float = 0.15  # 射撃間隔（初期値は3WAY・速射）
+
+var is_enhanced: bool = false
 
 # ガード関連の変数
 @export var parry_active_time: float = 0.25  # ガード判定の持続時間（秒）
@@ -78,17 +80,28 @@ func _process(delta: float) -> void:
 
 
 func fire() -> void:
-	"""プレイヤー弾を前方に発射"""
+	"""プレイヤー弾を前方に3WAYで発射"""
 	if PlayerBulletScene:
-		var bullet = PlayerBulletScene.instantiate()
-		bullet.global_position = global_position
-		
-		# Mainシーンの PlayerBullets コンテナ、または親ノードに追加する
+		var angles = [-15, 0, 15]  # 3WAY発射の角度
+		var current_speed = 1200.0 if is_enhanced else 800.0  # コピー・強化後はより速いスピードに
 		var player_bullets_container = get_node_or_null("/root/Main/PlayerBullets")
-		if player_bullets_container:
-			player_bullets_container.add_child(bullet)
-		else:
-			get_parent().add_child(bullet)
+		
+		for angle in angles:
+			var bullet = PlayerBulletScene.instantiate()
+			bullet.global_position = global_position
+			
+			# 進行方向ベクトルを計算（進行方向は上なので-90度ずらす）
+			var rad = deg_to_rad(angle - 90)
+			var dir = Vector2(cos(rad), sin(rad))
+			
+			# 速度と角度を設定
+			bullet.velocity = dir * current_speed
+			bullet.rotation = deg_to_rad(angle)
+			
+			if player_bullets_container:
+				player_bullets_container.add_child(bullet)
+			else:
+				get_parent().add_child(bullet)
 
 
 func check_parry() -> void:
@@ -123,3 +136,44 @@ func take_damage(amount: int) -> void:
 func heal(amount: int) -> void:
 	"""回復（将来用）"""
 	current_hp = min(current_hp + amount, max_hp)
+
+
+func on_parry_registered(count: int) -> void:
+	"""ガードが5回成功した際、相手の攻撃特性をコピー・強化する"""
+	if count >= 5 and not is_enhanced:
+		is_enhanced = true
+		fire_rate = 0.08  # 超速射に強化（連射速度アップ）
+		spawn_popup_message("解析完了：攻撃特性コピー＆高速化！")
+
+
+func spawn_popup_message(text: String) -> void:
+	"""画面に一時的なポップアップテキストを表示する"""
+	var label = Label.new()
+	label.text = text
+	
+	# ラベルの表示設定
+	var settings = LabelSettings.new()
+	settings.font_size = 18
+	settings.font_color = Color.CYAN
+	settings.outline_size = 4
+	settings.outline_color = Color.BLACK
+	label.label_settings = settings
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	
+	# 初期位置の設定（プレイヤーの少し上に中央揃えで配置）
+	label.global_position = global_position + Vector2(-150, -50)
+	label.custom_minimum_size = Vector2(300, 30)
+	
+	# メインシーンに追加
+	var main = get_node_or_null("/root/Main")
+	if main:
+		main.add_child(label)
+	else:
+		get_parent().add_child(label)
+	
+	# Tweenによる上昇＆フェードアウトアニメーション
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "global_position", label.global_position + Vector2(0, -60), 1.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, 1.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(label.queue_free)

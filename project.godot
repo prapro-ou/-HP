@@ -11,14 +11,15 @@ config_version=5
 [application]
 
 config/name="shooting-v2"
+run/main_scene="res://game/scenes/main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
-run/main_scene="res://game/scenes/main.tscn"
 
 [display]
 
 window/size/viewport_width=800
 window/size/viewport_height=1200
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

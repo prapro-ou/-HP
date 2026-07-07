@@ -16,8 +16,8 @@ var fire_timer: float = 0.0
 # 移動用の変数
 var move_timer: float = 0.0
 var move_target: Vector2 = Vector2.ZERO
-var base_move_speed: float = 80.0
-var current_move_speed: float = 80.0
+var base_move_speed: float = 110.0
+var current_move_speed: float = 110.0
 
 
 func _ready() -> void:

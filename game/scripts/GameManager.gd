@@ -54,6 +54,8 @@ func update_ui() -> void:
 func register_parry() -> void:
 	"""パリィ成功をカウント"""
 	parry_count += 1
+	if player and player.has_method("on_parry_registered"):
+		player.on_parry_registered(parry_count)
 
 
 func show_game_over(result: String) -> void:

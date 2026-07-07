@@ -11,7 +11,8 @@ var velocity: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
-	velocity = Vector2.UP * speed  # 上方向に移動
+	if velocity == Vector2.ZERO:
+		velocity = Vector2.UP * speed  # 上方向に移動
 	# エリア侵入時のシグナルを接続
 	area_entered.connect(_on_area_entered)
 
@@ -26,8 +27,8 @@ func _process(delta: float) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	"""他のArea2Dに入った時の処理"""
-	if area.name == "BossDamageShape" or area.is_in_group("boss"):
-		# ボス（あるいは衝突エリア）が take_damage を持っている場合
+	if area.name == "BossDamageShape" or area.is_in_group("boss") or area.is_in_group("enemy"):
+		# ボスや敵（あるいは衝突エリア）が take_damage を持っている場合
 		if area.has_method("take_damage"):
 			area.take_damage(damage)
 		elif area.get_parent().has_method("take_damage"):
