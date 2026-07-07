@@ -18,7 +18,7 @@ func _ready() -> void:
 		bullet_pool.append(bullet)
 
 
-func get_bullet() -> Node2D:
+func get_bullet(type: String = "beam") -> Node2D:
 	"""プールから弾を取得"""
 	var bullet: Node2D
 	if bullet_pool.size() > 0:
@@ -32,7 +32,9 @@ func get_bullet() -> Node2D:
 	bullet.position = Vector2.ZERO
 	bullet.velocity = Vector2.ZERO
 	bullet.is_friendly = false
-	bullet.modulate = Color.WHITE
+	bullet.bullet_type = type
+	if bullet.has_method("update_bullet_color"):
+		bullet.update_bullet_color()
 	bullet.show()
 	
 	if not active_bullets.has(bullet):

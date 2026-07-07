@@ -9,6 +9,7 @@ extends Area2D
 
 var velocity: Vector2 = Vector2.ZERO
 var is_friendly: bool = false  # true = プレイヤー所有、false = 敵所有
+var bullet_type: String = "beam"  # "beam", "missile", "boss_laser", "boss_missile"
 
 var ParryParticleScene = preload("res://game/scenes/parry_particle.tscn")
 
@@ -17,10 +18,25 @@ var ParryParticleScene = preload("res://game/scenes/parry_particle.tscn")
 func _ready() -> void:
 	# 初期状態設定
 	is_friendly = false
-	modulate = Color.WHITE
+	update_bullet_color()
 	
 	body_entered.connect(_on_body_entered)
 	area_entered.connect(_on_area_entered)
+
+
+func update_bullet_color() -> void:
+	if is_friendly:
+		modulate = Color.CYAN
+	else:
+		match bullet_type:
+			"beam":
+				modulate = Color(1.0, 0.4, 0.4) # 薄赤 (Beam)
+			"missile":
+				modulate = Color(0.8, 0.2, 1.0) # 紫 (Missile)
+			"boss_laser":
+				modulate = Color(1.0, 0.1, 0.1) # 赤 (Boss Laser)
+			"boss_missile":
+				modulate = Color(0.9, 0.6, 0.1) # オレンジ (Boss Missile)
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -34,7 +50,8 @@ func _on_body_entered(body: Node2D) -> void:
 func _on_area_entered(area: Area2D) -> void:
 	# 味方所有の弾で、ボスにぶつかった場合
 	if is_friendly:
-		if area.name == "BossDamageShape" or area.is_in_group("boss"):
+		# ボス本体や部位にダメージを与える
+		if area.is_in_group("boss") or area.name == "BossDamageShape":
 			if area.has_method("take_damage"):
 				area.take_damage(damage)
 			elif area.get_parent().has_method("take_damage"):
@@ -50,11 +67,32 @@ func _process(delta: float) -> void:
 		if main:
 			var boss = main.get_node_or_null("Boss")
 			if is_instance_valid(boss):
-				# ボスへの方向と、現在の速度の強さを維持した目標速度を計算
 				var target_dir = (boss.global_position - global_position).normalized()
 				var target_velocity = target_dir * velocity.length()
-				# 旋回（Lerp）処理でカーブを描きながら追尾させる（8.0 は旋回力）
-				velocity = velocity.lerp(target_velocity, delta * 8.0)
+				# 旋回（Lerp）処理で追尾させる
+				velocity = velocity.lerp(target_velocity, delta * 10.0)
+			else:
+				# ボスがいなければ、画面上の適当な敵（ドローン）を追尾
+				var drones = get_tree().get_nodes_in_group("drones")
+				if drones.size() > 0:
+					var closest_drone = drones[0]
+					var min_dist = global_position.distance_to(closest_drone.global_position)
+					for drone in drones:
+						var d = global_position.distance_to(drone.global_position)
+						if d < min_dist:
+							min_dist = d
+							closest_drone = drone
+					if is_instance_valid(closest_drone):
+						var target_dir = (closest_drone.global_position - global_position).normalized()
+						var target_velocity = target_dir * velocity.length()
+						velocity = velocity.lerp(target_velocity, delta * 10.0)
+
+	# 速度低下・停止の防止策 (ターゲットロスト時の停滞対策)
+	if velocity.length() < 100.0:
+		if velocity == Vector2.ZERO:
+			velocity = Vector2.UP * speed
+		else:
+			velocity = velocity.normalized() * (speed if speed > 100.0 else 200.0)
 
 	position += velocity * delta
 	
@@ -92,25 +130,27 @@ func convert_to_friendly() -> void:
 	velocity = -velocity * 3.0
 	
 	# 見た目を変更（敵弾 → 味方弾の色）
-	modulate = Color.CYAN  # 青で味方弾を示す
+	update_bullet_color()
 
-	
 	# パリィエフェクト発生
 	if ParryParticleScene:
 		var particle = ParryParticleScene.instantiate()
 		particle.global_position = global_position
 		get_parent().add_child(particle)
 	
-	# GameManager経由でパリィ登録
+	# プレイヤーにパリィ成功と弾のタイプを通知して解析を進める
 	var main = get_node_or_null("/root/Main")
 	if main:
+		var player = main.get_node_or_null("Player")
+		if player and player.has_method("advance_analysis"):
+			player.advance_analysis(bullet_type, 34) # 3回パリィで100%にするために34ずつ加算
+		
 		var manager = main.get_node_or_null("GameManager")
 		if manager and manager.has_method("register_parry"):
 			manager.register_parry()
 
 
-
-
 func is_owned_by_player() -> bool:
 	"""プレイヤー所有か判定"""
 	return is_friendly
+
