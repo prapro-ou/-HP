@@ -45,6 +45,9 @@ func get_bullet(type: String = "beam") -> Node2D:
 
 func return_bullet(bullet: Node2D) -> void:
 	"""使用済み弾をプールに戻す"""
+	if not is_instance_valid(bullet) or bullet.is_queued_for_deletion():
+		return
+		
 	if active_bullets.has(bullet):
 		active_bullets.erase(bullet)
 	

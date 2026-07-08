@@ -85,6 +85,17 @@ func shoot() -> void:
 
 func take_damage(amount: int) -> void:
 	current_hp -= amount
+	
+	# スコア加算とダメージポップアップ
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var manager = main.get_node_or_null("GameManager")
+		if manager and manager.has_method("add_damage_score"):
+			manager.add_damage_score(amount)
+		var ui_node = main.get_node_or_null("UI")
+		if ui_node and ui_node.has_method("spawn_damage_popup"):
+			ui_node.spawn_damage_popup(global_position, amount)
+			
 	if current_hp <= 0:
 		explode()
 

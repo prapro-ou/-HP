@@ -48,14 +48,16 @@ func _on_body_entered(body: Node2D) -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
-	# 味方所有の弾で、ボスにぶつかった場合
+	# 味方所有の弾で、敵にぶつかった場合
 	if is_friendly:
-		# ボス本体や部位にダメージを与える
-		if area.is_in_group("boss") or area.name == "BossDamageShape":
-			if area.has_method("take_damage"):
-				area.take_damage(damage)
-			elif area.get_parent().has_method("take_damage"):
-				area.get_parent().take_damage(damage)
+		# ボス本体や部位、あるいはドローンなどの敵グループにぶつかった場合
+		if area.is_in_group("boss") or area.is_in_group("enemy") or area.is_in_group("drones") or area.name == "BossDamageShape":
+			var damage_target = area
+			if not area.has_method("take_damage") and area.get_parent().has_method("take_damage"):
+				damage_target = area.get_parent()
+				
+			if damage_target.has_method("take_damage"):
+				damage_target.take_damage(damage)
 			recycle_bullet()
 
 
@@ -66,13 +68,14 @@ func _process(delta: float) -> void:
 		var main = get_node_or_null("/root/Main")
 		if main:
 			var boss = main.get_node_or_null("Boss")
-			if is_instance_valid(boss):
+			# ボスが有効で、かつ画面に表示されている（＝ボス戦中）場合のみボスを追尾
+			if is_instance_valid(boss) and boss.visible:
 				var target_dir = (boss.global_position - global_position).normalized()
 				var target_velocity = target_dir * velocity.length()
 				# 旋回（Lerp）処理で追尾させる
 				velocity = velocity.lerp(target_velocity, delta * 10.0)
 			else:
-				# ボスがいなければ、画面上の適当な敵（ドローン）を追尾
+				# ボスが非アクティブ、または存在しない場合はドローンを追尾
 				var drones = get_tree().get_nodes_in_group("drones")
 				if drones.size() > 0:
 					var closest_drone = drones[0]

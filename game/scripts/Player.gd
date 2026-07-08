@@ -22,6 +22,14 @@ var cooldown_timer: float = 0.0
 var is_guarding: bool = false
 var space_was_pressed: bool = false  # 自前でのキー押下瞬間判定用
 
+# パリィリング演出用
+var parry_ring_radius: float = 0.0
+var parry_ring_alpha: float = 0.0
+var parried_in_current_frame: bool = false # 同一ガード期間内の演出重複防止
+
+# トドメ演出用フルバーストフラグ
+var is_full_burst: bool = false
+
 # 武器システム
 # - progress: 0~100 (解析率)
 # - level: 1 (通常), 2 (部位破壊による技術獲得で強化)
@@ -88,6 +96,7 @@ func _process(delta: float) -> void:
 		is_guarding = true
 		active_timer = parry_active_time
 		cooldown_timer = parry_cooldown
+		parried_in_current_frame = false # 新規ガード開始時にリセット
 	
 	# ガード中のパリィ判定
 	if is_guarding:
@@ -95,6 +104,19 @@ func _process(delta: float) -> void:
 	
 	# 状態によるプレイヤーの見た目の変更（フィードバック）
 	update_visual_state()
+	
+	# パリィリングの描画更新
+	if parry_ring_alpha > 0.0:
+		queue_redraw()
+		
+	# トドメ演出時のフルバースト射撃
+	if is_full_burst:
+		if not has_meta("last_burst_time"):
+			set_meta("last_burst_time", 0.0)
+		var current_time = Time.get_ticks_msec() / 1000.0
+		if current_time - get_meta("last_burst_time") > 0.06:
+			fire_full_burst()
+			set_meta("last_burst_time", current_time)
 
 
 func toggle_weapon() -> void:
@@ -176,11 +198,17 @@ func fire() -> void:
 
 func check_parry() -> void:
 	"""敵弾がジャストガード判定ウィンドウ内にあるかチェック"""
+	var parry_triggered_now = false
 	for bullet in enemy_bullets:
 		if is_instance_valid(bullet) and not bullet.is_friendly:
 			var dist = global_position.distance_to(bullet.global_position)
 			if dist <= parry_window_radius:
 				bullet.convert_to_friendly()
+				parry_triggered_now = true
+				
+	if parry_triggered_now and not parried_in_current_frame:
+		parried_in_current_frame = true
+		trigger_parry_feedback()
 
 
 func update_visual_state() -> void:
@@ -289,3 +317,132 @@ func spawn_popup_message(text: String) -> void:
 	tween.tween_property(label, "modulate:a", 0.0, 1.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.chain().tween_callback(label.queue_free)
 
+
+func trigger_parry_feedback() -> void:
+	# 1. 画面フラッシュ (水色)
+	trigger_screen_flash(Color(0.3, 0.8, 1.0, 0.45))
+	
+	# 2. ヒットストップ (0.12秒間スローモーション)
+	trigger_hit_stop(0.12, 0.05)
+	
+	# 3. シールド波紋リング
+	trigger_parry_ring_effect()
+	
+	# 4. ポップアップメッセージ
+	spawn_parry_popup_message("PARRY!")
+
+
+func trigger_hit_stop(duration_sec: float, scale: float) -> void:
+	Engine.time_scale = scale
+	# ignore_time_scale引数が無い古いGodotバージョンに対応するため、
+	# スロー倍率を掛け算した時間を指定して実時間待機を実現
+	var timer = get_tree().create_timer(duration_sec * scale, true)
+	timer.timeout.connect(func():
+		Engine.time_scale = 1.0
+	)
+
+
+func trigger_parry_ring_effect() -> void:
+	parry_ring_radius = 15.0
+	parry_ring_alpha = 0.9
+	queue_redraw()
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "parry_ring_radius", parry_window_radius * 1.4, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "parry_ring_alpha", 0.0, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+
+func spawn_parry_popup_message(text: String) -> void:
+	var label = Label.new()
+	label.text = text
+	
+	var settings = LabelSettings.new()
+	settings.font_size = 28 # 通常より大きく
+	settings.font_color = Color.GOLD # ゴールドで豪華に
+	settings.outline_size = 6
+	settings.outline_color = Color.BLACK
+	label.label_settings = settings
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	
+	label.global_position = global_position + Vector2(-200, -80)
+	label.custom_minimum_size = Vector2(400, 40)
+	
+	var main = get_node_or_null("/root/Main")
+	if main:
+		main.add_child(label)
+	else:
+		get_parent().add_child(label)
+	
+	# ポップアップのアニメーション（素早く拡大してフェードアウト）
+	label.scale = Vector2(0.5, 0.5)
+	label.pivot_offset = Vector2(200, 20)
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	# 拡大
+	tween.tween_property(label, "scale", Vector2(1.2, 1.2), 0.15).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	# 上昇
+	tween.tween_property(label, "global_position", label.global_position + Vector2(0, -90), 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# 遅れてフェードアウト
+	var fade_tween = create_tween()
+	fade_tween.tween_interval(0.4)
+	fade_tween.tween_property(label, "modulate:a", 0.0, 0.6)
+	
+	tween.chain().tween_callback(label.queue_free)
+
+
+func _draw() -> void:
+	if parry_ring_alpha > 0.0:
+		# シールドの円を描画
+		var color = Color(0.0, 0.9, 1.0, parry_ring_alpha)
+		draw_arc(Vector2.ZERO, parry_ring_radius, 0, TAU, 48, color, 4.0, true)
+		# 内側の塗りつぶし
+		var fill_color = Color(0.0, 0.8, 1.0, parry_ring_alpha * 0.15)
+		draw_circle(Vector2.ZERO, parry_ring_radius, fill_color)
+
+
+func fire_full_burst() -> void:
+	"""トドメ用のフルバースト射撃"""
+	if not PlayerBulletScene:
+		return
+		
+	var player_bullets_container = get_node_or_null("/root/Main/PlayerBullets")
+	var target_parent = player_bullets_container if player_bullets_container else get_parent()
+	
+	# ボスを狙う方向
+	var target_pos = Vector2(get_viewport_rect().size.x / 2.0, 160.0) # ボスの概算位置
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var boss_node = main.get_node_or_null("Boss")
+		if is_instance_valid(boss_node):
+			target_pos = boss_node.global_position
+			
+	var dir_to_boss = (target_pos - global_position).normalized()
+	
+	# 1. 強化レーザー (極太 Giga Laser)
+	var bullet_giga = PlayerBulletScene.instantiate()
+	bullet_giga.bullet_type = "giga_laser"
+	bullet_giga.global_position = global_position
+	bullet_giga.velocity = dir_to_boss * 2500.0
+	target_parent.add_child(bullet_giga)
+	
+	# 2. ハイパーミサイルを扇状に4発
+	var angles = [-25, -10, 10, 25]
+	for angle in angles:
+		var bullet_missile = PlayerBulletScene.instantiate()
+		bullet_missile.bullet_type = "hyper_missile"
+		bullet_missile.global_position = global_position + Vector2(angle * 1.5, 0)
+		bullet_missile.velocity = dir_to_boss.rotated(deg_to_rad(angle)) * 800.0
+		target_parent.add_child(bullet_missile)
+		
+	# 3. 解析ショットを大量にばらまく
+	for i in range(3):
+		var bullet_analysis = PlayerBulletScene.instantiate()
+		bullet_analysis.bullet_type = "analysis"
+		bullet_analysis.global_position = global_position + Vector2(randf_range(-30, 30), -20)
+		bullet_analysis.velocity = dir_to_boss.rotated(randf_range(-0.3, 0.3)) * 1200.0
+		target_parent.add_child(bullet_analysis)
+		
+	# 演出として画面フラッシュを小さく発生させる
+	trigger_screen_flash(Color(0.2, 0.8, 1.0, 0.1))
