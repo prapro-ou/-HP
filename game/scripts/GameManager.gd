@@ -15,6 +15,7 @@ var bullet_pool: Node2D
 var state: String = "start"
 
 var parry_count: int = 0
+var total_damage_score: int = 0
 var drone_scene = preload("res://game/scenes/enemy_drone.tscn")
 var spawned_drones: Array = []
 var state_timer: float = 0.0
@@ -169,6 +170,9 @@ func check_win_lose() -> void:
 		# ボス撃破検知: 爆発演出を見せるため遷移ステートへ移行し、画面の弾を消去
 		state = "victory_transition"
 		clear_all_bullets()
+		# 撃破の瞬間からプレイヤーをフルバースト状態にしてトドメ攻撃をさせる
+		if is_instance_valid(player):
+			player.is_full_burst = true
 
 
 func clear_all_bullets() -> void:
@@ -176,14 +180,14 @@ func clear_all_bullets() -> void:
 	if is_instance_valid(bullet_pool) and "active_bullets" in bullet_pool:
 		var active_copies = bullet_pool.active_bullets.duplicate()
 		for b in active_copies:
-			if is_instance_valid(b):
+			if is_instance_valid(b) and not b.is_queued_for_deletion():
 				bullet_pool.return_bullet(b)
 				
 	# プレイヤーの弾も画面から消す
 	var player_bullets_container = get_node_or_null("../PlayerBullets")
 	if player_bullets_container:
 		for child in player_bullets_container.get_children():
-			if is_instance_valid(child):
+			if is_instance_valid(child) and not child.is_queued_for_deletion():
 				child.queue_free()
 
 
@@ -226,9 +230,15 @@ func register_parry() -> void:
 	parry_count += 1
 
 
+func add_damage_score(amount: int) -> void:
+	total_damage_score += amount
+
+
 func on_boss_destroyed() -> void:
 	state = "victory"
 	clear_all_bullets()
+	if is_instance_valid(player):
+		player.is_full_burst = false
 	show_game_over("VICTORY")
 
 

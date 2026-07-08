@@ -260,7 +260,7 @@ func show_warning(title: String, subtitle: String) -> void:
 
 func show_game_over(result: String) -> void:
 	if has_node("GameOverPanel"):
-		return
+		get_node("GameOverPanel").queue_free()
 		
 	var panel = ColorRect.new()
 	panel.name = "GameOverPanel"
@@ -270,11 +270,10 @@ func show_game_over(result: String) -> void:
 	panel.process_mode = PROCESS_MODE_ALWAYS # 一時停止中もこのパネルは動作する
 	add_child(panel)
 	
-	# ゲーム全体を一時停止する
-	get_tree().paused = true
-	
 	var tween = create_tween()
-	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS) # 一時停止中でもアニメーションする設定
+	# UIノードがALWAYSなので自動で動くが、念のため安全にポーズ中の動作を設定
+	if tween.has_method("set_pause_mode"):
+		tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(panel, "color", Color(0.05, 0.05, 0.08, 0.85), 0.6)
 	
 	var container = VBoxContainer.new()
@@ -320,11 +319,46 @@ func show_game_over(result: String) -> void:
 	stats_label.label_settings = stats_settings
 	
 	var parries = 0
+	var score = 0
 	var game_manager = get_node_or_null("../GameManager")
 	if game_manager:
 		parries = game_manager.parry_count
-	stats_label.text = "TOTAL PARRIES EXTRACTED: %d\nTECHNOLOGY HARVEST: 100%%" % parries
+		if "total_damage_score" in game_manager:
+			score = game_manager.total_damage_score
+			
+	# %d, %% などのフォーマットを避け、文字列結合にすることでエラーを完全に回避
+	stats_label.text = "TOTAL PARRIES EXTRACTED: " + str(parries) + "\nTECHNOLOGY HARVEST: 100%"
 	container.add_child(stats_label)
+	
+	# スコア表示（大きく、派手に）
+	if result == "VICTORY":
+		var spacer_score = Control.new()
+		spacer_score.custom_minimum_size = Vector2(0, 15)
+		container.add_child(spacer_score)
+		
+		var score_title_label = Label.new()
+		score_title_label.text = "FINAL DAMAGE SCORE"
+		score_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var score_title_settings = LabelSettings.new()
+		score_title_settings.font_size = 16
+		score_title_settings.font_color = Color.GOLD
+		score_title_settings.outline_size = 4
+		score_title_settings.outline_color = Color.BLACK
+		score_title_label.label_settings = score_title_settings
+		container.add_child(score_title_label)
+		
+		var score_val_label = Label.new()
+		score_val_label.text = format_score(score)
+		score_val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var score_val_settings = LabelSettings.new()
+		score_val_settings.font_size = 46 # 超巨大
+		score_val_settings.font_color = Color(1.0, 0.85, 0.1) # ゴールドイエロー
+		score_val_settings.outline_size = 10
+		score_val_settings.outline_color = Color(0.1, 0.1, 0.3)
+		score_val_label.label_settings = score_val_settings
+		container.add_child(score_val_label)
+		
+		animate_score_count(score_val_label, score)
 	
 	var spacer2 = Control.new()
 	spacer2.custom_minimum_size = Vector2(0, 30)
@@ -366,5 +400,103 @@ func show_game_over(result: String) -> void:
 		get_tree().paused = false # リスタート前に一時停止を解除
 		if game_manager and game_manager.has_method("restart"):
 			game_manager.restart()
+	)
+	
+	# UIの組み立てが完了してから安全にポーズする
+	get_tree().paused = true
+
+
+func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> void:
+	var label = Label.new()
+	label.text = str(amount)
+	
+	var settings = LabelSettings.new()
+	if is_finish:
+		# トドメ演出時は超巨大でゴールド・オレンジ・赤でド派手に
+		settings.font_size = randi_range(56, 76)
+		settings.font_color = Color(1.0, randf_range(0.2, 0.6), 0.1) # ゴールド〜ビブラントオレンジ
+		settings.outline_size = 12
+		settings.outline_color = Color.BLACK
+	else:
+		# 通常時も大きめにする
+		settings.font_size = randi_range(24, 32)
+		if amount > 15:
+			settings.font_color = Color(1.0, 0.9, 0.2) # 明るいイエロー
+			settings.font_size = randi_range(30, 36)
+		else:
+			settings.font_color = Color.WHITE
+		settings.outline_size = 6
+		settings.outline_color = Color.BLACK
+		
+	label.label_settings = settings
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.pivot_offset = Vector2(100, 30) # サイズが大きくなったのでピボットも調整
+	
+	# 位置を少しばらけさせる
+	label.global_position = pos + Vector2(randf_range(-60, 60), randf_range(-40, 20))
+	add_child(label)
+	
+	# アニメーション
+	label.scale = Vector2(0.2, 0.2)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	# 飛び出すようなスケールアップ
+	tween.tween_property(label, "scale", Vector2(1.2, 1.2) if is_finish else Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# 上昇とランダムな左右への跳ね
+	var target_pos = label.global_position + Vector2(randf_range(-70, 70), -120)
+	tween.tween_property(label, "global_position", target_pos, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	# 遅れてフェードアウト
+	var fade_tween = create_tween()
+	fade_tween.tween_interval(0.5)
+	fade_tween.tween_property(label, "modulate:a", 0.0, 0.4)
+	
+	tween.chain().tween_callback(label.queue_free)
+
+
+func format_score(value: int) -> String:
+	# 3桁区切りの文字列に変換
+	var s = str(value)
+	var result = ""
+	var count = 0
+	for i in range(s.length() - 1, -1, -1):
+		if count > 0 and count % 3 == 0:
+			result = "," + result
+		result = s[i] + result
+		count += 1
+	return result
+
+
+func animate_score_count(label: Label, target_score: int) -> void:
+	# スコアが0以下の場合はアニメーションをスキップして直接0を表示
+	if target_score <= 0:
+		if is_instance_valid(label):
+			label.text = "0"
+		return
+		
+	label.scale = Vector2(0.8, 0.8)
+	label.pivot_offset = Vector2(200, 25)
+	
+	# Tweenで数値をカウントアップする
+	var tween = create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS) # 一時停止中も動くように
+	
+	# 型アノテーション(val: float)を削除して実行時エラーを防ぐ
+	tween.tween_method(func(val):
+		if is_instance_valid(label):
+			var int_val = int(val)
+			label.text = format_score(int_val)
+			# カウントアップ中に少しピクピク揺らすと派手になる
+			label.scale = Vector2(1.0, 1.0) + Vector2(randf_range(-0.04, 0.04), randf_range(-0.04, 0.04))
+	, 0.0, float(target_score), 1.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	
+	# 最後にピタッと止まり、少しバウンドして強調する
+	tween.chain().tween_callback(func():
+		if is_instance_valid(label):
+			label.text = format_score(target_score)
+			label.scale = Vector2(1.2, 1.2)
+			var bounce_tween = create_tween()
+			bounce_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+			bounce_tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	)
 

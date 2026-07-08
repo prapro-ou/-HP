@@ -209,9 +209,35 @@ func spawn_bullet(direction: Vector2, type: String, speed_override: float = 0.0,
 
 
 func take_damage_on_part(part_name: String, amount: int) -> void:
-	if not core_alive:
-		return
+	# コアが既に破壊されていても、撃破演出中ならダメージポップアップとスコア加算だけは処理する
+	var is_finish_phase = not core_alive
+	
+	# ダメージ適用位置
+	var pop_pos = global_position
+	if part_name == "laser" and is_instance_valid(laser_node):
+		pop_pos = laser_node.global_position
+	elif part_name == "missile" and is_instance_valid(missile_node):
+		pop_pos = missile_node.global_position
+	elif is_instance_valid(core_node):
+		pop_pos = core_node.global_position
 		
+	# スコアとポップアップの処理
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var manager = main.get_node_or_null("GameManager")
+		if manager and manager.has_method("add_damage_score"):
+			# トドメ演出中はダメージスコアを10倍にして爽快感を出す！
+			var score_add = amount * 10 if is_finish_phase else amount
+			manager.add_damage_score(score_add)
+			
+		var ui_node = main.get_node_or_null("UI")
+		if ui_node and ui_node.has_method("spawn_damage_popup"):
+			ui_node.spawn_damage_popup(pop_pos, amount * 10 if is_finish_phase else amount, is_finish_phase)
+
+	if is_finish_phase:
+		return # コア死亡後はHP減少や部位破壊処理は行わない
+		
+	# --- 通常時のダメージ処理 ---
 	match part_name:
 		"laser":
 			if laser_alive:
@@ -330,32 +356,50 @@ func spawn_explosion_particles(part_type: String) -> void:
 
 
 func destroy_boss() -> void:
+	# 移動を完全に停止
+	is_charging = false
+	charge_state = 0
+	current_move_speed = 0.0
+	
 	var ParryParticleScene = load("res://game/scenes/parry_particle.tscn")
 	var main_tree = get_tree()
 	if ParryParticleScene and main_tree:
-		for i in range(8):
-			main_tree.create_timer(i * 0.15).timeout.connect(func():
+		# 撃破中の連続爆発演出
+		for i in range(15): # 爆発数を増やして派手に
+			main_tree.create_timer(i * 0.12).timeout.connect(func():
 				if is_instance_valid(self):
 					var particle = ParryParticleScene.instantiate()
-					particle.global_position = global_position + Vector2(randf_range(-60, 60), randf_range(-60, 60))
+					particle.global_position = global_position + Vector2(randf_range(-80, 80), randf_range(-80, 80))
 					particle.scale = Vector2(3.5, 3.5)
-					particle.modulate = Color(1.0, randf_range(0.3, 0.8), 0.1)
+					particle.modulate = Color(1.0, randf_range(0.2, 0.7), 0.1)
 					get_parent().add_child(particle)
+					
+					# 被弾したような赤点滅
+					sprite.modulate = Color(1.0, 0.3, 0.3, 0.7)
+					var flash_tween = create_tween()
+					flash_tween.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 0.7), 0.08)
 			)
 			
-	main_tree.create_timer(1.5).timeout.connect(func():
+	# 2.2秒間プレイヤーのフルバーストを受け止めさせた後、大爆発とともに消滅
+	main_tree.create_timer(2.2).timeout.connect(func():
+		# 最後のトドメ大爆発
+		if ParryParticleScene and get_parent():
+			for j in range(8):
+				var p = ParryParticleScene.instantiate()
+				p.global_position = global_position + Vector2(randf_range(-120, 120), randf_range(-120, 120))
+				p.scale = Vector2(5.0, 5.0)
+				p.modulate = Color.CYAN
+				get_parent().add_child(p)
+				
 		var main = get_node_or_null("/root/Main")
 		if main:
 			var manager = main.get_node_or_null("GameManager")
 			if manager and manager.has_method("on_boss_destroyed"):
 				manager.on_boss_destroyed()
+		
+		# ここで初めてノードを削除
 		queue_free()
 	)
-	
-	visible = false
-	if is_instance_valid(laser_node): laser_node.queue_free()
-	if is_instance_valid(missile_node): missile_node.queue_free()
-	if is_instance_valid(core_node): core_node.queue_free()
 
 
 func get_current_hp() -> int:
