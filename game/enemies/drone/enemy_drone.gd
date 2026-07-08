@@ -106,7 +106,7 @@ func explode() -> void:
 		player.advance_analysis(drone_type, 15)
 		
 	# 爆破エフェクト発生
-	var ParryParticleScene = load("res://game/scenes/parry_particle.tscn")
+	var ParryParticleScene = load("res://game/bullets/parry_particle.tscn")
 	if ParryParticleScene:
 		var particle = ParryParticleScene.instantiate()
 		particle.global_position = global_position

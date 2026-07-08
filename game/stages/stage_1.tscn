@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/enemies/boss/boss.tscn" id="1_boss"]
+
+[node name="Stage1" type="Node2D"]
+
+[node name="Boss" parent="." instance=ExtResource("1_boss")]
+position = Vector2(397, 192)

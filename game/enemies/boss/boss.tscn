@@ -1,8 +1,8 @@
 [gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://game/scripts/Boss.gd" id="1_script"]
+[ext_resource type="Script" path="res://game/enemies/boss/boss.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://game/assets/enemy.png" id="2_texture"]
-[ext_resource type="Script" path="res://game/scripts/BossPart.gd" id="3_part_script"]
+[ext_resource type="Script" path="res://game/enemies/boss/boss_part.gd" id="3_part_script"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_core"]
 size = Vector2(80, 80)

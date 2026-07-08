@@ -41,8 +41,8 @@ var target_charge_x: float = 0.0
 
 
 func _ready() -> void:
-	bullet_pool = get_node_or_null("../BulletPool")
-	player = get_node_or_null("../Player")
+	bullet_pool = get_node_or_null("/root/Main/BulletPool")
+	player = get_node_or_null("/root/Main/Player")
 	choose_new_target()
 	
 	# ボスを enemy グループに入れて、プレイヤーのミサイルが追尾するようにする
@@ -345,7 +345,7 @@ func spawn_explosion_particles(part_type: String) -> void:
 		pos = missile_node.global_position
 		part_color = Color.VIOLET
 		
-	var ParryParticleScene = load("res://game/scenes/parry_particle.tscn")
+	var ParryParticleScene = load("res://game/bullets/parry_particle.tscn")
 	if ParryParticleScene:
 		for i in range(3):
 			var particle = ParryParticleScene.instantiate()
@@ -361,7 +361,7 @@ func destroy_boss() -> void:
 	charge_state = 0
 	current_move_speed = 0.0
 	
-	var ParryParticleScene = load("res://game/scenes/parry_particle.tscn")
+	var ParryParticleScene = load("res://game/bullets/parry_particle.tscn")
 	var main_tree = get_tree()
 	if ParryParticleScene and main_tree:
 		# 撃破中の連続爆発演出

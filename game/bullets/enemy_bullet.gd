@@ -11,7 +11,7 @@ var velocity: Vector2 = Vector2.ZERO
 var is_friendly: bool = false  # true = プレイヤー所有、false = 敵所有
 var bullet_type: String = "beam"  # "beam", "missile", "boss_laser", "boss_missile"
 
-var ParryParticleScene = preload("res://game/scenes/parry_particle.tscn")
+var ParryParticleScene = preload("res://game/bullets/parry_particle.tscn")
 
 
 

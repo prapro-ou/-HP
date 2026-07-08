@@ -40,7 +40,7 @@ var weapons: Dictionary = {
 var current_weapon: String = "none" # "none", "beam", "missile"
 var toggle_key_pressed: bool = false
 
-var PlayerBulletScene = preload("res://game/scenes/player_bullet.tscn")
+var PlayerBulletScene = preload("res://game/player/player_bullet.tscn")
 
 
 func _ready() -> void:
