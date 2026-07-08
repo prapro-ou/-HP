@@ -431,6 +431,30 @@ func show_game_over(result: String) -> void:
 			game_manager.restart()
 	)
 	
+	# メインメニューに戻るボタン
+	var menu_btn = Button.new()
+	menu_btn.text = "RETURN TO CORE SYSTEM"
+	menu_btn.custom_minimum_size = Vector2(250, 50)
+	menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	
+	menu_btn.add_theme_color_override("font_color", Color.WHITE)
+	menu_btn.add_theme_color_override("font_hover_color", Color.BLACK)
+	menu_btn.add_theme_color_override("font_pressed_color", Color.BLACK)
+	menu_btn.add_theme_stylebox_override("normal", style_normal)
+	menu_btn.add_theme_stylebox_override("hover", style_hover)
+	menu_btn.add_theme_stylebox_override("pressed", style_hover)
+	menu_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	
+	var spacer_menu = Control.new()
+	spacer_menu.custom_minimum_size = Vector2(0, 10)
+	container.add_child(spacer_menu)
+	container.add_child(menu_btn)
+	
+	menu_btn.pressed.connect(func():
+		get_tree().paused = false # 一時停止を解除
+		get_tree().change_scene_to_file("res://game/core/main_menu.tscn")
+	)
+	
 	# UIの組み立てが完了してから安全にポーズする
 	get_tree().paused = true
 

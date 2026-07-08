@@ -34,8 +34,35 @@ func _ready() -> void:
 	if bullet_pool:
 		player.enemy_bullets = bullet_pool.active_bullets
 		
-	# 最初のステージをロード
-	load_stage("res://game/stages/stage_1.tscn", 1)
+	# 続きから始める場合、セーブデータをロードして反映する
+	if Global.is_continue and Global.has_save:
+		var save_data = Global.load_game_data()
+		current_stage_num = save_data.get("stage_num", 1)
+		total_damage_score = save_data.get("score", 0)
+		
+		var saved_weapons = save_data.get("weapons", {})
+		if player and not saved_weapons.is_empty():
+			# 武器の解析状況を復元
+			for w_name in saved_weapons.keys():
+				if w_name in player.weapons:
+					player.weapons[w_name]["analyzed"] = saved_weapons[w_name].get("analyzed", false)
+					player.weapons[w_name]["progress"] = saved_weapons[w_name].get("progress", 0.0)
+					player.weapons[w_name]["level"] = saved_weapons[w_name].get("level", 1)
+			
+			# 既に解析済みの武器があれば初期選択状態にする
+			if player.weapons["beam"]["analyzed"]:
+				player.current_weapon = "beam"
+			elif player.weapons["missile"]["analyzed"]:
+				player.current_weapon = "missile"
+		
+		var stage_path = "res://game/stages/stage_" + str(current_stage_num) + ".tscn"
+		if not ResourceLoader.exists(stage_path):
+			stage_path = "res://game/stages/stage_1.tscn"
+			current_stage_num = 1
+		load_stage(stage_path, current_stage_num)
+	else:
+		# 初めから開始
+		load_stage("res://game/stages/stage_1.tscn", 1)
 
 
 func load_stage(stage_path: String, stage_num: int = 1) -> void:
@@ -61,6 +88,10 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 		boss.process_mode = PROCESS_MODE_DISABLED
 	else:
 		boss = null
+		
+	# ステージがロードされたタイミングでセーブデータを書き出す
+	if player:
+		Global.save_game(current_stage_num, total_damage_score, player.weapons)
 		
 	# シーン開始
 	state = "wave1"
