@@ -6,7 +6,7 @@ extends Node2D
 
 var bullet_pool: Array = []
 var active_bullets: Array = []  # 現在画面上に存在するアクティブな弾のリスト
-var bullet_scene: PackedScene = preload("res://game/scenes/enemy_bullet.tscn")
+var bullet_scene: PackedScene = preload("res://game/bullets/enemy_bullet.tscn")
 
 
 func _ready() -> void:

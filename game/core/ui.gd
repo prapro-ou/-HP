@@ -364,11 +364,6 @@ func show_game_over(result: String) -> void:
 	spacer2.custom_minimum_size = Vector2(0, 30)
 	container.add_child(spacer2)
 	
-	var retry_btn = Button.new()
-	retry_btn.text = "RESTART INTERFACE"
-	retry_btn.custom_minimum_size = Vector2(250, 50)
-	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	
 	var theme_color = Color.CYAN if result == "VICTORY" else Color.ORANGE_RED
 	
 	var style_normal = StyleBoxFlat.new()
@@ -385,6 +380,40 @@ func show_game_over(result: String) -> void:
 	
 	var style_hover = style_normal.duplicate()
 	style_hover.bg_color = theme_color
+	
+	# 勝利時は「次のステージへ」ボタンを表示
+	if result == "VICTORY":
+		var next_btn = Button.new()
+		next_btn.text = "PROCEED TO NEXT STAGE"
+		next_btn.custom_minimum_size = Vector2(250, 50)
+		next_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		
+		next_btn.add_theme_color_override("font_color", Color.WHITE)
+		next_btn.add_theme_color_override("font_hover_color", Color.BLACK)
+		next_btn.add_theme_color_override("font_pressed_color", Color.BLACK)
+		next_btn.add_theme_stylebox_override("normal", style_normal)
+		next_btn.add_theme_stylebox_override("hover", style_hover)
+		next_btn.add_theme_stylebox_override("pressed", style_hover)
+		next_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+		
+		container.add_child(next_btn)
+		
+		next_btn.pressed.connect(func():
+			get_tree().paused = false # ポーズ解除
+			if game_manager and game_manager.has_method("load_next_stage"):
+				game_manager.load_next_stage()
+			panel.queue_free() # パネル消去
+		)
+		
+		# ボタン間のスペース
+		var spacer_btn = Control.new()
+		spacer_btn.custom_minimum_size = Vector2(0, 10)
+		container.add_child(spacer_btn)
+
+	var retry_btn = Button.new()
+	retry_btn.text = "RESTART INTERFACE" if result == "DEFEAT" else "RESTART SYSTEM"
+	retry_btn.custom_minimum_size = Vector2(250, 50)
+	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	
 	retry_btn.add_theme_color_override("font_color", Color.WHITE)
 	retry_btn.add_theme_color_override("font_hover_color", Color.BLACK)

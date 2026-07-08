@@ -11,29 +11,56 @@ var boss: Node2D
 var ui: Control
 var bullet_pool: Node2D
 
+# ステージ管理用
+@onready var stage_container = get_node("../StageContainer")
+var current_stage: Node2D = null
+var current_stage_num: int = 1
+
 # ステート: "start", "wave1", "wave2", "interlude", "boss", "victory", "defeat"
 var state: String = "start"
 
 var parry_count: int = 0
 var total_damage_score: int = 0
-var drone_scene = preload("res://game/scenes/enemy_drone.tscn")
+var drone_scene = preload("res://game/enemies/drone/enemy_drone.tscn")
 var spawned_drones: Array = []
 var state_timer: float = 0.0
 
 
 func _ready() -> void:
 	player = get_node("../Player")
-	boss = get_node("../Boss")
 	ui = get_node("../UI")
 	bullet_pool = get_node_or_null("../BulletPool")
 	
 	if bullet_pool:
 		player.enemy_bullets = bullet_pool.active_bullets
 		
-	# 初期状態設定: ボスは非アクティブ
-	if boss:
+	# 最初のステージをロード
+	load_stage("res://game/stages/stage_1.tscn", 1)
+
+
+func load_stage(stage_path: String, stage_num: int = 1) -> void:
+	current_stage_num = stage_num
+	
+	# 既存のステージがあればクリーンアップ
+	if is_instance_valid(current_stage):
+		current_stage.queue_free()
+		await get_tree().process_frame
+		
+	var stage_scene = load(stage_path)
+	if not stage_scene:
+		print("Failed to load stage scene: ", stage_path)
+		return
+		
+	current_stage = stage_scene.instantiate()
+	stage_container.add_child(current_stage)
+	
+	# ロードしたステージからボスを取得
+	if current_stage.has_node("Boss"):
+		boss = current_stage.get_node("Boss")
 		boss.visible = false
 		boss.process_mode = PROCESS_MODE_DISABLED
+	else:
+		boss = null
 		
 	# シーン開始
 	state = "wave1"
@@ -41,6 +68,26 @@ func _ready() -> void:
 	get_tree().create_timer(1.0).timeout.connect(func():
 		spawn_wave1()
 	)
+
+
+func load_next_stage() -> void:
+	# 画面上の弾を全て消去
+	clear_all_bullets()
+	
+	# プレイヤーのHP全回復、状態リセット（武器解析データはそのまま維持される）
+	if is_instance_valid(player):
+		player.current_hp = player.max_hp
+		player.is_full_burst = false
+		
+	var next_num = current_stage_num + 1
+	var next_path = "res://game/stages/stage_" + str(next_num) + ".tscn"
+	
+	if ResourceLoader.exists(next_path):
+		load_stage(next_path, next_num)
+	else:
+		# 次のステージが存在しない場合は、全クリアとしてステージ1へループ
+		load_stage("res://game/stages/stage_1.tscn", 1)
+
 
 
 func spawn_wave1() -> void:
