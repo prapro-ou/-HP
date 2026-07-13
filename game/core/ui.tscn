@@ -1,0 +1,152 @@
+[gd_scene load_steps=2 format=3 uid="uid://ui_scene_file"]
+
+[ext_resource type="Script" path="res://game/core/ui.gd" id="1_ui"]
+
+[node name="UI" type="CanvasLayer"]
+process_mode = 3
+script = ExtResource("1_ui")
+
+[node name="FlashOverlay" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="PlayerHPLabel" type="Label" parent="."]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 270.0
+offset_top = 20.0
+text = "PLAYER VITAL"
+
+[node name="PlayerHPBar" type="ProgressBar" parent="."]
+offset_left = 20.0
+offset_top = 40.0
+offset_right = 270.0
+offset_bottom = 60.0
+show_percentage = false
+
+[node name="BossHPLabel" type="Label" parent="."]
+visible = false
+offset_left = 430.0
+offset_top = 20.0
+offset_right = 780.0
+offset_bottom = 43.0
+text = "ANCIENT DEFENDER"
+horizontal_alignment = 2
+
+[node name="BossHPBar" type="ProgressBar" parent="."]
+visible = false
+offset_left = 430.0
+offset_top = 40.0
+offset_right = 780.0
+offset_bottom = 64.0
+show_percentage = false
+
+[node name="ParryCountLabel" type="Label" parent="."]
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 270.0
+offset_bottom = 103.0
+text = "EXTRACTED PARRIES: 0"
+
+[node name="GuardStatusLabel" type="Label" parent="."]
+offset_left = 20.0
+offset_top = 105.0
+offset_right = 270.0
+offset_bottom = 128.0
+text = "SHIELD SYSTEM: READY (SPACE)"
+
+[node name="BossEnergyLabel" type="Label" parent="."]
+offset_left = 430.0
+offset_top = 75.0
+offset_right = 780.0
+offset_bottom = 120.0
+horizontal_alignment = 2
+
+[node name="WarningTitle" type="Label" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "WARNING"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WarningSubtitle" type="Label" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -10.0
+offset_right = 250.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "BOSS INCOMING"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BeamSlot" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -90.0
+offset_right = 350.0
+offset_bottom = -60.0
+grow_vertical = 0
+
+[node name="Label" type="Label" parent="BeamSlot"]
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 23.0
+text = "BEAM SYSTEM [0%]"
+
+[node name="ProgressBar" type="ProgressBar" parent="BeamSlot"]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 310.0
+offset_bottom = 12.0
+show_percentage = false
+
+[node name="MissileSlot" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -50.0
+offset_right = 350.0
+offset_bottom = -20.0
+grow_vertical = 0
+
+[node name="Label" type="Label" parent="MissileSlot"]
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 23.0
+text = "MISSILE SYSTEM [0%]"
+
+[node name="ProgressBar" type="ProgressBar" parent="MissileSlot"]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 310.0
+offset_bottom = 12.0
+show_percentage = false

@@ -332,4 +332,3 @@ func show_game_over(result: String) -> void:
 
 func restart() -> void:
 	get_tree().reload_current_scene()
-

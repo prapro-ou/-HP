@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dmua6sakwpwly" path="res://game/player/player.tscn" id="2_player"]
 [ext_resource type="Script" uid="uid://d0n03n6pyyjw7" path="res://game/core/game_manager.gd" id="3_gamemanager"]
-[ext_resource type="Script" uid="uid://f6xtgega3g1g" path="res://game/core/ui.gd" id="4_ui"]
+[ext_resource type="PackedScene" path="res://game/core/ui.tscn" id="4_ui"]
 [ext_resource type="Script" uid="uid://b6t1x3undf74f" path="res://game/core/bullet_pool.gd" id="5_bulletpool"]
 
 [node name="Main" type="Node2D" unique_id=1066061339]
@@ -14,11 +14,7 @@ position = Vector2(397, 869)
 [node name="GameManager" type="Node2D" parent="." unique_id=1905154916]
 script = ExtResource("3_gamemanager")
 
-[node name="UI" type="Control" parent="." unique_id=276748966]
-layout_mode = 3
-anchors_preset = 0
-script = ExtResource("4_ui")
-metadata/_edit_use_anchors_ = true
+[node name="UI" parent="." unique_id=1027253514 instance=ExtResource("4_ui")]
 
 [node name="BulletPool" type="Node2D" parent="." unique_id=1814555887]
 script = ExtResource("5_bulletpool")

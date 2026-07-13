@@ -1,13 +1,11 @@
-extends Area2D
-## 雑魚敵（ドローン）スクリプト
+extends BaseEnemy
+## 雑魚敵（ドローン）スクリプト - BaseEnemyを継承
 ## - 出現後、一定高度まで下降して左右にホバリング
 ## - タイプ（beam / missile）に応じた攻撃パターン
 ## - 撃破時に対応する解析度をアップ
 
 @export var drone_type: String = "beam"  # "beam" または "missile"
-@export var max_hp: int = 12
 
-var current_hp: int
 var target_y: float = 200.0
 var speed: float = 150.0
 var shoot_interval: float = 2.0
@@ -17,9 +15,7 @@ var bullet_pool: Node2D
 var player: CharacterBody2D
 
 
-func _ready() -> void:
-	current_hp = max_hp
-	add_to_group("enemy")
+func _ready_enemy() -> void:
 	add_to_group("drones")
 	
 	# タイプごとにカラーリングを変更
@@ -83,35 +79,11 @@ func shoot() -> void:
 			bullet.set_direction(dir, 160.0)
 
 
-func take_damage(amount: int) -> void:
-	current_hp -= amount
-	
-	# スコア加算とダメージポップアップ
-	var main = get_node_or_null("/root/Main")
-	if main:
-		var manager = main.get_node_or_null("GameManager")
-		if manager and manager.has_method("add_damage_score"):
-			manager.add_damage_score(amount)
-		var ui_node = main.get_node_or_null("UI")
-		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(global_position, amount)
-			
-	if current_hp <= 0:
-		explode()
-
-
-func explode() -> void:
+## 被撃破時の拡張処理
+func die() -> void:
 	# プレイヤーの解析度を進める（撃破ボーナス: +15%）
 	if is_instance_valid(player) and player.has_method("advance_analysis"):
 		player.advance_analysis(drone_type, 15)
-		
-	# 爆破エフェクト発生
-	var ParryParticleScene = load("res://game/bullets/parry_particle.tscn")
-	if ParryParticleScene:
-		var particle = ParryParticleScene.instantiate()
-		particle.global_position = global_position
-		particle.modulate = modulate
-		get_parent().add_child(particle)
 		
 	# GameManager に撃破を通知
 	var main = get_node_or_null("/root/Main")
@@ -120,4 +92,5 @@ func explode() -> void:
 		if manager and manager.has_method("on_drone_destroyed"):
 			manager.on_drone_destroyed(self)
 			
-	queue_free()
+	# ベースクラスの共通処理（爆発・ノード削除）を呼ぶ
+	super.die()
