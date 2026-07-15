@@ -6,6 +6,7 @@ const SETTINGS_PATH = "user://settings.cfg"
 # Save Game variables
 var is_continue: bool = false
 var has_save: bool = false
+var selected_stage: int = 1
 
 # Settings variables
 var master_volume: float = 80.0
@@ -30,6 +31,12 @@ func check_save_game() -> void:
 
 func save_game(stage_num: int, score: int, weapons: Dictionary) -> void:
 	var config = ConfigFile.new()
+	var current_max = 1
+	var current_data = load_game_data()
+	current_max = current_data.get("max_unlocked_stage", 1)
+	var new_max = max(current_max, stage_num)
+	
+	config.set_value("game", "max_unlocked_stage", new_max)
 	config.set_value("game", "stage_num", stage_num)
 	config.set_value("game", "score", score)
 	config.set_value("game", "weapons", weapons)
@@ -40,11 +47,13 @@ func load_game_data() -> Dictionary:
 	var config = ConfigFile.new()
 	var data = {
 		"stage_num": 1,
+		"max_unlocked_stage": 1,
 		"score": 0,
 		"weapons": {}
 	}
 	if config.load(SAVE_PATH) == OK:
 		data["stage_num"] = config.get_value("game", "stage_num", 1)
+		data["max_unlocked_stage"] = config.get_value("game", "max_unlocked_stage", 1)
 		data["score"] = config.get_value("game", "score", 0)
 		data["weapons"] = config.get_value("game", "weapons", {})
 	return data
