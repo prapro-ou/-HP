@@ -44,6 +44,7 @@ var pre_battle_back_btn: Button
 
 # Settings UI inputs
 var mode_option: OptionButton
+var lang_option: OptionButton
 var vsync_check: CheckButton
 var shake_check: CheckButton
 var master_slider: HSlider
@@ -69,6 +70,9 @@ func _ready() -> void:
 	
 	# Load settings data into UI
 	sync_settings_to_ui()
+	
+	# Translate strings init
+	translate_ui()
 	
 	# Animation entry
 	animate_menu_entry()
@@ -122,10 +126,9 @@ func setup_layout() -> void:
 	
 	# Subtitle
 	subtitle_label = Label.new()
-	subtitle_label.text = "PARRY TO ANALYZE - SURVIVE THE BULLETS"
 	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var sub_set = LabelSettings.new()
-	sub_set.font_size = 14
+	sub_set.font_size = 18
 	sub_set.font_color = Color.GOLD
 	sub_set.outline_size = 4
 	sub_set.outline_color = Color.BLACK
@@ -162,7 +165,6 @@ func setup_menu_container() -> void:
 	
 	# Start Game Button (Stage Select Screen)
 	new_game_btn = Button.new()
-	new_game_btn.text = "ゲーム開始 / START GAME"
 	new_game_btn.custom_minimum_size = Vector2(320, 60)
 	new_game_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_container.add_child(new_game_btn)
@@ -171,7 +173,6 @@ func setup_menu_container() -> void:
 	
 	# Settings Button
 	settings_btn = Button.new()
-	settings_btn.text = "環境設定 / SETTINGS"
 	settings_btn.custom_minimum_size = Vector2(320, 60)
 	settings_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_container.add_child(settings_btn)
@@ -180,7 +181,6 @@ func setup_menu_container() -> void:
 	
 	# Quit Button
 	quit_btn = Button.new()
-	quit_btn.text = "ゲーム終了 / QUIT"
 	quit_btn.custom_minimum_size = Vector2(320, 60)
 	quit_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_container.add_child(quit_btn)
@@ -195,7 +195,7 @@ func setup_menu_container() -> void:
 func setup_settings_container() -> void:
 	settings_container = PanelContainer.new()
 	settings_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_container.custom_minimum_size = Vector2(480, 600)
+	settings_container.custom_minimum_size = Vector2(480, 620)
 	settings_container.hide()
 	main_vbox.add_child(settings_container)
 	
@@ -229,7 +229,7 @@ func setup_settings_container() -> void:
 	settings_title.text = "環境設定 - SETTINGS"
 	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 22
+	title_set.font_size = 26
 	title_set.font_color = Color(0.9, 0.6, 1.0)
 	title_set.outline_size = 4
 	title_set.outline_color = Color.BLACK
@@ -248,9 +248,9 @@ func setup_settings_container() -> void:
 	
 	# DISPLAY
 	var d_title = Label.new()
-	d_title.text = "画面設定 / DISPLAY"
+	d_title.text = "画面・言語設定 / DISPLAY & LANGUAGE"
 	var sec_set = LabelSettings.new()
-	sec_set.font_size = 14
+	sec_set.font_size = 18
 	sec_set.font_color = Color.CYAN
 	d_title.label_settings = sec_set
 	scroll_content.add_child(d_title)
@@ -261,6 +261,15 @@ func setup_settings_container() -> void:
 	grid_display.add_theme_constant_override("v_separation", 12)
 	scroll_content.add_child(grid_display)
 	
+	# Language Option
+	grid_display.add_child(create_label("表示言語 (Language):"))
+	lang_option = OptionButton.new()
+	lang_option.add_item("日本語 / Japanese", 0)
+	lang_option.add_item("English", 1)
+	lang_option.custom_minimum_size = Vector2(200, 32)
+	grid_display.add_child(lang_option)
+	
+	# Window Mode Option
 	grid_display.add_child(create_label("画面モード (Window Mode):"))
 	mode_option = OptionButton.new()
 	mode_option.add_item("ウィンドウ / Windowed", 0)
@@ -346,13 +355,11 @@ func setup_settings_container() -> void:
 	scroll_content.add_child(s_title)
 	
 	reset_btn = Button.new()
-	reset_btn.text = "セーブデータを初期化する / RESET SAVE DATA"
 	reset_btn.custom_minimum_size = Vector2(300, 36)
 	style_button(reset_btn, Color(0.9, 0.2, 0.2), Color(1.0, 0.4, 0.4))
 	scroll_content.add_child(reset_btn)
 	
 	back_btn = Button.new()
-	back_btn.text = "適用して戻る / SAVE & BACK"
 	back_btn.custom_minimum_size = Vector2(250, 48)
 	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	content.add_child(back_btn)
@@ -360,6 +367,7 @@ func setup_settings_container() -> void:
 	add_button_animations(back_btn)
 	
 	# Connect signals
+	lang_option.item_selected.connect(_on_language_changed)
 	mode_option.item_selected.connect(_on_display_mode_changed)
 	vsync_check.toggled.connect(func(t): Global.vsync = t)
 	shake_check.toggled.connect(func(t): Global.screen_shake = t)
@@ -418,10 +426,10 @@ func setup_stage_select_container() -> void:
 	
 	# Title
 	var select_title = Label.new()
-	select_title.text = "STAGE SELECT / 作戦領域選択"
+	select_title.name = "TitleLabel"
 	select_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 22
+	title_set.font_size = 26
 	title_set.font_color = Color(0.3, 0.8, 1.0)
 	title_set.outline_size = 4
 	title_set.outline_color = Color.BLACK
@@ -434,7 +442,6 @@ func setup_stage_select_container() -> void:
 	
 	# Stage 1 Button
 	stage1_btn = Button.new()
-	stage1_btn.text = "STAGE 01\nBEAM & MISSILE DRONES"
 	stage1_btn.custom_minimum_size = Vector2(360, 70)
 	style_button(stage1_btn, Color.CYAN, Color(0.5, 0.9, 1.0))
 	add_button_animations(stage1_btn)
@@ -443,7 +450,6 @@ func setup_stage_select_container() -> void:
 	
 	# Stage 2 Button
 	stage2_btn = Button.new()
-	stage2_btn.text = "STAGE 02\nANCIENT GUARDIAN"
 	stage2_btn.custom_minimum_size = Vector2(360, 70)
 	style_button(stage2_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
 	add_button_animations(stage2_btn)
@@ -456,7 +462,6 @@ func setup_stage_select_container() -> void:
 	
 	# Back Button
 	stage_back_btn = Button.new()
-	stage_back_btn.text = "メインメニューに戻る / BACK"
 	stage_back_btn.custom_minimum_size = Vector2(250, 48)
 	stage_back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	style_button(stage_back_btn, Color.LIGHT_GRAY, Color.WHITE)
@@ -499,10 +504,10 @@ func setup_pre_battle_container() -> void:
 	
 	# Title
 	var briefing_title = Label.new()
-	briefing_title.text = "MISSION BRIEFING / 作戦指令"
+	briefing_title.name = "TitleLabel"
 	briefing_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 22
+	title_set.font_size = 26
 	title_set.font_color = Color(1.0, 0.7, 0.2)
 	title_set.outline_size = 4
 	title_set.outline_color = Color.BLACK
@@ -530,7 +535,7 @@ func setup_pre_battle_container() -> void:
 	briefing_label = Label.new()
 	briefing_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var b_set = LabelSettings.new()
-	b_set.font_size = 13
+	b_set.font_size = 16
 	b_set.line_spacing = 6
 	briefing_label.label_settings = b_set
 	detail_vbox.add_child(briefing_label)
@@ -543,7 +548,7 @@ func setup_pre_battle_container() -> void:
 	player_status_label = Label.new()
 	player_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var s_set = LabelSettings.new()
-	s_set.font_size = 12
+	s_set.font_size = 15
 	s_set.font_color = Color(0.6, 0.9, 1.0)
 	s_set.line_spacing = 4
 	player_status_label.label_settings = s_set
@@ -555,7 +560,6 @@ func setup_pre_battle_container() -> void:
 	content.add_child(actions)
 	
 	launch_btn = Button.new()
-	launch_btn.text = "🖥️ 出撃開始 / LAUNCH"
 	launch_btn.custom_minimum_size = Vector2(200, 50)
 	style_button(launch_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
 	add_button_animations(launch_btn)
@@ -563,7 +567,6 @@ func setup_pre_battle_container() -> void:
 	launch_btn.pressed.connect(_on_launch_pressed)
 	
 	pre_battle_back_btn = Button.new()
-	pre_battle_back_btn.text = "戻る / CANCEL"
 	pre_battle_back_btn.custom_minimum_size = Vector2(160, 50)
 	style_button(pre_battle_back_btn, Color.LIGHT_GRAY, Color.WHITE)
 	add_button_animations(pre_battle_back_btn)
@@ -662,7 +665,7 @@ func create_label(text: String) -> Label:
 	var l = Label.new()
 	l.text = text
 	var l_set = LabelSettings.new()
-	l_set.font_size = 13
+	l_set.font_size = 16
 	l_set.font_color = Color.LIGHT_GRAY
 	l.label_settings = l_set
 	return l
@@ -727,6 +730,7 @@ func style_button(btn: Button, normal_color: Color, hover_color: Color) -> void:
 	btn.add_theme_color_override("font_color", Color.WHITE)
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
 	btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.4))
+	btn.add_theme_font_size_override("font_size", 18)
 
 func add_button_animations(btn: Button) -> void:
 	btn.mouse_entered.connect(func():
@@ -742,7 +746,41 @@ func add_button_animations(btn: Button) -> void:
 
 # ----------------- Interactive Handling -----------------
 
+func translate_ui() -> void:
+	# Titles
+	subtitle_label.text = Global.tr("menu_subtitle")
+	
+	# Main Buttons
+	new_game_btn.text = Global.tr("btn_start_game")
+	settings_btn.text = Global.tr("btn_settings")
+	quit_btn.text = Global.tr("btn_quit")
+	
+	# Settings Buttons
+	back_btn.text = Global.tr("btn_save_back")
+	reset_btn.text = Global.tr("btn_reset_save")
+	
+	# Stage Select Title
+	if stage_select_container:
+		var st_label = stage_select_container.get_node("MarginContainer/VBoxContainer/TitleLabel")
+		if st_label:
+			st_label.text = Global.tr("stage_select_title")
+		stage_back_btn.text = Global.tr("btn_stage_back")
+		refresh_stage_select()
+		
+	# Briefing Title & Buttons
+	if pre_battle_container:
+		var br_label = pre_battle_container.get_node("MarginContainer/VBoxContainer/TitleLabel")
+		if br_label:
+			br_label.text = Global.tr("briefing_title")
+		launch_btn.text = Global.tr("btn_launch")
+		pre_battle_back_btn.text = Global.tr("btn_cancel")
+		
+		# If briefing screen is visible, refresh its specific stage contents
+		if pre_battle_container.visible:
+			_on_stage_selected(Global.selected_stage)
+
 func sync_settings_to_ui() -> void:
+	lang_option.selected = 0 if Global.language == "ja" else 1
 	mode_option.selected = Global.window_mode
 	vsync_check.button_pressed = Global.vsync
 	shake_check.button_pressed = Global.screen_shake
@@ -755,6 +793,11 @@ func sync_settings_to_ui() -> void:
 	
 	sfx_slider.value = Global.sfx_volume
 	sfx_lbl.text = str(int(Global.sfx_volume)) + "%"
+
+func _on_language_changed(idx: int) -> void:
+	Global.language = "ja" if idx == 0 else "en"
+	Global.save_settings()
+	translate_ui()
 
 func _on_new_game_pressed() -> void:
 	refresh_stage_select()
@@ -806,12 +849,14 @@ func refresh_stage_select() -> void:
 	var save_data = Global.load_game_data()
 	var max_unlocked = save_data.get("max_unlocked_stage", 1)
 	
+	stage1_btn.text = Global.tr("stage_01_name")
+	
 	if max_unlocked >= 2:
 		stage2_btn.disabled = false
-		stage2_btn.text = "STAGE 02\nANCIENT GUARDIAN"
+		stage2_btn.text = Global.tr("stage_02_name")
 	else:
 		stage2_btn.disabled = true
-		stage2_btn.text = "🔒 STAGE 02\n[LOCKED - CLEAR STAGE 01]"
+		stage2_btn.text = Global.tr("stage_02_locked")
 
 func _on_stage_back_pressed() -> void:
 	var tween = create_tween().set_parallel(true)
@@ -829,41 +874,31 @@ func _on_stage_back_pressed() -> void:
 func _on_stage_selected(stage_num: int) -> void:
 	Global.selected_stage = stage_num
 	
-	# Briefing text setup
-	var briefing_text = ""
-	if stage_num == 1:
-		briefing_text = "【領域】 作戦区域 01: ドローン警備網\n"
-		briefing_text += "【脅威】 ビームドローン / ミサイルドローン\n\n"
-		briefing_text += "【指令】 本セクターの自動警備部隊を無力化せよ。敵ドローンの弾幕をパリィすることで、その攻撃波形からエネルギー兵装データを抽出・複製可能。3回パリィで「BEAM」、さらに3回で「MISSILE」兵装のロックが解除される。"
-	elif stage_num == 2:
-		briefing_text = "【領域】 作戦区域 02: 古代防衛コア\n"
-		briefing_text += "【脅威】 古代遺跡防衛要塞 (超大型ボス)\n\n"
-		briefing_text += "【指令】 警備網深部の巨大防衛ユニットを撃破せよ。対象は破壊可能なサブアーム（レーザー部・ミサイル部）を持ち、コアを守っている。敵の攻撃エネルギー再配分比率を見極め、部位破壊を狙いコアを沈めよ。"
-	
-	briefing_label.text = briefing_text
+	# Briefing text
+	briefing_label.text = Global.tr("briefing_stage_1") if stage_num == 1 else Global.tr("briefing_stage_2")
 	
 	# Player weapons stats
 	var save_data = Global.load_game_data()
 	var weapons = save_data.get("weapons", {})
 	
-	var beam_status = "未解析"
-	var missile_status = "未解析"
+	var beam_status = Global.tr("status_unlocked")
+	var missile_status = Global.tr("status_unlocked")
 	if not weapons.is_empty():
 		if weapons.get("beam", {}).get("analyzed", false):
-			beam_status = "解析完了 (LV " + str(weapons["beam"].get("level", 1)) + ")"
+			beam_status = Global.tr("status_analyzed") % weapons["beam"].get("level", 1)
 		else:
 			var prog = weapons.get("beam", {}).get("progress", 0.0) * 100.0
-			beam_status = "データ収集中 (" + str(int(prog)) + "%)"
+			beam_status = Global.tr("status_progress") % int(prog)
 			
 		if weapons.get("missile", {}).get("analyzed", false):
-			missile_status = "解析完了 (LV " + str(weapons["missile"].get("level", 1)) + ")"
+			missile_status = Global.tr("status_analyzed") % weapons["missile"].get("level", 1)
 		else:
 			var prog = weapons.get("missile", {}).get("progress", 0.0) * 100.0
-			missile_status = "データ収集中 (" + str(int(prog)) + "%)"
+			missile_status = Global.tr("status_progress") % int(prog)
 			
-	player_status_label.text = "【兵装解析アーカイブ状況】\n"
-	player_status_label.text += "・ビームシステム:  " + beam_status + "\n"
-	player_status_label.text += "・ミサイルシステム: " + missile_status
+	player_status_label.text = Global.tr("archive_title")
+	player_status_label.text += Global.tr("archive_beam") + beam_status + "\n"
+	player_status_label.text += Global.tr("archive_missile") + missile_status
 	
 	# Transition
 	var tween = create_tween().set_parallel(true)
@@ -888,7 +923,6 @@ func _on_pre_battle_back_pressed() -> void:
 	)
 
 func _on_launch_pressed() -> void:
-	# Start selected stage
 	get_tree().change_scene_to_file("res://game/main.tscn")
 
 # ----------------- Visual Animations & Background -----------------
