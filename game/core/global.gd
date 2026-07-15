@@ -133,7 +133,7 @@ var translations = {
 	}
 }
 
-func tr(key: String) -> String:
+func translate(key: String) -> String:
 	if translations.has(language) and translations[language].has(key):
 		return translations[language][key]
 	return key

@@ -273,7 +273,7 @@ func take_damage_on_part(part_name: String, amount: int) -> void:
 
 func spawn_shield_popup() -> void:
 	var label = Label.new()
-	label.text = Global.tr("ui_shield_warning")
+	label.text = Global.translate("ui_shield_warning")
 	var settings = LabelSettings.new()
 	settings.font_size = 14
 	settings.font_color = Color.RED

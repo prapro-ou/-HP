@@ -120,7 +120,7 @@ func load_next_stage() -> void:
 
 
 func spawn_wave1() -> void:
-	spawn_popup(Global.tr("popup_wave1"))
+	spawn_popup(Global.translate("popup_wave1"))
 	var viewport_w = get_viewport_rect().size.x
 	# ドローンを3機配置
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
@@ -130,7 +130,7 @@ func spawn_wave1() -> void:
 
 func spawn_wave2() -> void:
 	state = "wave2"
-	spawn_popup(Global.tr("popup_wave2"))
+	spawn_popup(Global.translate("popup_wave2"))
 	var viewport_w = get_viewport_rect().size.x
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
 	for x in x_coords:
@@ -155,7 +155,7 @@ func _process(delta: float) -> void:
 				clear_drones()
 				state = "wave2_transition"
 				state_timer = 0.0
-				spawn_popup(Global.tr("popup_beam_break"))
+				spawn_popup(Global.translate("popup_beam_break"))
 			else:
 				# ドローンが全滅したのに100%になっていなければ、再度1機補充
 				check_drone_replenish("beam")
@@ -210,7 +210,7 @@ func on_drone_destroyed(drone) -> void:
 
 func trigger_warning_interlude() -> void:
 	if ui and ui.has_method("show_warning"):
-		ui.show_warning(Global.tr("popup_warning_title"), Global.tr("popup_warning_sub"))
+		ui.show_warning(Global.translate("popup_warning_title"), Global.translate("popup_warning_sub"))
 	
 	# 画面全体を赤くフラッシュ
 	if player and player.has_method("trigger_screen_flash"):
@@ -234,7 +234,7 @@ func start_boss_battle() -> void:
 		var tween = create_tween()
 		tween.tween_property(boss, "position", Vector2(get_viewport_rect().size.x / 2.0, 160.0), 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		
-		spawn_popup(Global.tr("popup_boss_engaged"))
+		spawn_popup(Global.translate("popup_boss_engaged"))
 
 
 func check_win_lose() -> void:

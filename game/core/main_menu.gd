@@ -748,32 +748,32 @@ func add_button_animations(btn: Button) -> void:
 
 func translate_ui() -> void:
 	# Titles
-	subtitle_label.text = Global.tr("menu_subtitle")
+	subtitle_label.text = Global.translate("menu_subtitle")
 	
 	# Main Buttons
-	new_game_btn.text = Global.tr("btn_start_game")
-	settings_btn.text = Global.tr("btn_settings")
-	quit_btn.text = Global.tr("btn_quit")
+	new_game_btn.text = Global.translate("btn_start_game")
+	settings_btn.text = Global.translate("btn_settings")
+	quit_btn.text = Global.translate("btn_quit")
 	
 	# Settings Buttons
-	back_btn.text = Global.tr("btn_save_back")
-	reset_btn.text = Global.tr("btn_reset_save")
+	back_btn.text = Global.translate("btn_save_back")
+	reset_btn.text = Global.translate("btn_reset_save")
 	
 	# Stage Select Title
 	if stage_select_container:
 		var st_label = stage_select_container.get_node("MarginContainer/VBoxContainer/TitleLabel")
 		if st_label:
-			st_label.text = Global.tr("stage_select_title")
-		stage_back_btn.text = Global.tr("btn_stage_back")
+			st_label.text = Global.translate("stage_select_title")
+		stage_back_btn.text = Global.translate("btn_stage_back")
 		refresh_stage_select()
 		
 	# Briefing Title & Buttons
 	if pre_battle_container:
 		var br_label = pre_battle_container.get_node("MarginContainer/VBoxContainer/TitleLabel")
 		if br_label:
-			br_label.text = Global.tr("briefing_title")
-		launch_btn.text = Global.tr("btn_launch")
-		pre_battle_back_btn.text = Global.tr("btn_cancel")
+			br_label.text = Global.translate("briefing_title")
+		launch_btn.text = Global.translate("btn_launch")
+		pre_battle_back_btn.text = Global.translate("btn_cancel")
 		
 		# If briefing screen is visible, refresh its specific stage contents
 		if pre_battle_container.visible:
@@ -849,14 +849,14 @@ func refresh_stage_select() -> void:
 	var save_data = Global.load_game_data()
 	var max_unlocked = save_data.get("max_unlocked_stage", 1)
 	
-	stage1_btn.text = Global.tr("stage_01_name")
+	stage1_btn.text = Global.translate("stage_01_name")
 	
 	if max_unlocked >= 2:
 		stage2_btn.disabled = false
-		stage2_btn.text = Global.tr("stage_02_name")
+		stage2_btn.text = Global.translate("stage_02_name")
 	else:
 		stage2_btn.disabled = true
-		stage2_btn.text = Global.tr("stage_02_locked")
+		stage2_btn.text = Global.translate("stage_02_locked")
 
 func _on_stage_back_pressed() -> void:
 	var tween = create_tween().set_parallel(true)
@@ -875,30 +875,30 @@ func _on_stage_selected(stage_num: int) -> void:
 	Global.selected_stage = stage_num
 	
 	# Briefing text
-	briefing_label.text = Global.tr("briefing_stage_1") if stage_num == 1 else Global.tr("briefing_stage_2")
+	briefing_label.text = Global.translate("briefing_stage_1") if stage_num == 1 else Global.translate("briefing_stage_2")
 	
 	# Player weapons stats
 	var save_data = Global.load_game_data()
 	var weapons = save_data.get("weapons", {})
 	
-	var beam_status = Global.tr("status_unlocked")
-	var missile_status = Global.tr("status_unlocked")
+	var beam_status = Global.translate("status_unlocked")
+	var missile_status = Global.translate("status_unlocked")
 	if not weapons.is_empty():
 		if weapons.get("beam", {}).get("analyzed", false):
-			beam_status = Global.tr("status_analyzed") % weapons["beam"].get("level", 1)
+			beam_status = Global.translate("status_analyzed") % weapons["beam"].get("level", 1)
 		else:
 			var prog = weapons.get("beam", {}).get("progress", 0.0) * 100.0
-			beam_status = Global.tr("status_progress") % int(prog)
+			beam_status = Global.translate("status_progress") % int(prog)
 			
 		if weapons.get("missile", {}).get("analyzed", false):
-			missile_status = Global.tr("status_analyzed") % weapons["missile"].get("level", 1)
+			missile_status = Global.translate("status_analyzed") % weapons["missile"].get("level", 1)
 		else:
 			var prog = weapons.get("missile", {}).get("progress", 0.0) * 100.0
-			missile_status = Global.tr("status_progress") % int(prog)
+			missile_status = Global.translate("status_progress") % int(prog)
 			
-	player_status_label.text = Global.tr("archive_title")
-	player_status_label.text += Global.tr("archive_beam") + beam_status + "\n"
-	player_status_label.text += Global.tr("archive_missile") + missile_status
+	player_status_label.text = Global.translate("archive_title")
+	player_status_label.text += Global.translate("archive_beam") + beam_status + "\n"
+	player_status_label.text += Global.translate("archive_missile") + missile_status
 	
 	# Transition
 	var tween = create_tween().set_parallel(true)
