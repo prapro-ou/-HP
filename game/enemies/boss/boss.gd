@@ -255,8 +255,9 @@ func take_damage_on_part(part_name: String, amount: int) -> void:
 					destroy_part("missile")
 		"core":
 			# 他の部位が健在な間は本体シールドが有効で、ダメージを90%カットする！
+			# 部位がどちらか1つでも破壊されれば（=両方健在でなければ）シールド解除
 			var actual_amount = amount
-			if laser_alive or missile_alive:
+			if laser_alive and missile_alive:
 				actual_amount = int(amount * 0.1)
 				if actual_amount < 1:
 					actual_amount = 1
@@ -272,7 +273,7 @@ func take_damage_on_part(part_name: String, amount: int) -> void:
 
 func spawn_shield_popup() -> void:
 	var label = Label.new()
-	label.text = "SHIELD ACTIVE: DESTROY PARTS FIRST!"
+	label.text = Global.tr("ui_shield_warning")
 	var settings = LabelSettings.new()
 	settings.font_size = 14
 	settings.font_color = Color.RED
