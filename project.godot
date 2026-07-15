@@ -11,14 +11,19 @@ config_version=5
 [application]
 
 config/name="shooting-v2"
-run/main_scene="uid://btioogirvaurj"
+run/main_scene="res://game/core/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Global="*res://game/core/global.gd"
 
 [display]
 
 window/size/viewport_width=800
 window/size/viewport_height=1200
+window/stretch/mode="canvas_items"
 
 [physics]
 
