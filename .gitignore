@@ -2,8 +2,8 @@
 .godot/
 /android/
 # Windows-specific files
-[Dd]esktop.ini
-[Dd]esktop.ini.import
+*.ini
+*.ini.import
 [Tt]humbs.db
 [Tt]humbs.db.import
 $RECYCLE.BIN/
