@@ -19,21 +19,31 @@ var main_vbox: VBoxContainer
 var title_label: Label
 var subtitle_label: Label
 
-# Menu and Settings screens
+# Menu and screens
 var menu_container: VBoxContainer
 var settings_container: PanelContainer
+var stage_select_container: PanelContainer
+var pre_battle_container: PanelContainer
 var confirm_dialog: PanelContainer
 
 # Buttons
-var continue_btn: Button
 var new_game_btn: Button
 var settings_btn: Button
 var quit_btn: Button
-var autoscale_btn: Button
+
+# Stage buttons
+var stage1_btn: Button
+var stage2_btn: Button
+var stage_back_btn: Button
+
+# Pre-battle UI elements
+var briefing_label: Label
+var player_status_label: Label
+var launch_btn: Button
+var pre_battle_back_btn: Button
 
 # Settings UI inputs
 var mode_option: OptionButton
-var scale_option: OptionButton
 var vsync_check: CheckButton
 var shake_check: CheckButton
 var master_slider: HSlider
@@ -133,7 +143,13 @@ func setup_layout() -> void:
 	# 6. Settings Container (Hidden initially)
 	setup_settings_container()
 	
-	# 7. Custom confirmation dialog (Hidden initially)
+	# 7. Stage Select Container (Hidden initially)
+	setup_stage_select_container()
+	
+	# 8. Pre-battle Container (Hidden initially)
+	setup_pre_battle_container()
+	
+	# 9. Custom confirmation dialog (Hidden initially)
 	setup_confirm_dialog()
 
 func setup_menu_container() -> void:
@@ -144,18 +160,9 @@ func setup_menu_container() -> void:
 	menu_container.add_theme_constant_override("separation", 20)
 	main_vbox.add_child(menu_container)
 	
-	# Continue Button
-	continue_btn = Button.new()
-	continue_btn.text = "続きから / CONTINUE"
-	continue_btn.custom_minimum_size = Vector2(320, 60)
-	continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	menu_container.add_child(continue_btn)
-	style_button(continue_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
-	add_button_animations(continue_btn)
-	
-	# Start New Game Button
+	# Start Game Button (Stage Select Screen)
 	new_game_btn = Button.new()
-	new_game_btn.text = "初めから / START GAME"
+	new_game_btn.text = "ゲーム開始 / START GAME"
 	new_game_btn.custom_minimum_size = Vector2(320, 60)
 	new_game_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_container.add_child(new_game_btn)
@@ -180,54 +187,25 @@ func setup_menu_container() -> void:
 	style_button(quit_btn, Color(0.8, 0.2, 0.2), Color(1.0, 0.4, 0.4))
 	add_button_animations(quit_btn)
 	
-	# Small spacer
-	var spacer_b = Control.new()
-	spacer_b.custom_minimum_size = Vector2(0, 30)
-	menu_container.add_child(spacer_b)
-	
-	# One-touch Auto Scale Button
-	autoscale_btn = Button.new()
-	autoscale_btn.text = "🖥️ 画面サイズをPCに自動最適化"
-	autoscale_btn.custom_minimum_size = Vector2(340, 50)
-	autoscale_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	menu_container.add_child(autoscale_btn)
-	style_button(autoscale_btn, Color(0.0, 1.0, 0.5), Color(0.2, 1.0, 0.7))
-	add_button_animations(autoscale_btn)
-	
 	# Setup button signals
 	new_game_btn.pressed.connect(_on_new_game_pressed)
-	continue_btn.pressed.connect(_on_continue_pressed)
 	settings_btn.pressed.connect(_on_settings_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
-	autoscale_btn.pressed.connect(_on_autoscale_pressed)
-	
-	# Handle Continue availability
-	if Global.has_save:
-		continue_btn.disabled = false
-		var save_data = Global.load_game_data()
-		var s_num = save_data.get("stage_num", 1)
-		var score = save_data.get("score", 0)
-		# Add helper status label below continue button text
-		continue_btn.text = "続きから / CONTINUE\n[Stage " + str(s_num) + " - Score: " + str(score) + "]"
-	else:
-		continue_btn.disabled = true
-		continue_btn.text = "続きから / CONTINUE\n[No Save Data]"
 
 func setup_settings_container() -> void:
 	settings_container = PanelContainer.new()
 	settings_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_container.custom_minimum_size = Vector2(480, 700)
+	settings_container.custom_minimum_size = Vector2(480, 600)
 	settings_container.hide()
 	main_vbox.add_child(settings_container)
 	
-	# Translucent glassmorphic panel style
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.08, 0.08, 0.12, 0.95)
 	sb.border_width_left = 3
 	sb.border_width_top = 3
 	sb.border_width_right = 3
 	sb.border_width_bottom = 3
-	sb.border_color = Color(0.8, 0.4, 1.0, 0.8) # Purple sci-fi theme
+	sb.border_color = Color(0.8, 0.4, 1.0, 0.8) # Purple theme
 	sb.corner_radius_top_left = 12
 	sb.corner_radius_top_right = 12
 	sb.corner_radius_bottom_left = 12
@@ -247,7 +225,6 @@ func setup_settings_container() -> void:
 	content.add_theme_constant_override("separation", 22)
 	margin_inner.add_child(content)
 	
-	# Title
 	var settings_title = Label.new()
 	settings_title.text = "環境設定 - SETTINGS"
 	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -259,7 +236,6 @@ func setup_settings_container() -> void:
 	settings_title.label_settings = title_set
 	content.add_child(settings_title)
 	
-	# Scroll area for clean overflow
 	var scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -270,7 +246,7 @@ func setup_settings_container() -> void:
 	scroll_content.add_theme_constant_override("separation", 18)
 	scroll.add_child(scroll_content)
 	
-	# --- SECTION 1: DISPLAY ---
+	# DISPLAY
 	var d_title = Label.new()
 	d_title.text = "画面設定 / DISPLAY"
 	var sec_set = LabelSettings.new()
@@ -285,7 +261,6 @@ func setup_settings_container() -> void:
 	grid_display.add_theme_constant_override("v_separation", 12)
 	scroll_content.add_child(grid_display)
 	
-	# Mode
 	grid_display.add_child(create_label("画面モード (Window Mode):"))
 	mode_option = OptionButton.new()
 	mode_option.add_item("ウィンドウ / Windowed", 0)
@@ -294,29 +269,17 @@ func setup_settings_container() -> void:
 	mode_option.custom_minimum_size = Vector2(200, 32)
 	grid_display.add_child(mode_option)
 	
-	# Resolution / Scale (Vertical formats only)
-	grid_display.add_child(create_label("画面スケール (Vertical Size):"))
-	scale_option = OptionButton.new()
-	scale_option.add_item("400x600 (0.50x)", 0)
-	scale_option.add_item("600x900 (0.75x)", 1)
-	scale_option.add_item("800x1200 (1.00x)", 2)
-	scale_option.add_item("1000x1500 (1.25x)", 3)
-	scale_option.custom_minimum_size = Vector2(200, 32)
-	grid_display.add_child(scale_option)
-	
-	# VSync
 	grid_display.add_child(create_label("垂直同期 (V-Sync):"))
 	vsync_check = CheckButton.new()
 	vsync_check.text = ""
 	grid_display.add_child(vsync_check)
 	
-	# Shake
 	grid_display.add_child(create_label("画面の揺れ (Screen Shake):"))
 	shake_check = CheckButton.new()
 	shake_check.text = ""
 	grid_display.add_child(shake_check)
 	
-	# --- SECTION 2: AUDIO ---
+	# AUDIO
 	var a_title = Label.new()
 	a_title.text = "音量設定 / AUDIO"
 	a_title.label_settings = sec_set
@@ -376,7 +339,7 @@ func setup_settings_container() -> void:
 	sfx_box.add_child(sfx_lbl)
 	grid_audio.add_child(sfx_box)
 	
-	# --- SECTION 3: SYSTEM/DATA ---
+	# SYSTEM/DATA
 	var s_title = Label.new()
 	s_title.text = "データ管理 / DATA"
 	s_title.label_settings = sec_set
@@ -388,7 +351,6 @@ func setup_settings_container() -> void:
 	style_button(reset_btn, Color(0.9, 0.2, 0.2), Color(1.0, 0.4, 0.4))
 	scroll_content.add_child(reset_btn)
 	
-	# Save & Back
 	back_btn = Button.new()
 	back_btn.text = "適用して戻る / SAVE & BACK"
 	back_btn.custom_minimum_size = Vector2(250, 48)
@@ -399,7 +361,6 @@ func setup_settings_container() -> void:
 	
 	# Connect signals
 	mode_option.item_selected.connect(_on_display_mode_changed)
-	scale_option.item_selected.connect(_on_display_scale_changed)
 	vsync_check.toggled.connect(func(t): Global.vsync = t)
 	shake_check.toggled.connect(func(t): Global.screen_shake = t)
 	
@@ -422,6 +383,193 @@ func setup_settings_container() -> void:
 	reset_btn.pressed.connect(_on_reset_btn_pressed)
 	back_btn.pressed.connect(_on_back_btn_pressed)
 
+func setup_stage_select_container() -> void:
+	stage_select_container = PanelContainer.new()
+	stage_select_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stage_select_container.custom_minimum_size = Vector2(480, 500)
+	stage_select_container.hide()
+	main_vbox.add_child(stage_select_container)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.12, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(0.3, 0.8, 1.0, 0.8) # Cyan theme
+	sb.corner_radius_top_left = 12
+	sb.corner_radius_top_right = 12
+	sb.corner_radius_bottom_left = 12
+	sb.corner_radius_bottom_right = 12
+	sb.shadow_color = Color(0.3, 0.8, 1.0, 0.25)
+	sb.shadow_size = 15
+	stage_select_container.add_theme_stylebox_override("panel", sb)
+	
+	var margin_inner = MarginContainer.new()
+	margin_inner.add_theme_constant_override("margin_left", 30)
+	margin_inner.add_theme_constant_override("margin_top", 30)
+	margin_inner.add_theme_constant_override("margin_right", 30)
+	margin_inner.add_theme_constant_override("margin_bottom", 30)
+	stage_select_container.add_child(margin_inner)
+	
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 25)
+	margin_inner.add_child(content)
+	
+	# Title
+	var select_title = Label.new()
+	select_title.text = "STAGE SELECT / 作戦領域選択"
+	select_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title_set = LabelSettings.new()
+	title_set.font_size = 22
+	title_set.font_color = Color(0.3, 0.8, 1.0)
+	title_set.outline_size = 4
+	title_set.outline_color = Color.BLACK
+	select_title.label_settings = title_set
+	content.add_child(select_title)
+	
+	var stage_list = VBoxContainer.new()
+	stage_list.add_theme_constant_override("separation", 18)
+	content.add_child(stage_list)
+	
+	# Stage 1 Button
+	stage1_btn = Button.new()
+	stage1_btn.text = "STAGE 01\nBEAM & MISSILE DRONES"
+	stage1_btn.custom_minimum_size = Vector2(360, 70)
+	style_button(stage1_btn, Color.CYAN, Color(0.5, 0.9, 1.0))
+	add_button_animations(stage1_btn)
+	stage_list.add_child(stage1_btn)
+	stage1_btn.pressed.connect(func(): _on_stage_selected(1))
+	
+	# Stage 2 Button
+	stage2_btn = Button.new()
+	stage2_btn.text = "STAGE 02\nANCIENT GUARDIAN"
+	stage2_btn.custom_minimum_size = Vector2(360, 70)
+	style_button(stage2_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+	add_button_animations(stage2_btn)
+	stage_list.add_child(stage2_btn)
+	stage2_btn.pressed.connect(func(): _on_stage_selected(2))
+	
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 10)
+	content.add_child(spacer)
+	
+	# Back Button
+	stage_back_btn = Button.new()
+	stage_back_btn.text = "メインメニューに戻る / BACK"
+	stage_back_btn.custom_minimum_size = Vector2(250, 48)
+	stage_back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	style_button(stage_back_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(stage_back_btn)
+	content.add_child(stage_back_btn)
+	stage_back_btn.pressed.connect(_on_stage_back_pressed)
+
+func setup_pre_battle_container() -> void:
+	pre_battle_container = PanelContainer.new()
+	pre_battle_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	pre_battle_container.custom_minimum_size = Vector2(480, 520)
+	pre_battle_container.hide()
+	main_vbox.add_child(pre_battle_container)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.06, 0.04, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(1.0, 0.7, 0.2, 0.8) # Gold border
+	sb.corner_radius_top_left = 12
+	sb.corner_radius_top_right = 12
+	sb.corner_radius_bottom_left = 12
+	sb.corner_radius_bottom_right = 12
+	sb.shadow_color = Color(1.0, 0.7, 0.2, 0.2)
+	sb.shadow_size = 15
+	pre_battle_container.add_theme_stylebox_override("panel", sb)
+	
+	var margin_inner = MarginContainer.new()
+	margin_inner.add_theme_constant_override("margin_left", 25)
+	margin_inner.add_theme_constant_override("margin_top", 25)
+	margin_inner.add_theme_constant_override("margin_right", 25)
+	margin_inner.add_theme_constant_override("margin_bottom", 25)
+	pre_battle_container.add_child(margin_inner)
+	
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 20)
+	margin_inner.add_child(content)
+	
+	# Title
+	var briefing_title = Label.new()
+	briefing_title.text = "MISSION BRIEFING / 作戦指令"
+	briefing_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title_set = LabelSettings.new()
+	title_set.font_size = 22
+	title_set.font_color = Color(1.0, 0.7, 0.2)
+	title_set.outline_size = 4
+	title_set.outline_color = Color.BLACK
+	briefing_title.label_settings = title_set
+	content.add_child(briefing_title)
+	
+	var detail_panel = PanelContainer.new()
+	var dp_style = StyleBoxFlat.new()
+	dp_style.bg_color = Color(0.04, 0.04, 0.06, 0.8)
+	dp_style.corner_radius_top_left = 6
+	dp_style.corner_radius_top_right = 6
+	dp_style.corner_radius_bottom_left = 6
+	dp_style.corner_radius_bottom_right = 6
+	dp_style.content_margin_left = 15
+	dp_style.content_margin_top = 15
+	dp_style.content_margin_right = 15
+	dp_style.content_margin_bottom = 15
+	detail_panel.add_theme_stylebox_override("panel", dp_style)
+	content.add_child(detail_panel)
+	
+	var detail_vbox = VBoxContainer.new()
+	detail_vbox.add_theme_constant_override("separation", 12)
+	detail_panel.add_child(detail_vbox)
+	
+	briefing_label = Label.new()
+	briefing_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var b_set = LabelSettings.new()
+	b_set.font_size = 13
+	b_set.line_spacing = 6
+	briefing_label.label_settings = b_set
+	detail_vbox.add_child(briefing_label)
+	
+	var sep = ColorRect.new()
+	sep.custom_minimum_size = Vector2(0, 2)
+	sep.color = Color(1.0, 0.7, 0.2, 0.3)
+	detail_vbox.add_child(sep)
+	
+	player_status_label = Label.new()
+	player_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var s_set = LabelSettings.new()
+	s_set.font_size = 12
+	s_set.font_color = Color(0.6, 0.9, 1.0)
+	s_set.line_spacing = 4
+	player_status_label.label_settings = s_set
+	detail_vbox.add_child(player_status_label)
+	
+	var actions = HBoxContainer.new()
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.add_theme_constant_override("separation", 20)
+	content.add_child(actions)
+	
+	launch_btn = Button.new()
+	launch_btn.text = "🖥️ 出撃開始 / LAUNCH"
+	launch_btn.custom_minimum_size = Vector2(200, 50)
+	style_button(launch_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+	add_button_animations(launch_btn)
+	actions.add_child(launch_btn)
+	launch_btn.pressed.connect(_on_launch_pressed)
+	
+	pre_battle_back_btn = Button.new()
+	pre_battle_back_btn.text = "戻る / CANCEL"
+	pre_battle_back_btn.custom_minimum_size = Vector2(160, 50)
+	style_button(pre_battle_back_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(pre_battle_back_btn)
+	actions.add_child(pre_battle_back_btn)
+	pre_battle_back_btn.pressed.connect(_on_pre_battle_back_pressed)
+
 func setup_confirm_dialog() -> void:
 	confirm_dialog = PanelContainer.new()
 	confirm_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -430,7 +578,6 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.hide()
 	add_child(confirm_dialog)
 	
-	# Center it on top of everything
 	confirm_dialog.anchor_left = 0.5
 	confirm_dialog.anchor_top = 0.5
 	confirm_dialog.anchor_right = 0.5
@@ -441,7 +588,7 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.offset_top = -110
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.12, 0.04, 0.04, 0.98) # Dark Red themed
+	sb.bg_color = Color(0.12, 0.04, 0.04, 0.98) # Dark Red
 	sb.border_width_left = 3
 	sb.border_width_top = 3
 	sb.border_width_right = 3
@@ -505,9 +652,7 @@ func setup_confirm_dialog() -> void:
 	delete_confirm_btn.pressed.connect(func():
 		Global.delete_save_game()
 		confirm_dialog.hide()
-		# Update main menu continue button
-		continue_btn.disabled = true
-		continue_btn.text = "続きから / CONTINUE\n[No Save Data]"
+		refresh_stage_select()
 	)
 	cancel_confirm_btn.pressed.connect(func():
 		confirm_dialog.hide()
@@ -599,23 +744,6 @@ func add_button_animations(btn: Button) -> void:
 
 func sync_settings_to_ui() -> void:
 	mode_option.selected = Global.window_mode
-	
-	# Resolving scale selection indices (0.5, 0.75, 1.0, 1.25)
-	if abs(Global.window_scale - 0.5) < 0.05:
-		scale_option.selected = 0
-	elif abs(Global.window_scale - 0.75) < 0.05:
-		scale_option.selected = 1
-	elif abs(Global.window_scale - 1.25) < 0.05:
-		scale_option.selected = 3
-	else:
-		scale_option.selected = 2 # 1.0x default
-		
-	# Disable resolution selection if in fullscreen
-	if Global.window_mode == 1:
-		scale_option.disabled = true
-	else:
-		scale_option.disabled = false
-		
 	vsync_check.button_pressed = Global.vsync
 	shake_check.button_pressed = Global.screen_shake
 	
@@ -629,15 +757,16 @@ func sync_settings_to_ui() -> void:
 	sfx_lbl.text = str(int(Global.sfx_volume)) + "%"
 
 func _on_new_game_pressed() -> void:
-	Global.is_continue = false
-	get_tree().change_scene_to_file("res://game/main.tscn")
-
-func _on_continue_pressed() -> void:
-	Global.is_continue = true
-	get_tree().change_scene_to_file("res://game/main.tscn")
+	refresh_stage_select()
+	var tween = create_tween().set_parallel(true)
+	menu_container.hide()
+	stage_select_container.show()
+	stage_select_container.scale = Vector2(0.8, 0.8)
+	stage_select_container.modulate.a = 0.0
+	tween.tween_property(stage_select_container, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(stage_select_container, "modulate:a", 1.0, 0.2)
 
 func _on_settings_pressed() -> void:
-	# Transition: hide menu container, show settings panel
 	var tween = create_tween().set_parallel(true)
 	menu_container.hide()
 	settings_container.show()
@@ -649,36 +778,8 @@ func _on_settings_pressed() -> void:
 func _on_quit_pressed() -> void:
 	get_tree().quit()
 
-func _on_autoscale_pressed() -> void:
-	Global.auto_scale_display()
-	sync_settings_to_ui()
-	
-	# Neon flash indicator
-	var orig_color = autoscale_btn.get_theme_stylebox("normal").border_color
-	var tween = create_tween()
-	autoscale_btn.add_theme_color_override("font_color", Color.BLACK)
-	tween.tween_method(func(val: float):
-		var sb = autoscale_btn.get_theme_stylebox("normal")
-		if sb:
-			sb.bg_color = Color.WHITE.lerp(Color(0.06, 0.06, 0.1, 0.8), val)
-			sb.border_color = Color.WHITE.lerp(orig_color, val)
-	, 0.0, 1.0, 0.4)
-	tween.chain().tween_callback(func(): autoscale_btn.add_theme_color_override("font_color", Color.WHITE))
-
 func _on_display_mode_changed(idx: int) -> void:
 	Global.window_mode = idx
-	if idx == 1:
-		scale_option.disabled = true
-	else:
-		scale_option.disabled = false
-	Global.apply_display()
-
-func _on_display_scale_changed(idx: int) -> void:
-	match idx:
-		0: Global.window_scale = 0.5
-		1: Global.window_scale = 0.75
-		2: Global.window_scale = 1.0
-		3: Global.window_scale = 1.25
 	Global.apply_display()
 
 func _on_reset_btn_pressed() -> void:
@@ -689,8 +790,6 @@ func _on_reset_btn_pressed() -> void:
 
 func _on_back_btn_pressed() -> void:
 	Global.save_settings()
-	
-	# Transition settings panel out and menu container in
 	var tween = create_tween().set_parallel(true)
 	tween.tween_property(settings_container, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(settings_container, "modulate:a", 0.0, 0.15)
@@ -702,6 +801,95 @@ func _on_back_btn_pressed() -> void:
 		var in_tween = create_tween()
 		in_tween.tween_property(menu_container, "modulate:a", 1.0, 0.15)
 	)
+
+func refresh_stage_select() -> void:
+	var save_data = Global.load_game_data()
+	var max_unlocked = save_data.get("max_unlocked_stage", 1)
+	
+	if max_unlocked >= 2:
+		stage2_btn.disabled = false
+		stage2_btn.text = "STAGE 02\nANCIENT GUARDIAN"
+	else:
+		stage2_btn.disabled = true
+		stage2_btn.text = "🔒 STAGE 02\n[LOCKED - CLEAR STAGE 01]"
+
+func _on_stage_back_pressed() -> void:
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(stage_select_container, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(stage_select_container, "modulate:a", 0.0, 0.15)
+	
+	tween.chain().tween_callback(func():
+		stage_select_container.hide()
+		menu_container.show()
+		menu_container.modulate.a = 0.0
+		var in_tween = create_tween()
+		in_tween.tween_property(menu_container, "modulate:a", 1.0, 0.15)
+	)
+
+func _on_stage_selected(stage_num: int) -> void:
+	Global.selected_stage = stage_num
+	
+	# Briefing text setup
+	var briefing_text = ""
+	if stage_num == 1:
+		briefing_text = "【領域】 作戦区域 01: ドローン警備網\n"
+		briefing_text += "【脅威】 ビームドローン / ミサイルドローン\n\n"
+		briefing_text += "【指令】 本セクターの自動警備部隊を無力化せよ。敵ドローンの弾幕をパリィすることで、その攻撃波形からエネルギー兵装データを抽出・複製可能。3回パリィで「BEAM」、さらに3回で「MISSILE」兵装のロックが解除される。"
+	elif stage_num == 2:
+		briefing_text = "【領域】 作戦区域 02: 古代防衛コア\n"
+		briefing_text += "【脅威】 古代遺跡防衛要塞 (超大型ボス)\n\n"
+		briefing_text += "【指令】 警備網深部の巨大防衛ユニットを撃破せよ。対象は破壊可能なサブアーム（レーザー部・ミサイル部）を持ち、コアを守っている。敵の攻撃エネルギー再配分比率を見極め、部位破壊を狙いコアを沈めよ。"
+	
+	briefing_label.text = briefing_text
+	
+	# Player weapons stats
+	var save_data = Global.load_game_data()
+	var weapons = save_data.get("weapons", {})
+	
+	var beam_status = "未解析"
+	var missile_status = "未解析"
+	if not weapons.is_empty():
+		if weapons.get("beam", {}).get("analyzed", false):
+			beam_status = "解析完了 (LV " + str(weapons["beam"].get("level", 1)) + ")"
+		else:
+			var prog = weapons.get("beam", {}).get("progress", 0.0) * 100.0
+			beam_status = "データ収集中 (" + str(int(prog)) + "%)"
+			
+		if weapons.get("missile", {}).get("analyzed", false):
+			missile_status = "解析完了 (LV " + str(weapons["missile"].get("level", 1)) + ")"
+		else:
+			var prog = weapons.get("missile", {}).get("progress", 0.0) * 100.0
+			missile_status = "データ収集中 (" + str(int(prog)) + "%)"
+			
+	player_status_label.text = "【兵装解析アーカイブ状況】\n"
+	player_status_label.text += "・ビームシステム:  " + beam_status + "\n"
+	player_status_label.text += "・ミサイルシステム: " + missile_status
+	
+	# Transition
+	var tween = create_tween().set_parallel(true)
+	stage_select_container.hide()
+	pre_battle_container.show()
+	pre_battle_container.scale = Vector2(0.8, 0.8)
+	pre_battle_container.modulate.a = 0.0
+	tween.tween_property(pre_battle_container, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(pre_battle_container, "modulate:a", 1.0, 0.2)
+
+func _on_pre_battle_back_pressed() -> void:
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(pre_battle_container, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(pre_battle_container, "modulate:a", 0.0, 0.15)
+	
+	tween.chain().tween_callback(func():
+		pre_battle_container.hide()
+		stage_select_container.show()
+		stage_select_container.modulate.a = 0.0
+		var in_tween = create_tween()
+		in_tween.tween_property(stage_select_container, "modulate:a", 1.0, 0.15)
+	)
+
+func _on_launch_pressed() -> void:
+	# Start selected stage
+	get_tree().change_scene_to_file("res://game/main.tscn")
 
 # ----------------- Visual Animations & Background -----------------
 
@@ -732,18 +920,15 @@ func update_starfield(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	# Drawing stars
 	for s in stars:
 		draw_circle(s.pos, s.size, s.color)
 		
-	# Drawing cyber-grid lines (retro aesthetic scanlines)
 	var rect = get_viewport_rect()
 	var spacing = 8
 	for y in range(0, int(rect.size.y), spacing):
 		draw_line(Vector2(0, y), Vector2(rect.size.x, y), Color(0, 0, 0, 0.16), 1.0)
 
 func animate_menu_entry() -> void:
-	# Animating initial menu load
 	title_label.modulate.a = 0.0
 	title_label.scale = Vector2(0.9, 0.9)
 	subtitle_label.modulate.a = 0.0
@@ -759,10 +944,8 @@ func animate_menu_entry() -> void:
 
 func animate_title(delta: float) -> void:
 	time_passed += delta
-	# Pulsing glow of title text
 	var pulse = 1.0 + sin(time_passed * 2.5) * 0.03
 	title_label.scale = Vector2(pulse, pulse)
 	
-	# Slight chromatic neon color pulse
 	var blue_glow = Color(0.2, 0.8 + sin(time_passed * 3.0) * 0.15, 1.0)
 	title_label.label_settings.font_color = blue_glow
