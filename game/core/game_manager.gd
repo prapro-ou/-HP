@@ -34,10 +34,9 @@ func _ready() -> void:
 	if bullet_pool:
 		player.enemy_bullets = bullet_pool.active_bullets
 		
-	# 続きから始める場合、セーブデータをロードして反映する
-	if Global.is_continue and Global.has_save:
+	# セーブデータがあれば、プレイヤーの武器解析データやスコアをロードして反映する
+	if Global.has_save:
 		var save_data = Global.load_game_data()
-		current_stage_num = save_data.get("stage_num", 1)
 		total_damage_score = save_data.get("score", 0)
 		
 		var saved_weapons = save_data.get("weapons", {})
@@ -55,14 +54,13 @@ func _ready() -> void:
 			elif player.weapons["missile"]["analyzed"]:
 				player.current_weapon = "missile"
 		
-		var stage_path = "res://game/stages/stage_" + str(current_stage_num) + ".tscn"
-		if not ResourceLoader.exists(stage_path):
-			stage_path = "res://game/stages/stage_1.tscn"
-			current_stage_num = 1
-		load_stage(stage_path, current_stage_num)
-	else:
-		# 初めから開始
-		load_stage("res://game/stages/stage_1.tscn", 1)
+	# 選択されたステージをロードする
+	current_stage_num = Global.selected_stage
+	var stage_path = "res://game/stages/stage_" + str(current_stage_num) + ".tscn"
+	if not ResourceLoader.exists(stage_path):
+		stage_path = "res://game/stages/stage_1.tscn"
+		current_stage_num = 1
+	load_stage(stage_path, current_stage_num)
 
 
 func load_stage(stage_path: String, stage_num: int = 1) -> void:
