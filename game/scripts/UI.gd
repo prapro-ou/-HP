@@ -394,6 +394,46 @@ func show_game_over(result: String) -> void:
 	retry_btn.add_theme_stylebox_override("pressed", style_hover)
 	retry_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	
+	if result == "VICTORY" and get_tree().current_scene.scene_file_path.ends_with("main.tscn"):
+		var next_btn = Button.new()
+		next_btn.text = "PROCEED TO STAGE 2"
+		next_btn.custom_minimum_size = Vector2(250, 50)
+		next_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		
+		var next_style_normal = StyleBoxFlat.new()
+		next_style_normal.bg_color = Color(0.05, 0.15, 0.1, 1.0)
+		next_style_normal.border_width_left = 2
+		next_style_normal.border_width_top = 2
+		next_style_normal.border_width_right = 2
+		next_style_normal.border_width_bottom = 2
+		next_style_normal.border_color = Color.GREEN_YELLOW
+		next_style_normal.corner_radius_top_left = 4
+		next_style_normal.corner_radius_top_right = 4
+		next_style_normal.corner_radius_bottom_left = 4
+		next_style_normal.corner_radius_bottom_right = 4
+		
+		var next_style_hover = next_style_normal.duplicate()
+		next_style_hover.bg_color = Color.GREEN_YELLOW
+		
+		next_btn.add_theme_color_override("font_color", Color.WHITE)
+		next_btn.add_theme_color_override("font_hover_color", Color.BLACK)
+		next_btn.add_theme_color_override("font_pressed_color", Color.BLACK)
+		next_btn.add_theme_stylebox_override("normal", next_style_normal)
+		next_btn.add_theme_stylebox_override("hover", next_style_hover)
+		next_btn.add_theme_stylebox_override("pressed", next_style_hover)
+		next_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+		
+		container.add_child(next_btn)
+		
+		next_btn.pressed.connect(func():
+			get_tree().paused = false
+			get_tree().change_scene_to_file("res://game/scenes/stage2.tscn")
+		)
+		
+		var btn_spacer = Control.new()
+		btn_spacer.custom_minimum_size = Vector2(0, 10)
+		container.add_child(btn_spacer)
+
 	container.add_child(retry_btn)
 	
 	retry_btn.pressed.connect(func():
