@@ -124,7 +124,7 @@ func update_parry_count(count: int) -> void:
 func update_guard_status(cooldown: float, is_guarding: bool) -> void:
 	if is_guarding:
 		guard_status_label.text = Global.translate("ui_shield_active")
-		guard_status_label.label_settings.font_color = Color.CYAN
+		guard_status_label.label_settings.font_color = Color.CYAN if Global.shield_type == "parry" else Color.GREEN
 	elif cooldown > 0.0:
 		guard_status_label.text = Global.translate("ui_shield_cooldown") % cooldown
 		guard_status_label.label_settings.font_color = Color.ORANGE_RED

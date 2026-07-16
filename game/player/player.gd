@@ -44,7 +44,19 @@ var PlayerBulletScene = preload("res://game/player/player_bullet.tscn")
 
 
 func _ready() -> void:
+	# Globalのアップグレードからステータスを算出
+	max_hp = 100 + (Global.hp_upgrade_level - 1) * 20
 	current_hp = max_hp
+	
+	move_speed = 300.0 + (Global.speed_upgrade_level - 1) * 30.0
+	
+	# シールドタイプとアップグレードによるCD設定
+	if Global.shield_type == "parry":
+		parry_active_time = 0.25
+		parry_cooldown = 5.0 - (Global.shield_upgrade_level - 1) * 0.4
+	else: # mitigate
+		parry_active_time = 0.50
+		parry_cooldown = 3.0 - (Global.shield_upgrade_level - 1) * 0.3
 
 
 func _process(delta: float) -> void:
@@ -203,7 +215,10 @@ func check_parry() -> void:
 		if is_instance_valid(bullet) and not bullet.is_friendly:
 			var dist = global_position.distance_to(bullet.global_position)
 			if dist <= parry_window_radius:
-				bullet.convert_to_friendly()
+				if Global.shield_type == "parry":
+					bullet.convert_to_friendly()
+				else:
+					absorb_bullet(bullet)
 				parry_triggered_now = true
 				
 	if parry_triggered_now and not parried_in_current_frame:
@@ -211,10 +226,36 @@ func check_parry() -> void:
 		trigger_parry_feedback()
 
 
+func absorb_bullet(bullet: Node2D) -> void:
+	"""敵弾を吸収して消去（軽減シールド用）"""
+	var ParryParticleScene = load("res://game/bullets/parry_particle.tscn")
+	if ParryParticleScene:
+		var particle = ParryParticleScene.instantiate()
+		particle.global_position = bullet.global_position
+		particle.modulate = Color.GREEN
+		get_parent().add_child(particle)
+		
+	# 解析を進める (軽減シールドでも同様に進捗する)
+	advance_analysis(bullet.bullet_type, 34)
+	
+	# パリィカウントをGameManagerに登録
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var manager = main.get_node_or_null("GameManager")
+		if manager and manager.has_method("register_parry"):
+			manager.register_parry()
+			
+	# プールへ回収または消去
+	if bullet.has_method("recycle_bullet"):
+		bullet.recycle_bullet()
+	else:
+		bullet.queue_free()
+
+
 func update_visual_state() -> void:
 	"""状態に応じて機体の色（modulate）を変更"""
 	if is_guarding:
-		modulate = Color.CYAN  # ガード中は青白く光る
+		modulate = Color.CYAN if Global.shield_type == "parry" else Color(0.2, 1.0, 0.3)  # パリィは水色、軽減は緑
 	elif cooldown_timer > 0.0:
 		# クールダウン中は少し暗いグレー
 		modulate = Color(0.5, 0.5, 0.5, 1.0)
@@ -319,8 +360,9 @@ func spawn_popup_message(text: String) -> void:
 
 
 func trigger_parry_feedback() -> void:
-	# 1. 画面フラッシュ (水色)
-	trigger_screen_flash(Color(0.3, 0.8, 1.0, 0.45))
+	# 1. 画面フラッシュ (水色/緑)
+	var flash_color = Color(0.3, 0.8, 1.0, 0.45) if Global.shield_type == "parry" else Color(0.3, 1.0, 0.4, 0.45)
+	trigger_screen_flash(flash_color)
 	
 	# 2. ヒットストップ (0.12秒間スローモーション)
 	trigger_hit_stop(0.12, 0.05)
@@ -329,7 +371,8 @@ func trigger_parry_feedback() -> void:
 	trigger_parry_ring_effect()
 	
 	# 4. ポップアップメッセージ
-	spawn_parry_popup_message("PARRY!")
+	var txt = "PARRY!" if Global.shield_type == "parry" else "ABSORB!"
+	spawn_parry_popup_message(txt)
 
 
 func trigger_hit_stop(duration_sec: float, scale: float) -> void:
@@ -395,10 +438,11 @@ func spawn_parry_popup_message(text: String) -> void:
 func _draw() -> void:
 	if parry_ring_alpha > 0.0:
 		# シールドの円を描画
-		var color = Color(0.0, 0.9, 1.0, parry_ring_alpha)
+		var base_color = Color(0.0, 0.9, 1.0) if Global.shield_type == "parry" else Color(0.1, 0.9, 0.2)
+		var color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha)
 		draw_arc(Vector2.ZERO, parry_ring_radius, 0, TAU, 48, color, 4.0, true)
 		# 内側の塗りつぶし
-		var fill_color = Color(0.0, 0.8, 1.0, parry_ring_alpha * 0.15)
+		var fill_color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha * 0.15)
 		draw_circle(Vector2.ZERO, parry_ring_radius, fill_color)
 
 

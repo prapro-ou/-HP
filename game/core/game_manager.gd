@@ -47,12 +47,14 @@ func _ready() -> void:
 					player.weapons[w_name]["analyzed"] = saved_weapons[w_name].get("analyzed", false)
 					player.weapons[w_name]["progress"] = saved_weapons[w_name].get("progress", 0.0)
 					player.weapons[w_name]["level"] = saved_weapons[w_name].get("level", 1)
-			
-			# 既に解析済みの武器があれば初期選択状態にする
-			if player.weapons["beam"]["analyzed"]:
-				player.current_weapon = "beam"
-			elif player.weapons["missile"]["analyzed"]:
-				player.current_weapon = "missile"
+		
+	# 選択された初期武器を設定する（解析済である場合のみ）
+	if player:
+		var sw = Global.starting_weapon
+		if sw in player.weapons and player.weapons[sw]["analyzed"]:
+			player.current_weapon = sw
+		else:
+			player.current_weapon = "none"
 		
 	# 選択されたステージをロードする
 	current_stage_num = Global.selected_stage
