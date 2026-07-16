@@ -38,15 +38,15 @@ func _ready() -> void:
 	style_analysis_bar(slot_beam_bar, Color.CYAN)
 	style_analysis_bar(slot_missile_bar, Color(0.8, 0.4, 1.0))
 	
-	setup_label_style(player_hp_label, 12, Color.WHITE)
-	setup_label_style(boss_hp_label, 12, Color.WHITE)
-	setup_label_style(parry_count_label, 14, Color.CYAN)
-	setup_label_style(guard_status_label, 14, Color.GREEN)
-	setup_label_style(boss_energy_label, 13, Color.GOLD)
-	setup_label_style(warning_title, 36, Color.RED)
-	setup_label_style(warning_subtitle, 16, Color.GOLD)
-	setup_label_style(slot_beam_label, 12, Color.LIGHT_GRAY)
-	setup_label_style(slot_missile_label, 12, Color.LIGHT_GRAY)
+	setup_label_style(player_hp_label, 16, Color.WHITE)
+	setup_label_style(boss_hp_label, 16, Color.WHITE)
+	setup_label_style(parry_count_label, 18, Color.CYAN)
+	setup_label_style(guard_status_label, 18, Color.GREEN)
+	setup_label_style(boss_energy_label, 17, Color.GOLD)
+	setup_label_style(warning_title, 44, Color.RED)
+	setup_label_style(warning_subtitle, 20, Color.GOLD)
+	setup_label_style(slot_beam_label, 16, Color.LIGHT_GRAY)
+	setup_label_style(slot_missile_label, 16, Color.LIGHT_GRAY)
 
 
 func style_hp_bar(bar: ProgressBar, color: Color) -> void:
@@ -101,7 +101,7 @@ func setup_label_style(label: Label, size: int, color: Color) -> void:
 func update_player_hp(current: int, max_hp: int) -> void:
 	player_hp_bar.max_value = max_hp
 	player_hp_bar.value = current
-	player_hp_label.text = "PLAYER VITAL: %d / %d" % [current, max_hp]
+	player_hp_label.text = Global.translate("ui_vital_fmt") % [current, max_hp]
 
 
 func update_boss_hp(current: int, max_hp: int) -> void:
@@ -109,7 +109,7 @@ func update_boss_hp(current: int, max_hp: int) -> void:
 	boss_hp_label.visible = true
 	boss_hp_bar.max_value = max_hp
 	boss_hp_bar.value = current
-	boss_hp_label.text = "ANCIENT DEFENDER: %d / %d" % [current, max_hp]
+	boss_hp_label.text = Global.translate("ui_boss_vital_fmt") % [current, max_hp]
 
 
 func hide_boss_hp() -> void:
@@ -118,18 +118,18 @@ func hide_boss_hp() -> void:
 
 
 func update_parry_count(count: int) -> void:
-	parry_count_label.text = "EXTRACTED PARRIES: %d" % count
+	parry_count_label.text = Global.translate("ui_parry_fmt") % count
 
 
 func update_guard_status(cooldown: float, is_guarding: bool) -> void:
 	if is_guarding:
-		guard_status_label.text = "SHIELD SYSTEM: ACTIVE!"
-		guard_status_label.label_settings.font_color = Color.CYAN
+		guard_status_label.text = Global.translate("ui_shield_active")
+		guard_status_label.label_settings.font_color = Color.CYAN if Global.shield_type == "parry" else Color.GREEN
 	elif cooldown > 0.0:
-		guard_status_label.text = "SHIELD SYSTEM: COOLDOWN (%.1fs)" % cooldown
+		guard_status_label.text = Global.translate("ui_shield_cooldown") % cooldown
 		guard_status_label.label_settings.font_color = Color.ORANGE_RED
 	else:
-		guard_status_label.text = "SHIELD SYSTEM: READY (SPACE)"
+		guard_status_label.text = Global.translate("ui_shield_ready")
 		guard_status_label.label_settings.font_color = Color.GREEN
 
 
@@ -137,30 +137,30 @@ func update_analysis_progress(beam_progress: float, beam_ready: bool, missile_pr
 	slot_beam_bar.value = beam_progress
 	if beam_ready:
 		if active_weapon == "beam":
-			slot_beam_label.text = "SLOT 1: BEAM [ACTIVE]"
+			slot_beam_label.text = Global.translate("ui_beam_active")
 			slot_beam_label.label_settings.font_color = Color.CYAN
 		else:
-			slot_beam_label.text = "SLOT 1: BEAM [Z/Shift to Swap]"
+			slot_beam_label.text = Global.translate("ui_beam_swap")
 			slot_beam_label.label_settings.font_color = Color(0.4, 0.7, 0.7)
 	else:
-		slot_beam_label.text = "SLOT 1: BEAM ANALYZING [%d%%]" % int(beam_progress)
+		slot_beam_label.text = Global.translate("ui_beam_analyzing") % int(beam_progress)
 		slot_beam_label.label_settings.font_color = Color.LIGHT_GRAY
 		
 	slot_missile_bar.value = missile_progress
 	if missile_ready:
 		if active_weapon == "missile":
-			slot_missile_label.text = "SLOT 2: MISSILE [ACTIVE]"
+			slot_missile_label.text = Global.translate("ui_missile_active")
 			slot_missile_label.label_settings.font_color = Color(0.8, 0.4, 1.0)
 		else:
-			slot_missile_label.text = "SLOT 2: MISSILE [Z/Shift to Swap]"
+			slot_missile_label.text = Global.translate("ui_missile_swap")
 			slot_missile_label.label_settings.font_color = Color(0.6, 0.3, 0.7)
 	else:
-		slot_missile_label.text = "SLOT 2: MISSILE ANALYZING [%d%%]" % int(missile_progress)
+		slot_missile_label.text = Global.translate("ui_missile_analyzing") % int(missile_progress)
 		slot_missile_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
 func update_boss_energy(laser: float, missile: float, core: float) -> void:
-	boss_energy_label.text = "ENERGY REALLOCATION:\nCORE: %d%% | LASER: %d%% | MISSILE: %d%%" % [int(core), int(laser), int(missile)]
+	boss_energy_label.text = Global.translate("ui_boss_energy_fmt") % [int(core), int(laser), int(missile)]
 
 
 func hide_boss_energy() -> void:
@@ -225,15 +225,15 @@ func show_game_over(result: String) -> void:
 	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	var settings = LabelSettings.new()
-	settings.font_size = 42
+	settings.font_size = 46
 	settings.outline_size = 8
 	settings.outline_color = Color.BLACK
 	
 	if result == "VICTORY":
-		result_label.text = "MISSION ACCOMPLISHED"
+		result_label.text = Global.translate("gameover_victory")
 		settings.font_color = Color.CYAN
 	else:
-		result_label.text = "SYSTEM DEFEATED"
+		result_label.text = Global.translate("gameover_defeat")
 		settings.font_color = Color.ORANGE_RED
 		
 	result_label.label_settings = settings
@@ -246,7 +246,7 @@ func show_game_over(result: String) -> void:
 	var stats_label = Label.new()
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var stats_settings = LabelSettings.new()
-	stats_settings.font_size = 18
+	stats_settings.font_size = 20
 	stats_settings.font_color = Color(0.8, 0.9, 1.0, 0.8)
 	stats_label.label_settings = stats_settings
 	
@@ -258,7 +258,7 @@ func show_game_over(result: String) -> void:
 		if "total_damage_score" in game_manager:
 			score = game_manager.total_damage_score
 			
-	stats_label.text = "TOTAL PARRIES EXTRACTED: " + str(parries) + "\nTECHNOLOGY HARVEST: 100%"
+	stats_label.text = Global.translate("gameover_stats") % parries
 	container.add_child(stats_label)
 	
 	# スコア表示
@@ -268,10 +268,10 @@ func show_game_over(result: String) -> void:
 		container.add_child(spacer_score)
 		
 		var score_title_label = Label.new()
-		score_title_label.text = "FINAL DAMAGE SCORE"
+		score_title_label.text = Global.translate("gameover_score_title")
 		score_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var score_title_settings = LabelSettings.new()
-		score_title_settings.font_size = 16
+		score_title_settings.font_size = 18
 		score_title_settings.font_color = Color.GOLD
 		score_title_settings.outline_size = 4
 		score_title_settings.outline_color = Color.BLACK
@@ -282,7 +282,7 @@ func show_game_over(result: String) -> void:
 		score_val_label.text = format_score(score)
 		score_val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var score_val_settings = LabelSettings.new()
-		score_val_settings.font_size = 46
+		score_val_settings.font_size = 50
 		score_val_settings.font_color = Color(1.0, 0.85, 0.1)
 		score_val_settings.outline_size = 10
 		score_val_settings.outline_color = Color(0.1, 0.1, 0.3)
@@ -315,9 +315,10 @@ func show_game_over(result: String) -> void:
 	# 勝利時は「次のステージへ」ボタンを表示
 	if result == "VICTORY":
 		var next_btn = Button.new()
-		next_btn.text = "PROCEED TO NEXT STAGE"
-		next_btn.custom_minimum_size = Vector2(250, 50)
+		next_btn.text = Global.translate("gameover_next_stage")
+		next_btn.custom_minimum_size = Vector2(300, 56)
 		next_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		next_btn.add_theme_font_size_override("font_size", 18)
 		
 		next_btn.add_theme_color_override("font_color", Color.WHITE)
 		next_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -339,11 +340,12 @@ func show_game_over(result: String) -> void:
 		var spacer_btn = Control.new()
 		spacer_btn.custom_minimum_size = Vector2(0, 10)
 		container.add_child(spacer_btn)
-
+ 
 	var retry_btn = Button.new()
-	retry_btn.text = "RESTART INTERFACE" if result == "DEFEAT" else "RESTART SYSTEM"
-	retry_btn.custom_minimum_size = Vector2(250, 50)
+	retry_btn.text = Global.translate("gameover_restart")
+	retry_btn.custom_minimum_size = Vector2(300, 56)
 	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	retry_btn.add_theme_font_size_override("font_size", 18)
 	
 	retry_btn.add_theme_color_override("font_color", Color.WHITE)
 	retry_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -363,9 +365,10 @@ func show_game_over(result: String) -> void:
 	
 	# メインメニューに戻るボタン
 	var menu_btn = Button.new()
-	menu_btn.text = "RETURN TO CORE SYSTEM"
-	menu_btn.custom_minimum_size = Vector2(250, 50)
+	menu_btn.text = Global.translate("gameover_return_menu")
+	menu_btn.custom_minimum_size = Vector2(300, 56)
 	menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	menu_btn.add_theme_font_size_override("font_size", 18)
 	
 	menu_btn.add_theme_color_override("font_color", Color.WHITE)
 	menu_btn.add_theme_color_override("font_hover_color", Color.BLACK)

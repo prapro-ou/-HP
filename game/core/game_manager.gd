@@ -8,7 +8,7 @@ extends Node2D
 
 var player: CharacterBody2D
 var boss: Node2D
-var ui: Control
+var ui: CanvasLayer
 var bullet_pool: Node2D
 
 # ステージ管理用
@@ -34,10 +34,9 @@ func _ready() -> void:
 	if bullet_pool:
 		player.enemy_bullets = bullet_pool.active_bullets
 		
-	# 続きから始める場合、セーブデータをロードして反映する
-	if Global.is_continue and Global.has_save:
+	# セーブデータがあれば、プレイヤーの武器解析データやスコアをロードして反映する
+	if Global.has_save:
 		var save_data = Global.load_game_data()
-		current_stage_num = save_data.get("stage_num", 1)
 		total_damage_score = save_data.get("score", 0)
 		
 		var saved_weapons = save_data.get("weapons", {})
@@ -48,21 +47,22 @@ func _ready() -> void:
 					player.weapons[w_name]["analyzed"] = saved_weapons[w_name].get("analyzed", false)
 					player.weapons[w_name]["progress"] = saved_weapons[w_name].get("progress", 0.0)
 					player.weapons[w_name]["level"] = saved_weapons[w_name].get("level", 1)
-			
-			# 既に解析済みの武器があれば初期選択状態にする
-			if player.weapons["beam"]["analyzed"]:
-				player.current_weapon = "beam"
-			elif player.weapons["missile"]["analyzed"]:
-				player.current_weapon = "missile"
 		
-		var stage_path = "res://game/stages/stage_" + str(current_stage_num) + ".tscn"
-		if not ResourceLoader.exists(stage_path):
-			stage_path = "res://game/stages/stage_1.tscn"
-			current_stage_num = 1
-		load_stage(stage_path, current_stage_num)
-	else:
-		# 初めから開始
-		load_stage("res://game/stages/stage_1.tscn", 1)
+	# 選択された初期武器を設定する（解析済である場合のみ）
+	if player:
+		var sw = Global.starting_weapon
+		if sw in player.weapons and player.weapons[sw]["analyzed"]:
+			player.current_weapon = sw
+		else:
+			player.current_weapon = "none"
+		
+	# 選択されたステージをロードする
+	current_stage_num = Global.selected_stage
+	var stage_path = "res://game/stages/stage_" + str(current_stage_num) + ".tscn"
+	if not ResourceLoader.exists(stage_path):
+		stage_path = "res://game/stages/stage_1.tscn"
+		current_stage_num = 1
+	load_stage(stage_path, current_stage_num)
 
 
 func load_stage(stage_path: String, stage_num: int = 1) -> void:
@@ -122,7 +122,7 @@ func load_next_stage() -> void:
 
 
 func spawn_wave1() -> void:
-	spawn_popup("WAVE 1: BEAM DRONE INCOMING\nPARRY 3 TIMES TO ANALYSIS BEAM")
+	spawn_popup(Global.translate("popup_wave1"))
 	var viewport_w = get_viewport_rect().size.x
 	# ドローンを3機配置
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
@@ -132,7 +132,7 @@ func spawn_wave1() -> void:
 
 func spawn_wave2() -> void:
 	state = "wave2"
-	spawn_popup("WAVE 2: MISSILE DRONE INCOMING\nPARRY 3 TIMES TO ANALYSIS MISSILE")
+	spawn_popup(Global.translate("popup_wave2"))
 	var viewport_w = get_viewport_rect().size.x
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
 	for x in x_coords:
@@ -157,7 +157,7 @@ func _process(delta: float) -> void:
 				clear_drones()
 				state = "wave2_transition"
 				state_timer = 0.0
-				spawn_popup("BEAM SHIELD BREAK!\nDATA EXTRACTED SUCCESSFULLY.")
+				spawn_popup(Global.translate("popup_beam_break"))
 			else:
 				# ドローンが全滅したのに100%になっていなければ、再度1機補充
 				check_drone_replenish("beam")
@@ -212,7 +212,7 @@ func on_drone_destroyed(drone) -> void:
 
 func trigger_warning_interlude() -> void:
 	if ui and ui.has_method("show_warning"):
-		ui.show_warning("WARNING: ANCIENT GUARDIAN DETECTION", "ENERGY SPIKE DETECTED - 1000% ABOVE CRITICAL")
+		ui.show_warning(Global.translate("popup_warning_title"), Global.translate("popup_warning_sub"))
 	
 	# 画面全体を赤くフラッシュ
 	if player and player.has_method("trigger_screen_flash"):
@@ -236,7 +236,7 @@ func start_boss_battle() -> void:
 		var tween = create_tween()
 		tween.tween_property(boss, "position", Vector2(get_viewport_rect().size.x / 2.0, 160.0), 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		
-		spawn_popup("BOSS ENGAGED: ANCIENT DEFENSE SYSTEM")
+		spawn_popup(Global.translate("popup_boss_engaged"))
 
 
 func check_win_lose() -> void:

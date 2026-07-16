@@ -18,22 +18,74 @@ var main_vbox: VBoxContainer
 # Titles
 var title_label: Label
 var subtitle_label: Label
+var stage_select_title_label: Label
+var briefing_title_label: Label
 
-# Menu and Settings screens
+# Menu and screens
 var menu_container: VBoxContainer
 var settings_container: PanelContainer
+var stage_select_container: PanelContainer
+var pre_battle_container: PanelContainer
 var confirm_dialog: PanelContainer
+var hangar_container: PanelContainer
+var research_container: PanelContainer
 
 # Buttons
-var continue_btn: Button
 var new_game_btn: Button
+var hangar_btn: Button
+var research_btn: Button
 var settings_btn: Button
 var quit_btn: Button
-var autoscale_btn: Button
+
+# Hangar UI elements
+var shield_parry_btn: Button
+var shield_mitigate_btn: Button
+var hangar_back_btn: Button
+var hangar_beam_progress: ProgressBar
+var hangar_missile_progress: ProgressBar
+var hangar_beam_lbl: Label
+var hangar_missile_lbl: Label
+
+# Research UI elements
+var research_credits_lbl: Label
+var hp_upgrade_btn: Button
+var hp_level_lbl: Label
+var hp_desc_lbl: Label
+var speed_upgrade_btn: Button
+var speed_level_lbl: Label
+var speed_desc_lbl: Label
+var shield_upgrade_btn: Button
+var shield_level_lbl: Label
+var shield_desc_lbl: Label
+var research_back_btn: Button
+
+# Stage buttons
+var stage1_btn: Button
+var stage2_btn: Button
+var stage_back_btn: Button
+
+# Pre-battle UI elements (Weapon Selection / Sortie Screen)
+var briefing_label: Label
+var player_status_label: Label
+var launch_btn: Button
+var pre_battle_back_btn: Button
+
+# Weapon/Shield Loadout selections in Sortie screen
+var pre_shield_parry_btn: Button
+var pre_shield_mitigate_btn: Button
+var pre_shield_desc_lbl: Label
+var pre_weapon_rifle_btn: Button
+var pre_weapon_beam_btn: Button
+var pre_weapon_missile_btn: Button
+var pre_beam_prog_bar: ProgressBar
+var pre_missile_prog_bar: ProgressBar
+var pre_beam_lbl: Label
+var pre_missile_lbl: Label
+var pre_rifle_lbl: Label
 
 # Settings UI inputs
 var mode_option: OptionButton
-var scale_option: OptionButton
+var lang_option: OptionButton
 var vsync_check: CheckButton
 var shake_check: CheckButton
 var master_slider: HSlider
@@ -59,6 +111,9 @@ func _ready() -> void:
 	
 	# Load settings data into UI
 	sync_settings_to_ui()
+	
+	# Translate strings init
+	translate_ui()
 	
 	# Animation entry
 	animate_menu_entry()
@@ -112,10 +167,9 @@ func setup_layout() -> void:
 	
 	# Subtitle
 	subtitle_label = Label.new()
-	subtitle_label.text = "PARRY TO ANALYZE - SURVIVE THE BULLETS"
 	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var sub_set = LabelSettings.new()
-	sub_set.font_size = 14
+	sub_set.font_size = 18
 	sub_set.font_color = Color.GOLD
 	sub_set.outline_size = 4
 	sub_set.outline_color = Color.BLACK
@@ -133,7 +187,19 @@ func setup_layout() -> void:
 	# 6. Settings Container (Hidden initially)
 	setup_settings_container()
 	
-	# 7. Custom confirmation dialog (Hidden initially)
+	# 7. Hangar Container (Hidden initially)
+	setup_hangar_container()
+	
+	# 8. Research Container (Hidden initially)
+	setup_research_container()
+	
+	# 9. Stage Select Container (Hidden initially)
+	setup_stage_select_container()
+	
+	# 10. Pre-battle Container (Hidden initially)
+	setup_pre_battle_container()
+	
+	# 11. Custom confirmation dialog (Hidden initially)
 	setup_confirm_dialog()
 
 func setup_menu_container() -> void:
@@ -144,27 +210,32 @@ func setup_menu_container() -> void:
 	menu_container.add_theme_constant_override("separation", 20)
 	main_vbox.add_child(menu_container)
 	
-	# Continue Button
-	continue_btn = Button.new()
-	continue_btn.text = "続きから / CONTINUE"
-	continue_btn.custom_minimum_size = Vector2(320, 60)
-	continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	menu_container.add_child(continue_btn)
-	style_button(continue_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
-	add_button_animations(continue_btn)
-	
-	# Start New Game Button
+	# Start Game Button (Stage Select Screen)
 	new_game_btn = Button.new()
-	new_game_btn.text = "初めから / START GAME"
 	new_game_btn.custom_minimum_size = Vector2(320, 60)
 	new_game_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_container.add_child(new_game_btn)
 	style_button(new_game_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	add_button_animations(new_game_btn)
 	
+	# Hangar Button (Weapon & Shield Selection)
+	hangar_btn = Button.new()
+	hangar_btn.custom_minimum_size = Vector2(320, 60)
+	hangar_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	menu_container.add_child(hangar_btn)
+	style_button(hangar_btn, Color(0.3, 0.8, 1.0), Color(0.5, 0.9, 1.0))
+	add_button_animations(hangar_btn)
+	
+	# Research Button (Upgrades)
+	research_btn = Button.new()
+	research_btn.custom_minimum_size = Vector2(320, 60)
+	research_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	menu_container.add_child(research_btn)
+	style_button(research_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+	add_button_animations(research_btn)
+	
 	# Settings Button
 	settings_btn = Button.new()
-	settings_btn.text = "環境設定 / SETTINGS"
 	settings_btn.custom_minimum_size = Vector2(320, 60)
 	settings_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_container.add_child(settings_btn)
@@ -173,61 +244,33 @@ func setup_menu_container() -> void:
 	
 	# Quit Button
 	quit_btn = Button.new()
-	quit_btn.text = "ゲーム終了 / QUIT"
 	quit_btn.custom_minimum_size = Vector2(320, 60)
 	quit_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_container.add_child(quit_btn)
 	style_button(quit_btn, Color(0.8, 0.2, 0.2), Color(1.0, 0.4, 0.4))
 	add_button_animations(quit_btn)
 	
-	# Small spacer
-	var spacer_b = Control.new()
-	spacer_b.custom_minimum_size = Vector2(0, 30)
-	menu_container.add_child(spacer_b)
-	
-	# One-touch Auto Scale Button
-	autoscale_btn = Button.new()
-	autoscale_btn.text = "🖥️ 画面サイズをPCに自動最適化"
-	autoscale_btn.custom_minimum_size = Vector2(340, 50)
-	autoscale_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	menu_container.add_child(autoscale_btn)
-	style_button(autoscale_btn, Color(0.0, 1.0, 0.5), Color(0.2, 1.0, 0.7))
-	add_button_animations(autoscale_btn)
-	
 	# Setup button signals
 	new_game_btn.pressed.connect(_on_new_game_pressed)
-	continue_btn.pressed.connect(_on_continue_pressed)
+	hangar_btn.pressed.connect(_on_hangar_pressed)
+	research_btn.pressed.connect(_on_research_pressed)
 	settings_btn.pressed.connect(_on_settings_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
-	autoscale_btn.pressed.connect(_on_autoscale_pressed)
-	
-	# Handle Continue availability
-	if Global.has_save:
-		continue_btn.disabled = false
-		var save_data = Global.load_game_data()
-		var s_num = save_data.get("stage_num", 1)
-		var score = save_data.get("score", 0)
-		# Add helper status label below continue button text
-		continue_btn.text = "続きから / CONTINUE\n[Stage " + str(s_num) + " - Score: " + str(score) + "]"
-	else:
-		continue_btn.disabled = true
-		continue_btn.text = "続きから / CONTINUE\n[No Save Data]"
 
 func setup_settings_container() -> void:
 	settings_container = PanelContainer.new()
 	settings_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_container.custom_minimum_size = Vector2(480, 700)
+	settings_container.custom_minimum_size = Vector2(480, 620)
 	settings_container.hide()
 	main_vbox.add_child(settings_container)
 	
-	# Translucent glassmorphic panel style
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.08, 0.08, 0.12, 0.95)
 	sb.border_width_left = 3
 	sb.border_width_top = 3
 	sb.border_width_right = 3
 	sb.border_width_bottom = 3
-	sb.border_color = Color(0.8, 0.4, 1.0, 0.8) # Purple sci-fi theme
+	sb.border_color = Color(0.8, 0.4, 1.0, 0.8) # Purple theme
 	sb.corner_radius_top_left = 12
 	sb.corner_radius_top_right = 12
 	sb.corner_radius_bottom_left = 12
@@ -247,19 +290,17 @@ func setup_settings_container() -> void:
 	content.add_theme_constant_override("separation", 22)
 	margin_inner.add_child(content)
 	
-	# Title
 	var settings_title = Label.new()
 	settings_title.text = "環境設定 - SETTINGS"
 	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 22
+	title_set.font_size = 26
 	title_set.font_color = Color(0.9, 0.6, 1.0)
 	title_set.outline_size = 4
 	title_set.outline_color = Color.BLACK
 	settings_title.label_settings = title_set
 	content.add_child(settings_title)
 	
-	# Scroll area for clean overflow
 	var scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -270,11 +311,11 @@ func setup_settings_container() -> void:
 	scroll_content.add_theme_constant_override("separation", 18)
 	scroll.add_child(scroll_content)
 	
-	# --- SECTION 1: DISPLAY ---
+	# DISPLAY
 	var d_title = Label.new()
-	d_title.text = "画面設定 / DISPLAY"
+	d_title.text = "画面・言語設定 / DISPLAY & LANGUAGE"
 	var sec_set = LabelSettings.new()
-	sec_set.font_size = 14
+	sec_set.font_size = 18
 	sec_set.font_color = Color.CYAN
 	d_title.label_settings = sec_set
 	scroll_content.add_child(d_title)
@@ -285,7 +326,15 @@ func setup_settings_container() -> void:
 	grid_display.add_theme_constant_override("v_separation", 12)
 	scroll_content.add_child(grid_display)
 	
-	# Mode
+	# Language Option
+	grid_display.add_child(create_label("表示言語 (Language):"))
+	lang_option = OptionButton.new()
+	lang_option.add_item("日本語 / Japanese", 0)
+	lang_option.add_item("English", 1)
+	lang_option.custom_minimum_size = Vector2(200, 32)
+	grid_display.add_child(lang_option)
+	
+	# Window Mode Option
 	grid_display.add_child(create_label("画面モード (Window Mode):"))
 	mode_option = OptionButton.new()
 	mode_option.add_item("ウィンドウ / Windowed", 0)
@@ -294,29 +343,17 @@ func setup_settings_container() -> void:
 	mode_option.custom_minimum_size = Vector2(200, 32)
 	grid_display.add_child(mode_option)
 	
-	# Resolution / Scale (Vertical formats only)
-	grid_display.add_child(create_label("画面スケール (Vertical Size):"))
-	scale_option = OptionButton.new()
-	scale_option.add_item("400x600 (0.50x)", 0)
-	scale_option.add_item("600x900 (0.75x)", 1)
-	scale_option.add_item("800x1200 (1.00x)", 2)
-	scale_option.add_item("1000x1500 (1.25x)", 3)
-	scale_option.custom_minimum_size = Vector2(200, 32)
-	grid_display.add_child(scale_option)
-	
-	# VSync
 	grid_display.add_child(create_label("垂直同期 (V-Sync):"))
 	vsync_check = CheckButton.new()
 	vsync_check.text = ""
 	grid_display.add_child(vsync_check)
 	
-	# Shake
 	grid_display.add_child(create_label("画面の揺れ (Screen Shake):"))
 	shake_check = CheckButton.new()
 	shake_check.text = ""
 	grid_display.add_child(shake_check)
 	
-	# --- SECTION 2: AUDIO ---
+	# AUDIO
 	var a_title = Label.new()
 	a_title.text = "音量設定 / AUDIO"
 	a_title.label_settings = sec_set
@@ -376,21 +413,18 @@ func setup_settings_container() -> void:
 	sfx_box.add_child(sfx_lbl)
 	grid_audio.add_child(sfx_box)
 	
-	# --- SECTION 3: SYSTEM/DATA ---
+	# SYSTEM/DATA
 	var s_title = Label.new()
 	s_title.text = "データ管理 / DATA"
 	s_title.label_settings = sec_set
 	scroll_content.add_child(s_title)
 	
 	reset_btn = Button.new()
-	reset_btn.text = "セーブデータを初期化する / RESET SAVE DATA"
 	reset_btn.custom_minimum_size = Vector2(300, 36)
 	style_button(reset_btn, Color(0.9, 0.2, 0.2), Color(1.0, 0.4, 0.4))
 	scroll_content.add_child(reset_btn)
 	
-	# Save & Back
 	back_btn = Button.new()
-	back_btn.text = "適用して戻る / SAVE & BACK"
 	back_btn.custom_minimum_size = Vector2(250, 48)
 	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	content.add_child(back_btn)
@@ -398,8 +432,8 @@ func setup_settings_container() -> void:
 	add_button_animations(back_btn)
 	
 	# Connect signals
+	lang_option.item_selected.connect(_on_language_changed)
 	mode_option.item_selected.connect(_on_display_mode_changed)
-	scale_option.item_selected.connect(_on_display_scale_changed)
 	vsync_check.toggled.connect(func(t): Global.vsync = t)
 	shake_check.toggled.connect(func(t): Global.screen_shake = t)
 	
@@ -422,6 +456,376 @@ func setup_settings_container() -> void:
 	reset_btn.pressed.connect(_on_reset_btn_pressed)
 	back_btn.pressed.connect(_on_back_btn_pressed)
 
+func setup_stage_select_container() -> void:
+	stage_select_container = PanelContainer.new()
+	stage_select_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stage_select_container.custom_minimum_size = Vector2(480, 500)
+	stage_select_container.hide()
+	main_vbox.add_child(stage_select_container)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.12, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(0.3, 0.8, 1.0, 0.8) # Cyan theme
+	sb.corner_radius_top_left = 12
+	sb.corner_radius_top_right = 12
+	sb.corner_radius_bottom_left = 12
+	sb.corner_radius_bottom_right = 12
+	sb.shadow_color = Color(0.3, 0.8, 1.0, 0.25)
+	sb.shadow_size = 15
+	stage_select_container.add_theme_stylebox_override("panel", sb)
+	
+	var margin_inner = MarginContainer.new()
+	margin_inner.add_theme_constant_override("margin_left", 30)
+	margin_inner.add_theme_constant_override("margin_top", 30)
+	margin_inner.add_theme_constant_override("margin_right", 30)
+	margin_inner.add_theme_constant_override("margin_bottom", 30)
+	stage_select_container.add_child(margin_inner)
+	
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 25)
+	margin_inner.add_child(content)
+	
+	# Title
+	stage_select_title_label = Label.new()
+	stage_select_title_label.name = "TitleLabel"
+	stage_select_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title_set = LabelSettings.new()
+	title_set.font_size = 26
+	title_set.font_color = Color(0.3, 0.8, 1.0)
+	title_set.outline_size = 4
+	title_set.outline_color = Color.BLACK
+	stage_select_title_label.label_settings = title_set
+	content.add_child(stage_select_title_label)
+	
+	var stage_list = VBoxContainer.new()
+	stage_list.add_theme_constant_override("separation", 18)
+	content.add_child(stage_list)
+	
+	# Stage 1 Button
+	stage1_btn = Button.new()
+	stage1_btn.custom_minimum_size = Vector2(360, 70)
+	style_button(stage1_btn, Color.CYAN, Color(0.5, 0.9, 1.0))
+	add_button_animations(stage1_btn)
+	stage_list.add_child(stage1_btn)
+	stage1_btn.pressed.connect(func(): _on_stage_selected(1))
+	
+	# Stage 2 Button
+	stage2_btn = Button.new()
+	stage2_btn.custom_minimum_size = Vector2(360, 70)
+	style_button(stage2_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+	add_button_animations(stage2_btn)
+	stage_list.add_child(stage2_btn)
+	stage2_btn.pressed.connect(func(): _on_stage_selected(2))
+	
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 10)
+	content.add_child(spacer)
+	
+	# Back Button
+	stage_back_btn = Button.new()
+	stage_back_btn.custom_minimum_size = Vector2(250, 48)
+	stage_back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	style_button(stage_back_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(stage_back_btn)
+	content.add_child(stage_back_btn)
+	stage_back_btn.pressed.connect(_on_stage_back_pressed)
+
+func setup_pre_battle_container() -> void:
+	pre_battle_container = PanelContainer.new()
+	pre_battle_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	pre_battle_container.custom_minimum_size = Vector2(700, 720)
+	pre_battle_container.hide()
+	main_vbox.add_child(pre_battle_container)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.05, 0.08, 0.96) # Dark terminal background
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(0.3, 0.8, 1.0, 0.9) # Cyan border
+	sb.corner_radius_top_left = 12
+	sb.corner_radius_top_right = 12
+	sb.corner_radius_bottom_left = 12
+	sb.corner_radius_bottom_right = 12
+	sb.shadow_color = Color(0.3, 0.8, 1.0, 0.25)
+	sb.shadow_size = 15
+	pre_battle_container.add_theme_stylebox_override("panel", sb)
+	
+	var margin_inner = MarginContainer.new()
+	margin_inner.add_theme_constant_override("margin_left", 20)
+	margin_inner.add_theme_constant_override("margin_top", 20)
+	margin_inner.add_theme_constant_override("margin_right", 20)
+	margin_inner.add_theme_constant_override("margin_bottom", 20)
+	pre_battle_container.add_child(margin_inner)
+	
+	var main_content = VBoxContainer.new()
+	main_content.add_theme_constant_override("separation", 15)
+	margin_inner.add_child(main_content)
+	
+	# Main Title
+	briefing_title_label = Label.new()
+	briefing_title_label.name = "TitleLabel"
+	briefing_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title_set = LabelSettings.new()
+	title_set.font_size = 26
+	title_set.font_color = Color(0.3, 0.8, 1.0)
+	title_set.outline_size = 6
+	title_set.outline_color = Color.BLACK
+	briefing_title_label.label_settings = title_set
+	main_content.add_child(briefing_title_label)
+	
+	# Horizontal Columns Container
+	var columns_hbox = HBoxContainer.new()
+	columns_hbox.add_theme_constant_override("separation", 20)
+	columns_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_content.add_child(columns_hbox)
+	
+	# --- LEFT COLUMN: Stage Briefing ---
+	var left_col = VBoxContainer.new()
+	left_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_col.size_flags_stretch_ratio = 1.0
+	left_col.add_theme_constant_override("separation", 10)
+	columns_hbox.add_child(left_col)
+	
+	var left_title = Label.new()
+	left_title.text = "MISSION BRIEFING"
+	left_title.name = "LeftTitle"
+	var col_title_set = LabelSettings.new()
+	col_title_set.font_size = 18
+	col_title_set.font_color = Color.GOLD
+	left_title.label_settings = col_title_set
+	left_col.add_child(left_title)
+	
+	var detail_panel = PanelContainer.new()
+	var dp_style = StyleBoxFlat.new()
+	dp_style.bg_color = Color(0.03, 0.03, 0.05, 0.8)
+	dp_style.border_width_left = 1
+	dp_style.border_width_top = 1
+	dp_style.border_width_right = 1
+	dp_style.border_width_bottom = 1
+	dp_style.border_color = Color(0.2, 0.5, 0.7, 0.4)
+	dp_style.corner_radius_top_left = 8
+	dp_style.corner_radius_top_right = 8
+	dp_style.corner_radius_bottom_left = 8
+	dp_style.corner_radius_bottom_right = 8
+	dp_style.content_margin_left = 12
+	dp_style.content_margin_top = 12
+	dp_style.content_margin_right = 12
+	dp_style.content_margin_bottom = 12
+	detail_panel.add_theme_stylebox_override("panel", dp_style)
+	detail_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_col.add_child(detail_panel)
+	
+	var scroll_brief = ScrollContainer.new()
+	scroll_brief.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	detail_panel.add_child(scroll_brief)
+	
+	var detail_vbox = VBoxContainer.new()
+	detail_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	detail_vbox.add_theme_constant_override("separation", 10)
+	scroll_brief.add_child(detail_vbox)
+	
+	briefing_label = Label.new()
+	briefing_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var b_set = LabelSettings.new()
+	b_set.font_size = 14
+	b_set.line_spacing = 6
+	b_set.font_color = Color(0.9, 0.9, 0.9)
+	briefing_label.label_settings = b_set
+	detail_vbox.add_child(briefing_label)
+	
+	# Dummy/hidden label to avoid null reference crashes
+	player_status_label = Label.new()
+	player_status_label.hide()
+	detail_vbox.add_child(player_status_label)
+	
+	# --- RIGHT COLUMN: Weapon & Shield Loadout ---
+	var right_col = VBoxContainer.new()
+	right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_col.size_flags_stretch_ratio = 1.2
+	right_col.add_theme_constant_override("separation", 10)
+	columns_hbox.add_child(right_col)
+	
+	var right_title = Label.new()
+	right_title.text = "WEAPON & SHIELD LOADOUT"
+	right_title.name = "RightTitle"
+	right_title.label_settings = col_title_set
+	right_col.add_child(right_title)
+	
+	var loadout_panel = PanelContainer.new()
+	loadout_panel.add_theme_stylebox_override("panel", dp_style)
+	loadout_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right_col.add_child(loadout_panel)
+	
+	var scroll_loadout = ScrollContainer.new()
+	scroll_loadout.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	loadout_panel.add_child(scroll_loadout)
+	
+	var loadout_vbox = VBoxContainer.new()
+	loadout_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	loadout_vbox.add_theme_constant_override("separation", 14)
+	scroll_loadout.add_child(loadout_vbox)
+	
+	# SUBSECTION: Shield Select
+	var shield_title = Label.new()
+	shield_title.text = "SHIELD MODULE"
+	shield_title.name = "ShieldTitle"
+	var subsec_lbl_set = LabelSettings.new()
+	subsec_lbl_set.font_size = 15
+	subsec_lbl_set.font_color = Color.CYAN
+	shield_title.label_settings = subsec_lbl_set
+	loadout_vbox.add_child(shield_title)
+	
+	var shield_btns_hbox = HBoxContainer.new()
+	shield_btns_hbox.add_theme_constant_override("separation", 10)
+	loadout_vbox.add_child(shield_btns_hbox)
+	
+	pre_shield_parry_btn = Button.new()
+	pre_shield_parry_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pre_shield_parry_btn.custom_minimum_size = Vector2(0, 36)
+	style_button(pre_shield_parry_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+	add_button_animations(pre_shield_parry_btn)
+	shield_btns_hbox.add_child(pre_shield_parry_btn)
+	
+	pre_shield_mitigate_btn = Button.new()
+	pre_shield_mitigate_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pre_shield_mitigate_btn.custom_minimum_size = Vector2(0, 36)
+	style_button(pre_shield_mitigate_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(pre_shield_mitigate_btn)
+	shield_btns_hbox.add_child(pre_shield_mitigate_btn)
+	
+	pre_shield_desc_lbl = Label.new()
+	pre_shield_desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var desc_set = LabelSettings.new()
+	desc_set.font_size = 12
+	desc_set.font_color = Color.LIGHT_GRAY
+	desc_set.line_spacing = 4
+	pre_shield_desc_lbl.label_settings = desc_set
+	loadout_vbox.add_child(pre_shield_desc_lbl)
+	
+	var sep_loadout = ColorRect.new()
+	sep_loadout.custom_minimum_size = Vector2(0, 1)
+	sep_loadout.color = Color(0.3, 0.8, 1.0, 0.2)
+	loadout_vbox.add_child(sep_loadout)
+	
+	# SUBSECTION: Weapon Slots
+	var weapon_title = Label.new()
+	weapon_title.text = "SPECIAL WEAPONS"
+	weapon_title.name = "WeaponTitle"
+	weapon_title.label_settings = subsec_lbl_set
+	loadout_vbox.add_child(weapon_title)
+	
+	# 1. Rifle (Standard)
+	var rifle_box = VBoxContainer.new()
+	rifle_box.add_theme_constant_override("separation", 4)
+	loadout_vbox.add_child(rifle_box)
+	
+	pre_weapon_rifle_btn = Button.new()
+	pre_weapon_rifle_btn.custom_minimum_size = Vector2(0, 38)
+	pre_weapon_rifle_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	style_button(pre_weapon_rifle_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+	add_button_animations(pre_weapon_rifle_btn)
+	rifle_box.add_child(pre_weapon_rifle_btn)
+	
+	pre_rifle_lbl = Label.new()
+	pre_rifle_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	pre_rifle_lbl.label_settings = desc_set
+	rifle_box.add_child(pre_rifle_lbl)
+	
+	# 2. Beam Weapon
+	var beam_box = VBoxContainer.new()
+	beam_box.add_theme_constant_override("separation", 4)
+	loadout_vbox.add_child(beam_box)
+	
+	var beam_hbox = HBoxContainer.new()
+	beam_hbox.add_theme_constant_override("separation", 10)
+	beam_box.add_child(beam_hbox)
+	
+	pre_weapon_beam_btn = Button.new()
+	pre_weapon_beam_btn.custom_minimum_size = Vector2(0, 38)
+	pre_weapon_beam_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pre_weapon_beam_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	style_button(pre_weapon_beam_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(pre_weapon_beam_btn)
+	beam_hbox.add_child(pre_weapon_beam_btn)
+	
+	pre_beam_prog_bar = ProgressBar.new()
+	pre_beam_prog_bar.custom_minimum_size = Vector2(100, 16)
+	pre_beam_prog_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	style_analysis_bar(pre_beam_prog_bar, Color.CYAN)
+	beam_hbox.add_child(pre_beam_prog_bar)
+	
+	pre_beam_lbl = Label.new()
+	pre_beam_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	pre_beam_lbl.label_settings = desc_set
+	beam_box.add_child(pre_beam_lbl)
+	
+	# 3. Missile Weapon
+	var missile_box = VBoxContainer.new()
+	missile_box.add_theme_constant_override("separation", 4)
+	loadout_vbox.add_child(missile_box)
+	
+	var missile_hbox = HBoxContainer.new()
+	missile_hbox.add_theme_constant_override("separation", 10)
+	missile_box.add_child(missile_hbox)
+	
+	pre_weapon_missile_btn = Button.new()
+	pre_weapon_missile_btn.custom_minimum_size = Vector2(0, 38)
+	pre_weapon_missile_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pre_weapon_missile_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	style_button(pre_weapon_missile_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(pre_weapon_missile_btn)
+	missile_hbox.add_child(pre_weapon_missile_btn)
+	
+	pre_missile_prog_bar = ProgressBar.new()
+	pre_missile_prog_bar.custom_minimum_size = Vector2(100, 16)
+	pre_missile_prog_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	style_analysis_bar(pre_missile_prog_bar, Color(0.8, 0.4, 1.0))
+	missile_hbox.add_child(pre_missile_prog_bar)
+	
+	pre_missile_lbl = Label.new()
+	pre_missile_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	pre_missile_lbl.label_settings = desc_set
+	missile_box.add_child(pre_missile_lbl)
+	
+	# Separator before actions
+	var main_sep = ColorRect.new()
+	main_sep.custom_minimum_size = Vector2(0, 2)
+	main_sep.color = Color(0.3, 0.8, 1.0, 0.4)
+	main_content.add_child(main_sep)
+	
+	# Bottom: Action Buttons
+	var actions = HBoxContainer.new()
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.add_theme_constant_override("separation", 35)
+	main_content.add_child(actions)
+	
+	launch_btn = Button.new()
+	launch_btn.custom_minimum_size = Vector2(240, 52)
+	style_button(launch_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+	add_button_animations(launch_btn)
+	actions.add_child(launch_btn)
+	launch_btn.pressed.connect(_on_launch_pressed)
+	
+	pre_battle_back_btn = Button.new()
+	pre_battle_back_btn.custom_minimum_size = Vector2(180, 52)
+	style_button(pre_battle_back_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(pre_battle_back_btn)
+	actions.add_child(pre_battle_back_btn)
+	pre_battle_back_btn.pressed.connect(_on_pre_battle_back_pressed)
+	
+	# Connect signals for loadout options
+	pre_shield_parry_btn.pressed.connect(func(): _select_pre_shield("parry"))
+	pre_shield_mitigate_btn.pressed.connect(func(): _select_pre_shield("mitigate"))
+	pre_weapon_rifle_btn.pressed.connect(func(): _select_pre_weapon("none"))
+	pre_weapon_beam_btn.pressed.connect(func(): _select_pre_weapon("beam"))
+	pre_weapon_missile_btn.pressed.connect(func(): _select_pre_weapon("missile"))
+
 func setup_confirm_dialog() -> void:
 	confirm_dialog = PanelContainer.new()
 	confirm_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -430,7 +834,6 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.hide()
 	add_child(confirm_dialog)
 	
-	# Center it on top of everything
 	confirm_dialog.anchor_left = 0.5
 	confirm_dialog.anchor_top = 0.5
 	confirm_dialog.anchor_right = 0.5
@@ -441,7 +844,7 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.offset_top = -110
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.12, 0.04, 0.04, 0.98) # Dark Red themed
+	sb.bg_color = Color(0.12, 0.04, 0.04, 0.98) # Dark Red
 	sb.border_width_left = 3
 	sb.border_width_top = 3
 	sb.border_width_right = 3
@@ -505,9 +908,7 @@ func setup_confirm_dialog() -> void:
 	delete_confirm_btn.pressed.connect(func():
 		Global.delete_save_game()
 		confirm_dialog.hide()
-		# Update main menu continue button
-		continue_btn.disabled = true
-		continue_btn.text = "続きから / CONTINUE\n[No Save Data]"
+		refresh_stage_select()
 	)
 	cancel_confirm_btn.pressed.connect(func():
 		confirm_dialog.hide()
@@ -517,7 +918,7 @@ func create_label(text: String) -> Label:
 	var l = Label.new()
 	l.text = text
 	var l_set = LabelSettings.new()
-	l_set.font_size = 13
+	l_set.font_size = 16
 	l_set.font_color = Color.LIGHT_GRAY
 	l.label_settings = l_set
 	return l
@@ -582,6 +983,7 @@ func style_button(btn: Button, normal_color: Color, hover_color: Color) -> void:
 	btn.add_theme_color_override("font_color", Color.WHITE)
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
 	btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.4))
+	btn.add_theme_font_size_override("font_size", 18)
 
 func add_button_animations(btn: Button) -> void:
 	btn.mouse_entered.connect(func():
@@ -597,25 +999,65 @@ func add_button_animations(btn: Button) -> void:
 
 # ----------------- Interactive Handling -----------------
 
-func sync_settings_to_ui() -> void:
-	mode_option.selected = Global.window_mode
+func translate_ui() -> void:
+	# Titles
+	subtitle_label.text = Global.translate("menu_subtitle")
 	
-	# Resolving scale selection indices (0.5, 0.75, 1.0, 1.25)
-	if abs(Global.window_scale - 0.5) < 0.05:
-		scale_option.selected = 0
-	elif abs(Global.window_scale - 0.75) < 0.05:
-		scale_option.selected = 1
-	elif abs(Global.window_scale - 1.25) < 0.05:
-		scale_option.selected = 3
-	else:
-		scale_option.selected = 2 # 1.0x default
+	# Main Buttons
+	new_game_btn.text = Global.translate("btn_start_game")
+	hangar_btn.text = Global.translate("btn_hangar")
+	research_btn.text = Global.translate("btn_research")
+	settings_btn.text = Global.translate("btn_settings")
+	quit_btn.text = Global.translate("btn_quit")
+	
+	# Hangar UI
+	if hangar_container:
+		var title_lbl = hangar_container.find_child("TitleLabel", true, false)
+		if title_lbl:
+			title_lbl.text = Global.translate("hangar_title")
+		var sec_lbl = hangar_container.find_child("ShieldSectionLabel", true, false)
+		if sec_lbl:
+			sec_lbl.text = Global.translate("hangar_shield_select")
+		var w_sec_lbl = hangar_container.find_child("WeaponSectionLabel", true, false)
+		if w_sec_lbl:
+			w_sec_lbl.text = Global.translate("archive_title")
 		
-	# Disable resolution selection if in fullscreen
-	if Global.window_mode == 1:
-		scale_option.disabled = true
-	else:
-		scale_option.disabled = false
+		var p_desc = hangar_container.find_child("ParryDesc", true, false)
+		if p_desc:
+			p_desc.text = Global.translate("shield_parry_desc")
+		var m_desc = hangar_container.find_child("MitigateDesc", true, false)
+		if m_desc:
+			m_desc.text = Global.translate("shield_mitigate_desc")
+			
+		hangar_back_btn.text = Global.translate("btn_stage_back")
+		update_shield_selection_visual()
 		
+	# Research UI
+	if research_container:
+		var title_lbl = research_container.find_child("TitleLabel", true, false)
+		if title_lbl:
+			title_lbl.text = Global.translate("research_title")
+		research_back_btn.text = Global.translate("btn_stage_back")
+		refresh_research_ui()
+	
+	# Settings Buttons
+	back_btn.text = Global.translate("btn_save_back")
+	reset_btn.text = Global.translate("btn_reset_save")
+	
+	# Stage Select Title
+	if stage_select_container:
+		if stage_select_title_label:
+			stage_select_title_label.text = Global.translate("stage_select_title")
+		stage_back_btn.text = Global.translate("btn_stage_back")
+		refresh_stage_select()
+		
+	# Briefing Title & Buttons (Weapon Select & Sortie)
+	if pre_battle_container:
+		update_pre_battle_visuals()
+
+func sync_settings_to_ui() -> void:
+	lang_option.selected = 0 if Global.language == "ja" else 1
+	mode_option.selected = Global.window_mode
 	vsync_check.button_pressed = Global.vsync
 	shake_check.button_pressed = Global.screen_shake
 	
@@ -628,16 +1070,22 @@ func sync_settings_to_ui() -> void:
 	sfx_slider.value = Global.sfx_volume
 	sfx_lbl.text = str(int(Global.sfx_volume)) + "%"
 
-func _on_new_game_pressed() -> void:
-	Global.is_continue = false
-	get_tree().change_scene_to_file("res://game/main.tscn")
+func _on_language_changed(idx: int) -> void:
+	Global.language = "ja" if idx == 0 else "en"
+	Global.save_settings()
+	translate_ui()
 
-func _on_continue_pressed() -> void:
-	Global.is_continue = true
-	get_tree().change_scene_to_file("res://game/main.tscn")
+func _on_new_game_pressed() -> void:
+	refresh_stage_select()
+	var tween = create_tween().set_parallel(true)
+	menu_container.hide()
+	stage_select_container.show()
+	stage_select_container.scale = Vector2(0.8, 0.8)
+	stage_select_container.modulate.a = 0.0
+	tween.tween_property(stage_select_container, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(stage_select_container, "modulate:a", 1.0, 0.2)
 
 func _on_settings_pressed() -> void:
-	# Transition: hide menu container, show settings panel
 	var tween = create_tween().set_parallel(true)
 	menu_container.hide()
 	settings_container.show()
@@ -649,36 +1097,8 @@ func _on_settings_pressed() -> void:
 func _on_quit_pressed() -> void:
 	get_tree().quit()
 
-func _on_autoscale_pressed() -> void:
-	Global.auto_scale_display()
-	sync_settings_to_ui()
-	
-	# Neon flash indicator
-	var orig_color = autoscale_btn.get_theme_stylebox("normal").border_color
-	var tween = create_tween()
-	autoscale_btn.add_theme_color_override("font_color", Color.BLACK)
-	tween.tween_method(func(val: float):
-		var sb = autoscale_btn.get_theme_stylebox("normal")
-		if sb:
-			sb.bg_color = Color.WHITE.lerp(Color(0.06, 0.06, 0.1, 0.8), val)
-			sb.border_color = Color.WHITE.lerp(orig_color, val)
-	, 0.0, 1.0, 0.4)
-	tween.chain().tween_callback(func(): autoscale_btn.add_theme_color_override("font_color", Color.WHITE))
-
 func _on_display_mode_changed(idx: int) -> void:
 	Global.window_mode = idx
-	if idx == 1:
-		scale_option.disabled = true
-	else:
-		scale_option.disabled = false
-	Global.apply_display()
-
-func _on_display_scale_changed(idx: int) -> void:
-	match idx:
-		0: Global.window_scale = 0.5
-		1: Global.window_scale = 0.75
-		2: Global.window_scale = 1.0
-		3: Global.window_scale = 1.25
 	Global.apply_display()
 
 func _on_reset_btn_pressed() -> void:
@@ -689,8 +1109,6 @@ func _on_reset_btn_pressed() -> void:
 
 func _on_back_btn_pressed() -> void:
 	Global.save_settings()
-	
-	# Transition settings panel out and menu container in
 	var tween = create_tween().set_parallel(true)
 	tween.tween_property(settings_container, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(settings_container, "modulate:a", 0.0, 0.15)
@@ -702,6 +1120,66 @@ func _on_back_btn_pressed() -> void:
 		var in_tween = create_tween()
 		in_tween.tween_property(menu_container, "modulate:a", 1.0, 0.15)
 	)
+
+func refresh_stage_select() -> void:
+	var save_data = Global.load_game_data()
+	var max_unlocked = save_data.get("max_unlocked_stage", 1)
+	
+	stage1_btn.text = Global.translate("stage_01_name")
+	
+	if max_unlocked >= 2:
+		stage2_btn.disabled = false
+		stage2_btn.text = Global.translate("stage_02_name")
+	else:
+		stage2_btn.disabled = true
+		stage2_btn.text = Global.translate("stage_02_locked")
+
+func _on_stage_back_pressed() -> void:
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(stage_select_container, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(stage_select_container, "modulate:a", 0.0, 0.15)
+	
+	tween.chain().tween_callback(func():
+		stage_select_container.hide()
+		menu_container.show()
+		menu_container.modulate.a = 0.0
+		var in_tween = create_tween()
+		in_tween.tween_property(menu_container, "modulate:a", 1.0, 0.15)
+	)
+
+func _on_stage_selected(stage_num: int) -> void:
+	Global.selected_stage = stage_num
+	
+	# Briefing text
+	briefing_label.text = Global.translate("briefing_stage_1") if stage_num == 1 else Global.translate("briefing_stage_2")
+	
+	# Synchronize weapon/shield select display
+	update_pre_battle_visuals()
+	
+	# Transition
+	var tween = create_tween().set_parallel(true)
+	stage_select_container.hide()
+	pre_battle_container.show()
+	pre_battle_container.scale = Vector2(0.8, 0.8)
+	pre_battle_container.modulate.a = 0.0
+	tween.tween_property(pre_battle_container, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(pre_battle_container, "modulate:a", 1.0, 0.2)
+
+func _on_pre_battle_back_pressed() -> void:
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(pre_battle_container, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(pre_battle_container, "modulate:a", 0.0, 0.15)
+	
+	tween.chain().tween_callback(func():
+		pre_battle_container.hide()
+		stage_select_container.show()
+		stage_select_container.modulate.a = 0.0
+		var in_tween = create_tween()
+		in_tween.tween_property(stage_select_container, "modulate:a", 1.0, 0.15)
+	)
+
+func _on_launch_pressed() -> void:
+	get_tree().change_scene_to_file("res://game/main.tscn")
 
 # ----------------- Visual Animations & Background -----------------
 
@@ -732,18 +1210,15 @@ func update_starfield(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	# Drawing stars
 	for s in stars:
 		draw_circle(s.pos, s.size, s.color)
 		
-	# Drawing cyber-grid lines (retro aesthetic scanlines)
 	var rect = get_viewport_rect()
 	var spacing = 8
 	for y in range(0, int(rect.size.y), spacing):
 		draw_line(Vector2(0, y), Vector2(rect.size.x, y), Color(0, 0, 0, 0.16), 1.0)
 
 func animate_menu_entry() -> void:
-	# Animating initial menu load
 	title_label.modulate.a = 0.0
 	title_label.scale = Vector2(0.9, 0.9)
 	subtitle_label.modulate.a = 0.0
@@ -759,10 +1234,634 @@ func animate_menu_entry() -> void:
 
 func animate_title(delta: float) -> void:
 	time_passed += delta
-	# Pulsing glow of title text
 	var pulse = 1.0 + sin(time_passed * 2.5) * 0.03
 	title_label.scale = Vector2(pulse, pulse)
 	
-	# Slight chromatic neon color pulse
 	var blue_glow = Color(0.2, 0.8 + sin(time_passed * 3.0) * 0.15, 1.0)
 	title_label.label_settings.font_color = blue_glow
+
+
+func setup_hangar_container() -> void:
+	hangar_container = PanelContainer.new()
+	hangar_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	hangar_container.custom_minimum_size = Vector2(480, 600)
+	hangar_container.hide()
+	main_vbox.add_child(hangar_container)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.12, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(0.3, 0.8, 1.0, 0.8) # Cyan border
+	sb.corner_radius_top_left = 12
+	sb.corner_radius_top_right = 12
+	sb.corner_radius_bottom_left = 12
+	sb.corner_radius_bottom_right = 12
+	sb.shadow_color = Color(0.3, 0.8, 1.0, 0.25)
+	sb.shadow_size = 15
+	hangar_container.add_theme_stylebox_override("panel", sb)
+	
+	var margin_inner = MarginContainer.new()
+	margin_inner.add_theme_constant_override("margin_left", 25)
+	margin_inner.add_theme_constant_override("margin_top", 25)
+	margin_inner.add_theme_constant_override("margin_right", 25)
+	margin_inner.add_theme_constant_override("margin_bottom", 25)
+	hangar_container.add_child(margin_inner)
+	
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 20)
+	margin_inner.add_child(content)
+	
+	# Title
+	var title_lbl = Label.new()
+	title_lbl.name = "TitleLabel"
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title_set = LabelSettings.new()
+	title_set.font_size = 26
+	title_set.font_color = Color(0.3, 0.8, 1.0)
+	title_set.outline_size = 4
+	title_set.outline_color = Color.BLACK
+	title_lbl.label_settings = title_set
+	content.add_child(title_lbl)
+	
+	# Section 1: Shield Module Selection
+	var shield_sec_lbl = Label.new()
+	shield_sec_lbl.name = "ShieldSectionLabel"
+	var sec_set = LabelSettings.new()
+	sec_set.font_size = 18
+	sec_set.font_color = Color.CYAN
+	shield_sec_lbl.label_settings = sec_set
+	content.add_child(shield_sec_lbl)
+	
+	var shield_box = VBoxContainer.new()
+	shield_box.add_theme_constant_override("separation", 15)
+	content.add_child(shield_box)
+	
+	# Parry Shield Option
+	var parry_panel = PanelContainer.new()
+	var pp_style = StyleBoxFlat.new()
+	pp_style.bg_color = Color(0.04, 0.05, 0.08, 0.8)
+	pp_style.corner_radius_top_left = 6
+	pp_style.corner_radius_top_right = 6
+	pp_style.corner_radius_bottom_left = 6
+	pp_style.corner_radius_bottom_right = 6
+	pp_style.content_margin_left = 12
+	pp_style.content_margin_top = 12
+	pp_style.content_margin_right = 12
+	pp_style.content_margin_bottom = 12
+	parry_panel.add_theme_stylebox_override("panel", pp_style)
+	shield_box.add_child(parry_panel)
+	
+	var parry_vbox = VBoxContainer.new()
+	parry_vbox.add_theme_constant_override("separation", 6)
+	parry_panel.add_child(parry_vbox)
+	
+	shield_parry_btn = Button.new()
+	shield_parry_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	style_button(shield_parry_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+	parry_vbox.add_child(shield_parry_btn)
+	
+	var parry_desc = Label.new()
+	parry_desc.name = "ParryDesc"
+	parry_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var desc_set = LabelSettings.new()
+	desc_set.font_size = 13
+	desc_set.font_color = Color.LIGHT_GRAY
+	parry_desc.label_settings = desc_set
+	parry_vbox.add_child(parry_desc)
+	
+	# Mitigate Shield Option
+	var mitigate_panel = PanelContainer.new()
+	mitigate_panel.add_theme_stylebox_override("panel", pp_style)
+	shield_box.add_child(mitigate_panel)
+	
+	var mitigate_vbox = VBoxContainer.new()
+	mitigate_vbox.add_theme_constant_override("separation", 6)
+	mitigate_panel.add_child(mitigate_vbox)
+	
+	shield_mitigate_btn = Button.new()
+	shield_mitigate_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	style_button(shield_mitigate_btn, Color.LIGHT_GRAY, Color.WHITE)
+	mitigate_vbox.add_child(shield_mitigate_btn)
+	
+	var mitigate_desc = Label.new()
+	mitigate_desc.name = "MitigateDesc"
+	mitigate_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	mitigate_desc.label_settings = desc_set
+	mitigate_vbox.add_child(mitigate_desc)
+	
+	# Section 2: Weapon Status
+	var weapon_sec_lbl = Label.new()
+	weapon_sec_lbl.name = "WeaponSectionLabel"
+	weapon_sec_lbl.label_settings = sec_set
+	content.add_child(weapon_sec_lbl)
+	
+	var weapon_box = VBoxContainer.new()
+	weapon_box.add_theme_constant_override("separation", 12)
+	content.add_child(weapon_box)
+	
+	# Beam Progress
+	var beam_hbox = HBoxContainer.new()
+	weapon_box.add_child(beam_hbox)
+	hangar_beam_lbl = Label.new()
+	hangar_beam_lbl.custom_minimum_size = Vector2(150, 0)
+	hangar_beam_lbl.label_settings = desc_set
+	beam_hbox.add_child(hangar_beam_lbl)
+	hangar_beam_progress = ProgressBar.new()
+	hangar_beam_progress.custom_minimum_size = Vector2(200, 20)
+	hangar_beam_progress.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	beam_hbox.add_child(hangar_beam_progress)
+	
+	# Missile Progress
+	var missile_hbox = HBoxContainer.new()
+	weapon_box.add_child(missile_hbox)
+	hangar_missile_lbl = Label.new()
+	hangar_missile_lbl.custom_minimum_size = Vector2(150, 0)
+	hangar_missile_lbl.label_settings = desc_set
+	missile_hbox.add_child(hangar_missile_lbl)
+	hangar_missile_progress = ProgressBar.new()
+	hangar_missile_progress.custom_minimum_size = Vector2(200, 20)
+	hangar_missile_progress.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	missile_hbox.add_child(hangar_missile_progress)
+	
+	# Back Button
+	hangar_back_btn = Button.new()
+	hangar_back_btn.custom_minimum_size = Vector2(250, 48)
+	hangar_back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	style_button(hangar_back_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(hangar_back_btn)
+	content.add_child(hangar_back_btn)
+	
+	# Connect signals
+	shield_parry_btn.pressed.connect(func(): _select_shield("parry"))
+	shield_mitigate_btn.pressed.connect(func(): _select_shield("mitigate"))
+	hangar_back_btn.pressed.connect(_on_hangar_back_pressed)
+
+
+func setup_research_container() -> void:
+	research_container = PanelContainer.new()
+	research_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	research_container.custom_minimum_size = Vector2(480, 600)
+	research_container.hide()
+	main_vbox.add_child(research_container)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.07, 0.05, 0.95) # Gold/Brown tint
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(1.0, 0.7, 0.2, 0.8) # Gold border
+	sb.corner_radius_top_left = 12
+	sb.corner_radius_top_right = 12
+	sb.corner_radius_bottom_left = 12
+	sb.corner_radius_bottom_right = 12
+	sb.shadow_color = Color(1.0, 0.7, 0.2, 0.2)
+	sb.shadow_size = 15
+	research_container.add_theme_stylebox_override("panel", sb)
+	
+	var margin_inner = MarginContainer.new()
+	margin_inner.add_theme_constant_override("margin_left", 25)
+	margin_inner.add_theme_constant_override("margin_top", 25)
+	margin_inner.add_theme_constant_override("margin_right", 25)
+	margin_inner.add_theme_constant_override("margin_bottom", 25)
+	research_container.add_child(margin_inner)
+	
+	var content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 18)
+	margin_inner.add_child(content)
+	
+	# Title
+	var title_lbl = Label.new()
+	title_lbl.name = "TitleLabel"
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title_set = LabelSettings.new()
+	title_set.font_size = 26
+	title_set.font_color = Color(1.0, 0.7, 0.2)
+	title_set.outline_size = 4
+	title_set.outline_color = Color.BLACK
+	title_lbl.label_settings = title_set
+	content.add_child(title_lbl)
+	
+	# Credits (Recovered Data)
+	research_credits_lbl = Label.new()
+	research_credits_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var cred_set = LabelSettings.new()
+	cred_set.font_size = 16
+	cred_set.font_color = Color(0.6, 0.9, 1.0)
+	research_credits_lbl.label_settings = cred_set
+	content.add_child(research_credits_lbl)
+	
+	var list_vbox = VBoxContainer.new()
+	list_vbox.add_theme_constant_override("separation", 14)
+	content.add_child(list_vbox)
+	
+	# 1. HP Upgrade Item
+	var hp_panel = PanelContainer.new()
+	var ip_style = StyleBoxFlat.new()
+	ip_style.bg_color = Color(0.04, 0.04, 0.06, 0.8)
+	ip_style.corner_radius_top_left = 6
+	ip_style.corner_radius_top_right = 6
+	ip_style.corner_radius_bottom_left = 6
+	ip_style.corner_radius_bottom_right = 6
+	ip_style.content_margin_left = 10
+	ip_style.content_margin_top = 10
+	ip_style.content_margin_right = 10
+	ip_style.content_margin_bottom = 10
+	hp_panel.add_theme_stylebox_override("panel", ip_style)
+	list_vbox.add_child(hp_panel)
+	
+	var hp_hbox = HBoxContainer.new()
+	hp_hbox.add_theme_constant_override("separation", 15)
+	hp_panel.add_child(hp_hbox)
+	
+	var hp_info_vbox = VBoxContainer.new()
+	hp_info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hp_hbox.add_child(hp_info_vbox)
+	
+	hp_level_lbl = Label.new()
+	var item_title_set = LabelSettings.new()
+	item_title_set.font_size = 15
+	item_title_set.font_color = Color.WHITE
+	hp_level_lbl.label_settings = item_title_set
+	hp_info_vbox.add_child(hp_level_lbl)
+	
+	hp_desc_lbl = Label.new()
+	var item_desc_set = LabelSettings.new()
+	item_desc_set.font_size = 12
+	item_desc_set.font_color = Color.LIGHT_GRAY
+	hp_desc_lbl.label_settings = item_desc_set
+	hp_info_vbox.add_child(hp_desc_lbl)
+	
+	hp_upgrade_btn = Button.new()
+	hp_upgrade_btn.custom_minimum_size = Vector2(160, 40)
+	style_button(hp_upgrade_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+	add_button_animations(hp_upgrade_btn)
+	hp_hbox.add_child(hp_upgrade_btn)
+	hp_upgrade_btn.pressed.connect(func(): _upgrade_stat("hp"))
+	
+	# 2. Speed Upgrade Item
+	var speed_panel = PanelContainer.new()
+	speed_panel.add_theme_stylebox_override("panel", ip_style)
+	list_vbox.add_child(speed_panel)
+	
+	var speed_hbox = HBoxContainer.new()
+	speed_hbox.add_theme_constant_override("separation", 15)
+	speed_panel.add_child(speed_hbox)
+	
+	var speed_info_vbox = VBoxContainer.new()
+	speed_info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	speed_hbox.add_child(speed_info_vbox)
+	
+	speed_level_lbl = Label.new()
+	speed_level_lbl.label_settings = item_title_set
+	speed_info_vbox.add_child(speed_level_lbl)
+	
+	speed_desc_lbl = Label.new()
+	speed_desc_lbl.label_settings = item_desc_set
+	speed_info_vbox.add_child(speed_desc_lbl)
+	
+	speed_upgrade_btn = Button.new()
+	speed_upgrade_btn.custom_minimum_size = Vector2(160, 40)
+	style_button(speed_upgrade_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+	add_button_animations(speed_upgrade_btn)
+	speed_hbox.add_child(speed_upgrade_btn)
+	speed_upgrade_btn.pressed.connect(func(): _upgrade_stat("speed"))
+	
+	# 3. Shield Upgrade Item
+	var shield_panel = PanelContainer.new()
+	shield_panel.add_theme_stylebox_override("panel", ip_style)
+	list_vbox.add_child(shield_panel)
+	
+	var shield_hbox = HBoxContainer.new()
+	shield_hbox.add_theme_constant_override("separation", 15)
+	shield_panel.add_child(shield_hbox)
+	
+	var shield_info_vbox = VBoxContainer.new()
+	shield_info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	shield_hbox.add_child(shield_info_vbox)
+	
+	shield_level_lbl = Label.new()
+	shield_level_lbl.label_settings = item_title_set
+	shield_info_vbox.add_child(shield_level_lbl)
+	
+	shield_desc_lbl = Label.new()
+	shield_desc_lbl.label_settings = item_desc_set
+	shield_info_vbox.add_child(shield_desc_lbl)
+	
+	shield_upgrade_btn = Button.new()
+	shield_upgrade_btn.custom_minimum_size = Vector2(160, 40)
+	style_button(shield_upgrade_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+	add_button_animations(shield_upgrade_btn)
+	shield_hbox.add_child(shield_upgrade_btn)
+	shield_upgrade_btn.pressed.connect(func(): _upgrade_stat("shield"))
+	
+	# Back Button
+	research_back_btn = Button.new()
+	research_back_btn.custom_minimum_size = Vector2(250, 48)
+	research_back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	style_button(research_back_btn, Color.LIGHT_GRAY, Color.WHITE)
+	add_button_animations(research_back_btn)
+	content.add_child(research_back_btn)
+	research_back_btn.pressed.connect(_on_research_back_pressed)
+
+
+# Hangar logic
+func _on_hangar_pressed() -> void:
+	refresh_hangar_ui()
+	var tween = create_tween().set_parallel(true)
+	menu_container.hide()
+	hangar_container.show()
+	hangar_container.scale = Vector2(0.8, 0.8)
+	hangar_container.modulate.a = 0.0
+	tween.tween_property(hangar_container, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(hangar_container, "modulate:a", 1.0, 0.2)
+
+
+func _on_hangar_back_pressed() -> void:
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(hangar_container, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(hangar_container, "modulate:a", 0.0, 0.15)
+	
+	tween.chain().tween_callback(func():
+		hangar_container.hide()
+		menu_container.show()
+		menu_container.modulate.a = 0.0
+		var in_tween = create_tween()
+		in_tween.tween_property(menu_container, "modulate:a", 1.0, 0.15)
+	)
+
+
+func _select_shield(type: String) -> void:
+	Global.shield_type = type
+	Global.save_game(Global.selected_stage, Global.load_game_data().get("score", 0), Global.load_game_data().get("weapons", {}))
+	update_shield_selection_visual()
+
+
+func update_shield_selection_visual() -> void:
+	if Global.shield_type == "parry":
+		style_button(shield_parry_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+		shield_parry_btn.text = "▶ " + Global.translate("shield_parry_name") + " [SELECTED]"
+		style_button(shield_mitigate_btn, Color(0.4, 0.4, 0.4), Color(0.6, 0.6, 0.6))
+		shield_mitigate_btn.text = Global.translate("shield_mitigate_name")
+	else:
+		style_button(shield_parry_btn, Color(0.4, 0.4, 0.4), Color(0.6, 0.6, 0.6))
+		shield_parry_btn.text = Global.translate("shield_parry_name")
+		style_button(shield_mitigate_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+		shield_mitigate_btn.text = "▶ " + Global.translate("shield_mitigate_name") + " [SELECTED]"
+
+
+func refresh_hangar_ui() -> void:
+	var save_data = Global.load_game_data()
+	var weapons = save_data.get("weapons", {})
+	
+	var beam_unlocked = weapons.get("beam", {}).get("analyzed", false)
+	var beam_prog = weapons.get("beam", {}).get("progress", 0.0)
+	var missile_unlocked = weapons.get("missile", {}).get("analyzed", false)
+	var missile_prog = weapons.get("missile", {}).get("progress", 0.0)
+	
+	hangar_beam_progress.value = beam_prog if not beam_unlocked else 100.0
+	hangar_missile_progress.value = missile_prog if not missile_unlocked else 100.0
+	
+	var beam_level = weapons.get("beam", {}).get("level", 1)
+	var missile_level = weapons.get("missile", {}).get("level", 1)
+	
+	if beam_unlocked:
+		hangar_beam_lbl.text = "BEAM LASER: ACTIVE (LV %d)" % beam_level
+	else:
+		hangar_beam_lbl.text = "BEAM LASER: ANALYZING..."
+		
+	if missile_unlocked:
+		hangar_missile_lbl.text = "HOMING MISSILE: ACTIVE (LV %d)" % missile_level
+	else:
+		hangar_missile_lbl.text = "HOMING MISSILE: ANALYZING..."
+		
+	update_shield_selection_visual()
+
+
+# Research logic
+func _on_research_pressed() -> void:
+	refresh_research_ui()
+	var tween = create_tween().set_parallel(true)
+	menu_container.hide()
+	research_container.show()
+	research_container.scale = Vector2(0.8, 0.8)
+	research_container.modulate.a = 0.0
+	tween.tween_property(research_container, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(research_container, "modulate:a", 1.0, 0.2)
+
+
+func _on_research_back_pressed() -> void:
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(research_container, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(research_container, "modulate:a", 0.0, 0.15)
+	
+	tween.chain().tween_callback(func():
+		research_container.hide()
+		menu_container.show()
+		menu_container.modulate.a = 0.0
+		var in_tween = create_tween()
+		in_tween.tween_property(menu_container, "modulate:a", 1.0, 0.15)
+	)
+
+
+func refresh_research_ui() -> void:
+	var save_data = Global.load_game_data()
+	var score = save_data.get("score", 0)
+	
+	# Current levels from Global properties
+	var hp_lvl = Global.hp_upgrade_level
+	var speed_lvl = Global.speed_upgrade_level
+	var shield_lvl = Global.shield_upgrade_level
+	
+	# Score is used as Research Credits
+	research_credits_lbl.text = Global.translate("research_credits") % score
+	
+	# 1. HP UI
+	var current_hp = 100 + (hp_lvl - 1) * 20
+	var next_hp = current_hp + 20
+	hp_level_lbl.text = Global.translate("research_hp_title") + " - LV %d" % hp_lvl
+	hp_desc_lbl.text = Global.translate("research_hp_desc") % [current_hp, next_hp]
+	_setup_upgrade_button(hp_upgrade_btn, hp_lvl, score)
+	
+	# 2. Speed UI
+	var current_speed = 300 + (speed_lvl - 1) * 30
+	var next_speed = current_speed + 30
+	speed_level_lbl.text = Global.translate("research_speed_title") + " - LV %d" % speed_lvl
+	speed_desc_lbl.text = Global.translate("research_speed_desc") % [current_speed, next_speed]
+	_setup_upgrade_button(speed_upgrade_btn, speed_lvl, score)
+	
+	# 3. Shield UI
+	var current_cooldown_red = (shield_lvl - 1) * 0.3 # Reduce 0.3s per level
+	var next_cooldown_red = current_cooldown_red + 0.3
+	shield_level_lbl.text = Global.translate("research_shield_title") + " - LV %d" % shield_lvl
+	shield_desc_lbl.text = Global.translate("research_shield_desc") % [current_cooldown_red, next_cooldown_red]
+	_setup_upgrade_button(shield_upgrade_btn, shield_lvl, score)
+
+
+func get_upgrade_cost(level: int) -> int:
+	match level:
+		1: return 2500
+		2: return 6000
+		3: return 15000
+		4: return 35000
+		_: return 999999
+
+
+func _setup_upgrade_button(btn: Button, lvl: int, score: int) -> void:
+	if lvl >= 5:
+		btn.disabled = true
+		btn.text = Global.translate("btn_upgrade_max")
+		style_button(btn, Color(0.4, 0.4, 0.4), Color(0.5, 0.5, 0.5))
+	else:
+		var cost = get_upgrade_cost(lvl)
+		btn.text = Global.translate("btn_upgrade") % cost
+		if score >= cost:
+			btn.disabled = false
+			style_button(btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+		else:
+			btn.disabled = true
+			btn.text = Global.translate("insufficient_credits") + " (%d TB)" % cost
+			style_button(btn, Color(0.5, 0.2, 0.2), Color(0.6, 0.3, 0.3))
+
+
+func _upgrade_stat(stat: String) -> void:
+	var save_data = Global.load_game_data()
+	var score = save_data.get("score", 0)
+	
+	match stat:
+		"hp":
+			var cost = get_upgrade_cost(Global.hp_upgrade_level)
+			if score >= cost and Global.hp_upgrade_level < 5:
+				score -= cost
+				Global.hp_upgrade_level += 1
+		"speed":
+			var cost = get_upgrade_cost(Global.speed_upgrade_level)
+			if score >= cost and Global.speed_upgrade_level < 5:
+				score -= cost
+				Global.speed_upgrade_level += 1
+		"shield":
+			var cost = get_upgrade_cost(Global.shield_upgrade_level)
+			if score >= cost and Global.shield_upgrade_level < 5:
+				score -= cost
+				Global.shield_upgrade_level += 1
+				
+	# Save updated score and upgrade levels
+	Global.save_game(
+		save_data.get("stage_num", 1),
+		score,
+		save_data.get("weapons", {})
+	)
+	refresh_research_ui()
+
+
+# Pre-battle / Weapon Select helpers
+func _select_pre_shield(type: String) -> void:
+	Global.shield_type = type
+	Global.save_game(Global.selected_stage, Global.load_game_data().get("score", 0), Global.load_game_data().get("weapons", {}))
+	update_pre_battle_visuals()
+
+
+func _select_pre_weapon(type: String) -> void:
+	Global.starting_weapon = type
+	Global.save_game(Global.selected_stage, Global.load_game_data().get("score", 0), Global.load_game_data().get("weapons", {}))
+	update_pre_battle_visuals()
+
+
+func update_pre_battle_visuals() -> void:
+	if not pre_battle_container or not pre_battle_container.visible:
+		return
+		
+	# Titles
+	briefing_title_label.text = Global.translate("sortie_title")
+	
+	var left_t = pre_battle_container.find_child("LeftTitle", true, false)
+	if left_t: left_t.text = Global.translate("sortie_briefing")
+	
+	var right_t = pre_battle_container.find_child("RightTitle", true, false)
+	if right_t: right_t.text = Global.translate("sortie_equipment")
+	
+	var shield_t = pre_battle_container.find_child("ShieldTitle", true, false)
+	if shield_t: shield_t.text = Global.translate("hangar_shield_select")
+	
+	var weapon_t = pre_battle_container.find_child("WeaponTitle", true, false)
+	if weapon_t: weapon_t.text = Global.translate("sortie_equipment")
+	
+	launch_btn.text = Global.translate("btn_launch")
+	pre_battle_back_btn.text = Global.translate("btn_cancel")
+	
+	# Shield status sync
+	pre_shield_parry_btn.text = Global.translate("shield_parry_name")
+	pre_shield_mitigate_btn.text = Global.translate("shield_mitigate_name")
+	
+	if Global.shield_type == "parry":
+		style_button(pre_shield_parry_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+		pre_shield_parry_btn.text = "▶ " + pre_shield_parry_btn.text + " [" + Global.translate("weapon_active_lbl") + "]"
+		style_button(pre_shield_mitigate_btn, Color(0.4, 0.4, 0.4), Color(0.6, 0.6, 0.6))
+		pre_shield_desc_lbl.text = Global.translate("shield_parry_desc")
+	else:
+		style_button(pre_shield_parry_btn, Color(0.4, 0.4, 0.4), Color(0.6, 0.6, 0.6))
+		style_button(pre_shield_mitigate_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+		pre_shield_mitigate_btn.text = "▶ " + pre_shield_mitigate_btn.text + " [" + Global.translate("weapon_active_lbl") + "]"
+		pre_shield_desc_lbl.text = Global.translate("shield_mitigate_desc")
+		
+	# Weapon status sync
+	var save_data = Global.load_game_data()
+	var weapons = save_data.get("weapons", {})
+	
+	var beam_unlocked = weapons.get("beam", {}).get("analyzed", false)
+	var beam_prog = weapons.get("beam", {}).get("progress", 0.0)
+	var beam_level = weapons.get("beam", {}).get("level", 1)
+	
+	var missile_unlocked = weapons.get("missile", {}).get("analyzed", false)
+	var missile_prog = weapons.get("missile", {}).get("progress", 0.0)
+	var missile_level = weapons.get("missile", {}).get("level", 1)
+	
+	# Machine Gun
+	pre_weapon_rifle_btn.text = Global.translate("weapon_rifle_name")
+	pre_rifle_lbl.text = Global.translate("weapon_rifle_desc")
+	if Global.starting_weapon == "none":
+		style_button(pre_weapon_rifle_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+		pre_weapon_rifle_btn.text = "▶ " + pre_weapon_rifle_btn.text + " [" + Global.translate("weapon_active_lbl") + "]"
+	else:
+		style_button(pre_weapon_rifle_btn, Color(0.4, 0.4, 0.4), Color(0.6, 0.6, 0.6))
+		
+	# Beam Lasers
+	pre_beam_prog_bar.value = beam_prog if not beam_unlocked else 100.0
+	pre_beam_lbl.text = Global.translate("weapon_beam_desc")
+	if beam_unlocked:
+		pre_beam_prog_bar.hide()
+		pre_weapon_beam_btn.disabled = false
+		pre_weapon_beam_btn.text = Global.translate("weapon_beam_name") + " (LV %d)" % beam_level
+		if Global.starting_weapon == "beam":
+			style_button(pre_weapon_beam_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+			pre_weapon_beam_btn.text = "▶ " + pre_weapon_beam_btn.text + " [" + Global.translate("weapon_active_lbl") + "]"
+		else:
+			style_button(pre_weapon_beam_btn, Color(0.5, 0.8, 1.0), Color(0.7, 0.9, 1.0))
+	else:
+		pre_beam_prog_bar.show()
+		pre_weapon_beam_btn.disabled = true
+		style_button(pre_weapon_beam_btn, Color(0.3, 0.3, 0.3), Color(0.3, 0.3, 0.3))
+		pre_weapon_beam_btn.text = Global.translate("weapon_beam_name") + " [" + Global.translate("weapon_locked_lbl") + "]"
+		pre_beam_lbl.text = Global.translate("weapon_locked_msg")
+		
+	# Missile System
+	pre_missile_prog_bar.value = missile_prog if not missile_unlocked else 100.0
+	pre_missile_lbl.text = Global.translate("weapon_missile_desc")
+	if missile_unlocked:
+		pre_missile_prog_bar.hide()
+		pre_weapon_missile_btn.disabled = false
+		pre_weapon_missile_btn.text = Global.translate("weapon_missile_name") + " (LV %d)" % missile_level
+		if Global.starting_weapon == "missile":
+			style_button(pre_weapon_missile_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+			pre_weapon_missile_btn.text = "▶ " + pre_weapon_missile_btn.text + " [" + Global.translate("weapon_active_lbl") + "]"
+		else:
+			style_button(pre_weapon_missile_btn, Color(0.5, 0.8, 1.0), Color(0.7, 0.9, 1.0))
+	else:
+		pre_missile_prog_bar.show()
+		pre_weapon_missile_btn.disabled = true
+		style_button(pre_weapon_missile_btn, Color(0.3, 0.3, 0.3), Color(0.3, 0.3, 0.3))
+		pre_weapon_missile_btn.text = Global.translate("weapon_missile_name") + " [" + Global.translate("weapon_locked_lbl") + "]"
+		pre_missile_lbl.text = Global.translate("weapon_locked_msg")

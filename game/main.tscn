@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dmua6sakwpwly" path="res://game/player/player.tscn" id="2_player"]
 [ext_resource type="Script" uid="uid://d0n03n6pyyjw7" path="res://game/core/game_manager.gd" id="3_gamemanager"]
-[ext_resource type="PackedScene" path="res://game/core/ui.tscn" id="4_ui"]
+[ext_resource type="PackedScene" uid="uid://dnu8p73opmjqn" path="res://game/core/ui.tscn" id="4_ui"]
 [ext_resource type="Script" uid="uid://b6t1x3undf74f" path="res://game/core/bullet_pool.gd" id="5_bulletpool"]
 
 [node name="Main" type="Node2D" unique_id=1066061339]
