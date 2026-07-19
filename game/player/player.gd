@@ -157,6 +157,26 @@ func _process(delta: float) -> void:
 			fire_full_burst()
 			set_meta("last_burst_time", current_time)
 
+	# チュートリアル用のスローモーション制御 (初回起動時のみ)
+	if Global.is_first_launch and not is_attack_unlocked:
+		var near_bullet_found = false
+		for bullet in enemy_bullets:
+			if is_instance_valid(bullet) and not bullet.is_friendly:
+				var dist = global_position.distance_to(bullet.global_position)
+				# パリィフィールドの手前でスローにする
+				if dist <= parry_window_radius * 2.2 and dist > parry_window_radius * 0.4:
+					near_bullet_found = true
+					break
+		
+		if near_bullet_found and not is_guarding:
+			Engine.time_scale = 0.15
+			if not has_meta("slow_alert_shown"):
+				set_meta("slow_alert_shown", true)
+				spawn_popup_message("⚠️ DANGER: PRESS SPACE TO PARRY!")
+		else:
+			if Engine.time_scale < 0.5 and not is_guarding:
+				Engine.time_scale = 1.0
+
 
 func toggle_weapon() -> void:
 	# 両方未アンロックの場合は切り替えない
@@ -325,7 +345,21 @@ func check_parry() -> void:
 			var dist = global_position.distance_to(bullet.global_position)
 			if dist <= parry_window_radius:
 				# 攻撃機能アンロック（最初のパリィ）
-				is_attack_unlocked = true
+				if not is_attack_unlocked:
+					is_attack_unlocked = true
+					if Global.is_first_launch:
+						Global.is_first_launch = false
+						Engine.time_scale = 1.0
+						spawn_popup_message("PARRY SUCCESSFUL! WEAPONS SYSTEM ENGAGED.")
+						
+						# セーブデータを書き出す
+						var current_stage = 1
+						var main = get_node_or_null("/root/Main")
+						if main:
+							var manager = main.get_node_or_null("GameManager")
+							if manager and "current_stage_num" in manager:
+								current_stage = manager.current_stage_num
+						Global.save_game(current_stage, 0, weapons)
 				
 				if shield_type == "power":
 					# 初期装備強化型 (Power): 敵弾を吸収し、自機の基礎攻撃力を強化する
@@ -377,6 +411,11 @@ func take_damage(amount: int) -> void:
 	# ガード中はダメージ無効
 	if is_guarding:
 		return
+		
+	# チュートリアル中に被弾した場合はスローモーション解除
+	if Global.is_first_launch and Engine.time_scale < 0.5:
+		Engine.time_scale = 1.0
+		
 	current_hp -= amount
 	if current_hp <= 0:
 		current_hp = 0
