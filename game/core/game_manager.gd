@@ -8,7 +8,7 @@ extends Node2D
 
 var player: CharacterBody2D
 var boss: Node2D
-var ui: Control
+var ui: CanvasLayer
 var bullet_pool: Node2D
 
 # ステージ管理用
