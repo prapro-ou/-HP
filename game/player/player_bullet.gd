@@ -63,6 +63,16 @@ func update_visual() -> void:
 			modulate = Color(0.2, 1.0, 0.6)
 			damage = 7
 			speed = 950.0
+		"plasma":
+			scale = Vector2(1.5, 1.5)
+			modulate = Color(0.6, 0.9, 0.2) # Yellow-Green
+			damage = 6
+			speed = 500.0
+		"tackle":
+			scale = Vector2(2.5, 0.6)
+			modulate = Color(1.0, 0.4, 0.0) # Intense Orange
+			damage = 18
+			speed = 750.0
 			
 	if velocity == Vector2.ZERO:
 		velocity = Vector2.UP * speed
@@ -129,8 +139,8 @@ func _on_area_entered(area: Area2D) -> void:
 		elif bullet_type == "missile":
 			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0))
 			
-		# Giga Laser と Charge Bolt は全てを貫通する
-		if bullet_type != "giga_laser" and bullet_type != "charge_bolt":
+		# Giga Laser, Charge Bolt, Plasma, and Tackle pierce all targets
+		if bullet_type != "giga_laser" and bullet_type != "charge_bolt" and bullet_type != "plasma" and bullet_type != "tackle":
 			queue_free()
 
 
