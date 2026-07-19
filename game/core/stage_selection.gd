@@ -221,7 +221,7 @@ func setup_ui() -> void:
 	var scroll = ScrollContainer.new()
 	scroll.anchor_right = 1.0
 	scroll.anchor_bottom = 1.0
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_HIDDEN
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	list_panel.add_child(scroll)
 	
