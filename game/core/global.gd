@@ -10,6 +10,18 @@ var has_save: bool = false
 # Weapon Selection variables
 var equipped_weapon: String = "machine_gun"
 
+# New game state variables for customization & progression
+var is_first_launch: bool = true
+var tech_points: int = 0
+var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (faster charge), "power" (buff primary)
+var unlocked_weapons: Array = ["machine_gun", "pulse_gun"] # Available primary weapon frameworks
+var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
+var upgrade_levels: Dictionary = {
+	"hp": 0,
+	"parry_window": 0,
+	"cooldown": 0
+}
+
 # Weapon Dictionary Definition
 var available_weapons: Dictionary = {
 	"machine_gun": {
@@ -65,6 +77,12 @@ func save_game(stage_num: int, score: int, weapons: Dictionary) -> void:
 	config.set_value("game", "score", score)
 	config.set_value("game", "weapons", weapons)
 	config.set_value("game", "equipped_weapon", equipped_weapon)
+	config.set_value("game", "is_first_launch", is_first_launch)
+	config.set_value("game", "tech_points", tech_points)
+	config.set_value("game", "equipped_shield", equipped_shield)
+	config.set_value("game", "unlocked_weapons", unlocked_weapons)
+	config.set_value("game", "unlocked_counter_weapons", unlocked_counter_weapons)
+	config.set_value("game", "upgrade_levels", upgrade_levels)
 	config.save(SAVE_PATH)
 	has_save = true
 
@@ -74,7 +92,13 @@ func load_game_data() -> Dictionary:
 		"stage_num": 1,
 		"score": 0,
 		"weapons": {},
-		"equipped_weapon": "machine_gun"
+		"equipped_weapon": "machine_gun",
+		"is_first_launch": true,
+		"tech_points": 0,
+		"equipped_shield": "counter",
+		"unlocked_weapons": ["machine_gun", "pulse_gun"],
+		"unlocked_counter_weapons": [],
+		"upgrade_levels": {"hp": 0, "parry_window": 0, "cooldown": 0}
 	}
 	if config.load(SAVE_PATH) == OK:
 		data["stage_num"] = config.get_value("game", "stage_num", 1)
@@ -82,6 +106,24 @@ func load_game_data() -> Dictionary:
 		data["weapons"] = config.get_value("game", "weapons", {})
 		data["equipped_weapon"] = config.get_value("game", "equipped_weapon", "machine_gun")
 		equipped_weapon = data["equipped_weapon"]
+		
+		data["is_first_launch"] = config.get_value("game", "is_first_launch", true)
+		is_first_launch = data["is_first_launch"]
+		
+		data["tech_points"] = config.get_value("game", "tech_points", 0)
+		tech_points = data["tech_points"]
+		
+		data["equipped_shield"] = config.get_value("game", "equipped_shield", "counter")
+		equipped_shield = data["equipped_shield"]
+		
+		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "pulse_gun"])
+		unlocked_weapons = data["unlocked_weapons"]
+		
+		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", [])
+		unlocked_counter_weapons = data["unlocked_counter_weapons"]
+		
+		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0})
+		upgrade_levels = data["upgrade_levels"]
 	return data
 
 func delete_save_game() -> void:
@@ -92,6 +134,12 @@ func delete_save_game() -> void:
 	has_save = false
 	is_continue = false
 	equipped_weapon = "machine_gun"
+	is_first_launch = true
+	tech_points = 0
+	equipped_shield = "counter"
+	unlocked_weapons = ["machine_gun", "pulse_gun"]
+	unlocked_counter_weapons = []
+	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
 
 func save_settings() -> void:
 	var config = ConfigFile.new()
