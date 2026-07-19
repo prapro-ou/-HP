@@ -105,11 +105,25 @@ func load_next_stage() -> void:
 	# 画面上の弾を全て消去
 	clear_all_bullets()
 	
-	# プレイヤーのHP全回復、状態リセット（武器解析データはそのまま維持される）
+	# プレイヤーのHP全回復、状態リセット
 	if is_instance_valid(player):
 		player.current_hp = player.max_hp
 		player.is_full_burst = false
+		player.cooldown_timer = 0.0
+		player.active_timer = 0.0
+		player.is_guarding = false
+		# 武器の解析進行度、アンロック状況を初期化
+		for w_key in player.weapons.keys():
+			player.weapons[w_key]["analyzed"] = false
+			player.weapons[w_key]["progress"] = 0
+			player.weapons[w_key]["level"] = 1
+		player.current_weapon = "none"
 		
+	# ゲーム状態のリセット
+	parry_count = 0
+	state_timer = 0.0
+	clear_drones()
+	
 	var next_num = current_stage_num + 1
 	var next_path = "res://game/stages/stage_" + str(next_num) + ".tscn"
 	

@@ -7,6 +7,37 @@ const SETTINGS_PATH = "user://settings.cfg"
 var is_continue: bool = false
 var has_save: bool = false
 
+# Weapon Selection variables
+var equipped_weapon: String = "machine_gun"
+
+# Weapon Dictionary Definition
+var available_weapons: Dictionary = {
+	"machine_gun": {
+		"name": "STANDARD MACHINE GUN",
+		"description": "Rapid-fire physical rounds. Offers steady fire rate and reliable coverage.",
+		"stats": "DMG: ★★☆ | RATE: ★★★ | VEL: ★★☆",
+		"unlocked": true
+	},
+	"burst_rifle": {
+		"name": "3-ROUND BURST RIFLE",
+		"description": "Fires 3-round bursts of high-impact penetrative bullets with short delay.",
+		"stats": "DMG: ★★★ | RATE: ★★☆ | VEL: ★★★",
+		"unlocked": true
+	},
+	"charge_rifle": {
+		"name": "COIL CHARGE RIFLE",
+		"description": "Charges energy to release a concentrated, high-damage railgun energy bolt.",
+		"stats": "DMG: ★★★ | RATE: ★☆☆ | VEL: ★★★",
+		"unlocked": true
+	},
+	"pulse_gun": {
+		"name": "DUAL PULSE CANNON",
+		"description": "Fires twin spreading plasma pulse waves. Excellent for crowd control.",
+		"stats": "DMG: ★★☆ | RATE: ★★★ | VEL: ★☆☆",
+		"unlocked": true
+	}
+}
+
 # Settings variables
 var master_volume: float = 80.0
 var bgm_volume: float = 80.0
@@ -33,6 +64,7 @@ func save_game(stage_num: int, score: int, weapons: Dictionary) -> void:
 	config.set_value("game", "stage_num", stage_num)
 	config.set_value("game", "score", score)
 	config.set_value("game", "weapons", weapons)
+	config.set_value("game", "equipped_weapon", equipped_weapon)
 	config.save(SAVE_PATH)
 	has_save = true
 
@@ -41,12 +73,15 @@ func load_game_data() -> Dictionary:
 	var data = {
 		"stage_num": 1,
 		"score": 0,
-		"weapons": {}
+		"weapons": {},
+		"equipped_weapon": "machine_gun"
 	}
 	if config.load(SAVE_PATH) == OK:
 		data["stage_num"] = config.get_value("game", "stage_num", 1)
 		data["score"] = config.get_value("game", "score", 0)
 		data["weapons"] = config.get_value("game", "weapons", {})
+		data["equipped_weapon"] = config.get_value("game", "equipped_weapon", "machine_gun")
+		equipped_weapon = data["equipped_weapon"]
 	return data
 
 func delete_save_game() -> void:
@@ -56,6 +91,7 @@ func delete_save_game() -> void:
 			dir.remove("savegame.cfg")
 	has_save = false
 	is_continue = false
+	equipped_weapon = "machine_gun"
 
 func save_settings() -> void:
 	var config = ConfigFile.new()

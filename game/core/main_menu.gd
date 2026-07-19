@@ -19,17 +19,21 @@ var main_vbox: VBoxContainer
 var title_label: Label
 var subtitle_label: Label
 
-# Menu and Settings screens
+# Menu, Settings and Hangar screens
 var menu_container: VBoxContainer
 var settings_container: PanelContainer
 var confirm_dialog: PanelContainer
+var hangar_container: PanelContainer  # Hangar Panel
 
 # Buttons
 var continue_btn: Button
 var new_game_btn: Button
+var hangar_btn: Button  # Hangar open button
 var settings_btn: Button
 var quit_btn: Button
 var autoscale_btn: Button
+var hangar_back_btn: Button
+var hangar_equip_btn: Button
 
 # Settings UI inputs
 var mode_option: OptionButton
@@ -44,6 +48,17 @@ var sfx_slider: HSlider
 var sfx_lbl: Label
 var reset_btn: Button
 var back_btn: Button
+
+# Hangar UI specific nodes
+var hangar_weapon_list: VBoxContainer
+var hangar_desc_label: Label
+var hangar_stats_label: Label
+var hangar_preview_panel: PanelContainer
+
+# Preview/Animation variables
+var preview_timer: float = 0.0
+var preview_bullets_array: Array = []
+var selected_hangar_weapon: String = "machine_gun"
 
 # Title animation variables
 var time_passed: float = 0.0
@@ -66,6 +81,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	update_starfield(delta)
 	animate_title(delta)
+	if hangar_container and hangar_container.visible:
+		update_weapon_preview(delta)
 
 # ----------------- UI Creation & Styling -----------------
 
@@ -135,6 +152,9 @@ func setup_layout() -> void:
 	
 	# 7. Custom confirmation dialog (Hidden initially)
 	setup_confirm_dialog()
+	
+	# 8. Hangar Container (Hidden initially)
+	setup_hangar_container()
 
 func setup_menu_container() -> void:
 	menu_container = VBoxContainer.new()
@@ -161,6 +181,15 @@ func setup_menu_container() -> void:
 	menu_container.add_child(new_game_btn)
 	style_button(new_game_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	add_button_animations(new_game_btn)
+	
+	# Hangar / Weapon Selection Button
+	hangar_btn = Button.new()
+	hangar_btn.text = "兵装選択 / HANGAR"
+	hangar_btn.custom_minimum_size = Vector2(320, 60)
+	hangar_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	menu_container.add_child(hangar_btn)
+	style_button(hangar_btn, Color.GREEN, Color(0.2, 1.0, 0.6))
+	add_button_animations(hangar_btn)
 	
 	# Settings Button
 	settings_btn = Button.new()
@@ -197,6 +226,7 @@ func setup_menu_container() -> void:
 	# Setup button signals
 	new_game_btn.pressed.connect(_on_new_game_pressed)
 	continue_btn.pressed.connect(_on_continue_pressed)
+	hangar_btn.pressed.connect(_on_hangar_pressed)
 	settings_btn.pressed.connect(_on_settings_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
 	autoscale_btn.pressed.connect(_on_autoscale_pressed)
@@ -766,3 +796,368 @@ func animate_title(delta: float) -> void:
 	# Slight chromatic neon color pulse
 	var blue_glow = Color(0.2, 0.8 + sin(time_passed * 3.0) * 0.15, 1.0)
 	title_label.label_settings.font_color = blue_glow
+
+
+# ----------------- Hangar & Weapon Selection Screen -----------------
+
+func setup_hangar_container() -> void:
+	hangar_container = PanelContainer.new()
+	hangar_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	hangar_container.custom_minimum_size = Vector2(650, 750)
+	hangar_container.hide()
+	main_vbox.add_child(hangar_container)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.1, 0.96)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(0.0, 0.9, 0.5, 0.8) # Green sci-fi border
+	sb.corner_radius_top_left = 12
+	sb.corner_radius_top_right = 12
+	sb.corner_radius_bottom_left = 12
+	sb.corner_radius_bottom_right = 12
+	sb.shadow_color = Color(0.0, 0.9, 0.5, 0.2)
+	sb.shadow_size = 15
+	hangar_container.add_theme_stylebox_override("panel", sb)
+	
+	var margin_inner = MarginContainer.new()
+	margin_inner.add_theme_constant_override("margin_left", 20)
+	margin_inner.add_theme_constant_override("margin_top", 20)
+	margin_inner.add_theme_constant_override("margin_right", 20)
+	margin_inner.add_theme_constant_override("margin_bottom", 20)
+	hangar_container.add_child(margin_inner)
+	
+	var main_layout = VBoxContainer.new()
+	main_layout.add_theme_constant_override("separation", 15)
+	margin_inner.add_child(main_layout)
+	
+	var header = Label.new()
+	header.text = "兵装選択 / HANGAR SYSTEMS"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var head_settings = LabelSettings.new()
+	head_settings.font_size = 24
+	head_settings.font_color = Color(0.1, 1.0, 0.6)
+	head_settings.outline_size = 6
+	head_settings.outline_color = Color.BLACK
+	header.label_settings = head_settings
+	main_layout.add_child(header)
+	
+	var content_hbox = HBoxContainer.new()
+	content_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_hbox.add_theme_constant_override("separation", 20)
+	main_layout.add_child(content_hbox)
+	
+	var left_vbox = VBoxContainer.new()
+	left_vbox.custom_minimum_size = Vector2(250, 0)
+	left_vbox.add_theme_constant_override("separation", 12)
+	content_hbox.add_child(left_vbox)
+	
+	var list_title = Label.new()
+	list_title.text = "SELECT PHYSICAL UNIT:"
+	var lt_set = LabelSettings.new()
+	lt_set.font_size = 12
+	lt_set.font_color = Color.LIGHT_GRAY
+	list_title.label_settings = lt_set
+	left_vbox.add_child(list_title)
+	
+	hangar_weapon_list = VBoxContainer.new()
+	hangar_weapon_list.add_theme_constant_override("separation", 10)
+	left_vbox.add_child(hangar_weapon_list)
+	
+	# Build Weapon List Buttons initial
+	rebuild_hangar_weapon_list()
+	
+	var right_vbox = VBoxContainer.new()
+	right_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_vbox.add_theme_constant_override("separation", 12)
+	content_hbox.add_child(right_vbox)
+	
+	var right_header = Label.new()
+	right_header.name = "WeaponName"
+	right_header.text = "SELECT A WEAPON"
+	var rh_settings = LabelSettings.new()
+	rh_settings.font_size = 20
+	rh_settings.font_color = Color.CYAN
+	right_header.label_settings = rh_settings
+	right_vbox.add_child(right_header)
+	
+	hangar_stats_label = Label.new()
+	hangar_stats_label.text = "DMG: - | RATE: - | VEL: -"
+	var st_set = LabelSettings.new()
+	st_set.font_size = 12
+	st_set.font_color = Color.GOLD
+	hangar_stats_label.label_settings = st_set
+	right_vbox.add_child(hangar_stats_label)
+	
+	hangar_desc_label = Label.new()
+	hangar_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hangar_desc_label.custom_minimum_size = Vector2(300, 70)
+	var desc_set = LabelSettings.new()
+	desc_set.font_size = 13
+	desc_set.font_color = Color.LIGHT_GRAY
+	hangar_desc_label.label_settings = desc_set
+	right_vbox.add_child(hangar_desc_label)
+	
+	var prev_title = Label.new()
+	prev_title.text = "WEAPON FIELD PREVIEW:"
+	var pt_set = LabelSettings.new()
+	pt_set.font_size = 11
+	pt_set.font_color = Color.DARK_GRAY
+	prev_title.label_settings = pt_set
+	right_vbox.add_child(prev_title)
+	
+	hangar_preview_panel = PanelContainer.new()
+	hangar_preview_panel.custom_minimum_size = Vector2(300, 240)
+	hangar_preview_panel.clip_contents = true
+	right_vbox.add_child(hangar_preview_panel)
+	
+	var pb_style = StyleBoxFlat.new()
+	pb_style.bg_color = Color(0.02, 0.02, 0.04, 1.0)
+	pb_style.border_width_left = 2
+	pb_style.border_width_top = 2
+	pb_style.border_width_right = 2
+	pb_style.border_width_bottom = 2
+	pb_style.border_color = Color(0.1, 0.3, 0.2, 0.8)
+	pb_style.corner_radius_top_left = 6
+	pb_style.corner_radius_top_right = 6
+	pb_style.corner_radius_bottom_left = 6
+	pb_style.corner_radius_bottom_right = 6
+	hangar_preview_panel.add_theme_stylebox_override("panel", pb_style)
+	
+	var preview_canvas = Control.new()
+	preview_canvas.name = "PreviewCanvas"
+	preview_canvas.custom_minimum_size = Vector2(300, 240)
+	hangar_preview_panel.add_child(preview_canvas)
+	
+	var dummy_ship = ColorRect.new()
+	dummy_ship.name = "DummyShip"
+	dummy_ship.color = Color.CYAN
+	dummy_ship.custom_minimum_size = Vector2(16, 16)
+	dummy_ship.size = Vector2(16, 16)
+	dummy_ship.position = Vector2(142, 210)
+	preview_canvas.add_child(dummy_ship)
+	
+	var act_hbox = HBoxContainer.new()
+	act_hbox.alignment = BoxContainer.ALIGNMENT_END
+	act_hbox.add_theme_constant_override("separation", 15)
+	main_layout.add_child(act_hbox)
+	
+	hangar_equip_btn = Button.new()
+	hangar_equip_btn.text = "EQUIP SYSTEM"
+	hangar_equip_btn.custom_minimum_size = Vector2(160, 45)
+	act_hbox.add_child(hangar_equip_btn)
+	style_button(hangar_equip_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
+	add_button_animations(hangar_equip_btn)
+	
+	hangar_back_btn = Button.new()
+	hangar_back_btn.text = "RETURN TO SYSTEM"
+	hangar_back_btn.custom_minimum_size = Vector2(180, 45)
+	act_hbox.add_child(hangar_back_btn)
+	style_button(hangar_back_btn, Color(0.8, 0.4, 1.0), Color(0.9, 0.6, 1.0))
+	add_button_animations(hangar_back_btn)
+	
+	hangar_equip_btn.pressed.connect(_on_hangar_equip_pressed)
+	hangar_back_btn.pressed.connect(_on_hangar_back_pressed)
+	
+	select_hangar_weapon(Global.equipped_weapon)
+
+
+func rebuild_hangar_weapon_list() -> void:
+	if not hangar_weapon_list:
+		return
+	for child in hangar_weapon_list.get_children():
+		child.queue_free()
+		
+	for w_key in Global.available_weapons.keys():
+		var w_data = Global.available_weapons[w_key]
+		var btn = Button.new()
+		var is_equipped = (w_key == Global.equipped_weapon)
+		
+		btn.text = ("▶ [EQUIPPED] " if is_equipped else "") + w_data["name"]
+		btn.custom_minimum_size = Vector2(240, 50)
+		hangar_weapon_list.add_child(btn)
+		
+		if is_equipped:
+			style_button(btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+		else:
+			style_button(btn, Color.LIGHT_GRAY, Color.WHITE)
+			
+		add_button_animations(btn)
+		btn.pressed.connect(func():
+			select_hangar_weapon(w_key)
+		)
+
+
+func select_hangar_weapon(w_key: String) -> void:
+	selected_hangar_weapon = w_key
+	var w_data = Global.available_weapons[w_key]
+	
+	clear_preview_bullets()
+	preview_timer = 0.0
+	
+	var name_lbl = hangar_preview_panel.get_parent().get_node("WeaponName")
+	if name_lbl:
+		name_lbl.text = w_data["name"]
+		if w_key == Global.equipped_weapon:
+			name_lbl.text += " (EQUIPPED)"
+			name_lbl.label_settings.font_color = Color.GOLD
+		else:
+			name_lbl.label_settings.font_color = Color.CYAN
+			
+	hangar_desc_label.text = w_data["description"]
+	hangar_stats_label.text = w_data["stats"]
+	
+	if w_key == Global.equipped_weapon:
+		hangar_equip_btn.text = "CURRENTLY EQUIPPED"
+		hangar_equip_btn.disabled = true
+	else:
+		hangar_equip_btn.text = "EQUIP SYSTEM"
+		hangar_equip_btn.disabled = false
+
+
+func _on_hangar_equip_pressed() -> void:
+	Global.equipped_weapon = selected_hangar_weapon
+	var save_data = Global.load_game_data()
+	Global.save_game(save_data.get("stage_num", 1), save_data.get("score", 0), save_data.get("weapons", {}))
+	
+	rebuild_hangar_weapon_list()
+	select_hangar_weapon(selected_hangar_weapon)
+	
+	var flash_tween = create_tween()
+	hangar_container.modulate = Color(1.5, 1.5, 1.5)
+	flash_tween.tween_property(hangar_container, "modulate", Color.WHITE, 0.2)
+
+
+func _on_hangar_back_pressed() -> void:
+	clear_preview_bullets()
+	hangar_container.hide()
+	menu_container.show()
+	title_label.show()
+	subtitle_label.show()
+	
+	if Global.has_save:
+		continue_btn.disabled = false
+		var save_data = Global.load_game_data()
+		continue_btn.text = "続きから / CONTINUE\n[Stage " + str(save_data.get("stage_num", 1)) + " - Score: " + str(save_data.get("score", 0)) + "]"
+	else:
+		continue_btn.disabled = true
+
+
+func _on_hangar_pressed() -> void:
+	menu_container.hide()
+	title_label.hide()
+	subtitle_label.hide()
+	hangar_container.show()
+	
+	# Transition animation for hangar entry
+	hangar_container.scale = Vector2(0.85, 0.85)
+	hangar_container.modulate.a = 0.0
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(hangar_container, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(hangar_container, "modulate:a", 1.0, 0.25)
+	
+	rebuild_hangar_weapon_list()
+	select_hangar_weapon(Global.equipped_weapon)
+
+
+func update_weapon_preview(delta: float) -> void:
+	preview_timer += delta
+	
+	# 1. Move & delete preview bullets
+	var bullets_to_remove = []
+	for b in preview_bullets_array:
+		if is_instance_valid(b):
+			var b_speed = b.get_meta("speed", 400.0)
+			var b_dir = b.get_meta("dir", Vector2.UP)
+			b.position += b_dir * b_speed * delta
+			
+			# Check out of boundary for preview container (300x240)
+			if b.position.y < -30 or b.position.y > 270 or b.position.x < -30 or b.position.x > 330:
+				bullets_to_remove.append(b)
+				b.queue_free()
+		else:
+			bullets_to_remove.append(b)
+			
+	for b in bullets_to_remove:
+		preview_bullets_array.erase(b)
+		
+	# 2. Control shooting interval by weapon
+	var fire_interval = 0.2
+	match selected_hangar_weapon:
+		"machine_gun":
+			fire_interval = 0.15
+			if preview_timer >= fire_interval:
+				preview_timer = 0.0
+				# Alternate firing yellow machine gun lines
+				var left_turn = (int(Time.get_ticks_msec() / 150) % 2 == 0)
+				var spawn_x = 138 if left_turn else 158
+				spawn_preview_bullet(Vector2(spawn_x, 205), Vector2.UP, 500.0, Color(1.0, 0.8, 0.3), Vector2(4, 10))
+				
+		"burst_rifle":
+			fire_interval = 0.52
+			if preview_timer >= fire_interval:
+				preview_timer = 0.0
+				# 3-round burst
+				for i in range(3):
+					get_tree().create_timer(i * 0.08).timeout.connect(func():
+						if is_instance_valid(hangar_container) and hangar_container.visible and selected_hangar_weapon == "burst_rifle":
+							spawn_preview_bullet(Vector2(150, 205), Vector2.UP, 620.0, Color(1.0, 0.45, 0.1), Vector2(3, 14))
+					)
+					
+		"charge_rifle":
+			fire_interval = 1.35
+			var canvas = hangar_preview_panel.get_node_or_null("PreviewCanvas")
+			if canvas:
+				var dummy = canvas.get_node_or_null("DummyShip")
+				if dummy:
+					if preview_timer < 1.0:
+						var pulse = sin(Time.get_ticks_msec() * 0.015) * 0.4 + 0.6
+						dummy.modulate = Color(0.3, 0.7, 1.0) * pulse
+					else:
+						dummy.modulate = Color(1.5, 1.5, 2.0)
+						
+			if preview_timer >= fire_interval:
+				preview_timer = 0.0
+				# Large rail bolt laser
+				spawn_preview_bullet(Vector2(150, 205), Vector2.UP, 780.0, Color(0.3, 0.8, 1.0), Vector2(9, 28))
+				
+		"pulse_gun":
+			fire_interval = 0.24
+			if preview_timer >= fire_interval:
+				preview_timer = 0.0
+				# Twin expanding green pulse arcs
+				var angles = [-12.0, 12.0]
+				for angle in angles:
+					var rad = deg_to_rad(angle)
+					var dir = Vector2.UP.rotated(rad)
+					var bullet = spawn_preview_bullet(Vector2(150, 205), dir, 420.0, Color(0.2, 1.0, 0.6), Vector2(8, 4))
+					if bullet:
+						bullet.rotation = rad
+
+
+func spawn_preview_bullet(pos: Vector2, direction: Vector2, speed: float, color: Color, size: Vector2) -> ColorRect:
+	var canvas = hangar_preview_panel.get_node_or_null("PreviewCanvas")
+	if not canvas:
+		return null
+		
+	var bullet = ColorRect.new()
+	bullet.color = color
+	bullet.size = size
+	bullet.pivot_offset = size / 2.0
+	bullet.position = pos - (size / 2.0)
+	
+	canvas.add_child(bullet)
+	bullet.set_meta("speed", speed)
+	bullet.set_meta("dir", direction)
+	
+	preview_bullets_array.append(bullet)
+	return bullet
+
+
+func clear_preview_bullets() -> void:
+	for b in preview_bullets_array:
+		if is_instance_valid(b):
+			b.queue_free()
+	preview_bullets_array.clear()

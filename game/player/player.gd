@@ -45,6 +45,23 @@ var PlayerBulletScene = preload("res://game/player/player_bullet.tscn")
 
 func _ready() -> void:
 	current_hp = max_hp
+	apply_equipped_weapon_settings()
+
+
+func apply_equipped_weapon_settings() -> void:
+	# グローバルから装備武器を取得し、発射レート等を調整
+	var eq_w = Global.equipped_weapon
+	match eq_w:
+		"machine_gun":
+			fire_rate = 0.14
+		"burst_rifle":
+			fire_rate = 0.48
+		"charge_rifle":
+			fire_rate = 1.25
+		"pulse_gun":
+			fire_rate = 0.2
+		_:
+			fire_rate = 0.2
 
 
 func _process(delta: float) -> void:
@@ -159,7 +176,10 @@ func fire() -> void:
 	analysis_shot.velocity = Vector2.UP * 900.0
 	target_parent.add_child(analysis_shot)
 	
-	# 2. 選択武器がアンロックされていれば発射
+	# 2. 出撃前選択された物理武装の射撃
+	fire_equipped_physics_weapon(target_parent)
+	
+	# 3. 解析・アンロックされた特殊武器（副兵装）がアクティブなら追加発射
 	if current_weapon == "beam" and weapons["beam"]["analyzed"]:
 		if weapons["beam"]["level"] == 1:
 			# 標準レーザー (高速直線レーザー)
@@ -194,6 +214,54 @@ func fire() -> void:
 			var launch_dir = Vector2(offset.x, -50).normalized()
 			bullet.velocity = launch_dir * (550.0 if is_hyper else 450.0)
 			target_parent.add_child(bullet)
+
+
+func fire_equipped_physics_weapon(target_parent: Node) -> void:
+	var eq_w = Global.equipped_weapon
+	match eq_w:
+		"machine_gun":
+			# 交互または並行に2発
+			var offsets = [Vector2(-12, -10), Vector2(12, -10)]
+			for offset in offsets:
+				var bullet = PlayerBulletScene.instantiate()
+				bullet.bullet_type = "machine_gun"
+				bullet.global_position = global_position + offset
+				bullet.velocity = Vector2.UP * 1100.0
+				target_parent.add_child(bullet)
+				
+		"burst_rifle":
+			# 3点バーストをタイマーで少しずらして発射
+			for i in range(3):
+				get_tree().create_timer(i * 0.07).timeout.connect(func():
+					if is_instance_valid(self) and is_instance_valid(target_parent):
+						var bullet = PlayerBulletScene.instantiate()
+						bullet.bullet_type = "burst_rifle"
+						bullet.global_position = global_position + Vector2(0, -20)
+						bullet.velocity = Vector2.UP * 1300.0
+						target_parent.add_child(bullet)
+				)
+				
+		"charge_rifle":
+			# チャージ完了として極太のレールガンショット
+			var bullet = PlayerBulletScene.instantiate()
+			bullet.bullet_type = "charge_bolt"
+			bullet.global_position = global_position + Vector2(0, -25)
+			bullet.velocity = Vector2.UP * 1800.0
+			target_parent.add_child(bullet)
+			
+			# チャージ完了演出（少し画面を揺らすなど）
+			trigger_screen_flash(Color(0.8, 0.9, 1.0, 0.15))
+			
+		"pulse_gun":
+			# 斜め方向に広がる2つのパルス
+			var angles = [-12.0, 12.0]
+			for angle in angles:
+				var bullet = PlayerBulletScene.instantiate()
+				bullet.bullet_type = "pulse"
+				bullet.global_position = global_position + Vector2(angle * 0.8, -15)
+				var dir = Vector2.UP.rotated(deg_to_rad(angle))
+				bullet.velocity = dir * 950.0
+				target_parent.add_child(bullet)
 
 
 func check_parry() -> void:

@@ -43,6 +43,26 @@ func update_visual() -> void:
 			modulate = Color.ORANGE
 			damage = 25
 			speed = 550.0
+		"machine_gun":
+			scale = Vector2(0.5, 0.9)
+			modulate = Color(1.0, 0.8, 0.3)
+			damage = 4
+			speed = 1100.0
+		"burst_rifle":
+			scale = Vector2(0.35, 1.4)
+			modulate = Color(1.0, 0.45, 0.1)
+			damage = 8
+			speed = 1300.0
+		"charge_bolt":
+			scale = Vector2(1.1, 2.5)
+			modulate = Color(0.3, 0.8, 1.0)
+			damage = 38
+			speed = 1800.0
+		"pulse":
+			scale = Vector2(0.8, 0.6)
+			modulate = Color(0.2, 1.0, 0.6)
+			damage = 7
+			speed = 950.0
 			
 	if velocity == Vector2.ZERO:
 		velocity = Vector2.UP * speed
@@ -52,12 +72,16 @@ func _process(delta: float) -> void:
 	# ミサイルの追尾処理
 	if bullet_type == "missile" or bullet_type == "hyper_missile":
 		var target = find_closest_target()
+		var target_velocity: Vector2
 		if is_instance_valid(target):
 			var target_dir = (target.global_position - global_position).normalized()
-			var target_velocity = target_dir * speed
-			# 急激すぎない旋回
-			velocity = velocity.lerp(target_velocity, delta * 6.5)
-			rotation = velocity.angle() + PI/2
+			target_velocity = target_dir * speed
+		else:
+			target_velocity = Vector2.UP * speed
+			
+		# 急激すぎない旋回
+		velocity = velocity.lerp(target_velocity, delta * 6.5)
+		rotation = velocity.angle() + PI/2
 
 	position += velocity * delta
 	
@@ -105,8 +129,8 @@ func _on_area_entered(area: Area2D) -> void:
 		elif bullet_type == "missile":
 			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0))
 			
-		# Giga Laserは全てを貫通する
-		if bullet_type != "giga_laser":
+		# Giga Laser と Charge Bolt は全てを貫通する
+		if bullet_type != "giga_laser" and bullet_type != "charge_bolt":
 			queue_free()
 
 
