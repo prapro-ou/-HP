@@ -329,11 +329,36 @@ func add_damage_score(amount: int) -> void:
 	total_damage_score += amount
 
 
+func add_tech_points(amount: int) -> void:
+	Global.tech_points += amount
+	if is_instance_valid(player):
+		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+
+
 func on_boss_destroyed() -> void:
 	state = "victory"
 	clear_all_bullets()
 	if is_instance_valid(player):
 		player.is_full_burst = false
+		
+	# ボス撃破の報酬（カウンターシステム武器のアンロックと技術ポイント獲得）
+	if current_stage_num == 1:
+		if not Global.unlocked_counter_weapons.has("boss_beam"):
+			Global.unlocked_counter_weapons.append("boss_beam")
+			spawn_popup("[ASSIST AI]: ボス技術の回収成功。\n『ANCIENT GIGA LASER』がCOUNTER SYSTEMで利用可能です！")
+		Global.tech_points += 30
+		spawn_popup("TECH POINTS +30 HARVESTED")
+	elif current_stage_num == 2:
+		if not Global.unlocked_counter_weapons.has("boss_missile"):
+			Global.unlocked_counter_weapons.append("boss_missile")
+			spawn_popup("[ASSIST AI]: ボス技術の回収成功。\n『SPLASH HYPER MISSILE』がCOUNTER SYSTEMで利用可能です！")
+		Global.tech_points += 40
+		spawn_popup("TECH POINTS +40 HARVESTED")
+		
+	# セーブデータの更新
+	if is_instance_valid(player):
+		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+		
 	show_game_over("VICTORY")
 
 

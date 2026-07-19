@@ -302,6 +302,15 @@ func destroy_part(part_type: String) -> void:
 	if is_instance_valid(player) and player.has_method("upgrade_weapon"):
 		player.upgrade_weapon(part_type)
 		
+	# 解析技術ポイント（Tech Points）の獲得
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var manager = main.get_node_or_null("GameManager")
+		if manager and manager.has_method("add_tech_points"):
+			manager.add_tech_points(12)
+			if player and player.has_method("spawn_popup_message"):
+				player.spawn_popup_message("PARTS DESTRUCTION: +12 TECH POINTS")
+		
 	# エネルギーの再配分
 	reallocate_energy()
 
