@@ -32,6 +32,7 @@ var settings_btn: Button
 # Settings UI inputs
 var mode_option: OptionButton
 var scale_option: OptionButton
+var aspect_option: OptionButton
 var vsync_check: CheckButton
 var shake_check: CheckButton
 var master_slider: HSlider
@@ -261,6 +262,15 @@ func setup_settings_container() -> void:
 	scale_option.custom_minimum_size = Vector2(200, 32)
 	grid_display.add_child(scale_option)
 	
+	# Aspect Ratio
+	grid_display.add_child(create_label("画面縦横比 (Aspect Ratio):"))
+	aspect_option = OptionButton.new()
+	aspect_option.add_item("縦長 2:3 (標準)", 0)
+	aspect_option.add_item("縦長 3:4", 1)
+	aspect_option.add_item("縦長 9:16 (極細)", 2)
+	aspect_option.custom_minimum_size = Vector2(200, 32)
+	grid_display.add_child(aspect_option)
+	
 	# VSync
 	grid_display.add_child(create_label("垂直同期 (V-Sync):"))
 	vsync_check = CheckButton.new()
@@ -357,6 +367,7 @@ func setup_settings_container() -> void:
 	# Connect signals
 	mode_option.item_selected.connect(_on_display_mode_changed)
 	scale_option.item_selected.connect(_on_display_scale_changed)
+	aspect_option.item_selected.connect(_on_display_aspect_changed)
 	vsync_check.toggled.connect(func(t): Global.vsync = t)
 	shake_check.toggled.connect(func(t): Global.screen_shake = t)
 	
@@ -660,11 +671,15 @@ func sync_settings_to_ui() -> void:
 	else:
 		scale_option.selected = 2 # 1.0x default
 		
+	aspect_option.selected = Global.aspect_ratio
+	
 	# Disable resolution selection if in fullscreen
 	if Global.window_mode == 1:
 		scale_option.disabled = true
+		aspect_option.disabled = true
 	else:
 		scale_option.disabled = false
+		aspect_option.disabled = false
 		
 	vsync_check.button_pressed = Global.vsync
 	shake_check.button_pressed = Global.screen_shake
@@ -708,8 +723,10 @@ func _on_display_mode_changed(idx: int) -> void:
 	Global.window_mode = idx
 	if idx == 1:
 		scale_option.disabled = true
+		aspect_option.disabled = true
 	else:
 		scale_option.disabled = false
+		aspect_option.disabled = false
 	Global.apply_display()
 
 func _on_display_scale_changed(idx: int) -> void:
@@ -718,6 +735,10 @@ func _on_display_scale_changed(idx: int) -> void:
 		1: Global.window_scale = 0.75
 		2: Global.window_scale = 1.0
 		3: Global.window_scale = 1.25
+	Global.apply_display()
+
+func _on_display_aspect_changed(idx: int) -> void:
+	Global.aspect_ratio = idx
 	Global.apply_display()
 
 func _on_reset_btn_pressed() -> void:

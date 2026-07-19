@@ -190,16 +190,17 @@ func setup_ui() -> void:
 	
 	# 3. Main VBox Container for configuration elements
 	var main_vbox = VBoxContainer.new()
-	main_vbox.anchor_left = 0.5
-	main_vbox.anchor_top = 0.44
-	main_vbox.anchor_right = 0.5
-	main_vbox.anchor_bottom = 0.44
+	main_vbox.anchor_left = 0.08
+	main_vbox.anchor_top = 0.12
+	main_vbox.anchor_right = 0.92
+	main_vbox.anchor_bottom = 0.88
 	main_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	main_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
-	main_vbox.custom_minimum_size = Vector2(700, 720)
-	main_vbox.offset_left = -350
-	main_vbox.offset_top = -360
-	main_vbox.add_theme_constant_override("separation", 24)
+	main_vbox.offset_left = 0
+	main_vbox.offset_right = 0
+	main_vbox.offset_top = 0
+	main_vbox.offset_bottom = 0
+	main_vbox.add_theme_constant_override("separation", 18)
 	add_child(main_vbox)
 	
 	# --- SECTION 1: PRIMARY WEAPON ---
@@ -208,12 +209,14 @@ func setup_ui() -> void:
 	p_grid.columns = 3
 	p_grid.add_theme_constant_override("h_separation", 15)
 	p_grid.add_theme_constant_override("v_separation", 10)
+	p_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	p_sec.add_child(p_grid)
 	
 	for w in primary_weapons:
 		var btn = Button.new()
 		btn.text = w.name.split(" ")[-1] if w.name.split(" ").size() > 1 else w.name
-		btn.custom_minimum_size = Vector2(210, 48)
+		btn.custom_minimum_size = Vector2(80, 44)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		p_grid.add_child(btn)
 		primary_buttons[w.id] = btn
 		
@@ -229,12 +232,14 @@ func setup_ui() -> void:
 	var s_sec = create_section_vbox("DEFENSIVE SHIELD SYSTEM (シールド選択)", main_vbox)
 	var s_grid = HBoxContainer.new()
 	s_grid.add_theme_constant_override("separation", 18)
+	s_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	s_sec.add_child(s_grid)
 	
 	for s in shields:
 		var btn = Button.new()
 		btn.text = s.name.split(" ")[0]
-		btn.custom_minimum_size = Vector2(210, 48)
+		btn.custom_minimum_size = Vector2(80, 44)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		s_grid.add_child(btn)
 		shield_buttons[s.id] = btn
 		btn.pressed.connect(func(): select_item("shield", s.id))
@@ -245,12 +250,14 @@ func setup_ui() -> void:
 	var c_sec = create_section_vbox("COUNTER SYSTEM UPGRADE (反撃兵装)", main_vbox)
 	var c_grid = HBoxContainer.new()
 	c_grid.add_theme_constant_override("separation", 18)
+	c_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	c_sec.add_child(c_grid)
 	
 	for c in counter_weapons:
 		var btn = Button.new()
 		btn.text = c.name.split(" ")[-1] if c.id != "none" else "STANDARD"
-		btn.custom_minimum_size = Vector2(210, 48)
+		btn.custom_minimum_size = Vector2(80, 44)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		c_grid.add_child(btn)
 		counter_buttons[c.id] = btn
 		
@@ -264,7 +271,8 @@ func setup_ui() -> void:
 
 	# --- DESCRIPTION CARD PANEL ---
 	desc_panel = PanelContainer.new()
-	desc_panel.custom_minimum_size = Vector2(700, 180)
+	desc_panel.custom_minimum_size = Vector2(0, 160)
+	desc_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main_vbox.add_child(desc_panel)
 	
 	var sb_desc = StyleBoxFlat.new()

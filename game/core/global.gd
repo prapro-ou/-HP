@@ -57,6 +57,7 @@ var sfx_volume: float = 80.0
 var screen_shake: bool = true
 var window_mode: int = 0 # 0: Windowed, 1: Fullscreen, 2: Borderless Windowed
 var window_scale: float = 1.0 # 0.5, 0.75, 1.0, 1.25, 1.5
+var aspect_ratio: int = 0 # 0: 2:3, 1: 3:4, 2: 9:16
 var vsync: bool = true
 
 func _ready() -> void:
@@ -148,6 +149,7 @@ func save_settings() -> void:
 	config.set_value("audio", "sfx_volume", sfx_volume)
 	config.set_value("display", "window_mode", window_mode)
 	config.set_value("display", "window_scale", window_scale)
+	config.set_value("display", "aspect_ratio", aspect_ratio)
 	config.set_value("display", "vsync", vsync)
 	config.set_value("gameplay", "screen_shake", screen_shake)
 	config.save(SETTINGS_PATH)
@@ -160,6 +162,7 @@ func load_settings() -> void:
 		sfx_volume = config.get_value("audio", "sfx_volume", 80.0)
 		window_mode = config.get_value("display", "window_mode", 0)
 		window_scale = config.get_value("display", "window_scale", 1.0)
+		aspect_ratio = config.get_value("display", "aspect_ratio", 0)
 		vsync = config.get_value("display", "vsync", true)
 		screen_shake = config.get_value("gameplay", "screen_shake", true)
 
@@ -192,8 +195,15 @@ func apply_display() -> void:
 	
 	# Scale settings (only applied when windowed)
 	if window_mode == 0 or window_mode == 2:
-		var target_w = int(800 * window_scale)
 		var target_h = int(1200 * window_scale)
+		var target_w = int(800 * window_scale)
+		match aspect_ratio:
+			0: # 2:3
+				target_w = int(800 * window_scale)
+			1: # 3:4
+				target_w = int(900 * window_scale)
+			2: # 9:16
+				target_w = int(675 * window_scale)
 		DisplayServer.window_set_size(Vector2i(target_w, target_h))
 		
 	# V-Sync

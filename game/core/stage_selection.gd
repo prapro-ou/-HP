@@ -135,15 +135,16 @@ func setup_ui() -> void:
 	
 	# 3. Main Center Cards container for active details
 	detail_panel = PanelContainer.new()
-	detail_panel.anchor_left = 0.5
-	detail_panel.anchor_top = 0.38
-	detail_panel.anchor_right = 0.5
-	detail_panel.anchor_bottom = 0.38
+	detail_panel.anchor_left = 0.08
+	detail_panel.anchor_top = 0.22
+	detail_panel.anchor_right = 0.92
+	detail_panel.anchor_bottom = 0.54
 	detail_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	detail_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	detail_panel.custom_minimum_size = Vector2(560, 260)
-	detail_panel.offset_left = -280
-	detail_panel.offset_top = -130
+	detail_panel.offset_left = 0
+	detail_panel.offset_right = 0
+	detail_panel.offset_top = 0
+	detail_panel.offset_bottom = 0
 	add_child(detail_panel)
 	
 	var sb = StyleBoxFlat.new()
@@ -210,15 +211,16 @@ func setup_ui() -> void:
 	
 	# 4. Stage list scroll container at the bottom
 	var list_panel = Panel.new()
-	list_panel.anchor_left = 0.5
-	list_panel.anchor_top = 0.76
-	list_panel.anchor_right = 0.5
-	list_panel.anchor_bottom = 0.76
+	list_panel.anchor_left = 0.08
+	list_panel.anchor_top = 0.64
+	list_panel.anchor_right = 0.92
+	list_panel.anchor_bottom = 0.84
 	list_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	list_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	list_panel.custom_minimum_size = Vector2(600, 120)
-	list_panel.offset_left = -300
-	list_panel.offset_top = -60
+	list_panel.offset_left = 0
+	list_panel.offset_right = 0
+	list_panel.offset_top = 0
+	list_panel.offset_bottom = 0
 	add_child(list_panel)
 	
 	var sb_list = StyleBoxEmpty.new()
@@ -285,9 +287,9 @@ func setup_ui() -> void:
 	prev_btn = Button.new()
 	prev_btn.text = "<"
 	prev_btn.custom_minimum_size = Vector2(40, 50)
-	prev_btn.anchor_left = 0.12
-	prev_btn.anchor_top = 0.76
-	prev_btn.anchor_bottom = 0.76
+	prev_btn.anchor_left = 0.02
+	prev_btn.anchor_top = 0.74
+	prev_btn.anchor_bottom = 0.74
 	prev_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
 	prev_btn.offset_top = -25
 	add_child(prev_btn)
@@ -297,9 +299,9 @@ func setup_ui() -> void:
 	next_btn = Button.new()
 	next_btn.text = ">"
 	next_btn.custom_minimum_size = Vector2(40, 50)
-	next_btn.anchor_right = 0.88
-	next_btn.anchor_top = 0.76
-	next_btn.anchor_bottom = 0.76
+	next_btn.anchor_right = 0.98
+	next_btn.anchor_top = 0.74
+	next_btn.anchor_bottom = 0.74
 	next_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
 	next_btn.offset_top = -25
 	add_child(next_btn)

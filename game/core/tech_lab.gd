@@ -64,16 +64,17 @@ func setup_ui() -> void:
 	
 	# 2. Main lab container
 	var vbox = VBoxContainer.new()
-	vbox.anchor_left = 0.5
-	vbox.anchor_top = 0.46
-	vbox.anchor_right = 0.5
-	vbox.anchor_bottom = 0.46
+	vbox.anchor_left = 0.08
+	vbox.anchor_top = 0.08
+	vbox.anchor_right = 0.92
+	vbox.anchor_bottom = 0.92
 	vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
-	vbox.custom_minimum_size = Vector2(700, 780)
-	vbox.offset_left = -350
-	vbox.offset_top = -390
-	vbox.add_theme_constant_override("separation", 24)
+	vbox.offset_left = 0
+	vbox.offset_right = 0
+	vbox.offset_top = 0
+	vbox.offset_bottom = 0
+	vbox.add_theme_constant_override("separation", 18)
 	add_child(vbox)
 	
 	# Title Section
@@ -90,8 +91,8 @@ func setup_ui() -> void:
 	
 	# HUD Panel for Tech Points
 	var hud_panel = PanelContainer.new()
-	hud_panel.custom_minimum_size = Vector2(500, 60)
-	hud_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	hud_panel.custom_minimum_size = Vector2(300, 50)
+	hud_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(hud_panel)
 	
 	var sb_hud = StyleBoxFlat.new()
@@ -153,16 +154,17 @@ func setup_ui() -> void:
 	
 	# --- SECTION 2: WEAPONS ANALYSIS & RESEARCH ---
 	var wp_sec = create_section_vbox("WEAPONS TECHNOLOGY HARVEST (自武器の解放)", vbox)
-	var wp_hbox = HBoxContainer.new()
-	wp_hbox.add_theme_constant_override("separation", 24)
-	wp_sec.add_child(wp_hbox)
+	var wp_vbox = VBoxContainer.new()
+	wp_vbox.add_theme_constant_override("separation", 10)
+	wp_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wp_sec.add_child(wp_vbox)
 	
 	# Plasma weapon card
 	var plasma_card = create_weapon_research_card(
 		"PLASMA EMITTER",
 		"Deploys unstable thermal plasma fields that deal continuous damage. Requires high thermal data.",
 		"ANALYSIS COST: 40 TP",
-		wp_hbox
+		wp_vbox
 	)
 	plasma_btn = plasma_card.unlock_button
 	plasma_btn.pressed.connect(func(): unlock_weapon("plasma_emitter", 40))
@@ -172,7 +174,7 @@ func setup_ui() -> void:
 		"KINETIC TACKLE",
 		"Deploys high-impulse ship thruster rams. Directly crashes targets via hull impact.",
 		"ANALYSIS COST: 50 TP",
-		wp_hbox
+		wp_vbox
 	)
 	tackle_btn = tackle_card.unlock_button
 	tackle_btn.pressed.connect(func(): unlock_weapon("kinetic_tackle", 50))
@@ -302,7 +304,7 @@ class WeaponCardNodes:
 func create_weapon_research_card(w_name: String, w_desc: String, cost_text: String, parent: Node) -> WeaponCardNodes:
 	var card = PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.custom_minimum_size = Vector2(320, 150)
+	card.custom_minimum_size = Vector2(0, 110)
 	parent.add_child(card)
 	
 	var sb = StyleBoxFlat.new()
@@ -340,7 +342,8 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	var desc_lbl = Label.new()
 	desc_lbl.text = w_desc
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.custom_minimum_size = Vector2(250, 44)
+	desc_lbl.custom_minimum_size = Vector2(0, 36)
+	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var d_set = LabelSettings.new()
 	d_set.font_size = 11
 	d_set.font_color = Color(0.6, 0.7, 0.8)
