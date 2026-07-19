@@ -408,7 +408,16 @@ func check_parry() -> void:
 func update_visual_state() -> void:
 	"""状態に応じて機体の色（modulate）を変更"""
 	if is_guarding:
-		modulate = Color.CYAN  # ガード中は青白く光る
+		# シールドの種類に応じてガード中の発光色を変更
+		match Global.equipped_shield:
+			"counter":
+				modulate = Color(0.9, 0.4, 1.0) # 紫発光
+			"gauge":
+				modulate = Color(0.3, 1.0, 0.6) # 緑発光
+			"power":
+				modulate = Color(1.0, 0.6, 0.2) # オレンジ発光
+			_:
+				modulate = Color.CYAN
 	elif cooldown_timer > 0.0:
 		# クールダウン中は少し暗いグレー
 		modulate = Color(0.5, 0.5, 0.5, 1.0)
@@ -598,11 +607,18 @@ func spawn_parry_popup_message(text: String) -> void:
 
 func _draw() -> void:
 	if parry_ring_alpha > 0.0:
-		# シールドの円を描画
-		var color = Color(0.0, 0.9, 1.0, parry_ring_alpha)
+		var base_color = Color(0.0, 0.9, 1.0)
+		match Global.equipped_shield:
+			"counter":
+				base_color = Color(0.8, 0.3, 1.0) # Purple/Magenta
+			"gauge":
+				base_color = Color(0.1, 0.9, 0.5) # Lime Green
+			"power":
+				base_color = Color(1.0, 0.5, 0.0) # Vivid Orange
+				
+		var color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha)
 		draw_arc(Vector2.ZERO, parry_ring_radius, 0, TAU, 48, color, 4.0, true)
-		# 内側の塗りつぶし
-		var fill_color = Color(0.0, 0.8, 1.0, parry_ring_alpha * 0.15)
+		var fill_color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha * 0.15)
 		draw_circle(Vector2.ZERO, parry_ring_radius, fill_color)
 
 
