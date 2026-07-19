@@ -40,10 +40,31 @@ var target_charge_x: float = 0.0
 @onready var sprite: Sprite2D = $Sprite2D
 
 
+var stage_number: int = 1
+var laser_smoke_timer: float = 0.0
+var missile_smoke_timer: float = 0.0
+
+
 func _ready() -> void:
 	bullet_pool = get_node_or_null("/root/Main/BulletPool")
 	player = get_node_or_null("/root/Main/Player")
 	choose_new_target()
+	
+	# ボスのスケールを巨大化 (1.5x -> 2.8x に引き上げて画面を圧倒する巨大サイズに)
+	scale = Vector2(2.8, 2.8)
+	
+	# 現在のステージ数を取得
+	var save_data = Global.load_game_data()
+	stage_number = save_data.get("stage_num", 1)
+	
+	# ステージ2の場合はボスのパラメータを大幅に強化してより凶悪にする
+	if stage_number == 2:
+		laser_hp = 850
+		missile_hp = 850
+		core_hp = 2600
+		max_hp = laser_hp + missile_hp + core_hp
+		base_move_speed = 160.0
+		current_move_speed = 160.0
 	
 	# ボスを enemy グループに入れて、プレイヤーのミサイルが追尾するようにする
 	add_to_group("enemy")
@@ -53,6 +74,19 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not core_alive:
 		return
+		
+	# 破壊された部位から火花と煙を吹き出し続ける演出
+	if not laser_alive and is_instance_valid(laser_node):
+		laser_smoke_timer += delta
+		if laser_smoke_timer >= 0.22:
+			laser_smoke_timer = 0.0
+			spawn_smoke_particles(laser_node.global_position, Color.CYAN)
+			
+	if not missile_alive and is_instance_valid(missile_node):
+		missile_smoke_timer += delta
+		if missile_smoke_timer >= 0.22:
+			missile_smoke_timer = 0.0
+			spawn_smoke_particles(missile_node.global_position, Color(0.9, 0.4, 1.0))
 		
 	# 突進攻撃中でなければ通常移動
 	if not is_charging:
@@ -135,63 +169,93 @@ func process_attacks() -> void:
 func execute_attack_pattern() -> void:
 	if laser_alive and missile_alive:
 		# 両方健在：標準攻撃
-		# 1. レーザーキャノンから5方向扇状レーザー弾
-		var angles = [70, 80, 90, 100, 110]
-		for angle in angles:
-			var rad = deg_to_rad(angle)
-			var dir = Vector2(cos(rad), sin(rad))
-			spawn_bullet(dir, "boss_laser", 220.0, laser_node.global_position)
-		
-		# 2. ミサイルポッドからプレイヤー狙い3連射
-		var dir_to_player = Vector2.DOWN
-		if is_instance_valid(player):
-			dir_to_player = (player.global_position - missile_node.global_position).normalized()
-		
-		var main_tree = get_tree()
-		if main_tree:
-			# 少しディレイをかけて3発発射
-			for i in range(3):
-				main_tree.create_timer(i * 0.15).timeout.connect(func():
-					if is_instance_valid(self) and missile_alive:
-						var current_dir = dir_to_player
-						if is_instance_valid(player):
-							current_dir = (player.global_position - missile_node.global_position).normalized()
-						spawn_bullet(current_dir, "boss_missile", 180.0, missile_node.global_position)
-				)
+		if stage_number == 2:
+			# ステージ2：7方向扇状レーザー弾 + ミサイル5連射で激化
+			var angles = [60, 70, 80, 90, 100, 110, 120]
+			for angle in angles:
+				var rad = deg_to_rad(angle)
+				var dir = Vector2(cos(rad), sin(rad))
+				spawn_bullet(dir, "boss_laser", 240.0, laser_node.global_position)
 				
+			var dir_to_player = Vector2.DOWN
+			if is_instance_valid(player):
+				dir_to_player = (player.global_position - missile_node.global_position).normalized()
+				
+			var main_tree = get_tree()
+			if main_tree:
+				for i in range(5):
+					main_tree.create_timer(i * 0.12).timeout.connect(func():
+						if is_instance_valid(self) and missile_alive:
+							var current_dir = dir_to_player
+							if is_instance_valid(player):
+								current_dir = (player.global_position - missile_node.global_position).normalized()
+							# 左右に少しブレさせる
+							current_dir = current_dir.rotated(randf_range(-0.15, 0.15))
+							spawn_bullet(current_dir, "boss_missile", 200.0, missile_node.global_position)
+					)
+		else:
+			# ステージ1（標準）：5方向扇状レーザー弾
+			var angles = [70, 80, 90, 100, 110]
+			for angle in angles:
+				var rad = deg_to_rad(angle)
+				var dir = Vector2(cos(rad), sin(rad))
+				spawn_bullet(dir, "boss_laser", 220.0, laser_node.global_position)
+			
+			# ミサイルポッドからプレイヤー狙い3連射
+			var dir_to_player = Vector2.DOWN
+			if is_instance_valid(player):
+				dir_to_player = (player.global_position - missile_node.global_position).normalized()
+			
+			var main_tree = get_tree()
+			if main_tree:
+				for i in range(3):
+					main_tree.create_timer(i * 0.15).timeout.connect(func():
+						if is_instance_valid(self) and missile_alive:
+							var current_dir = dir_to_player
+							if is_instance_valid(player):
+								current_dir = (player.global_position - missile_node.global_position).normalized()
+							spawn_bullet(current_dir, "boss_missile", 180.0, missile_node.global_position)
+					)
+					
 	elif not laser_alive and missile_alive:
 		# レーザー破壊、ミサイル生存：ミサイル超強化 + 突進
-		# 1. ミサイルポッドからプレイヤーを追尾するマルチミサイル（6発全方位）
-		for i in range(6):
-			var angle = (360.0 / 6) * i
+		var num_missiles = 8 if stage_number == 2 else 6
+		var speed_mult = 260.0 if stage_number == 2 else 220.0
+		for i in range(num_missiles):
+			var angle = (360.0 / num_missiles) * i
 			var rad = deg_to_rad(angle)
 			var dir = Vector2(cos(rad), sin(rad))
-			spawn_bullet(dir, "boss_missile", 220.0, missile_node.global_position)
+			spawn_bullet(dir, "boss_missile", speed_mult, missile_node.global_position)
 			
-		# 2. 確率で突進攻撃開始
-		if randf() > 0.4:
+		if randf() > (0.2 if stage_number == 2 else 0.4):
 			start_charge_attack()
 			
 	elif laser_alive and not missile_alive:
 		# ミサイル破壊、レーザー生存：レーザー超強化 (極太薙ぎ払い)
-		for i in range(12):
-			var angle = 50.0 + (80.0 / 11) * i
+		var num_lasers = 16 if stage_number == 2 else 12
+		var angle_start = 40.0 if stage_number == 2 else 50.0
+		var angle_span = 100.0 if stage_number == 2 else 80.0
+		for i in range(num_lasers):
+			var angle = angle_start + (angle_span / (num_lasers - 1)) * i
 			var rad = deg_to_rad(angle)
 			var dir = Vector2(cos(rad), sin(rad))
-			spawn_bullet(dir, "boss_laser", 300.0, laser_node.global_position)
+			spawn_bullet(dir, "boss_laser", 320.0, laser_node.global_position)
 			
 	else:
 		# 両方破壊（Coreのみ）：最終怒り状態
 		# 1. 全方位にスパイラル螺旋弾幕 (Coreから発射)
+		var num_spiral = 24 if stage_number == 2 else 16
+		var speed_spiral = 280.0 if stage_number == 2 else 250.0
 		var base_angle = randf_range(0, 360)
-		for i in range(16):
-			var angle = base_angle + (360.0 / 16) * i
+		for i in range(num_spiral):
+			var angle = base_angle + (360.0 / num_spiral) * i
 			var rad = deg_to_rad(angle)
 			var dir = Vector2(cos(rad), sin(rad))
-			spawn_bullet(dir, "boss_laser", 250.0, core_node.global_position)
+			spawn_bullet(dir, "boss_laser", speed_spiral, core_node.global_position)
 			
 		# 2. 常に激しい突進も行う（交互に突進）
-		if pattern_timer >= 3.5:
+		var charge_interval = 2.5 if stage_number == 2 else 3.5
+		if pattern_timer >= charge_interval:
 			pattern_timer = 0.0
 			start_charge_attack()
 
@@ -302,6 +366,15 @@ func destroy_part(part_type: String) -> void:
 	if is_instance_valid(player) and player.has_method("upgrade_weapon"):
 		player.upgrade_weapon(part_type)
 		
+	# 解析技術ポイント（Tech Points）の獲得
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var manager = main.get_node_or_null("GameManager")
+		if manager and manager.has_method("add_tech_points"):
+			manager.add_tech_points(12)
+			if player and player.has_method("spawn_popup_message"):
+				player.spawn_popup_message("PARTS DESTRUCTION: +12 TECH POINTS")
+		
 	# エネルギーの再配分
 	reallocate_energy()
 
@@ -404,4 +477,14 @@ func destroy_boss() -> void:
 
 func get_current_hp() -> int:
 	return laser_hp + missile_hp + core_hp
+
+
+func spawn_smoke_particles(pos: Vector2, color: Color) -> void:
+	var ParryParticleScene = load("res://game/bullets/parry_particle.tscn")
+	if ParryParticleScene and get_parent():
+		var particle = ParryParticleScene.instantiate()
+		particle.global_position = pos + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+		particle.scale = Vector2(1.2, 1.2)
+		particle.modulate = color
+		get_parent().add_child(particle)
 

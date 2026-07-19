@@ -8,7 +8,7 @@ extends Node2D
 
 var player: CharacterBody2D
 var boss: Node2D
-var ui: Control
+var ui: CanvasLayer
 var bullet_pool: Node2D
 
 # ステージ管理用
@@ -34,12 +34,17 @@ func _ready() -> void:
 	if bullet_pool:
 		player.enemy_bullets = bullet_pool.active_bullets
 		
-	# 続きから始める場合、セーブデータをロードして反映する
-	if Global.is_continue and Global.has_save:
-		var save_data = Global.load_game_data()
+	# ロードまたは選択されたステージ番号をセーブデータから取得
+	var save_data = Global.load_game_data()
+	if Global.is_first_launch:
+		current_stage_num = 1
+	else:
 		current_stage_num = save_data.get("stage_num", 1)
-		total_damage_score = save_data.get("score", 0)
 		
+	total_damage_score = save_data.get("score", 0)
+	
+	# 続きからの場合、またはステージ選択後、武器の解析状況を復元
+	if Global.has_save:
 		var saved_weapons = save_data.get("weapons", {})
 		if player and not saved_weapons.is_empty():
 			# 武器の解析状況を復元
@@ -95,8 +100,12 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 		
 	# シーン開始
 	state = "wave1"
+	# ステージ開始時にAIの起動メッセージ
+	get_tree().create_timer(0.2).timeout.connect(func():
+		spawn_popup("[SYSTEM AI]: 装備システムオンライン。\n最初のパリィが実行されるまで、自機のメイン攻撃はロックされます。")
+	)
 	# 少し遅らせてWave1開始を表示
-	get_tree().create_timer(1.0).timeout.connect(func():
+	get_tree().create_timer(2.6).timeout.connect(func():
 		spawn_wave1()
 	)
 
@@ -105,24 +114,25 @@ func load_next_stage() -> void:
 	# 画面上の弾を全て消去
 	clear_all_bullets()
 	
-	# プレイヤーのHP全回復、状態リセット（武器解析データはそのまま維持される）
-	if is_instance_valid(player):
-		player.current_hp = player.max_hp
-		player.is_full_burst = false
-		
+	# 次のステージに進むためのステージ番号をセーブデータに保存して、ステージ選択画面へ戻る
 	var next_num = current_stage_num + 1
 	var next_path = "res://game/stages/stage_" + str(next_num) + ".tscn"
 	
-	if ResourceLoader.exists(next_path):
-		load_stage(next_path, next_num)
-	else:
-		# 次のステージが存在しない場合は、全クリアとしてステージ1へループ
-		load_stage("res://game/stages/stage_1.tscn", 1)
+	var target_stage = next_num
+	if not ResourceLoader.exists(next_path):
+		target_stage = 1 # 次のステージが存在しない場合はステージ1へループ
+		
+	# セーブデータに反映（ステージ選択画面で選択されている初期位置になるように、あるいは単に記録）
+	if is_instance_valid(player):
+		Global.save_game(target_stage, total_damage_score, player.weapons)
+		
+	# シーン切り替え（ステージ選択画面に戻る）
+	get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
 
 
 
 func spawn_wave1() -> void:
-	spawn_popup("WAVE 1: BEAM DRONE INCOMING\nPARRY 3 TIMES TO ANALYSIS BEAM")
+	spawn_popup("[ASSIST AI]: 敵の小規模部隊が接近しています。\n[SPACE]キーで盾を展開し、敵弾をパリィして解析を完了してください。")
 	var viewport_w = get_viewport_rect().size.x
 	# ドローンを3機配置
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
@@ -132,7 +142,7 @@ func spawn_wave1() -> void:
 
 func spawn_wave2() -> void:
 	state = "wave2"
-	spawn_popup("WAVE 2: MISSILE DRONE INCOMING\nPARRY 3 TIMES TO ANALYSIS MISSILE")
+	spawn_popup("[ASSIST AI]: 次の解析対象を検知。\nミサイルの追跡データをパリィで吸収し、技術を逆転してください。")
 	var viewport_w = get_viewport_rect().size.x
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
 	for x in x_coords:
@@ -212,16 +222,15 @@ func on_drone_destroyed(drone) -> void:
 
 func trigger_warning_interlude() -> void:
 	if ui and ui.has_method("show_warning"):
-		ui.show_warning("WARNING: ANCIENT GUARDIAN DETECTION", "ENERGY SPIKE DETECTED - 1000% ABOVE CRITICAL")
+		ui.show_warning("WARNING: ANCIENT GUARDIAN", "[ASSIST AI]: 巨大な古代防衛兵器を検知！")
 	
 	# 画面全体を赤くフラッシュ
 	if player and player.has_method("trigger_screen_flash"):
 		player.trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
 		
-	# 2秒後に再度警告フラッシュ
-	get_tree().create_timer(1.8).timeout.connect(func():
-		if state == "interlude" and player and player.has_method("trigger_screen_flash"):
-			player.trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.5))
+	# アシストAIメッセージを表示
+	get_tree().create_timer(1.2).timeout.connect(func():
+		spawn_popup("[ASSIST AI]: 敵は巨大ですが、『部位破壊』で無力化できます。\nまた、[X]キーで『COUNTER SYSTEM』を一度だけ解放可能です！")
 	)
 
 
@@ -312,11 +321,36 @@ func add_damage_score(amount: int) -> void:
 	total_damage_score += amount
 
 
+func add_tech_points(amount: int) -> void:
+	Global.tech_points += amount
+	if is_instance_valid(player):
+		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+
+
 func on_boss_destroyed() -> void:
 	state = "victory"
 	clear_all_bullets()
 	if is_instance_valid(player):
 		player.is_full_burst = false
+		
+	# ボス撃破の報酬（カウンターシステム武器のアンロックと技術ポイント獲得）
+	if current_stage_num == 1:
+		if not Global.unlocked_counter_weapons.has("boss_beam"):
+			Global.unlocked_counter_weapons.append("boss_beam")
+			spawn_popup("[ASSIST AI]: ボス技術の回収成功。\n『ANCIENT GIGA LASER』がCOUNTER SYSTEMで利用可能です！")
+		Global.tech_points += 30
+		spawn_popup("TECH POINTS +30 HARVESTED")
+	elif current_stage_num == 2:
+		if not Global.unlocked_counter_weapons.has("boss_missile"):
+			Global.unlocked_counter_weapons.append("boss_missile")
+			spawn_popup("[ASSIST AI]: ボス技術の回収成功。\n『SPLASH HYPER MISSILE』がCOUNTER SYSTEMで利用可能です！")
+		Global.tech_points += 40
+		spawn_popup("TECH POINTS +40 HARVESTED")
+		
+	# セーブデータの更新
+	if is_instance_valid(player):
+		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+		
 	show_game_over("VICTORY")
 
 

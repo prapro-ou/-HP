@@ -22,6 +22,10 @@ var cooldown_timer: float = 0.0
 var is_guarding: bool = false
 var space_was_pressed: bool = false  # 自前でのキー押下瞬間判定用
 
+# New loadout and capability variables
+var is_attack_unlocked: bool = false
+var power_shield_damage_buff: float = 0.0
+
 # パリィリング演出用
 var parry_ring_radius: float = 0.0
 var parry_ring_alpha: float = 0.0
@@ -44,7 +48,41 @@ var PlayerBulletScene = preload("res://game/player/player_bullet.tscn")
 
 
 func _ready() -> void:
+	# Apply Lab Upgrades from Global state
+	var hp_lvl = Global.upgrade_levels.get("hp", 0)
+	max_hp = 100 + 10 * hp_lvl
 	current_hp = max_hp
+	
+	var parry_lvl = Global.upgrade_levels.get("parry_window", 0)
+	parry_window_radius = 65.0 + 5.0 * parry_lvl
+	
+	var cd_lvl = Global.upgrade_levels.get("cooldown", 0)
+	parry_cooldown = 2.0 - 0.1 * cd_lvl
+	
+	is_attack_unlocked = false
+	power_shield_damage_buff = 0.0
+	
+	apply_equipped_weapon_settings()
+
+
+func apply_equipped_weapon_settings() -> void:
+	# グローバルから装備武器を取得し、発射レート等を調整
+	var eq_w = Global.equipped_weapon
+	match eq_w:
+		"machine_gun":
+			fire_rate = 0.14
+		"burst_rifle":
+			fire_rate = 0.48
+		"charge_rifle":
+			fire_rate = 1.25
+		"pulse_gun":
+			fire_rate = 0.2
+		"plasma_emitter":
+			fire_rate = 0.35
+		"kinetic_tackle":
+			fire_rate = 0.8
+		_:
+			fire_rate = 0.2
 
 
 func _process(delta: float) -> void:
@@ -70,10 +108,11 @@ func _process(delta: float) -> void:
 	else:
 		toggle_key_pressed = false
 	
-	# 射撃
-	if Time.get_ticks_msec() / 1000.0 - last_fire_time > fire_rate:
-		fire()
-		last_fire_time = Time.get_ticks_msec() / 1000.0
+	# 射撃 (最初のパリィ成功で攻撃アンロックされる仕様)
+	if is_attack_unlocked:
+		if Time.get_ticks_msec() / 1000.0 - last_fire_time > fire_rate:
+			fire()
+			last_fire_time = Time.get_ticks_msec() / 1000.0
 	
 	# タイマーの更新
 	if active_timer > 0.0:
@@ -118,6 +157,43 @@ func _process(delta: float) -> void:
 			fire_full_burst()
 			set_meta("last_burst_time", current_time)
 
+	# チュートリアル用のスローモーション制御 (初回起動時のみ)
+	if Global.is_first_launch and not is_attack_unlocked:
+		var near_bullet_found = false
+		for bullet in enemy_bullets:
+			if is_instance_valid(bullet) and not bullet.is_friendly:
+				var dist = global_position.distance_to(bullet.global_position)
+				# パリィフィールドの手前でスローにする
+				if dist <= parry_window_radius * 2.2 and dist > parry_window_radius * 0.4:
+					near_bullet_found = true
+					break
+		
+		if near_bullet_found and not is_guarding:
+			Engine.time_scale = 0.15
+			if not has_meta("slow_alert_shown"):
+				set_meta("slow_alert_shown", true)
+				spawn_popup_message("⚠️ DANGER: PRESS SPACE TO PARRY!")
+		else:
+			if Engine.time_scale < 0.5 and not is_guarding:
+				Engine.time_scale = 1.0
+
+	# ボス戦中の COUNTER SYSTEM (1ステージ1回のみの超反撃) の手動発動 (Xキー)
+	if not is_full_burst and not get_meta("is_counter_system_used", false):
+		var main = get_node_or_null("/root/Main")
+		if main:
+			var manager = main.get_node_or_null("GameManager")
+			if manager and manager.get("state") == "boss":
+				if Input.is_key_pressed(KEY_X):
+					set_meta("is_counter_system_used", true)
+					is_full_burst = true
+					spawn_popup_message("⚠️ COUNTER SYSTEM ACTIVE: FULL BURST!")
+					
+					# 3秒後にフルバーストを自動停止
+					get_tree().create_timer(3.0).timeout.connect(func():
+						is_full_burst = false
+						spawn_popup_message("COUNTER SYSTEM: DEPLETED")
+					)
+
 
 func toggle_weapon() -> void:
 	# 両方未アンロックの場合は切り替えない
@@ -157,9 +233,13 @@ func fire() -> void:
 	analysis_shot.bullet_type = "analysis"
 	analysis_shot.global_position = global_position + Vector2(0, -20)
 	analysis_shot.velocity = Vector2.UP * 900.0
+	analysis_shot.damage += int(power_shield_damage_buff)
 	target_parent.add_child(analysis_shot)
 	
-	# 2. 選択武器がアンロックされていれば発射
+	# 2. 出撃前選択された物理武装の射撃
+	fire_equipped_physics_weapon(target_parent)
+	
+	# 3. 解析・アンロックされた特殊武器（副兵装）がアクティブなら追加発射
 	if current_weapon == "beam" and weapons["beam"]["analyzed"]:
 		if weapons["beam"]["level"] == 1:
 			# 標準レーザー (高速直線レーザー)
@@ -167,6 +247,7 @@ func fire() -> void:
 			bullet.bullet_type = "beam"
 			bullet.global_position = global_position
 			bullet.velocity = Vector2.UP * 1500.0
+			bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(bullet)
 		else:
 			# 強化レーザー (極太 Giga Laser)
@@ -174,6 +255,7 @@ func fire() -> void:
 			bullet.bullet_type = "giga_laser"
 			bullet.global_position = global_position
 			bullet.velocity = Vector2.UP * 2000.0
+			bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(bullet)
 			
 	elif current_weapon == "missile" and weapons["missile"]["analyzed"]:
@@ -190,20 +272,132 @@ func fire() -> void:
 			var bullet = PlayerBulletScene.instantiate()
 			bullet.bullet_type = missile_type
 			bullet.global_position = global_position + offset
+			bullet.damage += int(power_shield_damage_buff)
 			# 少し斜め外向きに発射して、そこから追尾させる
 			var launch_dir = Vector2(offset.x, -50).normalized()
 			bullet.velocity = launch_dir * (550.0 if is_hyper else 450.0)
 			target_parent.add_child(bullet)
 
 
+func fire_equipped_physics_weapon(target_parent: Node) -> void:
+	var eq_w = Global.equipped_weapon
+	match eq_w:
+		"machine_gun":
+			# 交互または並行に2発
+			var offsets = [Vector2(-12, -10), Vector2(12, -10)]
+			for offset in offsets:
+				var bullet = PlayerBulletScene.instantiate()
+				bullet.bullet_type = "machine_gun"
+				bullet.global_position = global_position + offset
+				bullet.velocity = Vector2.UP * 1100.0
+				bullet.damage += int(power_shield_damage_buff)
+				target_parent.add_child(bullet)
+				
+		"burst_rifle":
+			# 3点バーストをタイマーで少しずらして発射
+			for i in range(3):
+				get_tree().create_timer(i * 0.07).timeout.connect(func():
+					if is_instance_valid(self) and is_instance_valid(target_parent):
+						var bullet = PlayerBulletScene.instantiate()
+						bullet.bullet_type = "burst_rifle"
+						bullet.global_position = global_position + Vector2(0, -20)
+						bullet.velocity = Vector2.UP * 1300.0
+						bullet.damage += int(power_shield_damage_buff)
+						target_parent.add_child(bullet)
+				)
+				
+		"charge_rifle":
+			# チャージ完了として極太のレールガンショット
+			var bullet = PlayerBulletScene.instantiate()
+			bullet.bullet_type = "charge_bolt"
+			bullet.global_position = global_position + Vector2(0, -25)
+			bullet.velocity = Vector2.UP * 1800.0
+			bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(bullet)
+			
+			# チャージ完了演出（少し画面を揺らすなど）
+			trigger_screen_flash(Color(0.8, 0.9, 1.0, 0.15))
+			
+		"pulse_gun":
+			# 斜め方向に広がる2つのパルス
+			var angles = [-12.0, 12.0]
+			for angle in angles:
+				var bullet = PlayerBulletScene.instantiate()
+				bullet.bullet_type = "pulse"
+				bullet.global_position = global_position + Vector2(angle * 0.8, -15)
+				var dir = Vector2.UP.rotated(deg_to_rad(angle))
+				bullet.velocity = dir * 950.0
+				bullet.damage += int(power_shield_damage_buff)
+				target_parent.add_child(bullet)
+				
+		"plasma_emitter":
+			# 3方向に広がるプラズマボルト
+			var angles = [-20, 0, 20]
+			for angle in angles:
+				var bullet = PlayerBulletScene.instantiate()
+				bullet.bullet_type = "plasma"
+				bullet.global_position = global_position + Vector2(angle * 0.5, -20)
+				var dir = Vector2.UP.rotated(deg_to_rad(angle))
+				bullet.velocity = dir * 500.0
+				bullet.damage += int(power_shield_damage_buff)
+				target_parent.add_child(bullet)
+				
+		"kinetic_tackle":
+			# 前方に巨大な衝撃波/タックルエネルギーを飛ばす
+			var bullet = PlayerBulletScene.instantiate()
+			bullet.bullet_type = "tackle"
+			bullet.global_position = global_position + Vector2(0, -30)
+			bullet.velocity = Vector2.UP * 750.0
+			bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(bullet)
+
+
 func check_parry() -> void:
 	"""敵弾がジャストガード判定ウィンドウ内にあるかチェック"""
 	var parry_triggered_now = false
+	var shield_type = Global.equipped_shield
+	
 	for bullet in enemy_bullets:
 		if is_instance_valid(bullet) and not bullet.is_friendly:
 			var dist = global_position.distance_to(bullet.global_position)
 			if dist <= parry_window_radius:
-				bullet.convert_to_friendly()
+				# 攻撃機能アンロック（最初のパリィ）
+				if not is_attack_unlocked:
+					is_attack_unlocked = true
+					if Global.is_first_launch:
+						Global.is_first_launch = false
+						Engine.time_scale = 1.0
+						spawn_popup_message("PARRY SUCCESSFUL! WEAPONS SYSTEM ENGAGED.")
+						
+						# セーブデータを書き出す
+						var current_stage = 1
+						var main = get_node_or_null("/root/Main")
+						if main:
+							var manager = main.get_node_or_null("GameManager")
+							if manager and "current_stage_num" in manager:
+								current_stage = manager.current_stage_num
+						Global.save_game(current_stage, 0, weapons)
+				
+				if shield_type == "power":
+					# 初期装備強化型 (Power): 敵弾を吸収し、自機の基礎攻撃力を強化する
+					bullet.recycle_bullet()
+					power_shield_damage_buff = min(power_shield_damage_buff + 4.0, 20.0) # 最大+20ダメージ加算
+					
+					# 変換しない代わりに、手動で解析進捗とパリィ登録を実行する
+					advance_analysis(bullet.bullet_type, 15)
+					
+					var main = get_node_or_null("/root/Main")
+					if main:
+						var manager = main.get_node_or_null("GameManager")
+						if manager and manager.has_method("register_parry"):
+							manager.register_parry()
+				else:
+					# カウンター特化型 (Counter) または ゲージ回収型 (Gauge)
+					bullet.convert_to_friendly()
+					if shield_type == "counter":
+						# 反射弾のダメージを1.5倍に強化
+						bullet.damage = int(bullet.damage * 1.5)
+						
 				parry_triggered_now = true
 				
 	if parry_triggered_now and not parried_in_current_frame:
@@ -214,7 +408,16 @@ func check_parry() -> void:
 func update_visual_state() -> void:
 	"""状態に応じて機体の色（modulate）を変更"""
 	if is_guarding:
-		modulate = Color.CYAN  # ガード中は青白く光る
+		# シールドの種類に応じてガード中の発光色を変更
+		match Global.equipped_shield:
+			"counter":
+				modulate = Color(0.9, 0.4, 1.0) # 紫発光
+			"gauge":
+				modulate = Color(0.3, 1.0, 0.6) # 緑発光
+			"power":
+				modulate = Color(1.0, 0.6, 0.2) # オレンジ発光
+			_:
+				modulate = Color.CYAN
 	elif cooldown_timer > 0.0:
 		# クールダウン中は少し暗いグレー
 		modulate = Color(0.5, 0.5, 0.5, 1.0)
@@ -234,6 +437,11 @@ func take_damage(amount: int) -> void:
 	# ガード中はダメージ無効
 	if is_guarding:
 		return
+		
+	# チュートリアル中に被弾した場合はスローモーション解除
+	if Global.is_first_launch and Engine.time_scale < 0.5:
+		Engine.time_scale = 1.0
+		
 	current_hp -= amount
 	if current_hp <= 0:
 		current_hp = 0
@@ -254,7 +462,12 @@ func advance_analysis(bullet_type: String, amount: int) -> void:
 	if weapon_key == "" or weapons[weapon_key]["analyzed"]:
 		return
 		
-	weapons[weapon_key]["progress"] += amount
+	# ゲージ回収シールドなら1.8倍のゲージ増加
+	var actual_amount = amount
+	if Global.equipped_shield == "gauge":
+		actual_amount = int(amount * 1.8)
+		
+	weapons[weapon_key]["progress"] += actual_amount
 	if weapons[weapon_key]["progress"] >= 100:
 		weapons[weapon_key]["progress"] = 100
 		weapons[weapon_key]["analyzed"] = true
@@ -394,11 +607,18 @@ func spawn_parry_popup_message(text: String) -> void:
 
 func _draw() -> void:
 	if parry_ring_alpha > 0.0:
-		# シールドの円を描画
-		var color = Color(0.0, 0.9, 1.0, parry_ring_alpha)
+		var base_color = Color(0.0, 0.9, 1.0)
+		match Global.equipped_shield:
+			"counter":
+				base_color = Color(0.8, 0.3, 1.0) # Purple/Magenta
+			"gauge":
+				base_color = Color(0.1, 0.9, 0.5) # Lime Green
+			"power":
+				base_color = Color(1.0, 0.5, 0.0) # Vivid Orange
+				
+		var color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha)
 		draw_arc(Vector2.ZERO, parry_ring_radius, 0, TAU, 48, color, 4.0, true)
-		# 内側の塗りつぶし
-		var fill_color = Color(0.0, 0.8, 1.0, parry_ring_alpha * 0.15)
+		var fill_color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha * 0.15)
 		draw_circle(Vector2.ZERO, parry_ring_radius, fill_color)
 
 
