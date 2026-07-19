@@ -177,6 +177,23 @@ func _process(delta: float) -> void:
 			if Engine.time_scale < 0.5 and not is_guarding:
 				Engine.time_scale = 1.0
 
+	# ボス戦中の COUNTER SYSTEM (1ステージ1回のみの超反撃) の手動発動 (Xキー)
+	if not is_full_burst and not get_meta("is_counter_system_used", false):
+		var main = get_node_or_null("/root/Main")
+		if main:
+			var manager = main.get_node_or_null("GameManager")
+			if manager and manager.get("state") == "boss":
+				if Input.is_key_pressed(KEY_X):
+					set_meta("is_counter_system_used", true)
+					is_full_burst = true
+					spawn_popup_message("⚠️ COUNTER SYSTEM ACTIVE: FULL BURST!")
+					
+					# 3秒後にフルバーストを自動停止
+					get_tree().create_timer(3.0).timeout.connect(func():
+						is_full_burst = false
+						spawn_popup_message("COUNTER SYSTEM: DEPLETED")
+					)
+
 
 func toggle_weapon() -> void:
 	# 両方未アンロックの場合は切り替えない
