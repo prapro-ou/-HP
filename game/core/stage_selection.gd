@@ -23,6 +23,7 @@ var detail_title: Label
 var detail_codename: Label
 var detail_desc: Label
 var detail_diff: Label
+var detail_panel: PanelContainer
 
 # Navigation buttons
 var prev_btn: Button
@@ -133,7 +134,7 @@ func setup_ui() -> void:
 	add_child(header)
 	
 	# 3. Main Center Cards container for active details
-	var detail_panel = PanelContainer.new()
+	detail_panel = PanelContainer.new()
 	detail_panel.anchor_left = 0.5
 	detail_panel.anchor_top = 0.38
 	detail_panel.anchor_right = 0.5
@@ -422,8 +423,7 @@ func update_stage_selection(instant: bool) -> void:
 	detail_diff.label_settings.font_color = active_stage.color
 	
 	# Update detail panel borders to match active color
-	var parent_panel = detail_title.get_parent().get_parent() as PanelContainer
-	var sb = parent_panel.get_theme_stylebox("panel") as StyleBoxFlat
+	var sb = detail_panel.get_theme_stylebox("panel") as StyleBoxFlat
 	if sb:
 		var target_color = active_stage.color
 		if instant:
