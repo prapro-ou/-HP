@@ -34,12 +34,17 @@ func _ready() -> void:
 	if bullet_pool:
 		player.enemy_bullets = bullet_pool.active_bullets
 		
-	# 続きから始める場合、セーブデータをロードして反映する
-	if Global.is_continue and Global.has_save:
-		var save_data = Global.load_game_data()
+	# ロードまたは選択されたステージ番号をセーブデータから取得
+	var save_data = Global.load_game_data()
+	if Global.is_first_launch:
+		current_stage_num = 1
+	else:
 		current_stage_num = save_data.get("stage_num", 1)
-		total_damage_score = save_data.get("score", 0)
 		
+	total_damage_score = save_data.get("score", 0)
+	
+	# 続きからの場合、またはステージ選択後、武器の解析状況を復元
+	if Global.has_save:
 		var saved_weapons = save_data.get("weapons", {})
 		if player and not saved_weapons.is_empty():
 			# 武器の解析状況を復元
@@ -109,33 +114,20 @@ func load_next_stage() -> void:
 	# 画面上の弾を全て消去
 	clear_all_bullets()
 	
-	# プレイヤーのHP全回復、状態リセット
-	if is_instance_valid(player):
-		player.current_hp = player.max_hp
-		player.is_full_burst = false
-		player.cooldown_timer = 0.0
-		player.active_timer = 0.0
-		player.is_guarding = false
-		# 武器の解析進行度、アンロック状況を初期化
-		for w_key in player.weapons.keys():
-			player.weapons[w_key]["analyzed"] = false
-			player.weapons[w_key]["progress"] = 0
-			player.weapons[w_key]["level"] = 1
-		player.current_weapon = "none"
-		
-	# ゲーム状態のリセット
-	parry_count = 0
-	state_timer = 0.0
-	clear_drones()
-	
+	# 次のステージに進むためのステージ番号をセーブデータに保存して、ステージ選択画面へ戻る
 	var next_num = current_stage_num + 1
 	var next_path = "res://game/stages/stage_" + str(next_num) + ".tscn"
 	
-	if ResourceLoader.exists(next_path):
-		load_stage(next_path, next_num)
-	else:
-		# 次のステージが存在しない場合は、全クリアとしてステージ1へループ
-		load_stage("res://game/stages/stage_1.tscn", 1)
+	var target_stage = next_num
+	if not ResourceLoader.exists(next_path):
+		target_stage = 1 # 次のステージが存在しない場合はステージ1へループ
+		
+	# セーブデータに反映（ステージ選択画面で選択されている初期位置になるように、あるいは単に記録）
+	if is_instance_valid(player):
+		Global.save_game(target_stage, total_damage_score, player.weapons)
+		
+	# シーン切り替え（ステージ選択画面に戻る）
+	get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
 
 
 

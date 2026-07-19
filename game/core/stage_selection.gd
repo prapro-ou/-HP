@@ -46,7 +46,13 @@ func _ready() -> void:
 	Global.load_settings()
 	Global.check_save_game()
 	
+	var save_data = Global.load_game_data()
+	var saved_stage_num = save_data.get("stage_num", 1)
+	
 	init_stages()
+	
+	current_index = clamp(saved_stage_num - 1, 0, stages.size() - 1)
+	
 	setup_ui()
 	init_starfield()
 	update_stage_selection(true) # Initial instant update
