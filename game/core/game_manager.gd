@@ -95,8 +95,12 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 		
 	# シーン開始
 	state = "wave1"
+	# ステージ開始時にAIの起動メッセージ
+	get_tree().create_timer(0.2).timeout.connect(func():
+		spawn_popup("[SYSTEM AI]: 装備システムオンライン。\n最初のパリィが実行されるまで、自機のメイン攻撃はロックされます。")
+	)
 	# 少し遅らせてWave1開始を表示
-	get_tree().create_timer(1.0).timeout.connect(func():
+	get_tree().create_timer(2.6).timeout.connect(func():
 		spawn_wave1()
 	)
 
@@ -136,7 +140,7 @@ func load_next_stage() -> void:
 
 
 func spawn_wave1() -> void:
-	spawn_popup("WAVE 1: BEAM DRONE INCOMING\nPARRY 3 TIMES TO ANALYSIS BEAM")
+	spawn_popup("[ASSIST AI]: 敵の小規模部隊が接近しています。\n[SPACE]キーで盾を展開し、敵弾をパリィして解析を完了してください。")
 	var viewport_w = get_viewport_rect().size.x
 	# ドローンを3機配置
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
@@ -146,7 +150,7 @@ func spawn_wave1() -> void:
 
 func spawn_wave2() -> void:
 	state = "wave2"
-	spawn_popup("WAVE 2: MISSILE DRONE INCOMING\nPARRY 3 TIMES TO ANALYSIS MISSILE")
+	spawn_popup("[ASSIST AI]: 次の解析対象を検知。\nミサイルの追跡データをパリィで吸収し、技術を逆転してください。")
 	var viewport_w = get_viewport_rect().size.x
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
 	for x in x_coords:
@@ -226,16 +230,15 @@ func on_drone_destroyed(drone) -> void:
 
 func trigger_warning_interlude() -> void:
 	if ui and ui.has_method("show_warning"):
-		ui.show_warning("WARNING: ANCIENT GUARDIAN DETECTION", "ENERGY SPIKE DETECTED - 1000% ABOVE CRITICAL")
+		ui.show_warning("WARNING: ANCIENT GUARDIAN", "[ASSIST AI]: 巨大な古代防衛兵器を検知！")
 	
 	# 画面全体を赤くフラッシュ
 	if player and player.has_method("trigger_screen_flash"):
 		player.trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
 		
-	# 2秒後に再度警告フラッシュ
-	get_tree().create_timer(1.8).timeout.connect(func():
-		if state == "interlude" and player and player.has_method("trigger_screen_flash"):
-			player.trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.5))
+	# アシストAIメッセージを表示
+	get_tree().create_timer(1.2).timeout.connect(func():
+		spawn_popup("[ASSIST AI]: 敵は巨大ですが、『部位破壊』で無力化できます。\nまた、[X]キーで『COUNTER SYSTEM』を一度だけ解放可能です！")
 	)
 
 
