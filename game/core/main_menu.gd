@@ -23,6 +23,7 @@ var subtitle_label: Label
 var menu_container: VBoxContainer
 var settings_container: PanelContainer
 var confirm_dialog: PanelContainer
+var tutorial_dialog: PanelContainer
 
 # Buttons
 var play_start_btn: Button
@@ -135,6 +136,9 @@ func setup_layout() -> void:
 	
 	# 7. Custom confirmation dialog (Hidden initially)
 	setup_confirm_dialog()
+
+	# 8. Tutorial confirmation dialog (Hidden initially)
+	setup_tutorial_confirm_dialog()
 
 func setup_menu_container() -> void:
 	menu_container = VBoxContainer.new()
@@ -463,6 +467,102 @@ func setup_confirm_dialog() -> void:
 		confirm_dialog.hide()
 	)
 
+
+func setup_tutorial_confirm_dialog() -> void:
+	tutorial_dialog = PanelContainer.new()
+	tutorial_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	tutorial_dialog.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	tutorial_dialog.custom_minimum_size = Vector2(420, 240)
+	tutorial_dialog.hide()
+	add_child(tutorial_dialog)
+	
+	# Center it on top of everything
+	tutorial_dialog.anchor_left = 0.5
+	tutorial_dialog.anchor_top = 0.5
+	tutorial_dialog.anchor_right = 0.5
+	tutorial_dialog.anchor_bottom = 0.5
+	tutorial_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	tutorial_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
+	tutorial_dialog.offset_left = -210
+	tutorial_dialog.offset_top = -120
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.12, 0.98) # Dark blue themed
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color.CYAN
+	sb.corner_radius_top_left = 8
+	sb.corner_radius_top_right = 8
+	sb.corner_radius_bottom_left = 8
+	sb.corner_radius_bottom_right = 8
+	sb.shadow_color = Color(0.0, 0.8, 1.0, 0.3)
+	sb.shadow_size = 20
+	tutorial_dialog.add_theme_stylebox_override("panel", sb)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	tutorial_dialog.add_child(margin)
+	
+	var box = VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 20)
+	margin.add_child(box)
+	
+	var t_title = Label.new()
+	t_title.text = "🤖 TUTORIAL SYSTEM"
+	t_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var t_lbl_set = LabelSettings.new()
+	t_lbl_set.font_size = 18
+	t_lbl_set.font_color = Color.CYAN
+	t_lbl_set.outline_size = 4
+	t_lbl_set.outline_color = Color.BLACK
+	t_title.label_settings = t_lbl_set
+	box.add_child(t_title)
+	
+	var t_desc = Label.new()
+	t_desc.text = "初回用チュートリアル（スローモーション機能）\nをプレイしますか？"
+	t_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var d_lbl_set = LabelSettings.new()
+	d_lbl_set.font_size = 13
+	d_lbl_set.font_color = Color.WHITE
+	t_desc.label_settings = d_lbl_set
+	box.add_child(t_desc)
+	
+	var btns_box = HBoxContainer.new()
+	btns_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	btns_box.add_theme_constant_override("separation", 25)
+	box.add_child(btns_box)
+	
+	var play_btn = Button.new()
+	play_btn.text = "はい / PLAY"
+	play_btn.custom_minimum_size = Vector2(150, 40)
+	style_button(play_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+	btns_box.add_child(play_btn)
+	
+	var skip_btn = Button.new()
+	skip_btn.text = "いいえ / SKIP"
+	skip_btn.custom_minimum_size = Vector2(150, 40)
+	style_button(skip_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
+	btns_box.add_child(skip_btn)
+	
+	play_btn.pressed.connect(func():
+		tutorial_dialog.hide()
+		Global.is_continue = false
+		get_tree().change_scene_to_file("res://game/main.tscn")
+	)
+	
+	skip_btn.pressed.connect(func():
+		tutorial_dialog.hide()
+		Global.is_first_launch = false
+		Global.save_game(1, 0, {})
+		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
+	)
+
 func create_label(text: String) -> Label:
 	var l = Label.new()
 	l.text = text
@@ -583,9 +683,13 @@ func _on_play_start_pressed() -> void:
 	var save_data = Global.load_game_data()
 	
 	if Global.is_first_launch:
-		# First launch: Start Stage 1 (Tutorial) immediately
-		Global.is_continue = false
-		get_tree().change_scene_to_file("res://game/main.tscn")
+		# Show tutorial confirm dialog
+		tutorial_dialog.show()
+		tutorial_dialog.modulate.a = 0.0
+		tutorial_dialog.scale = Vector2(0.8, 0.8)
+		var tween = create_tween().set_parallel(true)
+		tween.tween_property(tutorial_dialog, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(tutorial_dialog, "modulate:a", 1.0, 0.15)
 	else:
 		# Subsequent launches: Go to Stage Selection Screen
 		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
