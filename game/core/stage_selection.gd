@@ -121,9 +121,9 @@ func setup_ui() -> void:
 	var header = Label.new()
 	header.text = "SECTOR SELECTION"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	header.anchor_left = 0.5
+	header.anchor_left = 0.0
+	header.anchor_right = 1.0
 	header.anchor_top = 0.05
-	header.anchor_right = 0.5
 	header.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	var head_set = LabelSettings.new()
 	head_set.font_size = 32
@@ -310,9 +310,9 @@ func setup_ui() -> void:
 	var action_hbox = HBoxContainer.new()
 	action_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	action_hbox.add_theme_constant_override("separation", 30)
-	action_hbox.anchor_left = 0.5
+	action_hbox.anchor_left = 0.0
+	action_hbox.anchor_right = 1.0
 	action_hbox.anchor_top = 0.92
-	action_hbox.anchor_right = 0.5
 	action_hbox.anchor_bottom = 0.92
 	action_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	action_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH

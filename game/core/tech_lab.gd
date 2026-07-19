@@ -181,9 +181,9 @@ func setup_ui() -> void:
 	var footer_hbox = HBoxContainer.new()
 	footer_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	footer_hbox.add_theme_constant_override("separation", 40)
-	footer_hbox.anchor_left = 0.5
+	footer_hbox.anchor_left = 0.0
+	footer_hbox.anchor_right = 1.0
 	footer_hbox.anchor_top = 0.93
-	footer_hbox.anchor_right = 0.5
 	footer_hbox.anchor_bottom = 0.93
 	footer_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	footer_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH

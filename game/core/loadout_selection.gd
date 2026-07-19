@@ -176,9 +176,9 @@ func setup_ui() -> void:
 	var title = Label.new()
 	title.text = "LOADOUT CONFIGURATION"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.anchor_left = 0.5
+	title.anchor_left = 0.0
+	title.anchor_right = 1.0
 	title.anchor_top = 0.04
-	title.anchor_right = 0.5
 	title.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	var title_set = LabelSettings.new()
 	title_set.font_size = 28
@@ -335,9 +335,9 @@ func setup_ui() -> void:
 	var footer_hbox = HBoxContainer.new()
 	footer_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	footer_hbox.add_theme_constant_override("separation", 40)
-	footer_hbox.anchor_left = 0.5
+	footer_hbox.anchor_left = 0.0
+	footer_hbox.anchor_right = 1.0
 	footer_hbox.anchor_top = 0.93
-	footer_hbox.anchor_right = 0.5
 	footer_hbox.anchor_bottom = 0.93
 	footer_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	footer_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH
