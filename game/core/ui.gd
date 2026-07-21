@@ -137,7 +137,7 @@ func update_parry_count(count: int) -> void:
 	parry_count_label.text = "パリィ: %d 回" % count
 
 
-func update_guard_status(cooldown: float, is_guarding: bool) -> void:
+func update_guard_status(_cooldown: float, _is_guarding: bool) -> void:
 	# 旧互換
 	pass
 
@@ -201,7 +201,7 @@ func update_pattern_analysis(patterns: Dictionary) -> void:
 		slot_beam_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
-func update_analysis_progress(beam_progress: float, beam_ready: bool, missile_progress: float, missile_ready: bool, active_weapon: String) -> void:
+func update_analysis_progress(_beam_progress: float, _beam_ready: bool, _missile_progress: float, _missile_ready: bool, _active_weapon: String) -> void:
 	pass
 
 

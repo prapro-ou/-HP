@@ -499,6 +499,27 @@ func check_parry() -> void:
 		trigger_parry_feedback()
 
 
+func take_damage(amount: int) -> void:
+	"""ダメージ受け取り"""
+	# ガード中はダメージ無効
+	if is_guarding:
+		return
+		
+	# チュートリアル中に被弾した場合はスローモーション解除
+	if Global.is_first_launch and Engine.time_scale < 0.5:
+		Engine.time_scale = 1.0
+		
+	current_hp -= amount
+	if current_hp <= 0:
+		current_hp = 0
+		
+	trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
+
+
+func heal(amount: int) -> void:
+	current_hp = min(current_hp + amount, max_hp)
+
+
 func advance_analysis(bullet_type: String, amount: float = 12.5) -> void:
 	"""パリィで敵弾パターンを解析し、自機兵装へ特徴を反映する"""
 	var pattern_key = "rapid"
