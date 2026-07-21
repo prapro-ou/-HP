@@ -65,30 +65,6 @@ func setup_ui() -> void:
 	# 2. Main lab container
 	var vbox = VBoxContainer.new()
 	vbox.anchor_left = 0.08
-	vbox.anchor_top = 0.08
-	vbox.anchor_right = 0.92
-	vbox.anchor_bottom = 0.92
-	vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
-	vbox.offset_left = 0
-	vbox.offset_right = 0
-	vbox.offset_top = 0
-	vbox.offset_bottom = 0
-	vbox.add_theme_constant_override("separation", 18)
-	add_child(vbox)
-	
-func setup_ui() -> void:
-	# 1. Base dark background
-	var bg = ColorRect.new()
-	bg.color = Color(0.05, 0.04, 0.08, 1.0)
-	bg.anchor_right = 1.0
-	bg.anchor_bottom = 1.0
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
-	
-	# 2. Main lab container
-	var vbox = VBoxContainer.new()
-	vbox.anchor_left = 0.08
 	vbox.anchor_top = 0.06
 	vbox.anchor_right = 0.92
 	vbox.anchor_bottom = 0.94
