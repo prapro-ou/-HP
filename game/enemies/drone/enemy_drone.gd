@@ -20,8 +20,8 @@ var charge_timer: float = 0.0
 func _ready_enemy() -> void:
 	add_to_group("drones")
 	
-	# 個体強化：HPを90に引き上げてパリィと解析の歯ごたえをアップ
-	max_hp = 90
+	# 個体強化：HPを220に引き上げて非常に手応え・歯ごたえのある難度へ
+	max_hp = 220
 	current_hp = max_hp
 	
 	# 射撃スタイルごとのビジュアルとパラメータ設定（弾速や間隔をマイルドにしパリィしやすく）
