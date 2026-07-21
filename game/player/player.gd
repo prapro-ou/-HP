@@ -543,7 +543,7 @@ func trigger_parry_feedback() -> void:
 	trigger_parry_ring_effect()
 	
 	# 4. ポップアップメッセージ
-	spawn_parry_popup_message("PARRY!")
+	spawn_parry_popup_message("パリィ！")
 
 
 func trigger_hit_stop(duration_sec: float, scale: float) -> void:
@@ -572,9 +572,9 @@ func spawn_parry_popup_message(text: String) -> void:
 	label.text = text
 	
 	var settings = LabelSettings.new()
-	settings.font_size = 28 # 通常より大きく
+	settings.font_size = 36 # 見やすい大フォント
 	settings.font_color = Color.GOLD # ゴールドで豪華に
-	settings.outline_size = 6
+	settings.outline_size = 8
 	settings.outline_color = Color.BLACK
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

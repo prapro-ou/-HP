@@ -236,7 +236,7 @@ func on_drone_destroyed(drone) -> void:
 
 func trigger_warning_interlude() -> void:
 	if ui and ui.has_method("show_warning"):
-		ui.show_warning("WARNING: ANCIENT GUARDIAN", "[ASSIST AI]: 巨大な古代防衛兵器を検知！")
+		ui.show_warning("⚠️ 警告 ⚠️", "強大な敵反応を検知！")
 	
 	# 画面全体を赤くフラッシュ
 	if player and player.has_method("trigger_screen_flash"):
@@ -244,7 +244,7 @@ func trigger_warning_interlude() -> void:
 		
 	# アシストAIメッセージを表示
 	get_tree().create_timer(1.2).timeout.connect(func():
-		spawn_popup("[ASSIST AI]: 敵は巨大ですが、『部位破壊』で無力化できます。\nまた、[X]キーで『COUNTER SYSTEM』を一度だけ解放可能です！")
+		spawn_popup("【AIアシスト】\n敵は巨大ですが『部位破壊』で無力化できます。\n[X]キーで『カウンター』を発動可能です！")
 	)
 
 
@@ -259,7 +259,7 @@ func start_boss_battle() -> void:
 		var tween = create_tween()
 		tween.tween_property(boss, "position", Vector2(get_viewport_rect().size.x / 2.0, 160.0), 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		
-		spawn_popup("BOSS ENGAGED: ANCIENT DEFENSE SYSTEM")
+		spawn_popup("ボス出現：古代防衛兵器")
 
 
 func check_win_lose() -> void:
@@ -351,15 +351,15 @@ func on_boss_destroyed() -> void:
 	if current_stage_num == 1:
 		if not Global.unlocked_counter_weapons.has("boss_beam"):
 			Global.unlocked_counter_weapons.append("boss_beam")
-			spawn_popup("[ASSIST AI]: ボス技術の回収成功。\n『ANCIENT GIGA LASER』がCOUNTER SYSTEMで利用可能です！")
+			spawn_popup("【AIアシスト】ボス技術の回収成功！\n『ギガレーザー』がカウンター兵装で装備可能です。")
 		Global.tech_points += 30
-		spawn_popup("TECH POINTS +30 HARVESTED")
+		spawn_popup("強化ポイント +30 獲得！")
 	elif current_stage_num == 2:
 		if not Global.unlocked_counter_weapons.has("boss_missile"):
 			Global.unlocked_counter_weapons.append("boss_missile")
-			spawn_popup("[ASSIST AI]: ボス技術の回収成功。\n『SPLASH HYPER MISSILE』がCOUNTER SYSTEMで利用可能です！")
+			spawn_popup("【AIアシスト】ボス技術の回収成功！\n『ハイパーミサイル』がカウンター兵装で装備可能です。")
 		Global.tech_points += 40
-		spawn_popup("TECH POINTS +40 HARVESTED")
+		spawn_popup("強化ポイント +40 獲得！")
 		
 	# セーブデータの更新
 	if is_instance_valid(player):

@@ -336,11 +336,11 @@ func take_damage_on_part(part_name: String, amount: int) -> void:
 
 func spawn_shield_popup() -> void:
 	var label = Label.new()
-	label.text = "SHIELD ACTIVE: DESTROY PARTS FIRST!"
+	label.text = "バリア発動中！部位を破壊せよ！"
 	var settings = LabelSettings.new()
-	settings.font_size = 14
+	settings.font_size = 22
 	settings.font_color = Color.RED
-	settings.outline_size = 3
+	settings.outline_size = 6
 	settings.outline_color = Color.BLACK
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -373,7 +373,7 @@ func destroy_part(part_type: String) -> void:
 		if manager and manager.has_method("add_tech_points"):
 			manager.add_tech_points(12)
 			if player and player.has_method("spawn_popup_message"):
-				player.spawn_popup_message("PARTS DESTRUCTION: +12 TECH POINTS")
+				player.spawn_popup_message("部位破壊！ +12 TP")
 		
 	# エネルギーの再配分
 	reallocate_energy()
