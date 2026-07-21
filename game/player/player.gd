@@ -67,22 +67,23 @@ func _ready() -> void:
 
 func apply_equipped_weapon_settings() -> void:
 	# グローバルから装備武器を取得し、発射レート等を調整
+	# 仕様変更: 初期武装の連射力は低く設定
 	var eq_w = Global.equipped_weapon
 	match eq_w:
 		"machine_gun":
-			fire_rate = 0.14
+			fire_rate = 0.28
 		"burst_rifle":
-			fire_rate = 0.48
+			fire_rate = 0.55
 		"charge_rifle":
-			fire_rate = 1.25
+			fire_rate = 1.35
 		"pulse_gun":
-			fire_rate = 0.2
-		"plasma_emitter":
 			fire_rate = 0.35
+		"plasma_emitter":
+			fire_rate = 0.45
 		"kinetic_tackle":
-			fire_rate = 0.8
+			fire_rate = 0.85
 		_:
-			fire_rate = 0.2
+			fire_rate = 0.35
 
 
 func _process(delta: float) -> void:
