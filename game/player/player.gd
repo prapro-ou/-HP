@@ -7,7 +7,25 @@ extends CharacterBody2D
 @export var max_hp: int = 100
 @export var move_speed: float = 300.0
 @export var parry_window_radius: float = 65.0  # ガード範囲をやや広げてパリィしやすく
-@export var fire_rate: float = 0.2  # 射撃間隔
+@export var parry_active_time: float = 0.25  # ガード判定の持続時間
+@export var parry_cooldown: float = 2.0      # クールダウン時間
+
+var current_hp: int
+var last_fire_time: float = 0.0
+var enemy_bullets: Array = []  # 敵弾リファレンス（GameManager から取得）
+
+var active_timer: float = 0.0
+var cooldown_timer: float = 0.0
+var is_guarding: bool = false
+var space_was_pressed: bool = false
+
+var is_attack_unlocked: bool = false
+var power_shield_damage_buff: float = 0.0
+
+var parry_ring_radius: float = 0.0
+var parry_ring_alpha: float = 0.0
+var parried_in_current_frame: bool = false
+var is_full_burst: bool = false
 
 # --- シールド・オーバーヒートシステム ---
 @export var max_shield_heat: float = 100.0        # 最大ヒート量
@@ -340,6 +358,95 @@ func fire() -> void:
 			var launch_dir = Vector2(offset.x, -50).normalized()
 			bullet.velocity = launch_dir * (550.0 if is_hyper else 450.0)
 			target_parent.add_child(bullet)
+
+
+func fire_equipped_physics_weapon(target_parent: Node) -> void:
+	var eq_w = Global.equipped_weapon
+	match eq_w:
+		"machine_gun":
+			var offsets = [Vector2(-12, -10), Vector2(12, -10)]
+			for offset in offsets:
+				var bullet = PlayerBulletScene.instantiate()
+				bullet.bullet_type = "machine_gun"
+				bullet.global_position = global_position + offset
+				bullet.velocity = Vector2.UP * 1100.0
+				bullet.damage += int(power_shield_damage_buff)
+				target_parent.add_child(bullet)
+				
+		"burst_rifle":
+			for i in range(3):
+				get_tree().create_timer(i * 0.07).timeout.connect(func():
+					if is_instance_valid(self) and is_instance_valid(target_parent):
+						var bullet = PlayerBulletScene.instantiate()
+						bullet.bullet_type = "burst_rifle"
+						bullet.global_position = global_position + Vector2(0, -20)
+						bullet.velocity = Vector2.UP * 1300.0
+						bullet.damage += int(power_shield_damage_buff)
+						target_parent.add_child(bullet)
+				)
+				
+		"charge_rifle":
+			var bullet = PlayerBulletScene.instantiate()
+			bullet.bullet_type = "charge_bolt"
+			bullet.global_position = global_position + Vector2(0, -25)
+			bullet.velocity = Vector2.UP * 1800.0
+			bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(bullet)
+			trigger_screen_flash(Color(0.8, 0.9, 1.0, 0.15))
+			
+		"pulse_gun":
+			var angles = [-12.0, 12.0]
+			for angle in angles:
+				var bullet = PlayerBulletScene.instantiate()
+				bullet.bullet_type = "pulse"
+				bullet.global_position = global_position + Vector2(angle * 0.8, -15)
+				var dir = Vector2.UP.rotated(deg_to_rad(angle))
+				bullet.velocity = dir * 950.0
+				bullet.damage += int(power_shield_damage_buff)
+				target_parent.add_child(bullet)
+				
+		"plasma_emitter":
+			var angles = [-20, 0, 20]
+			for angle in angles:
+				var bullet = PlayerBulletScene.instantiate()
+				bullet.bullet_type = "plasma"
+				bullet.global_position = global_position + Vector2(angle * 0.5, -20)
+				var dir = Vector2.UP.rotated(deg_to_rad(angle))
+				bullet.velocity = dir * 500.0
+				bullet.damage += int(power_shield_damage_buff)
+				target_parent.add_child(bullet)
+				
+		"kinetic_tackle":
+			var bullet = PlayerBulletScene.instantiate()
+			bullet.bullet_type = "tackle"
+			bullet.global_position = global_position + Vector2(0, -30)
+			bullet.velocity = Vector2.UP * 750.0
+			bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(bullet)
+
+
+func update_visual_state() -> void:
+	"""状態に応じて機体の色（modulate）を変更"""
+	if is_guarding:
+		match Global.equipped_shield:
+			"counter":
+				modulate = Color(0.9, 0.4, 1.0)
+			"gauge":
+				modulate = Color(0.3, 1.0, 0.6)
+			"power":
+				modulate = Color(1.0, 0.6, 0.2)
+			_:
+				modulate = Color.CYAN
+	elif is_overheated:
+		modulate = Color(1.0, 0.3, 0.3, 1.0)
+	else:
+		match current_weapon:
+			"beam":
+				modulate = Color(0.7, 1.0, 1.0)
+			"missile":
+				modulate = Color(0.9, 0.7, 1.0)
+			_:
+				modulate = Color.WHITE
 
 
 func check_parry() -> void:
