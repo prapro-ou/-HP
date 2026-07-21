@@ -394,15 +394,15 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	
 	var settings = LabelSettings.new()
 	if is_finish:
-		settings.font_size = randi_range(56, 76)
-		settings.font_color = Color(1.0, randf_range(0.2, 0.6), 0.1)
-		settings.outline_size = 12
+		settings.font_size = randi_range(72, 90)
+		settings.font_color = Color(1.0, 0.35, 0.1)
+		settings.outline_size = 14
 		settings.outline_color = Color.BLACK
 	else:
-		settings.font_size = randi_range(24, 32)
+		settings.font_size = randi_range(28, 36)
 		if amount > 15:
 			settings.font_color = Color(1.0, 0.9, 0.2)
-			settings.font_size = randi_range(30, 36)
+			settings.font_size = randi_range(36, 44)
 		else:
 			settings.font_color = Color.WHITE
 		settings.outline_size = 6
@@ -412,19 +412,51 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.pivot_offset = Vector2(100, 30)
 	
-	label.global_position = pos + Vector2(randf_range(-60, 60), randf_range(-40, 20))
+	label.global_position = pos + Vector2(randf_range(-40, 40), randf_range(-30, 10))
 	add_child(label)
 	
 	label.scale = Vector2(0.2, 0.2)
 	var tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.2, 1.2) if is_finish else Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var target_pos = label.global_position + Vector2(randf_range(-70, 70), -120)
+	tween.tween_property(label, "scale", Vector2(1.3, 1.3) if is_finish else Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var target_pos = label.global_position + Vector2(randf_range(-40, 40), -120)
 	tween.tween_property(label, "global_position", target_pos, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
 	var fade_tween = create_tween()
 	fade_tween.tween_interval(0.5)
 	fade_tween.tween_property(label, "modulate:a", 0.0, 0.4)
+	
+	tween.chain().tween_callback(label.queue_free)
+
+
+func spawn_kill_popup(pos: Vector2, text: String = "DESTROY!") -> void:
+	"""敵撃破時の短く超巨大で分かりやすいテキスト演出"""
+	var label = Label.new()
+	label.text = text
+	
+	var settings = LabelSettings.new()
+	settings.font_size = 88 # 超巨大フォントサイズ
+	settings.font_color = Color(1.0, 0.85, 0.0) # 鮮やかなゴールドイエロー
+	settings.outline_size = 16 # くっきり見やすい太線枠
+	settings.outline_color = Color(0.1, 0.0, 0.0, 1.0)
+	
+	label.label_settings = settings
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.pivot_offset = Vector2(150, 45)
+	label.global_position = pos + Vector2(-150, -45)
+	
+	add_child(label)
+	
+	label.scale = Vector2(0.1, 0.1)
+	var tween = create_tween().set_parallel(true)
+	# 一気に超巨大表示されてバウンド
+	tween.tween_property(label, "scale", Vector2(1.25, 1.25), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "global_position", pos + Vector2(-150, -110), 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	var fade = create_tween()
+	fade.tween_interval(0.35)
+	fade.tween_property(label, "modulate:a", 0.0, 0.4)
 	
 	tween.chain().tween_callback(label.queue_free)
 
