@@ -261,14 +261,265 @@ func show_warning(title: String, subtitle: String) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if get_tree().paused and has_node("GameOverPanel"):
-		if event is InputEventKey and event.pressed and not event.echo:
+	if event is InputEventKey and event.pressed and not event.echo:
+		# ESCキーまたはPキーでポーズ画面のトグル切り替え
+		if event.keycode == KEY_ESCAPE or event.keycode == KEY_P:
+			if has_node("GameOverPanel"):
+				return # ゲームオーバー中は何もしない
+				
+			if has_node("PausePanel"):
+				hide_pause_menu()
+			else:
+				var game_manager = get_node_or_null("../GameManager")
+				if game_manager and "state" in game_manager:
+					if game_manager.state != "defeat" and game_manager.state != "victory" and game_manager.state != "victory_transition":
+						show_pause_menu()
+			get_viewport().set_input_as_handled()
+			return
+			
+		# ゲームオーバー中のキーショートカット（SPACE, ENTER, R）
+		if get_tree().paused and has_node("GameOverPanel"):
 			if event.keycode == KEY_R or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER:
 				get_viewport().set_input_as_handled()
 				get_tree().paused = false
 				var game_manager = get_node_or_null("../GameManager")
 				if game_manager and game_manager.has_method("restart"):
 					game_manager.restart()
+
+
+func show_pause_menu() -> void:
+	if has_node("PausePanel"):
+		return
+		
+	var viewport_size = get_viewport_rect().size
+	
+	var panel = ColorRect.new()
+	panel.name = "PausePanel"
+	panel.position = Vector2.ZERO
+	panel.size = viewport_size
+	panel.color = Color(0.04, 0.05, 0.08, 0.85)
+	panel.z_index = 90
+	panel.z_as_relative = false
+	panel.process_mode = PROCESS_MODE_ALWAYS
+	add_child(panel)
+	
+	# 中央コンテナ
+	var container_width = 540.0
+	var container_height = 430.0
+	var container = VBoxContainer.new()
+	container.custom_minimum_size = Vector2(container_width, container_height)
+	container.size = Vector2(container_width, container_height)
+	container.position = Vector2((viewport_size.x - container_width) / 2.0, (viewport_size.y - container_height) / 2.0)
+	container.alignment = BoxContainer.ALIGNMENT_CENTER
+	panel.add_child(container)
+	
+	# タイトル
+	var title_label = Label.new()
+	title_label.text = "PAUSED"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var settings = LabelSettings.new()
+	settings.font_size = 48
+	settings.outline_size = 10
+	settings.outline_color = Color.BLACK
+	settings.font_color = Color.CYAN
+	title_label.label_settings = settings
+	container.add_child(title_label)
+	
+	# サブタイトル
+	var sub_label = Label.new()
+	sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var sub_settings = LabelSettings.new()
+	sub_settings.font_size = 18
+	sub_settings.outline_size = 4
+	sub_settings.outline_color = Color.BLACK
+	sub_settings.font_color = Color(0.7, 0.9, 1.0)
+	
+	var game_manager = get_node_or_null("../GameManager")
+	var stage_name = ""
+	if game_manager and game_manager.has_method("get_failed_stage_name"):
+		stage_name = game_manager.get_failed_stage_name()
+	elif game_manager and "last_active_stage" in game_manager:
+		stage_name = game_manager.last_active_stage
+		
+	sub_label.text = "SYSTEM PAUSED - CURRENT: " + stage_name
+	sub_label.label_settings = sub_settings
+	container.add_child(sub_label)
+	
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 15)
+	container.add_child(spacer)
+	
+	# スタッツカード
+	var stats_panel = PanelContainer.new()
+	var card_style = StyleBoxFlat.new()
+	card_style.bg_color = Color(0.06, 0.07, 0.1, 0.85)
+	card_style.border_width_left = 2
+	card_style.border_width_top = 2
+	card_style.border_width_right = 2
+	card_style.border_width_bottom = 2
+	card_style.border_color = Color.CYAN * Color(1, 1, 1, 0.6)
+	card_style.corner_radius_top_left = 6
+	card_style.corner_radius_top_right = 6
+	card_style.corner_radius_bottom_left = 6
+	card_style.corner_radius_bottom_right = 6
+	card_style.content_margin_left = 20
+	card_style.content_margin_top = 15
+	card_style.content_margin_right = 20
+	card_style.content_margin_bottom = 15
+	stats_panel.add_theme_stylebox_override("panel", card_style)
+	container.add_child(stats_panel)
+	
+	var stats_box = VBoxContainer.new()
+	stats_panel.add_child(stats_box)
+	
+	var parries = 0
+	var score = 0
+	var player_node = get_node_or_null("../Player")
+	var beam_prog = 0
+	var missile_prog = 0
+	
+	if game_manager:
+		parries = game_manager.parry_count
+		if "total_damage_score" in game_manager:
+			score = game_manager.total_damage_score
+			
+	if is_instance_valid(player_node) and "weapons" in player_node:
+		beam_prog = int(player_node.weapons["beam"]["progress"])
+		missile_prog = int(player_node.weapons["missile"]["progress"])
+		
+	var stats_text_label = Label.new()
+	stats_text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var stats_settings = LabelSettings.new()
+	stats_settings.font_size = 16
+	stats_settings.font_color = Color(0.9, 0.9, 0.95, 0.9)
+	stats_text_label.label_settings = stats_settings
+	
+	var text_lines = [
+		"EXTRACTED PARRIES: " + str(parries),
+		"BEAM TECH ANALYSIS: " + str(beam_prog) + "%",
+		"MISSILE TECH ANALYSIS: " + str(missile_prog) + "%"
+	]
+	stats_text_label.text = "\n".join(text_lines)
+	stats_box.add_child(stats_text_label)
+	
+	var spacer_score = Control.new()
+	spacer_score.custom_minimum_size = Vector2(0, 10)
+	stats_box.add_child(spacer_score)
+	
+	var score_title_label = Label.new()
+	score_title_label.text = "CURRENT DAMAGE SCORE"
+	score_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var score_title_settings = LabelSettings.new()
+	score_title_settings.font_size = 14
+	score_title_settings.font_color = Color.GOLD
+	score_title_settings.outline_size = 3
+	score_title_settings.outline_color = Color.BLACK
+	score_title_label.label_settings = score_title_settings
+	stats_box.add_child(score_title_label)
+	
+	var score_val_label = Label.new()
+	score_val_label.text = format_score(score)
+	score_val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var score_val_settings = LabelSettings.new()
+	score_val_settings.font_size = 36
+	score_val_settings.font_color = Color(1.0, 0.85, 0.1)
+	score_val_settings.outline_size = 8
+	score_val_settings.outline_color = Color(0.1, 0.1, 0.2)
+	score_val_label.label_settings = score_val_settings
+	stats_box.add_child(score_val_label)
+	
+	var spacer2 = Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 15)
+	container.add_child(spacer2)
+	
+	# ボタンコンテナ
+	var btn_box = VBoxContainer.new()
+	btn_box.add_theme_constant_override("separation", 10)
+	container.add_child(btn_box)
+	
+	# 再開ボタン
+	var resume_btn = Button.new()
+	resume_btn.text = "RESUME GAME"
+	resume_btn.custom_minimum_size = Vector2(260, 44)
+	resume_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.08, 0.1, 0.15, 1.0)
+	style_normal.border_width_left = 2
+	style_normal.border_width_top = 2
+	style_normal.border_width_right = 2
+	style_normal.border_width_bottom = 2
+	style_normal.border_color = Color.CYAN
+	style_normal.corner_radius_top_left = 4
+	style_normal.corner_radius_top_right = 4
+	style_normal.corner_radius_bottom_left = 4
+	style_normal.corner_radius_bottom_right = 4
+	
+	var style_hover = style_normal.duplicate()
+	style_hover.bg_color = Color.CYAN
+	
+	resume_btn.add_theme_color_override("font_color", Color.WHITE)
+	resume_btn.add_theme_color_override("font_hover_color", Color.BLACK)
+	resume_btn.add_theme_color_override("font_pressed_color", Color.BLACK)
+	resume_btn.add_theme_stylebox_override("normal", style_normal)
+	resume_btn.add_theme_stylebox_override("hover", style_hover)
+	resume_btn.add_theme_stylebox_override("pressed", style_hover)
+	resume_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn_box.add_child(resume_btn)
+	
+	# リタイアボタン
+	var retire_btn = Button.new()
+	retire_btn.text = "RETIRE MISSION"
+	retire_btn.custom_minimum_size = Vector2(260, 44)
+	retire_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	
+	var style_retire = style_normal.duplicate()
+	style_retire.border_color = Color(1.0, 0.5, 0.2)
+	var style_retire_hover = style_retire.duplicate()
+	style_retire_hover.bg_color = Color(1.0, 0.5, 0.2)
+	
+	retire_btn.add_theme_color_override("font_color", Color.WHITE)
+	retire_btn.add_theme_color_override("font_hover_color", Color.BLACK)
+	retire_btn.add_theme_color_override("font_pressed_color", Color.BLACK)
+	retire_btn.add_theme_stylebox_override("normal", style_retire)
+	retire_btn.add_theme_stylebox_override("hover", style_retire_hover)
+	retire_btn.add_theme_stylebox_override("pressed", style_retire_hover)
+	retire_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn_box.add_child(retire_btn)
+	
+	# ショートカット案内
+	var shortcut_label = Label.new()
+	shortcut_label.text = "[ Press ESC / P to Resume ]"
+	shortcut_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var shortcut_settings = LabelSettings.new()
+	shortcut_settings.font_size = 12
+	shortcut_settings.font_color = Color(0.7, 0.7, 0.8, 0.7)
+	shortcut_label.label_settings = shortcut_settings
+	container.add_child(shortcut_label)
+	
+	resume_btn.pressed.connect(func():
+		hide_pause_menu()
+	)
+	
+	retire_btn.pressed.connect(func():
+		hide_pause_menu()
+		if game_manager:
+			if "state" in game_manager:
+				game_manager.state = "defeat"
+			if game_manager.has_method("clear_all_bullets"):
+				game_manager.clear_all_bullets()
+			if game_manager.has_method("update_ui"):
+				game_manager.update_ui()
+		show_game_over("RETIRE")
+	)
+	
+	get_tree().paused = true
+
+
+func hide_pause_menu() -> void:
+	if has_node("PausePanel"):
+		get_node("PausePanel").queue_free()
+	get_tree().paused = false
 
 
 func dim_enemy_ui(dim: bool = true) -> void:
@@ -316,16 +567,18 @@ func show_game_over(result: String) -> void:
 	add_child(panel)
 	
 	var is_victory = (result == "VICTORY")
-	var theme_color = Color.CYAN if is_victory else Color(1.0, 0.25, 0.25)
+	var is_retire = (result == "RETIRE" or result == "ABORTED")
+	var theme_color = Color.CYAN if is_victory else (Color(1.0, 0.6, 0.2) if is_retire else Color(1.0, 0.25, 0.25))
 	
 	# 背景オーバーレイのフェードイン
 	var tween = create_tween()
 	var target_bg_color = Color(0.04, 0.05, 0.08, 0.88) if is_victory else Color(0.08, 0.02, 0.04, 0.90)
 	tween.tween_property(panel, "color", target_bg_color, 0.5)
 	
-	# 敗北時の画面赤色フラッシュ
+	# 敗北/リタイア時の画面フラッシュ
 	if not is_victory:
-		trigger_flash(Color(1.0, 0.0, 0.0, 0.5))
+		var flash_color = Color(1.0, 0.5, 0.1, 0.4) if is_retire else Color(1.0, 0.0, 0.0, 0.5)
+		trigger_flash(flash_color)
 	
 	# 中央コンテナ (画面中央に正確に配置)
 	var container_width = 540.0
@@ -346,7 +599,14 @@ func show_game_over(result: String) -> void:
 	settings.outline_size = 10
 	settings.outline_color = Color.BLACK
 	settings.font_color = theme_color
-	result_label.text = "MISSION ACCOMPLISHED" if is_victory else "GAME OVER"
+	
+	if is_victory:
+		result_label.text = "MISSION ACCOMPLISHED"
+	elif is_retire:
+		result_label.text = "MISSION ABORTED"
+	else:
+		result_label.text = "GAME OVER"
+		
 	result_label.label_settings = settings
 	container.add_child(result_label)
 	
@@ -368,6 +628,9 @@ func show_game_over(result: String) -> void:
 	if is_victory:
 		sub_label.text = "ANCIENT DEFENSE SYSTEM DESTROYED"
 		sub_settings.font_color = Color(0.6, 1.0, 0.9)
+	elif is_retire:
+		sub_label.text = "MISSION RETIRED BY PILOT - " + (stage_name if stage_name != "" else "STAGE IN PROGRESS")
+		sub_settings.font_color = Color(1.0, 0.8, 0.4)
 	else:
 		if stage_name != "":
 			sub_label.text = "CRITICAL SYSTEM FAILURE - FAILED AT: " + stage_name
