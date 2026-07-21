@@ -132,21 +132,35 @@ func load_next_stage() -> void:
 
 
 func spawn_wave1() -> void:
-	spawn_popup("[ASSIST AI]: 敵の小規模部隊が接近しています。\n[SPACE]キーで盾を展開し、敵弾をパリィして解析を完了してください。")
+	spawn_popup("[ASSIST AI]: 敵部隊の接近を検知！高密度編成です。\n[SPACE]キーで盾を展開し、敵弾をパリィして解析を完了してください。")
 	var viewport_w = get_viewport_rect().size.x
-	# ドローンを3機配置
-	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
-	for x in x_coords:
-		spawn_drone("beam", Vector2(x, -50))
+	# 出現数増加（5機構成、多様な固有射撃スタイル）
+	var wave1_configs = [
+		{"type": "straight", "pos": Vector2(viewport_w * 0.15, -50)},
+		{"type": "irregular", "pos": Vector2(viewport_w * 0.32, -80)},
+		{"type": "beam", "pos": Vector2(viewport_w * 0.50, -50)},
+		{"type": "laser", "pos": Vector2(viewport_w * 0.68, -80)},
+		{"type": "wave", "pos": Vector2(viewport_w * 0.85, -50)}
+	]
+	for config in wave1_configs:
+		spawn_drone(config["type"], config["pos"])
 
 
 func spawn_wave2() -> void:
 	state = "wave2"
-	spawn_popup("[ASSIST AI]: 次の解析対象を検知。\nミサイルの追跡データをパリィで吸収し、技術を逆転してください。")
+	spawn_popup("[ASSIST AI]: 第二波・重攻撃型編成を検知！\nチャージ射撃および追尾弾のデータをパリィで解析・吸収してください。")
 	var viewport_w = get_viewport_rect().size.x
-	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
-	for x in x_coords:
-		spawn_drone("missile", Vector2(x, -50))
+	# 出現数増加（6機の大群編成）
+	var wave2_configs = [
+		{"type": "charge", "pos": Vector2(viewport_w * 0.12, -60)},
+		{"type": "missile", "pos": Vector2(viewport_w * 0.28, -90)},
+		{"type": "laser", "pos": Vector2(viewport_w * 0.44, -50)},
+		{"type": "charge", "pos": Vector2(viewport_w * 0.60, -90)},
+		{"type": "irregular", "pos": Vector2(viewport_w * 0.76, -60)},
+		{"type": "missile", "pos": Vector2(viewport_w * 0.90, -90)}
+	]
+	for config in wave2_configs:
+		spawn_drone(config["type"], config["pos"])
 
 
 func spawn_drone(type: String, pos: Vector2) -> void:
