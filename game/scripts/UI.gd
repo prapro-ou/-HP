@@ -487,6 +487,26 @@ func show_pause_menu() -> void:
 	retire_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	btn_box.add_child(retire_btn)
 	
+	# メインメニューに戻るボタン
+	var pause_menu_btn = Button.new()
+	pause_menu_btn.text = "MAIN MENU"
+	pause_menu_btn.custom_minimum_size = Vector2(260, 44)
+	pause_menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	
+	var style_menu = style_normal.duplicate()
+	style_menu.border_color = Color(0.6, 0.6, 0.7)
+	var style_menu_hover = style_menu.duplicate()
+	style_menu_hover.bg_color = Color(0.4, 0.4, 0.5)
+	
+	pause_menu_btn.add_theme_color_override("font_color", Color.WHITE)
+	pause_menu_btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	pause_menu_btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+	pause_menu_btn.add_theme_stylebox_override("normal", style_menu)
+	pause_menu_btn.add_theme_stylebox_override("hover", style_menu_hover)
+	pause_menu_btn.add_theme_stylebox_override("pressed", style_menu_hover)
+	pause_menu_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn_box.add_child(pause_menu_btn)
+	
 	# ショートカット案内
 	var shortcut_label = Label.new()
 	shortcut_label.text = "[ Press ESC / P to Resume ]"
@@ -511,6 +531,16 @@ func show_pause_menu() -> void:
 			if game_manager.has_method("update_ui"):
 				game_manager.update_ui()
 		show_game_over("RETIRE")
+	)
+	
+	pause_menu_btn.pressed.connect(func():
+		hide_pause_menu()
+		var title_path = "res://game/scenes/title.tscn"
+		if ResourceLoader.exists(title_path):
+			get_tree().change_scene_to_file(title_path)
+		else:
+			if game_manager and game_manager.has_method("restart"):
+				game_manager.restart()
 	)
 	
 	get_tree().paused = true
@@ -732,10 +762,14 @@ func show_game_over(result: String) -> void:
 	spacer2.custom_minimum_size = Vector2(0, 20)
 	container.add_child(spacer2)
 	
+	var btn_box = VBoxContainer.new()
+	btn_box.add_theme_constant_override("separation", 10)
+	container.add_child(btn_box)
+	
 	# リトライボタン
 	var retry_btn = Button.new()
 	retry_btn.text = "RETRY STAGE" if not is_victory else "PLAY AGAIN"
-	retry_btn.custom_minimum_size = Vector2(260, 50)
+	retry_btn.custom_minimum_size = Vector2(260, 42)
 	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	
 	var style_normal = StyleBoxFlat.new()
@@ -760,8 +794,37 @@ func show_game_over(result: String) -> void:
 	retry_btn.add_theme_stylebox_override("hover", style_hover)
 	retry_btn.add_theme_stylebox_override("pressed", style_hover)
 	retry_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn_box.add_child(retry_btn)
 	
-	container.add_child(retry_btn)
+	# メインメニューに戻るボタン
+	var main_menu_btn = Button.new()
+	main_menu_btn.text = "MAIN MENU"
+	main_menu_btn.custom_minimum_size = Vector2(260, 42)
+	main_menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	
+	var style_menu = StyleBoxFlat.new()
+	style_menu.bg_color = Color(0.08, 0.08, 0.12, 1.0)
+	style_menu.border_width_left = 2
+	style_menu.border_width_top = 2
+	style_menu.border_width_right = 2
+	style_menu.border_width_bottom = 2
+	style_menu.border_color = Color(0.6, 0.6, 0.7)
+	style_menu.corner_radius_top_left = 4
+	style_menu.corner_radius_top_right = 4
+	style_menu.corner_radius_bottom_left = 4
+	style_menu.corner_radius_bottom_right = 4
+	
+	var style_menu_hover = style_menu.duplicate()
+	style_menu_hover.bg_color = Color(0.4, 0.4, 0.5)
+	
+	main_menu_btn.add_theme_color_override("font_color", Color.WHITE)
+	main_menu_btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	main_menu_btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+	main_menu_btn.add_theme_stylebox_override("normal", style_menu)
+	main_menu_btn.add_theme_stylebox_override("hover", style_menu_hover)
+	main_menu_btn.add_theme_stylebox_override("pressed", style_menu_hover)
+	main_menu_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn_box.add_child(main_menu_btn)
 	
 	# キーショートカットプロンプト
 	var shortcut_label = Label.new()
@@ -777,6 +840,16 @@ func show_game_over(result: String) -> void:
 		get_tree().paused = false
 		if game_manager and game_manager.has_method("restart"):
 			game_manager.restart()
+	)
+	
+	main_menu_btn.pressed.connect(func():
+		get_tree().paused = false
+		var title_path = "res://game/scenes/title.tscn"
+		if ResourceLoader.exists(title_path):
+			get_tree().change_scene_to_file(title_path)
+		else:
+			if game_manager and game_manager.has_method("restart"):
+				game_manager.restart()
 	)
 	
 	get_tree().paused = true
