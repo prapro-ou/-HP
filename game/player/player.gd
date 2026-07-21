@@ -48,7 +48,11 @@ var PlayerBulletScene = preload("res://game/player/player_bullet.tscn")
 
 
 func _ready() -> void:
-	# Apply Lab Upgrades from Global state
+	reset_state()
+
+
+func reset_state() -> void:
+	# Lab Upgrades
 	var hp_lvl = Global.upgrade_levels.get("hp", 0)
 	max_hp = 100 + 10 * hp_lvl
 	current_hp = max_hp
@@ -61,6 +65,21 @@ func _ready() -> void:
 	
 	is_attack_unlocked = false
 	power_shield_damage_buff = 0.0
+	is_full_burst = false
+	is_guarding = false
+	active_timer = 0.0
+	cooldown_timer = 0.0
+	parry_ring_radius = 0.0
+	parry_ring_alpha = 0.0
+	
+	# 武器のステージ内解析進捗をリセット
+	current_weapon = "none"
+	if "beam" in weapons:
+		weapons["beam"]["analyzed"] = false
+		weapons["beam"]["progress"] = 0
+	if "missile" in weapons:
+		weapons["missile"]["analyzed"] = false
+		weapons["missile"]["progress"] = 0
 	
 	apply_equipped_weapon_settings()
 

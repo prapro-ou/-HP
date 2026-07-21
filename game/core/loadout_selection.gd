@@ -546,7 +546,7 @@ func _on_deploy_pressed() -> void:
 	
 	# Save custom data temporarily inside global config
 	var save_data = Global.load_game_data()
-	Global.save_game(save_data.get("stage_num", 1), save_data.get("score", 0), save_data.get("weapons", {}))
+	Global.save_game(save_data.get("stage_num", 1), save_data.get("score", 0), {})
 	
 	# Start Stage
 	get_tree().change_scene_to_file("res://game/main.tscn")

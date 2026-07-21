@@ -43,41 +43,58 @@ func _ready() -> void:
 		
 	total_damage_score = save_data.get("score", 0)
 	
-	# 続きからの場合、またはステージ選択後、武器の解析状況を復元
-	if Global.has_save:
-		var saved_weapons = save_data.get("weapons", {})
-		if player and not saved_weapons.is_empty():
-			# 武器の解析状況を復元
-			for w_name in saved_weapons.keys():
-				if w_name in player.weapons:
-					player.weapons[w_name]["analyzed"] = saved_weapons[w_name].get("analyzed", false)
-					player.weapons[w_name]["progress"] = saved_weapons[w_name].get("progress", 0.0)
-					player.weapons[w_name]["level"] = saved_weapons[w_name].get("level", 1)
+	var stage_path = "res://game/stages/stage_" + str(current_stage_num) + ".tscn"
+	if not ResourceLoader.exists(stage_path):
+		stage_path = "res://game/stages/stage_1.tscn"
+		current_stage_num = 1
+	load_stage(stage_path, current_stage_num)
+
+
+func clean_stage_entities() -> void:
+	"""前ステージの残存敵・ボス・弾幕・タイマーを完璧に削除・初期化する"""
+	get_tree().paused = false
+	
+	# 1. 弾丸のクリア
+	clear_all_bullets()
+	
+	# 2. ドローンのクリア
+	clear_drones()
+	
+	# 3. グループに属する敵ノード・ボスノードの消去
+	for node in get_tree().get_nodes_in_group("enemy"):
+		if is_instance_valid(node) and node != player:
+			node.queue_free()
 			
-			# 既に解析済みの武器があれば初期選択状態にする
-			if player.weapons["beam"]["analyzed"]:
-				player.current_weapon = "beam"
-			elif player.weapons["missile"]["analyzed"]:
-				player.current_weapon = "missile"
+	for node in get_tree().get_nodes_in_group("boss"):
+		if is_instance_valid(node):
+			node.queue_free()
+			
+	for node in get_tree().get_nodes_in_group("drone"):
+		if is_instance_valid(node):
+			node.queue_free()
+			
+	# 4. 既存ステージノードの消去
+	if is_instance_valid(current_stage):
+		current_stage.queue_free()
+		current_stage = null
 		
-		var stage_path = "res://game/stages/stage_" + str(current_stage_num) + ".tscn"
-		if not ResourceLoader.exists(stage_path):
-			stage_path = "res://game/stages/stage_1.tscn"
-			current_stage_num = 1
-		load_stage(stage_path, current_stage_num)
-	else:
-		# 初めから開始
-		load_stage("res://game/stages/stage_1.tscn", 1)
+	# 5. ステータスとタイマーのリセット
+	parry_count = 0
+	state_timer = 0.0
+	state = "start"
+	
+	# 6. プレイヤー状態のリセット
+	if is_instance_valid(player) and player.has_method("reset_state"):
+		player.reset_state()
 
 
 func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	current_stage_num = stage_num
 	
-	# 既存のステージがあればクリーンアップ
-	if is_instance_valid(current_stage):
-		current_stage.queue_free()
-		await get_tree().process_frame
-		
+	# 前ステージの全エンティティ・進行状況を完璧にリセット＆クリーンアップ
+	clean_stage_entities()
+	await get_tree().process_frame
+	
 	var stage_scene = load(stage_path)
 	if not stage_scene:
 		print("Failed to load stage scene: ", stage_path)
@@ -94,40 +111,35 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	else:
 		boss = null
 		
-	# ステージがロードされたタイミングでセーブデータを書き出す
-	if player:
-		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+	# セーブデータの更新保存（進行ステージ番号）
+	Global.save_game(current_stage_num, total_damage_score, {})
 		
 	# シーン開始
 	state = "wave1"
 	# ステージ開始時にAIの起動メッセージ
 	get_tree().create_timer(0.2).timeout.connect(func():
-		spawn_popup("[SYSTEM AI]: 装備システムオンライン。\n最初のパリィが実行されるまで、自機のメイン攻撃はロックされます。")
+		if state == "wave1":
+			spawn_popup("【AIアシスト】装備システムオンライン。\n最初のパリィが実行されるまで、メイン攻撃はロックされます。")
 	)
 	# 少し遅らせてWave1開始を表示
-	get_tree().create_timer(2.6).timeout.connect(func():
-		spawn_wave1()
+	get_tree().create_timer(2.2).timeout.connect(func():
+		if state == "wave1":
+			spawn_wave1()
 	)
 
 
 func load_next_stage() -> void:
-	# 画面上の弾を全て消去
-	clear_all_bullets()
-	
-	# 次のステージに進むためのステージ番号をセーブデータに保存して、ステージ選択画面へ戻る
 	var next_num = current_stage_num + 1
 	var next_path = "res://game/stages/stage_" + str(next_num) + ".tscn"
 	
-	var target_stage = next_num
-	if not ResourceLoader.exists(next_path):
-		target_stage = 1 # 次のステージが存在しない場合はステージ1へループ
-		
-	# セーブデータに反映（ステージ選択画面で選択されている初期位置になるように、あるいは単に記録）
-	if is_instance_valid(player):
-		Global.save_game(target_stage, total_damage_score, player.weapons)
-		
-	# シーン切り替え（ステージ選択画面に戻る）
-	get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
+	if ResourceLoader.exists(next_path):
+		# 次のステージが存在する場合はそのまま次のステージへ綺麗に遷移
+		load_stage(next_path, next_num)
+	else:
+		# 次のステージが存在しない場合はクリアとして全弾消去し、ステージ選択画面へ戻る
+		clean_stage_entities()
+		Global.save_game(1, total_damage_score, {})
+		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
 
 
 
@@ -363,7 +375,7 @@ func on_boss_destroyed() -> void:
 		
 	# セーブデータの更新
 	if is_instance_valid(player):
-		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+		Global.save_game(current_stage_num, total_damage_score, {})
 		
 	show_game_over("VICTORY")
 
@@ -379,4 +391,5 @@ func show_game_over(result: String) -> void:
 
 
 func restart() -> void:
+	clean_stage_entities()
 	get_tree().reload_current_scene()
