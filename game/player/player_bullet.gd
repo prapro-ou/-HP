@@ -82,15 +82,18 @@ func _process(delta: float) -> void:
 	# ミサイルの追尾処理
 	if bullet_type == "missile" or bullet_type == "hyper_missile":
 		var target = find_closest_target()
-		var target_velocity: Vector2
 		if is_instance_valid(target):
 			var target_dir = (target.global_position - global_position).normalized()
-			target_velocity = target_dir * speed
+			var target_velocity = target_dir * speed
+			# ターゲットへ旋回
+			velocity = velocity.lerp(target_velocity, delta * 6.5)
 		else:
-			target_velocity = Vector2.UP * speed
-			
-		# 急激すぎない旋回
-		velocity = velocity.lerp(target_velocity, delta * 6.5)
+			# ターゲットが存在しない場合は前回の進行方向（直進）を維持
+			if velocity == Vector2.ZERO:
+				velocity = Vector2.UP * speed
+			else:
+				velocity = velocity.normalized() * speed
+				
 		rotation = velocity.angle() + PI/2
 
 	position += velocity * delta

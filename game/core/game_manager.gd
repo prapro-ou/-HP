@@ -188,23 +188,34 @@ func spawn_drone(type: String, pos: Vector2) -> void:
 func _process(delta: float) -> void:
 	match state:
 		"wave1":
-			# Beam 解析率が100%に達したかチェック
-			if player.weapons["beam"]["analyzed"]:
+			# 攻撃パターンを解析完了、または一定回数パリィ達成でWave1クリア
+			var analyzed_count = 0
+			if is_instance_valid(player) and "analysis_patterns" in player:
+				for p in player.analysis_patterns.values():
+					if p.get("analyzed", false):
+						analyzed_count += 1
+						
+			if analyzed_count >= 1 or parry_count >= 3 or (is_instance_valid(player) and player.weapons["beam"]["analyzed"]):
 				clear_drones()
 				state = "wave2_transition"
 				state_timer = 0.0
-				spawn_popup("BEAM SHIELD BREAK!\nDATA EXTRACTED SUCCESSFULLY.")
+				spawn_popup("【第一波 攻略完了】\n敵攻撃パターンの解析に成功！")
 			else:
-				# ドローンが全滅したのに100%になっていなければ、再度1機補充
-				check_drone_replenish("beam")
+				check_drone_replenish("straight")
 				
 		"wave2_transition":
 			state_timer += delta
-			if state_timer >= 2.5:
+			if state_timer >= 2.2:
 				spawn_wave2()
 				
 		"wave2":
-			if player.weapons["missile"]["analyzed"]:
+			var analyzed_count = 0
+			if is_instance_valid(player) and "analysis_patterns" in player:
+				for p in player.analysis_patterns.values():
+					if p.get("analyzed", false):
+						analyzed_count += 1
+						
+			if analyzed_count >= 2 or parry_count >= 6 or (is_instance_valid(player) and player.weapons["missile"]["analyzed"]):
 				clear_drones()
 				state = "interlude"
 				state_timer = 0.0
@@ -320,16 +331,12 @@ func update_ui() -> void:
 		
 	ui.update_parry_count(parry_count)
 	
-	# ガードと解析情報の更新
-	if ui.has_method("update_guard_status"):
-		ui.update_guard_status(player.cooldown_timer, player.is_guarding)
+	# ガードとヒート／解析情報の更新
+	if ui.has_method("update_guard_heat") and is_instance_valid(player):
+		ui.update_guard_heat(player.shield_heat, player.max_shield_heat, player.is_overheated, player.overheat_timer, player.is_guarding)
 		
-	if ui.has_method("update_analysis_progress"):
-		ui.update_analysis_progress(
-			player.weapons["beam"]["progress"], player.weapons["beam"]["analyzed"],
-			player.weapons["missile"]["progress"], player.weapons["missile"]["analyzed"],
-			player.current_weapon
-		)
+	if ui.has_method("update_pattern_analysis") and is_instance_valid(player):
+		ui.update_pattern_analysis(player.analysis_patterns)
 		
 	# ボスのエネルギー状況を表示する
 	if (state == "boss" or state == "victory_transition") and is_instance_valid(boss) and ui.has_method("update_boss_energy"):

@@ -39,7 +39,7 @@ func die() -> void:
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_kill_popup"):
-			ui_node.spawn_kill_popup(global_position, "DESTROY!")
+			ui_node.spawn_kill_popup(global_position, "撃破！")
 			
 	explode()
 	queue_free()

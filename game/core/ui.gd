@@ -122,41 +122,56 @@ func update_parry_count(count: int) -> void:
 
 
 func update_guard_status(cooldown: float, is_guarding: bool) -> void:
-	if is_guarding:
-		guard_status_label.text = "シールド: 発動中！"
+	# 旧互換
+	pass
+
+
+func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool) -> void:
+	if is_overheated:
+		guard_status_label.text = "⚠️ OVERHEAT! 冷却中 (%.1fs)" % overheat_timer
+		guard_status_label.label_settings.font_color = Color.RED
+	elif is_guarding:
+		guard_status_label.text = "シールド: 展開中！"
 		guard_status_label.label_settings.font_color = Color.CYAN
-	elif cooldown > 0.0:
-		guard_status_label.text = "シールド: 冷却 %.1f秒" % cooldown
-		guard_status_label.label_settings.font_color = Color.ORANGE_RED
 	else:
-		guard_status_label.text = "シールド: 準備完了 [Space]"
-		guard_status_label.label_settings.font_color = Color.GREEN
+		var pct = int((heat / max_heat) * 100.0)
+		if pct > 70:
+			guard_status_label.text = "シールド: HEAT %d%% ⚠️" % pct
+			guard_status_label.label_settings.font_color = Color.ORANGE
+		elif pct > 0:
+			guard_status_label.text = "シールド: HEAT %d%% [Space]" % pct
+			guard_status_label.label_settings.font_color = Color.YELLOW
+		else:
+			guard_status_label.text = "シールド: READY [Space]"
+			guard_status_label.label_settings.font_color = Color.GREEN
+
+
+func update_pattern_analysis(patterns: Dictionary) -> void:
+	"""4つの攻撃パターンの解析度とアンロック状況をリアルタイム表示"""
+	var summary_text = ""
+	for key in ["rapid", "spread", "pierce", "homing"]:
+		if not key in patterns:
+			continue
+		var data = patterns[key]
+		var name_str = data["name"]
+		var prog = int(data["progress"])
+		var is_done = data["analyzed"]
+		
+		if is_done:
+			summary_text += "【%s】100%% ⚡ " % name_str
+		elif prog > 0:
+			summary_text += "%s: %d%% | " % [name_str, prog]
+			
+	if summary_text != "":
+		slot_beam_label.text = "敵弾パターン解析: " + summary_text.trim_suffix(" | ")
+		slot_beam_label.label_settings.font_color = Color.GOLD
+	else:
+		slot_beam_label.text = "敵弾パターン解析: パリィで特徴を吸収せよ"
+		slot_beam_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
 func update_analysis_progress(beam_progress: float, beam_ready: bool, missile_progress: float, missile_ready: bool, active_weapon: String) -> void:
-	slot_beam_bar.value = beam_progress
-	if beam_ready:
-		if active_weapon == "beam":
-			slot_beam_label.text = "1: ビーム [使用中]"
-			slot_beam_label.label_settings.font_color = Color.CYAN
-		else:
-			slot_beam_label.text = "1: ビーム [Z切替]"
-			slot_beam_label.label_settings.font_color = Color(0.4, 0.7, 0.7)
-	else:
-		slot_beam_label.text = "1: ビーム 解析 %d%%" % int(beam_progress)
-		slot_beam_label.label_settings.font_color = Color.LIGHT_GRAY
-		
-	slot_missile_bar.value = missile_progress
-	if missile_ready:
-		if active_weapon == "missile":
-			slot_missile_label.text = "2: ミサイル [使用中]"
-			slot_missile_label.label_settings.font_color = Color(0.8, 0.4, 1.0)
-		else:
-			slot_missile_label.text = "2: ミサイル [Z切替]"
-			slot_missile_label.label_settings.font_color = Color(0.6, 0.3, 0.7)
-	else:
-		slot_missile_label.text = "2: ミサイル 解析 %d%%" % int(missile_progress)
-		slot_missile_label.label_settings.font_color = Color.LIGHT_GRAY
+	pass
 
 
 func update_boss_energy(laser: float, missile: float, core: float) -> void:

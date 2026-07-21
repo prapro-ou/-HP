@@ -20,33 +20,33 @@ var charge_timer: float = 0.0
 func _ready_enemy() -> void:
 	add_to_group("drones")
 	
-	# 個体強化：HPを底上げして歯ごたえのある戦闘に
-	max_hp = 30
+	# 個体強化：HPを90に引き上げてパリィと解析の歯ごたえをアップ
+	max_hp = 90
 	current_hp = max_hp
 	
-	# 射撃スタイルごとのビジュアルとパラメータ設定
+	# 射撃スタイルごとのビジュアルとパラメータ設定（弾速や間隔をマイルドにしパリィしやすく）
 	match drone_type:
 		"charge":
 			modulate = Color(1.0, 0.3, 0.2)  # 鮮やかな赤
-			shoot_interval = 2.2
+			shoot_interval = 2.8
 		"straight":
 			modulate = Color(0.4, 0.7, 1.0)  # 青
-			shoot_interval = 1.2
+			shoot_interval = 2.0
 		"irregular":
 			modulate = Color(0.9, 0.3, 0.9)  # マゼンタ
-			shoot_interval = 1.6
+			shoot_interval = 2.2
 		"laser":
 			modulate = Color(1.0, 0.8, 0.2)  # アンバーイエロー
-			shoot_interval = 2.0
+			shoot_interval = 2.5
 		"wave":
 			modulate = Color(0.3, 1.0, 0.5)  # エメラルドグリーン
-			shoot_interval = 1.4
+			shoot_interval = 2.2
 		"beam":
 			modulate = Color(1.0, 0.5, 0.5)  # 赤みのあるドローン
-			shoot_interval = 1.5
+			shoot_interval = 2.0
 		"missile", _:
 			modulate = Color(0.8, 0.4, 1.0)  # 紫
-			shoot_interval = 1.8
+			shoot_interval = 2.4
 		
 	bullet_pool = get_node_or_null("/root/Main/BulletPool")
 	player = get_node_or_null("/root/Main/Player")
@@ -97,30 +97,30 @@ func shoot() -> void:
 			is_charging = true
 			charge_timer = 0.6
 		"straight", "beam":
-			# まっすぐ（高威力直進弾幕）
+			# まっすぐ（直進弾幕）
 			var dir = Vector2.DOWN
 			var bullet = bullet_pool.get_bullet("beam")
 			if bullet:
 				bullet.global_position = global_position + Vector2(0, 20)
-				bullet.set_direction(dir, 420.0) # 高速化
+				bullet.set_direction(dir, 220.0) # パリィしやすい速度に調整
 		"irregular":
-			# 不規則（斜めから角度を変えるトリッキー弾）
+			# 不規則（角度を変える弾）
 			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
 			var angle_offset = randf_range(-0.4, 0.4)
 			var dir = base_dir.rotated(angle_offset)
 			var bullet = bullet_pool.get_bullet("missile")
 			if bullet:
 				bullet.global_position = global_position + Vector2(0, 20)
-				bullet.set_direction(dir, 260.0)
+				bullet.set_direction(dir, 180.0)
 		"laser":
-			# 薙ぎ払いレーザー風の3方向扇状展開
+			# 3方向扇状展開
 			var center_dir = Vector2.DOWN
 			var angles = [-0.3, 0.0, 0.3]
 			for a in angles:
 				var bullet = bullet_pool.get_bullet("boss_laser")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0, 20)
-					bullet.set_direction(center_dir.rotated(a), 350.0)
+					bullet.set_direction(center_dir.rotated(a), 200.0)
 		"wave":
 			# 拡散・波状弾幕（幅広5方向）
 			var angles = [-0.4, -0.2, 0.0, 0.2, 0.4]
@@ -128,7 +128,7 @@ func shoot() -> void:
 				var bullet = bullet_pool.get_bullet("beam")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0, 20)
-					bullet.set_direction(Vector2.DOWN.rotated(a), 280.0)
+					bullet.set_direction(Vector2.DOWN.rotated(a), 180.0)
 		"missile", _:
 			var dir = Vector2.DOWN
 			if is_instance_valid(player):
@@ -136,7 +136,7 @@ func shoot() -> void:
 			var bullet = bullet_pool.get_bullet("missile")
 			if bullet:
 				bullet.global_position = global_position + Vector2(0, 20)
-				bullet.set_direction(dir, 220.0)
+				bullet.set_direction(dir, 160.0)
 
 
 func fire_charged_shot() -> void:
