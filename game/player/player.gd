@@ -7,6 +7,7 @@ extends CharacterBody2D
 @export var max_hp: int = 100
 @export var move_speed: float = 300.0
 @export var parry_window_radius: float = 65.0  # ガード範囲をやや広げてパリィしやすく
+@export var fire_rate: float = 0.2            # 射撃間隔
 @export var parry_active_time: float = 0.25  # ガード判定の持続時間
 @export var parry_cooldown: float = 2.0      # クールダウン時間
 
