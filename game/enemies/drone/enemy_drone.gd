@@ -4,43 +4,63 @@ extends BaseEnemy
 ## - タイプ（beam / missile）に応じた攻撃パターン
 ## - 撃破時に対応する解析度をアップ
 
-@export var drone_type: String = "beam"  # "beam" または "missile"
+@export var drone_type: String = "straight"  # "charge", "straight", "irregular", "laser", "wave", "beam", "missile"
 
 var target_y: float = 200.0
-var speed: float = 150.0
-var shoot_interval: float = 2.0
+var speed: float = 160.0
+var shoot_interval: float = 1.5
 var time_since_last_shot: float = 0.0
 var move_direction: float = 1.0
 var bullet_pool: Node2D
 var player: CharacterBody2D
+var is_charging: bool = false
+var charge_timer: float = 0.0
 
 
 func _ready_enemy() -> void:
 	add_to_group("drones")
 	
-	# タイプごとにカラーリングを変更
-	if drone_type == "beam":
-		modulate = Color(1.0, 0.5, 0.5)  # 赤みのあるドローン
-		shoot_interval = 1.8
-	else:
-		modulate = Color(0.8, 0.4, 1.0)  # 紫みのあるドローン
-		shoot_interval = 2.4
+	# 個体強化：HPを底上げして歯ごたえのある戦闘に
+	max_hp = 30
+	current_hp = max_hp
+	
+	# 射撃スタイルごとのビジュアルとパラメータ設定
+	match drone_type:
+		"charge":
+			modulate = Color(1.0, 0.3, 0.2)  # 鮮やかな赤
+			shoot_interval = 2.2
+		"straight":
+			modulate = Color(0.4, 0.7, 1.0)  # 青
+			shoot_interval = 1.2
+		"irregular":
+			modulate = Color(0.9, 0.3, 0.9)  # マゼンタ
+			shoot_interval = 1.6
+		"laser":
+			modulate = Color(1.0, 0.8, 0.2)  # アンバーイエロー
+			shoot_interval = 2.0
+		"wave":
+			modulate = Color(0.3, 1.0, 0.5)  # エメラルドグリーン
+			shoot_interval = 1.4
+		"beam":
+			modulate = Color(1.0, 0.5, 0.5)  # 赤みのあるドローン
+			shoot_interval = 1.5
+		"missile", _:
+			modulate = Color(0.8, 0.4, 1.0)  # 紫
+			shoot_interval = 1.8
 		
 	bullet_pool = get_node_or_null("/root/Main/BulletPool")
 	player = get_node_or_null("/root/Main/Player")
 	
-	# 出現位置と高さをランダム化
-	target_y = randf_range(100.0, 250.0)
-	time_since_last_shot = randf_range(0.0, 1.2)  # 最初の一発をばらけさせる
+	target_y = randf_range(100.0, 260.0)
+	time_since_last_shot = randf_range(0.0, 0.8)
 	move_direction = 1.0 if randf() > 0.5 else -1.0
 
 
 func _process(delta: float) -> void:
-	# 登場時は上から下へ
+	# 登場・ホバリング処理
 	if position.y < target_y:
 		position.y += speed * delta
 	else:
-		# 目標高度に達したら、画面端で折り返しながら左右移動
 		position.x += speed * 0.4 * move_direction * delta
 		var viewport_w = get_viewport_rect().size.x
 		if position.x < 60:
@@ -50,7 +70,17 @@ func _process(delta: float) -> void:
 			position.x = viewport_w - 60
 			move_direction = -1.0
 			
-	# 射撃
+	# チャージ動作中の演出
+	if is_charging:
+		charge_timer -= delta
+		modulate.a = 0.5 + 0.5 * sin(charge_timer * 30.0)
+		if charge_timer <= 0.0:
+			is_charging = false
+			modulate.a = 1.0
+			fire_charged_shot()
+		return
+		
+	# 射撃タイマー
 	time_since_last_shot += delta
 	if time_since_last_shot >= shoot_interval:
 		shoot()
@@ -61,22 +91,65 @@ func shoot() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
 		
-	if drone_type == "beam":
-		# Beam Drone: 直線弾
-		var dir = Vector2.DOWN
-		var bullet = bullet_pool.get_bullet("beam")
-		if bullet:
-			bullet.global_position = global_position + Vector2(0, 20)
-			bullet.set_direction(dir, 320.0)
-	elif drone_type == "missile":
-		# Missile Drone: プレイヤー方向への誘導弾
-		var dir = Vector2.DOWN
-		if is_instance_valid(player):
-			dir = (player.global_position - global_position).normalized()
-		var bullet = bullet_pool.get_bullet("missile")
-		if bullet:
-			bullet.global_position = global_position + Vector2(0, 20)
-			bullet.set_direction(dir, 160.0)
+	match drone_type:
+		"charge":
+			# チャージ予告動作
+			is_charging = true
+			charge_timer = 0.6
+		"straight", "beam":
+			# まっすぐ（高威力直進弾幕）
+			var dir = Vector2.DOWN
+			var bullet = bullet_pool.get_bullet("beam")
+			if bullet:
+				bullet.global_position = global_position + Vector2(0, 20)
+				bullet.set_direction(dir, 420.0) # 高速化
+		"irregular":
+			# 不規則（斜めから角度を変えるトリッキー弾）
+			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
+			var angle_offset = randf_range(-0.4, 0.4)
+			var dir = base_dir.rotated(angle_offset)
+			var bullet = bullet_pool.get_bullet("missile")
+			if bullet:
+				bullet.global_position = global_position + Vector2(0, 20)
+				bullet.set_direction(dir, 260.0)
+		"laser":
+			# 薙ぎ払いレーザー風の3方向扇状展開
+			var center_dir = Vector2.DOWN
+			var angles = [-0.3, 0.0, 0.3]
+			for a in angles:
+				var bullet = bullet_pool.get_bullet("boss_laser")
+				if bullet:
+					bullet.global_position = global_position + Vector2(0, 20)
+					bullet.set_direction(center_dir.rotated(a), 350.0)
+		"wave":
+			# 拡散・波状弾幕（幅広5方向）
+			var angles = [-0.4, -0.2, 0.0, 0.2, 0.4]
+			for a in angles:
+				var bullet = bullet_pool.get_bullet("beam")
+				if bullet:
+					bullet.global_position = global_position + Vector2(0, 20)
+					bullet.set_direction(Vector2.DOWN.rotated(a), 280.0)
+		"missile", _:
+			var dir = Vector2.DOWN
+			if is_instance_valid(player):
+				dir = (player.global_position - global_position).normalized()
+			var bullet = bullet_pool.get_bullet("missile")
+			if bullet:
+				bullet.global_position = global_position + Vector2(0, 20)
+				bullet.set_direction(dir, 220.0)
+
+
+func fire_charged_shot() -> void:
+	if not is_instance_valid(bullet_pool):
+		return
+	var dir = Vector2.DOWN
+	if is_instance_valid(player):
+		dir = (player.global_position - global_position).normalized()
+	var bullet = bullet_pool.get_bullet("boss_laser")
+	if bullet:
+		bullet.global_position = global_position + Vector2(0, 25)
+		bullet.damage = 25 # チャージ弾は高威量
+		bullet.set_direction(dir, 550.0) # 超高速弾発射
 
 
 ## 被撃破時の拡張処理
