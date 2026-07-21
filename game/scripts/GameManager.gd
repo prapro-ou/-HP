@@ -19,6 +19,7 @@ var total_damage_score: int = 0
 var drone_scene = preload("res://game/scenes/enemy_drone.tscn")
 var spawned_drones: Array = []
 var state_timer: float = 0.0
+var last_active_stage: String = "WAVE 1: BEAM DRONES"
 
 
 func _ready() -> void:
@@ -37,6 +38,7 @@ func _ready() -> void:
 		
 	# シーン開始
 	state = "wave1"
+	last_active_stage = "WAVE 1: BEAM DRONES"
 	# 少し遅らせてWave1開始を表示
 	get_tree().create_timer(1.0).timeout.connect(func():
 		spawn_wave1()
@@ -54,6 +56,7 @@ func spawn_wave1() -> void:
 
 func spawn_wave2() -> void:
 	state = "wave2"
+	last_active_stage = "WAVE 2: MISSILE DRONES"
 	spawn_popup("WAVE 2: MISSILE DRONE INCOMING\nPARRY 3 TIMES TO ANALYSIS MISSILE")
 	var viewport_w = get_viewport_rect().size.x
 	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
@@ -72,6 +75,15 @@ func spawn_drone(type: String, pos: Vector2) -> void:
 
 
 func _process(delta: float) -> void:
+	# どのステートでもプレイヤー死亡時に defeat 移行
+	if state != "defeat" and state != "victory" and state != "victory_transition":
+		if is_instance_valid(player) and player.current_hp <= 0:
+			state = "defeat"
+			clear_all_bullets()
+			update_ui()
+			show_game_over("DEFEAT")
+			return
+
 	match state:
 		"wave1":
 			# Beam 解析率が100%に達したかチェック
@@ -107,6 +119,10 @@ func _process(delta: float) -> void:
 			check_win_lose()
 			
 	update_ui()
+
+
+func get_failed_stage_name() -> String:
+	return last_active_stage
 
 
 func check_drone_replenish(type: String) -> void:
@@ -149,6 +165,7 @@ func trigger_warning_interlude() -> void:
 
 func start_boss_battle() -> void:
 	state = "boss"
+	last_active_stage = "BOSS BATTLE: ANCIENT GUARDIAN"
 	if boss:
 		boss.visible = true
 		boss.process_mode = PROCESS_MODE_INHERIT
@@ -165,6 +182,7 @@ func check_win_lose() -> void:
 	if player.current_hp <= 0:
 		state = "defeat"
 		clear_all_bullets()
+		update_ui()
 		show_game_over("DEFEAT")
 	elif not is_instance_valid(boss) or (boss.has_method("get_current_hp") and boss.get_current_hp() <= 0):
 		# ボス撃破検知: 爆発演出を見せるため遷移ステートへ移行し、画面の弾を消去

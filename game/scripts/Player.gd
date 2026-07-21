@@ -61,6 +61,10 @@ func _process(delta: float) -> void:
 	position.x = clamp(position.x, 20, viewport_size.x - 20)
 	position.y = clamp(position.y, 20, viewport_size.y - 20)
 	
+	# デバッグ用: Kキーで自機即死（エディタ/デバッグ実行時のみ有効）
+	if OS.is_debug_build() and Input.is_key_pressed(KEY_K):
+		take_damage(current_hp)
+		
 	# 武器切り替え入力 (Shift, Z, Cキーのいずれかでトグル切り替え)
 	var is_toggle_pressed = Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_Z) or Input.is_key_pressed(KEY_C)
 	if is_toggle_pressed:
@@ -298,6 +302,7 @@ func spawn_popup_message(text: String) -> void:
 	settings.outline_color = Color.BLACK
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_to_group("popup_messages")
 	
 	# 初期位置の設定（プレイヤーの少し上に中央揃えで配置）
 	label.global_position = global_position + Vector2(-200, -70)
@@ -364,6 +369,7 @@ func spawn_parry_popup_message(text: String) -> void:
 	settings.outline_color = Color.BLACK
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_to_group("popup_messages")
 	
 	label.global_position = global_position + Vector2(-200, -80)
 	label.custom_minimum_size = Vector2(400, 40)

@@ -31,13 +31,15 @@ var flash_overlay: ColorRect = ColorRect.new()
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var screen_w = get_viewport_rect().size.x
 	var screen_h = get_viewport_rect().size.y
+	size = Vector2(screen_w, screen_h)
 	
 	# 1. 画面フラッシュ用オーバーレイ
 	flash_overlay.color = Color(1, 1, 1, 0)
-	flash_overlay.anchor_right = 1.0
-	flash_overlay.anchor_bottom = 1.0
+	flash_overlay.position = Vector2.ZERO
+	flash_overlay.size = Vector2(screen_w, screen_h)
 	flash_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(flash_overlay)
 	
@@ -258,121 +260,223 @@ func show_warning(title: String, subtitle: String) -> void:
 	)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if get_tree().paused and has_node("GameOverPanel"):
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode == KEY_R or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER:
+				get_viewport().set_input_as_handled()
+				get_tree().paused = false
+				var game_manager = get_node_or_null("../GameManager")
+				if game_manager and game_manager.has_method("restart"):
+					game_manager.restart()
+
+
+func dim_enemy_ui(dim: bool = true) -> void:
+	var target_alpha = 0.15 if dim else 1.0
+	var enemy_ui_nodes = [
+		boss_hp_bar, boss_hp_label,
+		boss_energy_label
+	]
+	for n in enemy_ui_nodes:
+		if is_instance_valid(n):
+			n.modulate = Color(1.0, 1.0, 1.0, target_alpha)
+			
+	# プレイヤー側UIは不透明度100%（通常）に維持
+	var player_ui_nodes = [
+		player_hp_bar, player_hp_label,
+		parry_count_label, guard_status_label,
+		slot_beam_label, slot_beam_bar,
+		slot_missile_label, slot_missile_bar
+	]
+	for n in player_ui_nodes:
+		if is_instance_valid(n):
+			n.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+
 func show_game_over(result: String) -> void:
 	if has_node("GameOverPanel"):
 		get_node("GameOverPanel").queue_free()
 		
+	# 画面に残っているすべてのポップアップメッセージ（「WAVE 1 INCOMING」等）を即座に削除
+	get_tree().call_group("popup_messages", "queue_free")
+		
+	# ゲームオーバー時に敵側のUI（ボスHPバー・エネルギー表示等）のみ薄く半透明化する
+	dim_enemy_ui(true)
+		
+	var viewport_size = get_viewport_rect().size
+	
 	var panel = ColorRect.new()
 	panel.name = "GameOverPanel"
-	panel.color = Color(0.05, 0.05, 0.08, 0.0)
-	panel.anchor_right = 1.0
-	panel.anchor_bottom = 1.0
-	panel.process_mode = PROCESS_MODE_ALWAYS # 一時停止中もこのパネルは動作する
+	panel.position = Vector2.ZERO
+	panel.size = viewport_size
+	panel.color = Color(0.04, 0.03, 0.06, 0.0)
+	panel.z_index = 100
+	panel.z_as_relative = false
+	panel.process_mode = PROCESS_MODE_ALWAYS # 一時停止中も動くように設定
 	add_child(panel)
 	
-	var tween = create_tween()
-	# UIノードがALWAYSなので自動で動くが、念のため安全にポーズ中の動作を設定
-	if tween.has_method("set_pause_mode"):
-		tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	tween.tween_property(panel, "color", Color(0.05, 0.05, 0.08, 0.85), 0.6)
+	var is_victory = (result == "VICTORY")
+	var theme_color = Color.CYAN if is_victory else Color(1.0, 0.25, 0.25)
 	
+	# 背景オーバーレイのフェードイン
+	var tween = create_tween()
+	var target_bg_color = Color(0.04, 0.05, 0.08, 0.88) if is_victory else Color(0.08, 0.02, 0.04, 0.90)
+	tween.tween_property(panel, "color", target_bg_color, 0.5)
+	
+	# 敗北時の画面赤色フラッシュ
+	if not is_victory:
+		trigger_flash(Color(1.0, 0.0, 0.0, 0.5))
+	
+	# 中央コンテナ (画面中央に正確に配置)
+	var container_width = 540.0
+	var container_height = 420.0
 	var container = VBoxContainer.new()
-	container.anchor_left = 0.5
-	container.anchor_top = 0.5
-	container.anchor_right = 0.5
-	container.anchor_bottom = 0.5
-	container.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	container.grow_vertical = Control.GROW_DIRECTION_BOTH
+	container.custom_minimum_size = Vector2(container_width, container_height)
+	container.size = Vector2(container_width, container_height)
+	container.position = Vector2((viewport_size.x - container_width) / 2.0, (viewport_size.y - container_height) / 2.0)
 	container.alignment = BoxContainer.ALIGNMENT_CENTER
-	container.custom_minimum_size = Vector2(500, 300)
-	container.offset_left = -250
-	container.offset_top = -150
 	panel.add_child(container)
 	
+	# タイトル表示
 	var result_label = Label.new()
 	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	var settings = LabelSettings.new()
-	settings.font_size = 42
-	settings.outline_size = 8
+	settings.font_size = 48
+	settings.outline_size = 10
 	settings.outline_color = Color.BLACK
-	
-	if result == "VICTORY":
-		result_label.text = "MISSION ACCOMPLISHED"
-		settings.font_color = Color.CYAN
-	else:
-		result_label.text = "SYSTEM DEFEATED"
-		settings.font_color = Color.ORANGE_RED
-		
+	settings.font_color = theme_color
+	result_label.text = "MISSION ACCOMPLISHED" if is_victory else "GAME OVER"
 	result_label.label_settings = settings
 	container.add_child(result_label)
 	
+	# サブタイトル / 失敗ステータス
+	var sub_label = Label.new()
+	sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var sub_settings = LabelSettings.new()
+	sub_settings.font_size = 18
+	sub_settings.outline_size = 4
+	sub_settings.outline_color = Color.BLACK
+	
+	var game_manager = get_node_or_null("../GameManager")
+	var stage_name = ""
+	if game_manager and game_manager.has_method("get_failed_stage_name"):
+		stage_name = game_manager.get_failed_stage_name()
+	elif game_manager and "last_active_stage" in game_manager:
+		stage_name = game_manager.last_active_stage
+		
+	if is_victory:
+		sub_label.text = "ANCIENT DEFENSE SYSTEM DESTROYED"
+		sub_settings.font_color = Color(0.6, 1.0, 0.9)
+	else:
+		if stage_name != "":
+			sub_label.text = "CRITICAL SYSTEM FAILURE - FAILED AT: " + stage_name
+		else:
+			sub_label.text = "CRITICAL SYSTEM FAILURE - STAGE CLEAR FAILED"
+		sub_settings.font_color = Color(1.0, 0.5, 0.5)
+		
+	sub_label.label_settings = sub_settings
+	container.add_child(sub_label)
+	
 	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 10)
+	spacer.custom_minimum_size = Vector2(0, 15)
 	container.add_child(spacer)
 	
-	var stats_label = Label.new()
-	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var stats_settings = LabelSettings.new()
-	stats_settings.font_size = 18
-	stats_settings.font_color = Color(0.8, 0.9, 1.0, 0.8)
-	stats_label.label_settings = stats_settings
+	# スタッツ表示カード
+	var stats_panel = PanelContainer.new()
+	var card_style = StyleBoxFlat.new()
+	card_style.bg_color = Color(0.06, 0.07, 0.1, 0.85) if is_victory else Color(0.12, 0.04, 0.05, 0.85)
+	card_style.border_width_left = 2
+	card_style.border_width_top = 2
+	card_style.border_width_right = 2
+	card_style.border_width_bottom = 2
+	card_style.border_color = theme_color * Color(1, 1, 1, 0.6)
+	card_style.corner_radius_top_left = 6
+	card_style.corner_radius_top_right = 6
+	card_style.corner_radius_bottom_left = 6
+	card_style.corner_radius_bottom_right = 6
+	card_style.content_margin_left = 20
+	card_style.content_margin_top = 15
+	card_style.content_margin_right = 20
+	card_style.content_margin_bottom = 15
+	stats_panel.add_theme_stylebox_override("panel", card_style)
+	container.add_child(stats_panel)
+	
+	var stats_box = VBoxContainer.new()
+	stats_panel.add_child(stats_box)
 	
 	var parries = 0
 	var score = 0
-	var game_manager = get_node_or_null("../GameManager")
+	var player_node = get_node_or_null("../Player")
+	var beam_prog = 0
+	var missile_prog = 0
+	
 	if game_manager:
 		parries = game_manager.parry_count
 		if "total_damage_score" in game_manager:
 			score = game_manager.total_damage_score
 			
-	# %d, %% などのフォーマットを避け、文字列結合にすることでエラーを完全に回避
-	stats_label.text = "TOTAL PARRIES EXTRACTED: " + str(parries) + "\nTECHNOLOGY HARVEST: 100%"
-	container.add_child(stats_label)
+	if is_instance_valid(player_node) and "weapons" in player_node:
+		beam_prog = int(player_node.weapons["beam"]["progress"])
+		missile_prog = int(player_node.weapons["missile"]["progress"])
+		
+	var stats_text_label = Label.new()
+	stats_text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var stats_settings = LabelSettings.new()
+	stats_settings.font_size = 16
+	stats_settings.font_color = Color(0.9, 0.9, 0.95, 0.9)
+	stats_text_label.label_settings = stats_settings
 	
-	# スコア表示（大きく、派手に）
-	if result == "VICTORY":
-		var spacer_score = Control.new()
-		spacer_score.custom_minimum_size = Vector2(0, 15)
-		container.add_child(spacer_score)
-		
-		var score_title_label = Label.new()
-		score_title_label.text = "FINAL DAMAGE SCORE"
-		score_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		var score_title_settings = LabelSettings.new()
-		score_title_settings.font_size = 16
-		score_title_settings.font_color = Color.GOLD
-		score_title_settings.outline_size = 4
-		score_title_settings.outline_color = Color.BLACK
-		score_title_label.label_settings = score_title_settings
-		container.add_child(score_title_label)
-		
-		var score_val_label = Label.new()
-		score_val_label.text = format_score(score)
-		score_val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		var score_val_settings = LabelSettings.new()
-		score_val_settings.font_size = 46 # 超巨大
-		score_val_settings.font_color = Color(1.0, 0.85, 0.1) # ゴールドイエロー
-		score_val_settings.outline_size = 10
-		score_val_settings.outline_color = Color(0.1, 0.1, 0.3)
-		score_val_label.label_settings = score_val_settings
-		container.add_child(score_val_label)
-		
+	var text_lines = [
+		"EXTRACTED PARRIES: " + str(parries),
+		"BEAM TECH ANALYSIS: " + str(beam_prog) + "%",
+		"MISSILE TECH ANALYSIS: " + str(missile_prog) + "%"
+	]
+	stats_text_label.text = "\n".join(text_lines)
+	stats_box.add_child(stats_text_label)
+	
+	# スコア表示
+	var spacer_score = Control.new()
+	spacer_score.custom_minimum_size = Vector2(0, 10)
+	stats_box.add_child(spacer_score)
+	
+	var score_title_label = Label.new()
+	score_title_label.text = "DAMAGE SCORE"
+	score_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var score_title_settings = LabelSettings.new()
+	score_title_settings.font_size = 14
+	score_title_settings.font_color = Color.GOLD if is_victory else Color(1.0, 0.7, 0.4)
+	score_title_settings.outline_size = 3
+	score_title_settings.outline_color = Color.BLACK
+	score_title_label.label_settings = score_title_settings
+	stats_box.add_child(score_title_label)
+	
+	var score_val_label = Label.new()
+	score_val_label.text = format_score(score)
+	score_val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var score_val_settings = LabelSettings.new()
+	score_val_settings.font_size = 40 if is_victory else 32
+	score_val_settings.font_color = Color(1.0, 0.85, 0.1) if is_victory else Color(1.0, 0.4, 0.3)
+	score_val_settings.outline_size = 8
+	score_val_settings.outline_color = Color(0.1, 0.1, 0.2)
+	score_val_label.label_settings = score_val_settings
+	stats_box.add_child(score_val_label)
+	
+	if is_victory:
 		animate_score_count(score_val_label, score)
-	
+		
 	var spacer2 = Control.new()
-	spacer2.custom_minimum_size = Vector2(0, 30)
+	spacer2.custom_minimum_size = Vector2(0, 20)
 	container.add_child(spacer2)
 	
+	# リトライボタン
 	var retry_btn = Button.new()
-	retry_btn.text = "RESTART INTERFACE"
-	retry_btn.custom_minimum_size = Vector2(250, 50)
+	retry_btn.text = "RETRY STAGE" if not is_victory else "PLAY AGAIN"
+	retry_btn.custom_minimum_size = Vector2(260, 50)
 	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	
-	var theme_color = Color.CYAN if result == "VICTORY" else Color.ORANGE_RED
-	
 	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.08, 0.08, 0.12, 1.0)
+	style_normal.bg_color = Color(0.1, 0.08, 0.12, 1.0) if is_victory else Color(0.15, 0.05, 0.06, 1.0)
 	style_normal.border_width_left = 2
 	style_normal.border_width_top = 2
 	style_normal.border_width_right = 2
@@ -396,13 +500,22 @@ func show_game_over(result: String) -> void:
 	
 	container.add_child(retry_btn)
 	
+	# キーショートカットプロンプト
+	var shortcut_label = Label.new()
+	shortcut_label.text = "[ Press SPACE / ENTER / R to Restart ]"
+	shortcut_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var shortcut_settings = LabelSettings.new()
+	shortcut_settings.font_size = 12
+	shortcut_settings.font_color = Color(0.7, 0.7, 0.8, 0.7)
+	shortcut_label.label_settings = shortcut_settings
+	container.add_child(shortcut_label)
+	
 	retry_btn.pressed.connect(func():
-		get_tree().paused = false # リスタート前に一時停止を解除
+		get_tree().paused = false
 		if game_manager and game_manager.has_method("restart"):
 			game_manager.restart()
 	)
 	
-	# UIの組み立てが完了してから安全にポーズする
 	get_tree().paused = true
 
 
@@ -430,7 +543,8 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 		
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.pivot_offset = Vector2(100, 30) # サイズが大きくなったのでピボットも調整
+	label.pivot_offset = Vector2(100, 30)
+	label.add_to_group("popup_messages") # サイズが大きくなったのでピボットも調整
 	
 	# 位置を少しばらけさせる
 	label.global_position = pos + Vector2(randf_range(-60, 60), randf_range(-40, 20))
