@@ -188,20 +188,20 @@ func spawn_drone(type: String, pos: Vector2) -> void:
 func _process(delta: float) -> void:
 	match state:
 		"wave1":
-			# 攻撃パターンを解析完了、または一定回数パリィ達成でWave1クリア
+			# 攻撃パターンを解析完了、または15回以上のパリィ達成でWave1クリア
 			var analyzed_count = 0
 			if is_instance_valid(player) and "analysis_patterns" in player:
 				for p in player.analysis_patterns.values():
 					if p.get("analyzed", false):
 						analyzed_count += 1
 						
-			if analyzed_count >= 1 or parry_count >= 3 or (is_instance_valid(player) and player.weapons["beam"]["analyzed"]):
+			if analyzed_count >= 1 or parry_count >= 15:
 				clear_drones()
 				state = "wave2_transition"
 				state_timer = 0.0
 				spawn_popup("【第一波 攻略完了】\n敵攻撃パターンの解析に成功！")
 			else:
-				check_drone_replenish("straight")
+				check_drone_replenish(["straight", "irregular", "laser", "wave"])
 				
 		"wave2_transition":
 			state_timer += delta
@@ -215,13 +215,13 @@ func _process(delta: float) -> void:
 					if p.get("analyzed", false):
 						analyzed_count += 1
 						
-			if analyzed_count >= 2 or parry_count >= 6 or (is_instance_valid(player) and player.weapons["missile"]["analyzed"]):
+			if analyzed_count >= 2 or parry_count >= 35:
 				clear_drones()
 				state = "interlude"
 				state_timer = 0.0
 				trigger_warning_interlude()
 			else:
-				check_drone_replenish("missile")
+				check_drone_replenish(["charge", "missile", "irregular", "laser"])
 				
 		"interlude":
 			state_timer += delta
@@ -234,15 +234,16 @@ func _process(delta: float) -> void:
 	update_ui()
 
 
-func check_drone_replenish(type: String) -> void:
-	# 有効なドローンが0なら追加スポーン
+func check_drone_replenish(type_candidates: Array) -> void:
+	# 有効なドローンが2機以下になったら自動補充スポーンし、激しい戦場を維持
 	var active = 0
 	for d in spawned_drones:
 		if is_instance_valid(d):
 			active += 1
-	if active == 0:
+	if active <= 2:
 		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		spawn_drone(type, Vector2(rx, -50))
+		var chosen_type = type_candidates.pick_random() if type_candidates.size() > 0 else "straight"
+		spawn_drone(chosen_type, Vector2(rx, -50))
 
 
 func clear_drones() -> void:

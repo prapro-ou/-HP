@@ -475,8 +475,8 @@ func check_parry() -> void:
 								current_stage = manager.current_stage_num
 						Global.save_game(current_stage, 0, {})
 				
-				# パリィ成功時の攻撃パターン解析進捗 (1回12.5%、約8回のパリィで解析完了)
-				advance_analysis(bullet.bullet_type, 12.5)
+				# パリィ成功時の攻撃パターン解析進捗 (1回3.5%、約29回のパリィで解析完了)
+				advance_analysis(bullet.bullet_type, 3.5)
 				
 				if shield_type == "power":
 					bullet.recycle_bullet()
@@ -520,7 +520,7 @@ func heal(amount: int) -> void:
 	current_hp = min(current_hp + amount, max_hp)
 
 
-func advance_analysis(bullet_type: String, amount: float = 12.5) -> void:
+func advance_analysis(bullet_type: String, amount: float = 3.5) -> void:
 	"""パリィで敵弾パターンを解析し、自機兵装へ特徴を反映する"""
 	var pattern_key = "rapid"
 	if bullet_type.contains("wave") or bullet_type.contains("pulse") or bullet_type.contains("spread"):
