@@ -29,6 +29,9 @@ extends CanvasLayer
 @onready var flash_overlay: ColorRect = $FlashOverlay
 
 
+var shield_heat_bar: ProgressBar
+
+
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	
@@ -38,15 +41,28 @@ func _ready() -> void:
 	style_analysis_bar(slot_beam_bar, Color.CYAN)
 	style_analysis_bar(slot_missile_bar, Color(0.8, 0.4, 1.0))
 	
-	setup_label_style(player_hp_label, 12, Color.WHITE)
-	setup_label_style(boss_hp_label, 12, Color.WHITE)
-	setup_label_style(parry_count_label, 14, Color.CYAN)
-	setup_label_style(guard_status_label, 14, Color.GREEN)
-	setup_label_style(boss_energy_label, 13, Color.GOLD)
-	setup_label_style(warning_title, 36, Color.RED)
-	setup_label_style(warning_subtitle, 16, Color.GOLD)
-	setup_label_style(slot_beam_label, 12, Color.LIGHT_GRAY)
-	setup_label_style(slot_missile_label, 12, Color.LIGHT_GRAY)
+	setup_label_style(player_hp_label, 18, Color.WHITE, 6)
+	setup_label_style(boss_hp_label, 18, Color.WHITE, 6)
+	setup_label_style(parry_count_label, 22, Color.CYAN, 6)
+	setup_label_style(guard_status_label, 20, Color.GREEN, 6)
+	setup_label_style(boss_energy_label, 18, Color.GOLD, 6)
+	setup_label_style(warning_title, 48, Color.RED, 10)
+	setup_label_style(warning_subtitle, 24, Color.GOLD, 6)
+	setup_label_style(slot_beam_label, 18, Color.LIGHT_GRAY, 6)
+	setup_label_style(slot_missile_label, 18, Color.LIGHT_GRAY, 6)
+	
+	# 動的なシールドヒートプログレスバーの追加
+	create_shield_heat_bar()
+
+
+func create_shield_heat_bar() -> void:
+	shield_heat_bar = ProgressBar.new()
+	shield_heat_bar.name = "ShieldHeatBar"
+	shield_heat_bar.show_percentage = false
+	shield_heat_bar.custom_minimum_size = Vector2(240, 16)
+	shield_heat_bar.position = Vector2(30, 72)
+	add_child(shield_heat_bar)
+	style_hp_bar(shield_heat_bar, Color(0.2, 0.8, 1.0))
 
 
 func style_hp_bar(bar: ProgressBar, color: Color) -> void:
@@ -89,11 +105,11 @@ func style_analysis_bar(bar: ProgressBar, color: Color) -> void:
 	bar.add_theme_stylebox_override("fill", sb_fg)
 
 
-func setup_label_style(label: Label, size: int, color: Color) -> void:
+func setup_label_style(label: Label, size: int, color: Color, outline: int = 6) -> void:
 	var settings = LabelSettings.new()
 	settings.font_size = size
 	settings.font_color = color
-	settings.outline_size = 4
+	settings.outline_size = outline
 	settings.outline_color = Color.BLACK
 	label.label_settings = settings
 
@@ -101,7 +117,7 @@ func setup_label_style(label: Label, size: int, color: Color) -> void:
 func update_player_hp(current: int, max_hp: int) -> void:
 	player_hp_bar.max_value = max_hp
 	player_hp_bar.value = current
-	player_hp_label.text = "PLAYER VITAL: %d / %d" % [current, max_hp]
+	player_hp_label.text = "自機 HP: %d / %d" % [current, max_hp]
 
 
 func update_boss_hp(current: int, max_hp: int) -> void:
@@ -109,7 +125,7 @@ func update_boss_hp(current: int, max_hp: int) -> void:
 	boss_hp_label.visible = true
 	boss_hp_bar.max_value = max_hp
 	boss_hp_bar.value = current
-	boss_hp_label.text = "ANCIENT DEFENDER: %d / %d" % [current, max_hp]
+	boss_hp_label.text = "ボス HP: %d / %d" % [current, max_hp]
 
 
 func hide_boss_hp() -> void:
@@ -118,49 +134,79 @@ func hide_boss_hp() -> void:
 
 
 func update_parry_count(count: int) -> void:
-	parry_count_label.text = "EXTRACTED PARRIES: %d" % count
+	parry_count_label.text = "パリィ: %d 回" % count
 
 
-func update_guard_status(cooldown: float, is_guarding: bool) -> void:
-	if is_guarding:
-		guard_status_label.text = "SHIELD SYSTEM: ACTIVE!"
-		guard_status_label.label_settings.font_color = Color.CYAN
-	elif cooldown > 0.0:
-		guard_status_label.text = "SHIELD SYSTEM: COOLDOWN (%.1fs)" % cooldown
-		guard_status_label.label_settings.font_color = Color.ORANGE_RED
-	else:
-		guard_status_label.text = "SHIELD SYSTEM: READY (SPACE)"
-		guard_status_label.label_settings.font_color = Color.GREEN
+func update_guard_status(_cooldown: float, _is_guarding: bool) -> void:
+	# 旧互換
+	pass
 
 
-func update_analysis_progress(beam_progress: float, beam_ready: bool, missile_progress: float, missile_ready: bool, active_weapon: String) -> void:
-	slot_beam_bar.value = beam_progress
-	if beam_ready:
-		if active_weapon == "beam":
-			slot_beam_label.text = "SLOT 1: BEAM [ACTIVE]"
-			slot_beam_label.label_settings.font_color = Color.CYAN
-		else:
-			slot_beam_label.text = "SLOT 1: BEAM [Z/Shift to Swap]"
-			slot_beam_label.label_settings.font_color = Color(0.4, 0.7, 0.7)
-	else:
-		slot_beam_label.text = "SLOT 1: BEAM ANALYZING [%d%%]" % int(beam_progress)
-		slot_beam_label.label_settings.font_color = Color.LIGHT_GRAY
+func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool) -> void:
+	if is_instance_valid(shield_heat_bar):
+		shield_heat_bar.max_value = max_heat
+		shield_heat_bar.value = heat
 		
-	slot_missile_bar.value = missile_progress
-	if missile_ready:
-		if active_weapon == "missile":
-			slot_missile_label.text = "SLOT 2: MISSILE [ACTIVE]"
-			slot_missile_label.label_settings.font_color = Color(0.8, 0.4, 1.0)
-		else:
-			slot_missile_label.text = "SLOT 2: MISSILE [Z/Shift to Swap]"
-			slot_missile_label.label_settings.font_color = Color(0.6, 0.3, 0.7)
+		# 動的なプログレスバーのカラー演出
+		var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
+		if fg_style:
+			if is_overheated:
+				# オーバーヒート時の点滅赤発光
+				var flash = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
+				fg_style.bg_color = Color(1.0, 0.1, 0.1).lerp(Color(0.4, 0.0, 0.0), flash)
+			elif is_guarding:
+				fg_style.bg_color = Color(0.2, 1.0, 1.0) # シールド発射中水色
+			else:
+				var pct = (heat / max_heat)
+				if pct > 0.7:
+					fg_style.bg_color = Color(1.0, 0.45, 0.1) # 危険オレンジ
+				elif pct > 0.35:
+					fg_style.bg_color = Color(1.0, 0.85, 0.2) # 注意イエロー
+				else:
+					fg_style.bg_color = Color(0.2, 0.8, 1.0) # 水色
+
+	if is_overheated:
+		guard_status_label.text = "⚠️ OVERHEAT! 冷却中 (%.1fs)" % overheat_timer
+		guard_status_label.label_settings.font_color = Color.RED
+	elif is_guarding:
+		guard_status_label.text = "シールド: 展開中！"
+		guard_status_label.label_settings.font_color = Color.CYAN
 	else:
-		slot_missile_label.text = "SLOT 2: MISSILE ANALYZING [%d%%]" % int(missile_progress)
-		slot_missile_label.label_settings.font_color = Color.LIGHT_GRAY
+		var pct = int((heat / max_heat) * 100.0)
+		guard_status_label.text = "シールドヒート [Space]"
+		guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
+
+
+func update_pattern_analysis(patterns: Dictionary) -> void:
+	"""4つの攻撃パターンの解析度とアンロック状況をリアルタイム表示"""
+	var summary_text = ""
+	for key in ["rapid", "spread", "pierce", "homing"]:
+		if not key in patterns:
+			continue
+		var data = patterns[key]
+		var name_str = data["name"]
+		var prog = int(data["progress"])
+		var is_done = data["analyzed"]
+		
+		if is_done:
+			summary_text += "【%s】100%% ⚡ " % name_str
+		elif prog > 0:
+			summary_text += "%s: %d%% | " % [name_str, prog]
+			
+	if summary_text != "":
+		slot_beam_label.text = "敵弾パターン解析: " + summary_text.trim_suffix(" | ")
+		slot_beam_label.label_settings.font_color = Color.GOLD
+	else:
+		slot_beam_label.text = "敵弾パターン解析: パリィで特徴を吸収せよ"
+		slot_beam_label.label_settings.font_color = Color.LIGHT_GRAY
+
+
+func update_analysis_progress(_beam_progress: float, _beam_ready: bool, _missile_progress: float, _missile_ready: bool, _active_weapon: String) -> void:
+	pass
 
 
 func update_boss_energy(laser: float, missile: float, core: float) -> void:
-	boss_energy_label.text = "ENERGY REALLOCATION:\nCORE: %d%% | LASER: %d%% | MISSILE: %d%%" % [int(core), int(laser), int(missile)]
+	boss_energy_label.text = "エネルギー再分配\nコア %d%% | レーザー %d%% | ミサイル %d%%" % [int(core), int(laser), int(missile)]
 
 
 func hide_boss_energy() -> void:
@@ -230,10 +276,10 @@ func show_game_over(result: String) -> void:
 	settings.outline_color = Color.BLACK
 	
 	if result == "VICTORY":
-		result_label.text = "MISSION ACCOMPLISHED"
+		result_label.text = "作戦完了"
 		settings.font_color = Color.CYAN
 	else:
-		result_label.text = "SYSTEM DEFEATED"
+		result_label.text = "作戦失敗"
 		settings.font_color = Color.ORANGE_RED
 		
 	result_label.label_settings = settings
@@ -246,8 +292,10 @@ func show_game_over(result: String) -> void:
 	var stats_label = Label.new()
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var stats_settings = LabelSettings.new()
-	stats_settings.font_size = 18
-	stats_settings.font_color = Color(0.8, 0.9, 1.0, 0.8)
+	stats_settings.font_size = 24
+	stats_settings.font_color = Color(0.8, 0.9, 1.0, 0.9)
+	stats_settings.outline_size = 4
+	stats_settings.outline_color = Color.BLACK
 	stats_label.label_settings = stats_settings
 	
 	var parries = 0
@@ -258,7 +306,7 @@ func show_game_over(result: String) -> void:
 		if "total_damage_score" in game_manager:
 			score = game_manager.total_damage_score
 			
-	stats_label.text = "TOTAL PARRIES EXTRACTED: " + str(parries) + "\nTECHNOLOGY HARVEST: 100%"
+	stats_label.text = "総パリィ数: " + str(parries) + " 回\n技術回収: 100%"
 	container.add_child(stats_label)
 	
 	# スコア表示
@@ -268,10 +316,10 @@ func show_game_over(result: String) -> void:
 		container.add_child(spacer_score)
 		
 		var score_title_label = Label.new()
-		score_title_label.text = "FINAL DAMAGE SCORE"
+		score_title_label.text = "最終スコア"
 		score_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var score_title_settings = LabelSettings.new()
-		score_title_settings.font_size = 16
+		score_title_settings.font_size = 22
 		score_title_settings.font_color = Color.GOLD
 		score_title_settings.outline_size = 4
 		score_title_settings.outline_color = Color.BLACK
@@ -282,7 +330,7 @@ func show_game_over(result: String) -> void:
 		score_val_label.text = format_score(score)
 		score_val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var score_val_settings = LabelSettings.new()
-		score_val_settings.font_size = 46
+		score_val_settings.font_size = 52
 		score_val_settings.font_color = Color(1.0, 0.85, 0.1)
 		score_val_settings.outline_size = 10
 		score_val_settings.outline_color = Color(0.1, 0.1, 0.3)
@@ -315,9 +363,10 @@ func show_game_over(result: String) -> void:
 	# 勝利時は「次のステージへ」ボタンを表示
 	if result == "VICTORY":
 		var next_btn = Button.new()
-		next_btn.text = "PROCEED TO NEXT STAGE"
-		next_btn.custom_minimum_size = Vector2(250, 50)
+		next_btn.text = "次のステージへ"
+		next_btn.custom_minimum_size = Vector2(280, 56)
 		next_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		next_btn.add_theme_font_size_override("font_size", 22)
 		
 		next_btn.add_theme_color_override("font_color", Color.WHITE)
 		next_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -341,9 +390,10 @@ func show_game_over(result: String) -> void:
 		container.add_child(spacer_btn)
 
 	var retry_btn = Button.new()
-	retry_btn.text = "RESTART INTERFACE" if result == "DEFEAT" else "RESTART SYSTEM"
-	retry_btn.custom_minimum_size = Vector2(250, 50)
+	retry_btn.text = "再挑戦"
+	retry_btn.custom_minimum_size = Vector2(280, 56)
 	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	retry_btn.add_theme_font_size_override("font_size", 22)
 	
 	retry_btn.add_theme_color_override("font_color", Color.WHITE)
 	retry_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -363,9 +413,10 @@ func show_game_over(result: String) -> void:
 	
 	# メインメニューに戻るボタン
 	var menu_btn = Button.new()
-	menu_btn.text = "RETURN TO CORE SYSTEM"
-	menu_btn.custom_minimum_size = Vector2(250, 50)
+	menu_btn.text = "メニューへ"
+	menu_btn.custom_minimum_size = Vector2(280, 56)
 	menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	menu_btn.add_theme_font_size_override("font_size", 22)
 	
 	menu_btn.add_theme_color_override("font_color", Color.WHITE)
 	menu_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -394,15 +445,15 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	
 	var settings = LabelSettings.new()
 	if is_finish:
-		settings.font_size = randi_range(56, 76)
-		settings.font_color = Color(1.0, randf_range(0.2, 0.6), 0.1)
-		settings.outline_size = 12
+		settings.font_size = randi_range(72, 90)
+		settings.font_color = Color(1.0, 0.35, 0.1)
+		settings.outline_size = 14
 		settings.outline_color = Color.BLACK
 	else:
-		settings.font_size = randi_range(24, 32)
+		settings.font_size = randi_range(28, 36)
 		if amount > 15:
 			settings.font_color = Color(1.0, 0.9, 0.2)
-			settings.font_size = randi_range(30, 36)
+			settings.font_size = randi_range(36, 44)
 		else:
 			settings.font_color = Color.WHITE
 		settings.outline_size = 6
@@ -412,19 +463,51 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.pivot_offset = Vector2(100, 30)
 	
-	label.global_position = pos + Vector2(randf_range(-60, 60), randf_range(-40, 20))
+	label.global_position = pos + Vector2(randf_range(-40, 40), randf_range(-30, 10))
 	add_child(label)
 	
 	label.scale = Vector2(0.2, 0.2)
 	var tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.2, 1.2) if is_finish else Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var target_pos = label.global_position + Vector2(randf_range(-70, 70), -120)
+	tween.tween_property(label, "scale", Vector2(1.3, 1.3) if is_finish else Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var target_pos = label.global_position + Vector2(randf_range(-40, 40), -120)
 	tween.tween_property(label, "global_position", target_pos, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
 	var fade_tween = create_tween()
 	fade_tween.tween_interval(0.5)
 	fade_tween.tween_property(label, "modulate:a", 0.0, 0.4)
+	
+	tween.chain().tween_callback(label.queue_free)
+
+
+func spawn_kill_popup(pos: Vector2, text: String = "撃破！") -> void:
+	"""敵撃破時の短く超巨大で分かりやすいテキスト演出"""
+	var label = Label.new()
+	label.text = text
+	
+	var settings = LabelSettings.new()
+	settings.font_size = 88 # 超巨大フォントサイズ
+	settings.font_color = Color(1.0, 0.85, 0.0) # 鮮やかなゴールドイエロー
+	settings.outline_size = 16 # くっきり見やすい太線枠
+	settings.outline_color = Color(0.1, 0.0, 0.0, 1.0)
+	
+	label.label_settings = settings
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.pivot_offset = Vector2(150, 45)
+	label.global_position = pos + Vector2(-150, -45)
+	
+	add_child(label)
+	
+	label.scale = Vector2(0.1, 0.1)
+	var tween = create_tween().set_parallel(true)
+	# 一気に超巨大表示されてバウンド
+	tween.tween_property(label, "scale", Vector2(1.25, 1.25), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "global_position", pos + Vector2(-150, -110), 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	var fade = create_tween()
+	fade.tween_interval(0.35)
+	fade.tween_property(label, "modulate:a", 0.0, 0.4)
 	
 	tween.chain().tween_callback(label.queue_free)
 

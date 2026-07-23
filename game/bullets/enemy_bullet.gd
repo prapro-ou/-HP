@@ -141,13 +141,9 @@ func convert_to_friendly() -> void:
 		particle.global_position = global_position
 		get_parent().add_child(particle)
 	
-	# プレイヤーにパリィ成功と弾のタイプを通知して解析を進める
+	# プレイヤーにパリィ成功を通知
 	var main = get_node_or_null("/root/Main")
 	if main:
-		var player = main.get_node_or_null("Player")
-		if player and player.has_method("advance_analysis"):
-			player.advance_analysis(bullet_type, 34) # 3回パリィで100%にするために34ずつ加算
-		
 		var manager = main.get_node_or_null("GameManager")
 		if manager and manager.has_method("register_parry"):
 			manager.register_parry()
@@ -156,4 +152,3 @@ func convert_to_friendly() -> void:
 func is_owned_by_player() -> bool:
 	"""プレイヤー所有か判定"""
 	return is_friendly
-
