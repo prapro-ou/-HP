@@ -35,10 +35,10 @@ func _ready() -> void:
 		player.enemy_bullets = bullet_pool.active_bullets
 		
 	# セーブデータがあれば、プレイヤーの武器解析データやスコアをロードして反映する
+	var save_data = Global.load_game_data()
+	total_damage_score = save_data.get("score", 0)
+	
 	if Global.has_save:
-		var save_data = Global.load_game_data()
-		total_damage_score = save_data.get("score", 0)
-		
 		var saved_weapons = save_data.get("weapons", {})
 		if player and not saved_weapons.is_empty():
 			# 武器の解析状況を復元
@@ -57,7 +57,12 @@ func _ready() -> void:
 			player.current_weapon = "none"
 		
 	# 選択されたステージをロードする
-	current_stage_num = Global.selected_stage
+	if Global.selected_stage > 0:
+		current_stage_num = Global.selected_stage
+	elif Global.is_first_launch:
+		current_stage_num = 1
+	else:
+		current_stage_num = save_data.get("stage_num", 1)
 	var stage_path = "res://game/stages/stage_" + str(current_stage_num) + ".tscn"
 	if not ResourceLoader.exists(stage_path):
 		stage_path = "res://game/stages/stage_1.tscn"
@@ -65,14 +70,51 @@ func _ready() -> void:
 	load_stage(stage_path, current_stage_num)
 
 
+func clean_stage_entities() -> void:
+	"""前ステージの残存敵・ボス・弾幕・タイマーを完璧に削除・初期化する"""
+	get_tree().paused = false
+	
+	# 1. 弾丸のクリア
+	clear_all_bullets()
+	
+	# 2. ドローンのクリア
+	clear_drones()
+	
+	# 3. グループに属する敵ノード・ボスノードの消去
+	for node in get_tree().get_nodes_in_group("enemy"):
+		if is_instance_valid(node) and node != player:
+			node.queue_free()
+			
+	for node in get_tree().get_nodes_in_group("boss"):
+		if is_instance_valid(node):
+			node.queue_free()
+			
+	for node in get_tree().get_nodes_in_group("drone"):
+		if is_instance_valid(node):
+			node.queue_free()
+			
+	# 4. 既存ステージノードの消去
+	if is_instance_valid(current_stage):
+		current_stage.queue_free()
+		current_stage = null
+		
+	# 5. ステータスとタイマーのリセット
+	parry_count = 0
+	state_timer = 0.0
+	state = "start"
+	
+	# 6. プレイヤー状態のリセット
+	if is_instance_valid(player) and player.has_method("reset_state"):
+		player.reset_state()
+
+
 func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	current_stage_num = stage_num
 	
-	# 既存のステージがあればクリーンアップ
-	if is_instance_valid(current_stage):
-		current_stage.queue_free()
-		await get_tree().process_frame
-		
+	# 前ステージの全エンティティ・進行状況を完璧にリセット＆クリーンアップ
+	clean_stage_entities()
+	await get_tree().process_frame
+	
 	var stage_scene = load(stage_path)
 	if not stage_scene:
 		print("Failed to load stage scene: ", stage_path)
@@ -89,54 +131,68 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	else:
 		boss = null
 		
-	# ステージがロードされたタイミングでセーブデータを書き出す
-	if player:
-		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+	# セーブデータの更新保存（進行ステージ番号）
+	Global.save_game(current_stage_num, total_damage_score, {})
 		
 	# シーン開始
 	state = "wave1"
+	# ステージ開始時にAIの起動メッセージ
+	get_tree().create_timer(0.2).timeout.connect(func():
+		if state == "wave1":
+			spawn_popup("【AIアシスト】装備システムオンライン。\n最初のパリィが実行されるまで、メイン攻撃はロックされます。")
+	)
 	# 少し遅らせてWave1開始を表示
-	get_tree().create_timer(1.0).timeout.connect(func():
-		spawn_wave1()
+	get_tree().create_timer(2.2).timeout.connect(func():
+		if state == "wave1":
+			spawn_wave1()
 	)
 
 
 func load_next_stage() -> void:
-	# 画面上の弾を全て消去
-	clear_all_bullets()
-	
-	# プレイヤーのHP全回復、状態リセット（武器解析データはそのまま維持される）
-	if is_instance_valid(player):
-		player.current_hp = player.max_hp
-		player.is_full_burst = false
-		
 	var next_num = current_stage_num + 1
 	var next_path = "res://game/stages/stage_" + str(next_num) + ".tscn"
 	
 	if ResourceLoader.exists(next_path):
+		# 次のステージが存在する場合はそのまま次のステージへ綺麗に遷移
 		load_stage(next_path, next_num)
 	else:
-		# 次のステージが存在しない場合は、全クリアとしてステージ1へループ
-		load_stage("res://game/stages/stage_1.tscn", 1)
+		# 次のステージが存在しない場合はクリアとして全弾消去し、ステージ選択画面へ戻る
+		clean_stage_entities()
+		Global.save_game(1, total_damage_score, {})
+		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
 
 
 
 func spawn_wave1() -> void:
 	spawn_popup(Global.translate("popup_wave1"))
 	var viewport_w = get_viewport_rect().size.x
-	# ドローンを3機配置
-	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
-	for x in x_coords:
-		spawn_drone("beam", Vector2(x, -50))
+	# 出現数増加（5機構成、多様な固有射撃スタイル）
+	var wave1_configs = [
+		{"type": "straight", "pos": Vector2(viewport_w * 0.15, -50)},
+		{"type": "irregular", "pos": Vector2(viewport_w * 0.32, -80)},
+		{"type": "beam", "pos": Vector2(viewport_w * 0.50, -50)},
+		{"type": "laser", "pos": Vector2(viewport_w * 0.68, -80)},
+		{"type": "wave", "pos": Vector2(viewport_w * 0.85, -50)}
+	]
+	for config in wave1_configs:
+		spawn_drone(config["type"], config["pos"])
 
 
 func spawn_wave2() -> void:
 	state = "wave2"
 	spawn_popup(Global.translate("popup_wave2"))
 	var viewport_w = get_viewport_rect().size.x
-	var x_coords = [viewport_w * 0.25, viewport_w * 0.5, viewport_w * 0.75]
-	for x in x_coords:
-		spawn_drone("missile", Vector2(x, -50))
+	# 出現数増加（6機の大群編成）
+	var wave2_configs = [
+		{"type": "charge", "pos": Vector2(viewport_w * 0.12, -60)},
+		{"type": "missile", "pos": Vector2(viewport_w * 0.28, -90)},
+		{"type": "laser", "pos": Vector2(viewport_w * 0.44, -50)},
+		{"type": "charge", "pos": Vector2(viewport_w * 0.60, -90)},
+		{"type": "irregular", "pos": Vector2(viewport_w * 0.76, -60)},
+		{"type": "missile", "pos": Vector2(viewport_w * 0.90, -90)}
+	]
+	for config in wave2_configs:
+		spawn_drone(config["type"], config["pos"])
 
 
 func spawn_drone(type: String, pos: Vector2) -> void:
@@ -152,29 +208,40 @@ func spawn_drone(type: String, pos: Vector2) -> void:
 func _process(delta: float) -> void:
 	match state:
 		"wave1":
-			# Beam 解析率が100%に達したかチェック
-			if player.weapons["beam"]["analyzed"]:
+			# 攻撃パターンを解析完了、または15回以上のパリィ達成でWave1クリア
+			var analyzed_count = 0
+			if is_instance_valid(player) and "analysis_patterns" in player:
+				for p in player.analysis_patterns.values():
+					if p.get("analyzed", false):
+						analyzed_count += 1
+						
+			if analyzed_count >= 1 or parry_count >= 15:
 				clear_drones()
 				state = "wave2_transition"
 				state_timer = 0.0
 				spawn_popup(Global.translate("popup_beam_break"))
 			else:
-				# ドローンが全滅したのに100%になっていなければ、再度1機補充
-				check_drone_replenish("beam")
+				check_drone_replenish(["straight", "irregular", "laser", "wave"])
 				
 		"wave2_transition":
 			state_timer += delta
-			if state_timer >= 2.5:
+			if state_timer >= 2.2:
 				spawn_wave2()
 				
 		"wave2":
-			if player.weapons["missile"]["analyzed"]:
+			var analyzed_count = 0
+			if is_instance_valid(player) and "analysis_patterns" in player:
+				for p in player.analysis_patterns.values():
+					if p.get("analyzed", false):
+						analyzed_count += 1
+						
+			if analyzed_count >= 2 or parry_count >= 35:
 				clear_drones()
 				state = "interlude"
 				state_timer = 0.0
 				trigger_warning_interlude()
 			else:
-				check_drone_replenish("missile")
+				check_drone_replenish(["charge", "missile", "irregular", "laser"])
 				
 		"interlude":
 			state_timer += delta
@@ -187,15 +254,16 @@ func _process(delta: float) -> void:
 	update_ui()
 
 
-func check_drone_replenish(type: String) -> void:
-	# 有効なドローンが0なら追加スポーン
+func check_drone_replenish(type_candidates: Array) -> void:
+	# 有効なドローンが2機以下になったら自動補充スポーンし、激しい戦場を維持
 	var active = 0
 	for d in spawned_drones:
 		if is_instance_valid(d):
 			active += 1
-	if active == 0:
+	if active <= 2:
 		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		spawn_drone(type, Vector2(rx, -50))
+		var chosen_type = type_candidates.pick_random() if type_candidates.size() > 0 else "straight"
+		spawn_drone(chosen_type, Vector2(rx, -50))
 
 
 func clear_drones() -> void:
@@ -218,10 +286,9 @@ func trigger_warning_interlude() -> void:
 	if player and player.has_method("trigger_screen_flash"):
 		player.trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
 		
-	# 2秒後に再度警告フラッシュ
-	get_tree().create_timer(1.8).timeout.connect(func():
-		if state == "interlude" and player and player.has_method("trigger_screen_flash"):
-			player.trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.5))
+	# アシストAIメッセージを表示
+	get_tree().create_timer(1.2).timeout.connect(func():
+		spawn_popup("【AIアシスト】\n敵は巨大ですが『部位破壊』で無力化できます。\n[X]キーで『カウンター』を発動可能です！")
 	)
 
 
@@ -285,16 +352,12 @@ func update_ui() -> void:
 		
 	ui.update_parry_count(parry_count)
 	
-	# ガードと解析情報の更新
-	if ui.has_method("update_guard_status"):
-		ui.update_guard_status(player.cooldown_timer, player.is_guarding)
+	# ガードとヒート／解析情報の更新
+	if ui.has_method("update_guard_heat") and is_instance_valid(player):
+		ui.update_guard_heat(player.shield_heat, player.max_shield_heat, player.is_overheated, player.overheat_timer, player.is_guarding)
 		
-	if ui.has_method("update_analysis_progress"):
-		ui.update_analysis_progress(
-			player.weapons["beam"]["progress"], player.weapons["beam"]["analyzed"],
-			player.weapons["missile"]["progress"], player.weapons["missile"]["analyzed"],
-			player.current_weapon
-		)
+	if ui.has_method("update_pattern_analysis") and is_instance_valid(player):
+		ui.update_pattern_analysis(player.analysis_patterns)
 		
 	# ボスのエネルギー状況を表示する
 	if (state == "boss" or state == "victory_transition") and is_instance_valid(boss) and ui.has_method("update_boss_energy"):
@@ -312,11 +375,36 @@ func add_damage_score(amount: int) -> void:
 	total_damage_score += amount
 
 
+func add_tech_points(amount: int) -> void:
+	Global.tech_points += amount
+	if is_instance_valid(player):
+		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+
+
 func on_boss_destroyed() -> void:
 	state = "victory"
 	clear_all_bullets()
 	if is_instance_valid(player):
 		player.is_full_burst = false
+		
+	# ボス撃破の報酬（カウンターシステム武器のアンロックと技術ポイント獲得）
+	if current_stage_num == 1:
+		if not Global.unlocked_counter_weapons.has("boss_beam"):
+			Global.unlocked_counter_weapons.append("boss_beam")
+			spawn_popup("【AIアシスト】ボス技術の回収成功！\n『ギガレーザー』がカウンター兵装で装備可能です。")
+		Global.tech_points += 30
+		spawn_popup("強化ポイント +30 獲得！")
+	elif current_stage_num == 2:
+		if not Global.unlocked_counter_weapons.has("boss_missile"):
+			Global.unlocked_counter_weapons.append("boss_missile")
+			spawn_popup("【AIアシスト】ボス技術の回収成功！\n『ハイパーミサイル』がカウンター兵装で装備可能です。")
+		Global.tech_points += 40
+		spawn_popup("強化ポイント +40 獲得！")
+		
+	# セーブデータの更新
+	if is_instance_valid(player):
+		Global.save_game(current_stage_num, total_damage_score, {})
+		
 	show_game_over("VICTORY")
 
 
@@ -331,4 +419,5 @@ func show_game_over(result: String) -> void:
 
 
 func restart() -> void:
+	clean_stage_entities()
 	get_tree().reload_current_scene()
