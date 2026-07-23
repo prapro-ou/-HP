@@ -1,4 +1,11 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
-desktop.ini
+# Windows-specific files
+*.ini
+*.ini.import
+[Tt]humbs.db
+[Tt]humbs.db.import
+$RECYCLE.BIN/
+*.lnk
+

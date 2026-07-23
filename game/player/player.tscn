@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://dmua6sakwpwly"]
+
+[ext_resource type="Script" uid="uid://beu3eun0nnd5x" path="res://game/player/player.gd" id="1_g2els"]
+[ext_resource type="Texture2D" uid="uid://c7yq8672clws5" path="res://game/assets/player.png" id="2_qhqgy"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dqkch"]
+radius = 12.0
+
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_eb6dy"]
+radius = 126.14278
+
+[node name="Player" type="CharacterBody2D" unique_id=2088227644]
+script = ExtResource("1_g2els")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1189553547]
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("2_qhqgy")
+
+[node name="DamageShape" type="CollisionShape2D" parent="." unique_id=1297327662]
+shape = SubResource("CircleShape2D_dqkch")
+
+[node name="JustGuard" type="Area2D" parent="." unique_id=616992758]
+
+[node name="JustGuardShape" type="CollisionShape2D" parent="JustGuard" unique_id=1966570012]
+shape = SubResource("CircleShape2D_eb6dy")
+debug_color = Color(0.7893902, 0.35316834, 0.6377279, 0.41960785)
