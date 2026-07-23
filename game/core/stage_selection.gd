@@ -97,15 +97,15 @@ func init_stages() -> void:
 	st2.scene_path = "res://game/stages/stage_2.tscn"
 	stages.append(st2)
 	
-	# Stage 3
+	# Stage 3 (Locked/Demos for progression feel)
 	var st3 = StageData.new()
 	st3.id = 3
-	st3.title = "EMPEROR FORTRESS"
-	st3.codename = "SECTOR-03: ANCIENT BATTLEFIELD"
-	st3.description = "Dense barrage zone defended by triple overload drones and the Ancient Emperor Dreadnought."
-	st3.difficulty = "HARD"
-	st3.color = Color.ORANGE
-	st3.scene_path = "res://game/stages/stage_3.tscn"
+	st3.title = "ATMOSPHERE LIMIT"
+	st3.codename = "SECTOR-03: STRATOSPHERE TERMINAL"
+	st3.description = "An orbital elevator core leading to outer defense arrays. Extremely high speed projectile interceptors detected. Under development."
+	st3.difficulty = "HARD (DEMO)"
+	st3.color = Color.RED
+	st3.scene_path = "res://game/stages/stage_1.tscn" # Loops for demo
 	stages.append(st3)
 
 func setup_ui() -> void:
