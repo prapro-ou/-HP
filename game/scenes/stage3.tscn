@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/enemies/boss/boss.tscn" id="1_boss"]
+[ext_resource type="PackedScene" uid="uid://dmua6sakwpwly" path="res://game/player/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://game/scripts/GameManagerStage3.gd" id="3_gamemanager"]
+[ext_resource type="Script" uid="uid://f6xtgega3g1g" path="res://game/core/ui.gd" id="4_ui"]
+[ext_resource type="Script" uid="uid://b6t1x3undf74f" path="res://game/core/bullet_pool.gd" id="5_bulletpool"]
+
+[node name="Main" type="Node2D" unique_id=1066061339]
+position = Vector2(-1, 0)
+
+[node name="Boss" parent="." unique_id=790002214 instance=ExtResource("1_boss")]
+position = Vector2(397, 192)
+
+[node name="Player" parent="." unique_id=1961602926 instance=ExtResource("2_player")]
+position = Vector2(397, 869)
+
+[node name="GameManager" type="Node2D" parent="." unique_id=1905154916]
+script = ExtResource("3_gamemanager")
+
+[node name="UI" type="Control" parent="." unique_id=276748966]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("4_ui")
+metadata/_edit_use_anchors_ = true
+
+[node name="BulletPool" type="Node2D" parent="." unique_id=1814555887]
+script = ExtResource("5_bulletpool")
+
+[node name="PlayerBullets" type="Node2D" parent="." unique_id=1624652473]
+
+[node name="EnemyBullets" type="Node2D" parent="." unique_id=2046813927]
