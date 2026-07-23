@@ -97,16 +97,27 @@ func init_stages() -> void:
 	st2.scene_path = "res://game/stages/stage_2.tscn"
 	stages.append(st2)
 	
-	# Stage 3 (Locked/Demos for progression feel)
+	# Stage 3
 	var st3 = StageData.new()
 	st3.id = 3
-	st3.title = "ATMOSPHERE LIMIT"
-	st3.codename = "SECTOR-03: STRATOSPHERE TERMINAL"
-	st3.description = "An orbital elevator core leading to outer defense arrays. Extremely high speed projectile interceptors detected. Under development."
-	st3.difficulty = "HARD (DEMO)"
-	st3.color = Color.RED
-	st3.scene_path = "res://game/stages/stage_1.tscn" # Loops for demo
+	st3.title = "EMPEROR FORTRESS"
+	st3.codename = "SECTOR-03: ANCIENT BATTLEFIELD"
+	st3.description = "Dense barrage zone defended by triple overload drones and the Ancient Emperor Dreadnought."
+	st3.difficulty = "HARD"
+	st3.color = Color.ORANGE
+	st3.scene_path = "res://game/stages/stage_3.tscn"
 	stages.append(st3)
+
+	# Stage 4
+	var st4 = StageData.new()
+	st4.id = 4
+	st4.title = "PHANTOM CLOAK"
+	st4.codename = "SECTOR-04: MIRAGE MATRIX NEBULA"
+	st4.description = "Stealth field and optical illusions. Face stealth blinking drones and the Phantom Dreadnought carrier."
+	st4.difficulty = "VERY HARD"
+	st4.color = Color(0.7, 0.4, 1.0)
+	st4.scene_path = "res://game/stages/stage_4.tscn"
+	stages.append(st4)
 
 func setup_ui() -> void:
 	# 1. Base dark background

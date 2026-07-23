@@ -15,7 +15,7 @@ var state: String = "start"
 
 var parry_count: int = 0
 var total_damage_score: int = 0
-var drone_scene = preload("res://game/scenes/enemy_drone.tscn")
+var drone_scene = preload("res://game/enemies/drone/enemy_drone.tscn")
 var spawned_drones: Array = []
 var state_timer: float = 0.0
 var last_active_stage: String = "WAVE 1: MIRAGE MATRIX"

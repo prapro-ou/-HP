@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://game/enemies/boss/boss.tscn" id="1_boss"]
 [ext_resource type="PackedScene" uid="uid://dmua6sakwpwly" path="res://game/player/player.tscn" id="2_player"]
-[ext_resource type="Script" path="res://game/scripts/GameManagerStage4.gd" id="3_gamemanager"]
+[ext_resource type="Script" path="res://game/scripts/GameManagerStage3.gd" id="3_gamemanager"]
 [ext_resource type="Script" uid="uid://f6xtgega3g1g" path="res://game/core/ui.gd" id="4_ui"]
 [ext_resource type="Script" uid="uid://b6t1x3undf74f" path="res://game/core/bullet_pool.gd" id="5_bulletpool"]
 
