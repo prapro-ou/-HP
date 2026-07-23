@@ -101,12 +101,12 @@ func setup_layout() -> void:
 	
 	# 4. Sci-Fi Title
 	title_label = Label.new()
-	title_label.text = "COUNTER CORE"
+	title_label.text = "カウンターコア"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 56
+	title_set.font_size = 64
 	title_set.font_color = Color.CYAN
-	title_set.outline_size = 12
+	title_set.outline_size = 14
 	title_set.outline_color = Color(0.05, 0.05, 0.1)
 	title_label.label_settings = title_set
 	title_label.pivot_offset = Vector2(350, 60)
@@ -114,19 +114,19 @@ func setup_layout() -> void:
 	
 	# Subtitle
 	subtitle_label = Label.new()
-	subtitle_label.text = "PARRY TO ANALYZE - EXECUTE COUNTER ATTACKS"
+	subtitle_label.text = "パリィで解析・カウンターで撃破"
 	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var sub_set = LabelSettings.new()
-	sub_set.font_size = 13
+	sub_set.font_size = 22
 	sub_set.font_color = Color.GOLD
-	sub_set.outline_size = 4
+	sub_set.outline_size = 6
 	sub_set.outline_color = Color.BLACK
 	subtitle_label.label_settings = sub_set
 	main_vbox.add_child(subtitle_label)
 	
 	# Spacer
 	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 100)
+	spacer.custom_minimum_size = Vector2(0, 80)
 	main_vbox.add_child(spacer)
 	
 	# 5. Main Menu Container
@@ -151,18 +151,20 @@ func setup_menu_container() -> void:
 	
 	# Play Start Button
 	play_start_btn = Button.new()
-	play_start_btn.text = "プレイスタート / PLAY START"
-	play_start_btn.custom_minimum_size = Vector2(340, 70)
+	play_start_btn.text = "出撃開始"
+	play_start_btn.custom_minimum_size = Vector2(340, 75)
 	play_start_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	play_start_btn.add_theme_font_size_override("font_size", 28)
 	menu_container.add_child(play_start_btn)
 	style_button(play_start_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	add_button_animations(play_start_btn)
 	
 	# Settings Button
 	settings_btn = Button.new()
-	settings_btn.text = "環境設定 / SETTINGS"
-	settings_btn.custom_minimum_size = Vector2(340, 70)
+	settings_btn.text = "設定"
+	settings_btn.custom_minimum_size = Vector2(340, 75)
 	settings_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	settings_btn.add_theme_font_size_override("font_size", 28)
 	menu_container.add_child(settings_btn)
 	style_button(settings_btn, Color(0.8, 0.4, 1.0), Color(0.9, 0.6, 1.0))
 	add_button_animations(settings_btn)
@@ -207,12 +209,12 @@ func setup_settings_container() -> void:
 	
 	# Title
 	var settings_title = Label.new()
-	settings_title.text = "環境設定 - SETTINGS"
+	settings_title.text = "設定"
 	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 22
+	title_set.font_size = 28
 	title_set.font_color = Color(0.9, 0.6, 1.0)
-	title_set.outline_size = 4
+	title_set.outline_size = 6
 	title_set.outline_color = Color.BLACK
 	settings_title.label_settings = title_set
 	content.add_child(settings_title)
@@ -230,9 +232,9 @@ func setup_settings_container() -> void:
 	
 	# --- SECTION 1: DISPLAY ---
 	var d_title = Label.new()
-	d_title.text = "画面設定 / DISPLAY"
+	d_title.text = "画面設定"
 	var sec_set = LabelSettings.new()
-	sec_set.font_size = 14
+	sec_set.font_size = 20
 	sec_set.font_color = Color.CYAN
 	d_title.label_settings = sec_set
 	scroll_content.add_child(d_title)
@@ -244,48 +246,51 @@ func setup_settings_container() -> void:
 	scroll_content.add_child(grid_display)
 	
 	# Mode
-	grid_display.add_child(create_label("画面モード (Window Mode):"))
+	grid_display.add_child(create_label("画面モード:"))
 	mode_option = OptionButton.new()
-	mode_option.add_item("ウィンドウ / Windowed", 0)
-	mode_option.add_item("フルスクリーン / Fullscreen", 1)
-	mode_option.add_item("ボーダレス / Borderless", 2)
-	mode_option.custom_minimum_size = Vector2(200, 32)
+	mode_option.add_item("ウィンドウ", 0)
+	mode_option.add_item("フルスクリーン", 1)
+	mode_option.add_item("ボーダレス", 2)
+	mode_option.custom_minimum_size = Vector2(200, 36)
+	mode_option.add_theme_font_size_override("font_size", 16)
 	grid_display.add_child(mode_option)
 	
 	# Resolution / Scale (Vertical formats only)
-	grid_display.add_child(create_label("画面スケール (Vertical Size):"))
+	grid_display.add_child(create_label("画面サイズ:"))
 	scale_option = OptionButton.new()
 	scale_option.add_item("400x600 (0.50x)", 0)
 	scale_option.add_item("600x900 (0.75x)", 1)
 	scale_option.add_item("800x1200 (1.00x)", 2)
 	scale_option.add_item("1000x1500 (1.25x)", 3)
-	scale_option.custom_minimum_size = Vector2(200, 32)
+	scale_option.custom_minimum_size = Vector2(200, 36)
+	scale_option.add_theme_font_size_override("font_size", 16)
 	grid_display.add_child(scale_option)
 	
 	# Aspect Ratio
-	grid_display.add_child(create_label("画面縦横比 (Aspect Ratio):"))
+	grid_display.add_child(create_label("縦横比:"))
 	aspect_option = OptionButton.new()
 	aspect_option.add_item("縦長 2:3 (標準)", 0)
 	aspect_option.add_item("縦長 3:4", 1)
 	aspect_option.add_item("縦長 9:16 (極細)", 2)
-	aspect_option.custom_minimum_size = Vector2(200, 32)
+	aspect_option.custom_minimum_size = Vector2(200, 36)
+	aspect_option.add_theme_font_size_override("font_size", 16)
 	grid_display.add_child(aspect_option)
 	
 	# VSync
-	grid_display.add_child(create_label("垂直同期 (V-Sync):"))
+	grid_display.add_child(create_label("垂直同期:"))
 	vsync_check = CheckButton.new()
 	vsync_check.text = ""
 	grid_display.add_child(vsync_check)
 	
 	# Shake
-	grid_display.add_child(create_label("画面の揺れ (Screen Shake):"))
+	grid_display.add_child(create_label("画面振動:"))
 	shake_check = CheckButton.new()
 	shake_check.text = ""
 	grid_display.add_child(shake_check)
 	
 	# --- SECTION 2: AUDIO ---
 	var a_title = Label.new()
-	a_title.text = "音量設定 / AUDIO"
+	a_title.text = "音量設定"
 	a_title.label_settings = sec_set
 	scroll_content.add_child(a_title)
 	
@@ -296,7 +301,7 @@ func setup_settings_container() -> void:
 	scroll_content.add_child(grid_audio)
 	
 	# Master
-	grid_audio.add_child(create_label("マスター音量 (Master):"))
+	grid_audio.add_child(create_label("主音量:"))
 	var master_box = HBoxContainer.new()
 	master_slider = HSlider.new()
 	master_slider.min_value = 0
@@ -307,12 +312,16 @@ func setup_settings_container() -> void:
 	master_lbl = Label.new()
 	master_lbl.text = "80%"
 	master_lbl.custom_minimum_size = Vector2(40, 0)
+	var master_lset = LabelSettings.new()
+	master_lset.font_size = 16
+	master_lset.font_color = Color.WHITE
+	master_lbl.label_settings = master_lset
 	master_box.add_child(master_slider)
 	master_box.add_child(master_lbl)
 	grid_audio.add_child(master_box)
 	
 	# BGM
-	grid_audio.add_child(create_label("BGM音量 (BGM):"))
+	grid_audio.add_child(create_label("BGM音量:"))
 	var bgm_box = HBoxContainer.new()
 	bgm_slider = HSlider.new()
 	bgm_slider.min_value = 0
@@ -323,12 +332,13 @@ func setup_settings_container() -> void:
 	bgm_lbl = Label.new()
 	bgm_lbl.text = "80%"
 	bgm_lbl.custom_minimum_size = Vector2(40, 0)
+	bgm_lbl.label_settings = master_lset
 	bgm_box.add_child(bgm_slider)
 	bgm_box.add_child(bgm_lbl)
 	grid_audio.add_child(bgm_box)
 	
 	# SFX
-	grid_audio.add_child(create_label("効果音音量 (SFX):"))
+	grid_audio.add_child(create_label("効果音:"))
 	var sfx_box = HBoxContainer.new()
 	sfx_slider = HSlider.new()
 	sfx_slider.min_value = 0
@@ -339,27 +349,30 @@ func setup_settings_container() -> void:
 	sfx_lbl = Label.new()
 	sfx_lbl.text = "80%"
 	sfx_lbl.custom_minimum_size = Vector2(40, 0)
+	sfx_lbl.label_settings = master_lset
 	sfx_box.add_child(sfx_slider)
 	sfx_box.add_child(sfx_lbl)
 	grid_audio.add_child(sfx_box)
 	
 	# --- SECTION 3: SYSTEM/DATA ---
 	var s_title = Label.new()
-	s_title.text = "データ管理 / DATA"
+	s_title.text = "データ設定"
 	s_title.label_settings = sec_set
 	scroll_content.add_child(s_title)
 	
 	reset_btn = Button.new()
-	reset_btn.text = "セーブデータを初期化する / RESET SAVE DATA"
-	reset_btn.custom_minimum_size = Vector2(300, 36)
+	reset_btn.text = "データ初期化"
+	reset_btn.custom_minimum_size = Vector2(300, 44)
+	reset_btn.add_theme_font_size_override("font_size", 18)
 	style_button(reset_btn, Color(0.9, 0.2, 0.2), Color(1.0, 0.4, 0.4))
 	scroll_content.add_child(reset_btn)
 	
 	# Save & Back
 	back_btn = Button.new()
-	back_btn.text = "適用して戻る / SAVE & BACK"
-	back_btn.custom_minimum_size = Vector2(250, 48)
+	back_btn.text = "保存して戻る"
+	back_btn.custom_minimum_size = Vector2(250, 52)
 	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	back_btn.add_theme_font_size_override("font_size", 22)
 	content.add_child(back_btn)
 	style_button(back_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
 	add_button_animations(back_btn)
@@ -394,7 +407,7 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog = PanelContainer.new()
 	confirm_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	confirm_dialog.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	confirm_dialog.custom_minimum_size = Vector2(400, 220)
+	confirm_dialog.custom_minimum_size = Vector2(420, 240)
 	confirm_dialog.hide()
 	add_child(confirm_dialog)
 	
@@ -405,8 +418,8 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.anchor_bottom = 0.5
 	confirm_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	confirm_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
-	confirm_dialog.offset_left = -200
-	confirm_dialog.offset_top = -110
+	confirm_dialog.offset_left = -210
+	confirm_dialog.offset_top = -120
 	
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.12, 0.04, 0.04, 0.98) # Dark Red themed
@@ -436,19 +449,21 @@ func setup_confirm_dialog() -> void:
 	margin.add_child(box)
 	
 	var warn_title = Label.new()
-	warn_title.text = "⚠️ 警告 / WARNING"
+	warn_title.text = "⚠️ 警告"
 	warn_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var w_lbl_set = LabelSettings.new()
-	w_lbl_set.font_size = 18
+	w_lbl_set.font_size = 26
 	w_lbl_set.font_color = Color.RED
+	w_lbl_set.outline_size = 4
+	w_lbl_set.outline_color = Color.BLACK
 	warn_title.label_settings = w_lbl_set
 	box.add_child(warn_title)
 	
 	var warn_desc = Label.new()
-	warn_desc.text = "セーブデータを完全に削除しますか？\nこの操作は元に戻せません。"
+	warn_desc.text = "セーブデータを削除しますか？\nこの操作は元に戻せません。"
 	warn_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var d_lbl_set = LabelSettings.new()
-	d_lbl_set.font_size = 13
+	d_lbl_set.font_size = 18
 	d_lbl_set.font_color = Color.WHITE
 	warn_desc.label_settings = d_lbl_set
 	box.add_child(warn_desc)
@@ -459,14 +474,16 @@ func setup_confirm_dialog() -> void:
 	box.add_child(btns_box)
 	
 	var delete_confirm_btn = Button.new()
-	delete_confirm_btn.text = "削除する / DELETE"
-	delete_confirm_btn.custom_minimum_size = Vector2(150, 40)
+	delete_confirm_btn.text = "削除"
+	delete_confirm_btn.custom_minimum_size = Vector2(150, 48)
+	delete_confirm_btn.add_theme_font_size_override("font_size", 20)
 	style_button(delete_confirm_btn, Color.RED, Color(1.0, 0.4, 0.4))
 	btns_box.add_child(delete_confirm_btn)
 	
 	var cancel_confirm_btn = Button.new()
-	cancel_confirm_btn.text = "キャンセル / CANCEL"
-	cancel_confirm_btn.custom_minimum_size = Vector2(150, 40)
+	cancel_confirm_btn.text = "キャンセル"
+	cancel_confirm_btn.custom_minimum_size = Vector2(150, 48)
+	cancel_confirm_btn.add_theme_font_size_override("font_size", 20)
 	style_button(cancel_confirm_btn, Color.LIGHT_GRAY, Color.WHITE)
 	btns_box.add_child(cancel_confirm_btn)
 	
@@ -483,7 +500,7 @@ func setup_tutorial_confirm_dialog() -> void:
 	tutorial_dialog = PanelContainer.new()
 	tutorial_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	tutorial_dialog.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	tutorial_dialog.custom_minimum_size = Vector2(420, 240)
+	tutorial_dialog.custom_minimum_size = Vector2(440, 250)
 	tutorial_dialog.hide()
 	add_child(tutorial_dialog)
 	
@@ -494,8 +511,8 @@ func setup_tutorial_confirm_dialog() -> void:
 	tutorial_dialog.anchor_bottom = 0.5
 	tutorial_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	tutorial_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
-	tutorial_dialog.offset_left = -210
-	tutorial_dialog.offset_top = -120
+	tutorial_dialog.offset_left = -220
+	tutorial_dialog.offset_top = -125
 	
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.06, 0.08, 0.12, 0.98) # Dark blue themed
@@ -525,10 +542,10 @@ func setup_tutorial_confirm_dialog() -> void:
 	margin.add_child(box)
 	
 	var t_title = Label.new()
-	t_title.text = "🤖 TUTORIAL SYSTEM"
+	t_title.text = "🤖 チュートリアル"
 	t_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var t_lbl_set = LabelSettings.new()
-	t_lbl_set.font_size = 18
+	t_lbl_set.font_size = 26
 	t_lbl_set.font_color = Color.CYAN
 	t_lbl_set.outline_size = 4
 	t_lbl_set.outline_color = Color.BLACK
@@ -536,10 +553,10 @@ func setup_tutorial_confirm_dialog() -> void:
 	box.add_child(t_title)
 	
 	var t_desc = Label.new()
-	t_desc.text = "初回用チュートリアル（スローモーション機能）\nをプレイしますか？"
+	t_desc.text = "操作説明（スロー機能）の\nチュートリアルをプレイしますか？"
 	t_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var d_lbl_set = LabelSettings.new()
-	d_lbl_set.font_size = 13
+	d_lbl_set.font_size = 18
 	d_lbl_set.font_color = Color.WHITE
 	t_desc.label_settings = d_lbl_set
 	box.add_child(t_desc)
@@ -550,14 +567,16 @@ func setup_tutorial_confirm_dialog() -> void:
 	box.add_child(btns_box)
 	
 	var play_btn = Button.new()
-	play_btn.text = "はい / PLAY"
-	play_btn.custom_minimum_size = Vector2(150, 40)
+	play_btn.text = "プレイ"
+	play_btn.custom_minimum_size = Vector2(150, 48)
+	play_btn.add_theme_font_size_override("font_size", 20)
 	style_button(play_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
 	btns_box.add_child(play_btn)
 	
 	var skip_btn = Button.new()
-	skip_btn.text = "いいえ / SKIP"
-	skip_btn.custom_minimum_size = Vector2(150, 40)
+	skip_btn.text = "スキップ"
+	skip_btn.custom_minimum_size = Vector2(150, 48)
+	skip_btn.add_theme_font_size_override("font_size", 20)
 	style_button(skip_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
 	btns_box.add_child(skip_btn)
 	
@@ -578,8 +597,8 @@ func create_label(text: String) -> Label:
 	var l = Label.new()
 	l.text = text
 	var l_set = LabelSettings.new()
-	l_set.font_size = 13
-	l_set.font_color = Color.LIGHT_GRAY
+	l_set.font_size = 18
+	l_set.font_color = Color.WHITE
 	l.label_settings = l_set
 	return l
 

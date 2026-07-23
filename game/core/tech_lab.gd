@@ -65,33 +65,33 @@ func setup_ui() -> void:
 	# 2. Main lab container
 	var vbox = VBoxContainer.new()
 	vbox.anchor_left = 0.08
-	vbox.anchor_top = 0.08
+	vbox.anchor_top = 0.06
 	vbox.anchor_right = 0.92
-	vbox.anchor_bottom = 0.92
+	vbox.anchor_bottom = 0.94
 	vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
 	vbox.offset_left = 0
 	vbox.offset_right = 0
 	vbox.offset_top = 0
 	vbox.offset_bottom = 0
-	vbox.add_theme_constant_override("separation", 18)
+	vbox.add_theme_constant_override("separation", 16)
 	add_child(vbox)
 	
 	# Title Section
 	var title_lbl = Label.new()
-	title_lbl.text = "SPECIAL TECHNOLOGY LAB\n(特殊技研開発室)"
+	title_lbl.text = "機体強化ラボ"
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 28
+	title_set.font_size = 38
 	title_set.font_color = Color.GOLD
-	title_set.outline_size = 6
+	title_set.outline_size = 8
 	title_set.outline_color = Color.BLACK
 	title_lbl.label_settings = title_set
 	vbox.add_child(title_lbl)
 	
 	# HUD Panel for Tech Points
 	var hud_panel = PanelContainer.new()
-	hud_panel.custom_minimum_size = Vector2(300, 50)
+	hud_panel.custom_minimum_size = Vector2(300, 54)
 	hud_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(hud_panel)
 	
@@ -114,18 +114,20 @@ func setup_ui() -> void:
 	tech_points_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tech_points_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var tech_set = LabelSettings.new()
-	tech_set.font_size = 18
+	tech_set.font_size = 24
 	tech_set.font_color = Color.GOLD
+	tech_set.outline_size = 4
+	tech_set.outline_color = Color.BLACK
 	tech_points_label.label_settings = tech_set
 	hud_panel.add_child(tech_points_label)
 	
 	# --- SECTION 1: BASIC CAPABILITY ENHANCEMENTS ---
-	var cap_sec = create_section_vbox("BASIC MODULE UPGRADES (基礎能力の底上げ)", vbox)
+	var cap_sec = create_section_vbox("基礎能力の強化", vbox)
 	
 	# HP Enhancement Row
 	var hp_row = create_upgrade_row(
-		"STRUCTURAL INTEGRITY (最大HPの増加)", 
-		"Reinforces ship composite alloy plating. Each level increases max HP capacity by +10 units.",
+		"最大HP増加", 
+		"装甲を補強し、最大HPを+10増加。",
 		cap_sec
 	)
 	hp_lvl_lbl = hp_row.level_label
@@ -134,8 +136,8 @@ func setup_ui() -> void:
 	
 	# Parry Area Row
 	var parry_row = create_upgrade_row(
-		"DEFLECTION BUBBLE (パリィ判定範囲の拡大)", 
-		"Amplifies shield emitter energy to increase parry ring radius by +5px, easing guard windows.",
+		"パリィ範囲拡大", 
+		"シールド範囲を拡張し、パリィを容易にする。",
 		cap_sec
 	)
 	parry_lvl_lbl = parry_row.level_label
@@ -144,8 +146,8 @@ func setup_ui() -> void:
 	
 	# Cooldown Row
 	var cd_row = create_upgrade_row(
-		"THERMAL DISCHARGE (パリィ冷却時間の短縮)", 
-		"Integrates active cooling coils, reducing parry shield cooldown duration by -0.1s.",
+		"冷却時間短縮", 
+		"冷却機構を強化し、パリィの再使用時間を短縮。",
 		cap_sec
 	)
 	cd_lvl_lbl = cd_row.level_label
@@ -153,7 +155,7 @@ func setup_ui() -> void:
 	cd_cost_btn.pressed.connect(func(): perform_upgrade("cooldown"))
 	
 	# --- SECTION 2: WEAPONS ANALYSIS & RESEARCH ---
-	var wp_sec = create_section_vbox("WEAPONS TECHNOLOGY HARVEST (自武器の解放)", vbox)
+	var wp_sec = create_section_vbox("兵装開発", vbox)
 	var wp_vbox = VBoxContainer.new()
 	wp_vbox.add_theme_constant_override("separation", 10)
 	wp_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -161,9 +163,9 @@ func setup_ui() -> void:
 	
 	# Plasma weapon card
 	var plasma_card = create_weapon_research_card(
-		"PLASMA EMITTER",
-		"Deploys unstable thermal plasma fields that deal continuous damage. Requires high thermal data.",
-		"ANALYSIS COST: 40 TP",
+		"プラズマ放射器",
+		"持続ダメージを与える熱プラズマを放射。",
+		"コスト: 40 TP",
 		wp_vbox
 	)
 	plasma_btn = plasma_card.unlock_button
@@ -171,9 +173,9 @@ func setup_ui() -> void:
 	
 	# Tackle weapon card
 	var tackle_card = create_weapon_research_card(
-		"KINETIC TACKLE",
-		"Deploys high-impulse ship thruster rams. Directly crashes targets via hull impact.",
-		"ANALYSIS COST: 50 TP",
+		"タックル",
+		"機体体当たり攻撃。近距離超威力。",
+		"コスト: 50 TP",
 		wp_vbox
 	)
 	tackle_btn = tackle_card.unlock_button
@@ -185,35 +187,37 @@ func setup_ui() -> void:
 	footer_hbox.add_theme_constant_override("separation", 40)
 	footer_hbox.anchor_left = 0.0
 	footer_hbox.anchor_right = 1.0
-	footer_hbox.anchor_top = 0.93
-	footer_hbox.anchor_bottom = 0.93
+	footer_hbox.anchor_top = 0.91
+	footer_hbox.anchor_bottom = 0.91
 	footer_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	footer_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH
 	add_child(footer_hbox)
 	
 	back_btn = Button.new()
-	back_btn.text = "戻る / BACK"
-	back_btn.custom_minimum_size = Vector2(200, 46)
+	back_btn.text = "戻る"
+	back_btn.custom_minimum_size = Vector2(180, 52)
+	back_btn.add_theme_font_size_override("font_size", 22)
 	footer_hbox.add_child(back_btn)
 	style_btn(back_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	back_btn.pressed.connect(_on_back_pressed)
 	
 	demo_btn = Button.new()
-	demo_btn.text = "デバッグ: 解析値+50 / DEBUG: +50 TP"
-	demo_btn.custom_minimum_size = Vector2(240, 46)
+	demo_btn.text = "+50 TP (デバッグ)"
+	demo_btn.custom_minimum_size = Vector2(220, 52)
+	demo_btn.add_theme_font_size_override("font_size", 20)
 	footer_hbox.add_child(demo_btn)
 	style_btn(demo_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
 	demo_btn.pressed.connect(_on_demo_pressed)
 
 func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
+	vbox.add_theme_constant_override("separation", 8)
 	parent.add_child(vbox)
 	
 	var lbl = Label.new()
 	lbl.text = title_text
 	var l_set = LabelSettings.new()
-	l_set.font_size = 13
+	l_set.font_size = 20
 	l_set.font_color = Color.CYAN
 	lbl.label_settings = l_set
 	vbox.add_child(lbl)
@@ -261,7 +265,7 @@ func create_upgrade_row(title_text: String, desc_text: String, parent: Node) -> 
 	var title = Label.new()
 	title.text = title_text
 	var t_set = LabelSettings.new()
-	t_set.font_size = 14
+	t_set.font_size = 18
 	t_set.font_color = Color.WHITE
 	title.label_settings = t_set
 	text_vbox.add_child(title)
@@ -270,26 +274,29 @@ func create_upgrade_row(title_text: String, desc_text: String, parent: Node) -> 
 	desc.text = desc_text
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var d_set = LabelSettings.new()
-	d_set.font_size = 11
-	d_set.font_color = Color(0.6, 0.7, 0.8)
+	d_set.font_size = 15
+	d_set.font_color = Color(0.7, 0.8, 0.9)
 	desc.label_settings = d_set
 	text_vbox.add_child(desc)
 	
 	# Current Level indicator
 	var lvl_lbl = Label.new()
 	lvl_lbl.text = "LV. 0"
-	lvl_lbl.custom_minimum_size = Vector2(70, 0)
+	lvl_lbl.custom_minimum_size = Vector2(80, 0)
 	lvl_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var l_set = LabelSettings.new()
-	l_set.font_size = 14
+	l_set.font_size = 18
 	l_set.font_color = Color.CYAN
+	l_set.outline_size = 4
+	l_set.outline_color = Color.BLACK
 	lvl_lbl.label_settings = l_set
 	hbox.add_child(lvl_lbl)
 	
 	# Upgrade Button
 	var cost_btn = Button.new()
-	cost_btn.text = "UPGRADE\n(10 TP)"
-	cost_btn.custom_minimum_size = Vector2(120, 44)
+	cost_btn.text = "強化\n(10 TP)"
+	cost_btn.custom_minimum_size = Vector2(130, 48)
+	cost_btn.add_theme_font_size_override("font_size", 16)
 	hbox.add_child(cost_btn)
 	style_action_btn(cost_btn, Color.CYAN)
 	
@@ -334,7 +341,7 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	var name_lbl = Label.new()
 	name_lbl.text = w_name
 	var n_set = LabelSettings.new()
-	n_set.font_size = 15
+	n_set.font_size = 20
 	n_set.font_color = Color.WHITE
 	name_lbl.label_settings = n_set
 	vbox.add_child(name_lbl)
@@ -345,15 +352,16 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	desc_lbl.custom_minimum_size = Vector2(0, 36)
 	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var d_set = LabelSettings.new()
-	d_set.font_size = 11
-	d_set.font_color = Color(0.6, 0.7, 0.8)
+	d_set.font_size = 16
+	d_set.font_color = Color(0.7, 0.8, 0.9)
 	desc_lbl.label_settings = d_set
 	vbox.add_child(desc_lbl)
 	
 	# Action button
 	var btn = Button.new()
-	btn.text = "RESEARCH (" + cost_text + ")"
-	btn.custom_minimum_size = Vector2(0, 36)
+	btn.text = "開発 (" + cost_text + ")"
+	btn.custom_minimum_size = Vector2(0, 42)
+	btn.add_theme_font_size_override("font_size", 18)
 	vbox.add_child(btn)
 	style_action_btn(btn, Color.GOLD)
 	
@@ -423,58 +431,58 @@ func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
 	)
 
 func update_lab_hud() -> void:
-	tech_points_label.text = "AVAILABLE ANALYSIS DATA: " + str(Global.tech_points) + " TP"
+	tech_points_label.text = "所持ポイント: " + str(Global.tech_points) + " TP"
 	
 	# 1. HP Upgrade button state
 	var hp_lvl = Global.upgrade_levels.get("hp", 0)
 	hp_lvl_lbl.text = "LV. " + str(hp_lvl)
 	if hp_lvl >= 5:
-		hp_lvl_lbl.text = "MAXED"
+		hp_lvl_lbl.text = "MAX"
 		hp_cost_btn.disabled = true
-		hp_cost_btn.text = "MAX LEVEL"
+		hp_cost_btn.text = "MAX"
 	else:
 		var cost = get_upgrade_cost("hp", hp_lvl)
-		hp_cost_btn.text = "UPGRADE\n(" + str(cost) + " TP)"
+		hp_cost_btn.text = "強化\n(" + str(cost) + " TP)"
 		hp_cost_btn.disabled = Global.tech_points < cost
 
 	# 2. Parry Window Upgrade button state
 	var parry_lvl = Global.upgrade_levels.get("parry_window", 0)
 	parry_lvl_lbl.text = "LV. " + str(parry_lvl)
 	if parry_lvl >= 5:
-		parry_lvl_lbl.text = "MAXED"
+		parry_lvl_lbl.text = "MAX"
 		parry_cost_btn.disabled = true
-		parry_cost_btn.text = "MAX LEVEL"
+		parry_cost_btn.text = "MAX"
 	else:
 		var cost = get_upgrade_cost("parry_window", parry_lvl)
-		parry_cost_btn.text = "UPGRADE\n(" + str(cost) + " TP)"
+		parry_cost_btn.text = "強化\n(" + str(cost) + " TP)"
 		parry_cost_btn.disabled = Global.tech_points < cost
 
 	# 3. Cooldown Upgrade button state
 	var cd_lvl = Global.upgrade_levels.get("cooldown", 0)
 	cd_lvl_lbl.text = "LV. " + str(cd_lvl)
 	if cd_lvl >= 5:
-		cd_lvl_lbl.text = "MAXED"
+		cd_lvl_lbl.text = "MAX"
 		cd_cost_btn.disabled = true
-		cd_cost_btn.text = "MAX LEVEL"
+		cd_cost_btn.text = "MAX"
 	else:
 		var cost = get_upgrade_cost("cooldown", cd_lvl)
-		cd_cost_btn.text = "UPGRADE\n(" + str(cost) + " TP)"
+		cd_cost_btn.text = "強化\n(" + str(cost) + " TP)"
 		cd_cost_btn.disabled = Global.tech_points < cost
 
 	# 4. Weapons Research states
 	if Global.unlocked_weapons.has("plasma_emitter"):
 		plasma_btn.disabled = true
-		plasma_btn.text = "ANALYZED (UNLOCKED)"
+		plasma_btn.text = "開発完了"
 	else:
 		plasma_btn.disabled = Global.tech_points < 40
-		plasma_btn.text = "ANALYZE (40 TP)"
+		plasma_btn.text = "開発 (40 TP)"
 
 	if Global.unlocked_weapons.has("kinetic_tackle"):
 		tackle_btn.disabled = true
-		tackle_btn.text = "ANALYZED (UNLOCKED)"
+		tackle_btn.text = "開発完了"
 	else:
 		tackle_btn.disabled = Global.tech_points < 50
-		tackle_btn.text = "ANALYZE (50 TP)"
+		tackle_btn.text = "開発 (50 TP)"
 
 func get_upgrade_cost(type: String, current_lvl: int) -> int:
 	match type:

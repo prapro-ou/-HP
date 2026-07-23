@@ -18,6 +18,7 @@ func _ready_enemy() -> void:
 ## ダメージ処理（スコア加算とポップアップ演出を共通化）
 func take_damage(amount: int) -> void:
 	current_hp -= amount
+	var is_dead = current_hp <= 0
 	
 	var main = get_node_or_null("/root/Main")
 	if main:
@@ -26,13 +27,20 @@ func take_damage(amount: int) -> void:
 			manager.add_damage_score(amount)
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(global_position, amount)
+			ui_node.spawn_damage_popup(global_position, amount, is_dead)
 			
-	if current_hp <= 0:
+	if is_dead:
 		die()
 
 ## 撃破時の処理（子クラスでオーバーライド可能）
 func die() -> void:
+	# 敵撃破時に短く超巨大なテキスト演出（"DESTROY!"）を生成
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var ui_node = main.get_node_or_null("UI")
+		if ui_node and ui_node.has_method("spawn_kill_popup"):
+			ui_node.spawn_kill_popup(global_position, "撃破！")
+			
 	explode()
 	queue_free()
 

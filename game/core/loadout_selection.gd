@@ -70,96 +70,96 @@ func init_data() -> void:
 	# 1. Primary Weapons
 	var w1 = LoadoutItem.new()
 	w1.id = "machine_gun"
-	w1.name = "STANDARD MACHINE GUN"
-	w1.description = "Rapid physical projectile deployment. Offers steady, reliable fire coverage. Starts firing after the first parry."
-	w1.stats = "RATE: ★★★ | DMG: ★★☆ | VEL: ★★☆"
+	w1.name = "マシンガン"
+	w1.description = "標準的な物理連射弾。安定した射撃が可能。"
+	w1.stats = "連射:★★★ | 威力:★★☆ | 弾速:★★☆"
 	w1.is_unlocked = Global.unlocked_weapons.has("machine_gun")
 	primary_weapons.append(w1)
 	
 	var w2 = LoadoutItem.new()
 	w2.id = "burst_rifle"
-	w2.name = "3-ROUND BURST RIFLE"
-	w2.description = "Fires high-impact 3-round burst rounds. Excellent penetrative capacity. Starts firing after the first parry."
-	w2.stats = "RATE: ★★☆ | DMG: ★★★ | VEL: ★★★"
+	w2.name = "3点バースト"
+	w2.description = "高威力の3連射ライフル。高い貫通力を誇る。"
+	w2.stats = "連射:★★☆ | 威力:★★★ | 弾速:★★★"
 	w2.is_unlocked = Global.unlocked_weapons.has("burst_rifle")
 	primary_weapons.append(w2)
 	
 	var w3 = LoadoutItem.new()
 	w3.id = "pulse_gun"
-	w3.name = "DUAL PULSE CANNON"
-	w3.description = "Releases twin spreading plasma pulses. Excellent coverage for sweeping screens. Starts firing after the first parry."
-	w3.stats = "RATE: ★★★ | DMG: ★★☆ | VEL: ★☆☆"
+	w3.name = "パルスガン"
+	w3.description = "広範囲プラズマ弾。敵群の掃討に最適。"
+	w3.stats = "連射:★★★ | 威力:★★☆ | 弾速:★☆☆"
 	w3.is_unlocked = Global.unlocked_weapons.has("pulse_gun")
 	primary_weapons.append(w3)
 	
 	var w4 = LoadoutItem.new()
 	w4.id = "charge_rifle"
-	w4.name = "COIL CHARGE RIFLE"
-	w4.description = "Charges raw energy to release a massive penetrative railgun bolt. Extreme destruction. Starts firing after the first parry."
-	w4.stats = "RATE: ★☆☆ | DMG: ★★★ | VEL: ★★★"
+	w4.name = "チャージライフル"
+	w4.description = "強力な一撃を放つチャージ式レールガン。"
+	w4.stats = "連射:★☆☆ | 威力:★★★ | 弾速:★★★"
 	w4.is_unlocked = Global.unlocked_weapons.has("charge_rifle")
 	primary_weapons.append(w4)
 	
 	var w5 = LoadoutItem.new()
 	w5.id = "plasma_emitter"
-	w5.name = "PLASMA EMITTER"
-	w5.description = "Fires thermal plasma bolts that deal continuous damage inside field clusters. Unlockable in the Tech Lab."
-	w5.stats = "RATE: ★★☆ | DMG: ★★★ | VEL: ★★☆"
+	w5.name = "プラズマ放射器"
+	w5.description = "持続ダメージを与える熱プラズマを放射。"
+	w5.stats = "連射:★★☆ | 威力:★★★ | 弾速:★★☆"
 	w5.is_unlocked = Global.unlocked_weapons.has("plasma_emitter")
 	primary_weapons.append(w5)
 	
 	var w6 = LoadoutItem.new()
 	w6.id = "kinetic_tackle"
-	w6.name = "KINETIC TACKLE"
-	w6.description = "Short-range kinetic thruster ramming. Directly crushes enemies with ship hull inertia. Unlockable in the Tech Lab."
-	w6.stats = "RATE: ★☆☆ | DMG: ★★★ | VEL: ★☆☆"
+	w6.name = "タックル"
+	w6.description = "機体体当たり攻撃。近距離超威力。"
+	w6.stats = "連射:★☆☆ | 威力:★★★ | 弾速:★☆☆"
 	w6.is_unlocked = Global.unlocked_weapons.has("kinetic_tackle")
 	primary_weapons.append(w6)
 
 	# 2. Shields
 	var s1 = LoadoutItem.new()
 	s1.id = "counter"
-	s1.name = "COUNTERCORE SHIELD"
-	s1.description = "Default counter model. Maximizes damage output of parried enemy bullets and counter laser rebounds."
-	s1.stats = "REFLECT: ★★★ | CHARGE: ★★☆ | BUFF: ★☆☆"
+	s1.name = "カウンターシールド"
+	s1.description = "パリィ反撃の威力を最大化する標準モデル。"
+	s1.stats = "反射:★★★ | 溜め:★★☆ | 強化:★☆☆"
 	shields.append(s1)
 	
 	var s2 = LoadoutItem.new()
 	s2.id = "gauge"
-	s2.name = "ABSORPTION MATRIX"
-	s2.description = "Focuses on parry energy conversion. Rapidly fills the counter system gauge, allowing faster unleash rates."
-	s2.stats = "REFLECT: ★☆☆ | CHARGE: ★★★ | BUFF: ★★☆"
+	s2.name = "吸収マトリクス"
+	s2.description = "エネルギー吸収率を高め、ゲージ蓄積を高速化。"
+	s2.stats = "反射:★☆☆ | 溜め:★★★ | 強化:★★☆"
 	shields.append(s2)
 	
 	var s3 = LoadoutItem.new()
 	s3.id = "power"
-	s3.name = "AMPLITUDE BOOSTER"
-	s3.description = "Bypasses complex counter algorithms to directly feed parry energy as a permanent damage boost to the primary weapon."
-	s3.stats = "REFLECT: ★★☆ | CHARGE: ★☆☆ | BUFF: ★★★"
+	s3.name = "増幅ブースター"
+	s3.description = "パリィ成功時に主兵装の威力を永続強化。"
+	s3.stats = "反射:★★☆ | 溜め:★☆☆ | 強化:★★★"
 	shields.append(s3)
 
 	# 3. Counter System Weapons (Boss weapons)
 	var c0 = LoadoutItem.new()
 	c0.id = "none"
-	c0.name = "NO COUNTER WEAPON"
-	c0.description = "Deploys standard parry rebound lasers. Equipped when no specialized boss weapons have been unlocked."
-	c0.stats = "POWER: ★☆☆ | AOE: ★☆☆"
+	c0.name = "標準レーザー"
+	c0.description = "標準の反射レーザーを照射する。"
+	c0.stats = "威力:★☆☆ | 範囲:★☆☆"
 	c0.is_unlocked = true
 	counter_weapons.append(c0)
 	
 	var c1 = LoadoutItem.new()
 	c1.id = "boss_beam"
-	c1.name = "ANCIENT GIGA LASER"
-	c1.description = "Stage 1 Boss Weapon. Fires a colossal energy beam that pierces through all defenses. Unlocked by harvesting Boss parts."
-	c1.stats = "POWER: ★★★ | AOE: ★★☆"
+	c1.name = "ギガレーザー"
+	c1.description = "敵を貫く極太エネルギービーム（ボス兵装）。"
+	c1.stats = "威力:★★★ | 範囲:★★☆"
 	c1.is_unlocked = Global.unlocked_counter_weapons.has("boss_beam")
 	counter_weapons.append(c1)
 	
 	var c2 = LoadoutItem.new()
 	c2.id = "boss_missile"
-	c2.name = "SPLASH HYPER MISSILE"
-	c2.description = "Stage 2 Boss Weapon. Fires tracking payload missiles that trigger huge thermal splash explosions on impact."
-	c2.stats = "POWER: ★★☆ | AOE: ★★★"
+	c2.name = "ハイパーミサイル"
+	c2.description = "着弾時に広範囲爆発を起こす誘導ミサイル（ボス兵装）。"
+	c2.stats = "威力:★★☆ | 範囲:★★★"
 	c2.is_unlocked = Global.unlocked_counter_weapons.has("boss_missile")
 	counter_weapons.append(c2)
 
@@ -174,16 +174,16 @@ func setup_ui() -> void:
 	
 	# 2. Main title
 	var title = Label.new()
-	title.text = "LOADOUT CONFIGURATION"
+	title.text = "装備選択"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.anchor_left = 0.0
 	title.anchor_right = 1.0
 	title.anchor_top = 0.04
 	title.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	var title_set = LabelSettings.new()
-	title_set.font_size = 28
+	title_set.font_size = 38
 	title_set.font_color = Color.CYAN
-	title_set.outline_size = 6
+	title_set.outline_size = 8
 	title_set.outline_color = Color.BLACK
 	title.label_settings = title_set
 	add_child(title)
@@ -204,7 +204,7 @@ func setup_ui() -> void:
 	add_child(main_vbox)
 	
 	# --- SECTION 1: PRIMARY WEAPON ---
-	var p_sec = create_section_vbox("PRIMARY WEAPON FRAME (メイン武器の枠)", main_vbox)
+	var p_sec = create_section_vbox("主兵装（メイン）", main_vbox)
 	var p_grid = GridContainer.new()
 	p_grid.columns = 3
 	p_grid.add_theme_constant_override("h_separation", 15)
@@ -214,22 +214,23 @@ func setup_ui() -> void:
 	
 	for w in primary_weapons:
 		var btn = Button.new()
-		btn.text = w.name.split(" ")[-1] if w.name.split(" ").size() > 1 else w.name
-		btn.custom_minimum_size = Vector2(80, 44)
+		btn.text = w.name
+		btn.custom_minimum_size = Vector2(90, 48)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.add_theme_font_size_override("font_size", 18)
 		p_grid.add_child(btn)
 		primary_buttons[w.id] = btn
 		
 		if not w.is_unlocked:
 			btn.disabled = true
-			btn.text = "🔒 LOCKED"
+			btn.text = "🔒 未解放"
 		else:
 			btn.pressed.connect(func(): select_item("primary", w.id))
 			btn.mouse_entered.connect(func(): show_details("primary", w.id))
 			style_config_button(btn, Color.CYAN)
 			
 	# --- SECTION 2: SHIELD TYPE ---
-	var s_sec = create_section_vbox("DEFENSIVE SHIELD SYSTEM (シールド選択)", main_vbox)
+	var s_sec = create_section_vbox("シールド（防御）", main_vbox)
 	var s_grid = HBoxContainer.new()
 	s_grid.add_theme_constant_override("separation", 18)
 	s_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -237,9 +238,10 @@ func setup_ui() -> void:
 	
 	for s in shields:
 		var btn = Button.new()
-		btn.text = s.name.split(" ")[0]
-		btn.custom_minimum_size = Vector2(80, 44)
+		btn.text = s.name.left(6)
+		btn.custom_minimum_size = Vector2(90, 48)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.add_theme_font_size_override("font_size", 18)
 		s_grid.add_child(btn)
 		shield_buttons[s.id] = btn
 		btn.pressed.connect(func(): select_item("shield", s.id))
@@ -247,7 +249,7 @@ func setup_ui() -> void:
 		style_config_button(btn, Color.GREEN)
 		
 	# --- SECTION 3: COUNTER SYSTEM ---
-	var c_sec = create_section_vbox("COUNTER SYSTEM UPGRADE (反撃兵装)", main_vbox)
+	var c_sec = create_section_vbox("カウンター兵装", main_vbox)
 	var c_grid = HBoxContainer.new()
 	c_grid.add_theme_constant_override("separation", 18)
 	c_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -255,15 +257,16 @@ func setup_ui() -> void:
 	
 	for c in counter_weapons:
 		var btn = Button.new()
-		btn.text = c.name.split(" ")[-1] if c.id != "none" else "STANDARD"
-		btn.custom_minimum_size = Vector2(80, 44)
+		btn.text = c.name
+		btn.custom_minimum_size = Vector2(90, 48)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.add_theme_font_size_override("font_size", 18)
 		c_grid.add_child(btn)
 		counter_buttons[c.id] = btn
 		
 		if not c.is_unlocked:
 			btn.disabled = true
-			btn.text = "🔒 " + (c.name.split(" ")[-1] if c.name.split(" ").size() > 1 else c.name)
+			btn.text = "🔒 未解放"
 		else:
 			btn.pressed.connect(func(): select_item("counter", c.id))
 			btn.mouse_entered.connect(func(): show_details("counter", c.id))
@@ -305,14 +308,16 @@ func setup_ui() -> void:
 	
 	desc_title = Label.new()
 	var d_title_set = LabelSettings.new()
-	d_title_set.font_size = 18
+	d_title_set.font_size = 22
 	d_title_set.font_color = Color.WHITE
+	d_title_set.outline_size = 4
+	d_title_set.outline_color = Color.BLACK
 	desc_title.label_settings = d_title_set
 	desc_hdr.add_child(desc_title)
 	
 	desc_type = Label.new()
 	var d_type_set = LabelSettings.new()
-	d_type_set.font_size = 11
+	d_type_set.font_size = 16
 	d_type_set.font_color = Color.GOLD
 	desc_type.label_settings = d_type_set
 	desc_type.size_flags_horizontal = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END
@@ -320,7 +325,7 @@ func setup_ui() -> void:
 	
 	desc_stats = Label.new()
 	var d_stats_set = LabelSettings.new()
-	d_stats_set.font_size = 12
+	d_stats_set.font_size = 18
 	d_stats_set.font_color = Color.CYAN
 	desc_stats.label_settings = d_stats_set
 	desc_vbox.add_child(desc_stats)
@@ -334,8 +339,8 @@ func setup_ui() -> void:
 	desc_body = Label.new()
 	desc_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var d_body_set = LabelSettings.new()
-	d_body_set.font_size = 13
-	d_body_set.font_color = Color(0.8, 0.85, 0.9, 0.9)
+	d_body_set.font_size = 18
+	d_body_set.font_color = Color(0.9, 0.95, 1.0, 0.95)
 	desc_body.label_settings = d_body_set
 	desc_vbox.add_child(desc_body)
 
@@ -345,22 +350,24 @@ func setup_ui() -> void:
 	footer_hbox.add_theme_constant_override("separation", 40)
 	footer_hbox.anchor_left = 0.0
 	footer_hbox.anchor_right = 1.0
-	footer_hbox.anchor_top = 0.93
-	footer_hbox.anchor_bottom = 0.93
+	footer_hbox.anchor_top = 0.91
+	footer_hbox.anchor_bottom = 0.91
 	footer_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	footer_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH
 	add_child(footer_hbox)
 	
 	back_btn = Button.new()
-	back_btn.text = "戻る / BACK"
-	back_btn.custom_minimum_size = Vector2(200, 48)
+	back_btn.text = "戻る"
+	back_btn.custom_minimum_size = Vector2(180, 52)
+	back_btn.add_theme_font_size_override("font_size", 22)
 	footer_hbox.add_child(back_btn)
 	style_action_btn(back_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	back_btn.pressed.connect(_on_back_pressed)
 	
 	deploy_btn = Button.new()
-	deploy_btn.text = "戦区へ出撃 / DEPLOY TO SECTOR"
-	deploy_btn.custom_minimum_size = Vector2(260, 48)
+	deploy_btn.text = "出撃開始"
+	deploy_btn.custom_minimum_size = Vector2(240, 52)
+	deploy_btn.add_theme_font_size_override("font_size", 22)
 	footer_hbox.add_child(deploy_btn)
 	style_action_btn(deploy_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
 	deploy_btn.pressed.connect(_on_deploy_pressed)
@@ -373,8 +380,8 @@ func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 	var lbl = Label.new()
 	lbl.text = title_text
 	var l_set = LabelSettings.new()
-	l_set.font_size = 13
-	l_set.font_color = Color.LIGHT_GRAY
+	l_set.font_size = 18
+	l_set.font_color = Color.CYAN
 	lbl.label_settings = l_set
 	vbox.add_child(lbl)
 	
@@ -501,19 +508,19 @@ func show_details(type: String, id: String) -> void:
 			for w in primary_weapons:
 				if w.id == id:
 					item = w
-			type_label = "PRIMARY WEAPON FRAME"
+			type_label = "主兵装（メイン）"
 			accent = Color.CYAN
 		"shield":
 			for s in shields:
 				if s.id == id:
 					item = s
-			type_label = "DEFENSIVE SHIELD UNIT"
+			type_label = "シールド（防御）"
 			accent = Color.GREEN
 		"counter":
 			for c in counter_weapons:
 				if c.id == id:
 					item = c
-			type_label = "COUNTER SYSTEM ARMAMENT"
+			type_label = "カウンター兵装"
 			accent = Color.GOLD
 			
 	if item:
@@ -539,7 +546,7 @@ func _on_deploy_pressed() -> void:
 	
 	# Save custom data temporarily inside global config
 	var save_data = Global.load_game_data()
-	Global.save_game(save_data.get("stage_num", 1), save_data.get("score", 0), save_data.get("weapons", {}))
+	Global.save_game(save_data.get("stage_num", 1), save_data.get("score", 0), {})
 	
 	# Start Stage
 	get_tree().change_scene_to_file("res://game/main.tscn")
