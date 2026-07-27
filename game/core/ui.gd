@@ -1,9 +1,24 @@
 extends CanvasLayer
 ## UI 表示スクリプト（CanvasLayerを継承し、シーン ui.tscn のノードとバインド）
-## - HP バー（Player・Boss）を ProgressBar でスタイリッシュに表現
-## - ガード、パリィ、および武器解析率（スロット状況）の表示
-## - ボスのエネルギー再配分比率の表示
+## - HP バー（Player・Boss）
+## - ガード・パリィ・武器解析率表示
+## - ボスエネルギー再配分表示
 ## - 警告演出・フラッシュ演出・ゲームオーバー表示
+
+# カラー定数
+const COLOR_PLAYER_HP = Color(0.2, 0.9, 0.4)
+const COLOR_BOSS_HP = Color(1.0, 0.2, 0.2)
+const COLOR_BEAM_ANALYSIS = Color.CYAN
+const COLOR_MISSILE_ANALYSIS = Color(0.8, 0.4, 1.0)
+const COLOR_SHIELD_HEAT_DEFAULT = Color(0.2, 0.8, 1.0)
+
+# フォントサイズ定数
+const FONT_SIZE_HP: int = 18
+const FONT_SIZE_PARRY: int = 22
+const FONT_SIZE_GUARD: int = 20
+const FONT_SIZE_ENERGY: int = 18
+const FONT_SIZE_WARNING_TITLE: int = 48
+const FONT_SIZE_WARNING_SUBTITLE: int = 24
 
 @onready var player_hp_bar: ProgressBar = $PlayerHPBar
 @onready var player_hp_label: Label = $PlayerHPLabel
@@ -28,30 +43,27 @@ extends CanvasLayer
 @onready var warning_subtitle: Label = $WarningSubtitle
 @onready var flash_overlay: ColorRect = $FlashOverlay
 
-
 var shield_heat_bar: ProgressBar
 
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	
-	# スタイリングの適用
-	style_hp_bar(player_hp_bar, Color(0.2, 0.9, 0.4))
-	style_hp_bar(boss_hp_bar, Color(1.0, 0.2, 0.2))
-	style_analysis_bar(slot_beam_bar, Color.CYAN)
-	style_analysis_bar(slot_missile_bar, Color(0.8, 0.4, 1.0))
+	style_hp_bar(player_hp_bar, COLOR_PLAYER_HP)
+	style_hp_bar(boss_hp_bar, COLOR_BOSS_HP)
+	style_analysis_bar(slot_beam_bar, COLOR_BEAM_ANALYSIS)
+	style_analysis_bar(slot_missile_bar, COLOR_MISSILE_ANALYSIS)
 	
-	setup_label_style(player_hp_label, 18, Color.WHITE, 6)
-	setup_label_style(boss_hp_label, 18, Color.WHITE, 6)
-	setup_label_style(parry_count_label, 22, Color.CYAN, 6)
-	setup_label_style(guard_status_label, 20, Color.GREEN, 6)
-	setup_label_style(boss_energy_label, 18, Color.GOLD, 6)
-	setup_label_style(warning_title, 48, Color.RED, 10)
-	setup_label_style(warning_subtitle, 24, Color.GOLD, 6)
-	setup_label_style(slot_beam_label, 18, Color.LIGHT_GRAY, 6)
-	setup_label_style(slot_missile_label, 18, Color.LIGHT_GRAY, 6)
+	setup_label_style(player_hp_label, FONT_SIZE_HP, Color.WHITE, 6)
+	setup_label_style(boss_hp_label, FONT_SIZE_HP, Color.WHITE, 6)
+	setup_label_style(parry_count_label, FONT_SIZE_PARRY, Color.CYAN, 6)
+	setup_label_style(guard_status_label, FONT_SIZE_GUARD, Color.GREEN, 6)
+	setup_label_style(boss_energy_label, FONT_SIZE_ENERGY, Color.GOLD, 6)
+	setup_label_style(warning_title, FONT_SIZE_WARNING_TITLE, Color.RED, 10)
+	setup_label_style(warning_subtitle, FONT_SIZE_WARNING_SUBTITLE, Color.GOLD, 6)
+	setup_label_style(slot_beam_label, FONT_SIZE_HP, Color.LIGHT_GRAY, 6)
+	setup_label_style(slot_missile_label, FONT_SIZE_HP, Color.LIGHT_GRAY, 6)
 	
-	# 動的なシールドヒートプログレスバーの追加
 	create_shield_heat_bar()
 
 
@@ -62,7 +74,7 @@ func create_shield_heat_bar() -> void:
 	shield_heat_bar.custom_minimum_size = Vector2(240, 16)
 	shield_heat_bar.position = Vector2(30, 72)
 	add_child(shield_heat_bar)
-	style_hp_bar(shield_heat_bar, Color(0.2, 0.8, 1.0))
+	style_hp_bar(shield_heat_bar, COLOR_SHIELD_HEAT_DEFAULT)
 
 
 func style_hp_bar(bar: ProgressBar, color: Color) -> void:
@@ -114,18 +126,18 @@ func setup_label_style(label: Label, size: int, color: Color, outline: int = 6) 
 	label.label_settings = settings
 
 
-func update_player_hp(current: int, max_hp: int) -> void:
-	player_hp_bar.max_value = max_hp
+func update_player_hp(current: int, max_hp_val: int) -> void:
+	player_hp_bar.max_value = max_hp_val
 	player_hp_bar.value = current
-	player_hp_label.text = "自機 HP: %d / %d" % [current, max_hp]
+	player_hp_label.text = "自機 HP: %d / %d" % [current, max_hp_val]
 
 
-func update_boss_hp(current: int, max_hp: int) -> void:
+func update_boss_hp(current: int, max_hp_val: int) -> void:
 	boss_hp_bar.visible = true
 	boss_hp_label.visible = true
-	boss_hp_bar.max_value = max_hp
+	boss_hp_bar.max_value = max_hp_val
 	boss_hp_bar.value = current
-	boss_hp_label.text = "ボス HP: %d / %d" % [current, max_hp]
+	boss_hp_label.text = "ボス HP: %d / %d" % [current, max_hp_val]
 
 
 func hide_boss_hp() -> void:
@@ -138,7 +150,6 @@ func update_parry_count(count: int) -> void:
 
 
 func update_guard_status(_cooldown: float, _is_guarding: bool) -> void:
-	# 旧互換
 	pass
 
 
@@ -147,23 +158,21 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 		shield_heat_bar.max_value = max_heat
 		shield_heat_bar.value = heat
 		
-		# 動的なプログレスバーのカラー演出
 		var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
 		if fg_style:
 			if is_overheated:
-				# オーバーヒート時の点滅赤発光
 				var flash = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
 				fg_style.bg_color = Color(1.0, 0.1, 0.1).lerp(Color(0.4, 0.0, 0.0), flash)
 			elif is_guarding:
-				fg_style.bg_color = Color(0.2, 1.0, 1.0) # シールド発射中水色
+				fg_style.bg_color = Color(0.2, 1.0, 1.0)
 			else:
 				var pct = (heat / max_heat)
 				if pct > 0.7:
-					fg_style.bg_color = Color(1.0, 0.45, 0.1) # 危険オレンジ
+					fg_style.bg_color = Color(1.0, 0.45, 0.1)
 				elif pct > 0.35:
-					fg_style.bg_color = Color(1.0, 0.85, 0.2) # 注意イエロー
+					fg_style.bg_color = Color(1.0, 0.85, 0.2)
 				else:
-					fg_style.bg_color = Color(0.2, 0.8, 1.0) # 水色
+					fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
 
 	if is_overheated:
 		guard_status_label.text = "⚠️ OVERHEAT! 冷却中 (%.1fs)" % overheat_timer
@@ -172,13 +181,11 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 		guard_status_label.text = "シールド: 展開中！"
 		guard_status_label.label_settings.font_color = Color.CYAN
 	else:
-		var pct = int((heat / max_heat) * 100.0)
 		guard_status_label.text = "シールドヒート [Space]"
 		guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
 func update_pattern_analysis(patterns: Dictionary) -> void:
-	"""4つの攻撃パターンの解析度とアンロック状況をリアルタイム表示"""
 	var summary_text = ""
 	for key in ["rapid", "spread", "pierce", "homing"]:
 		if not key in patterns:
@@ -226,7 +233,6 @@ func show_warning(title: String, subtitle: String) -> void:
 	warning_title.show()
 	warning_subtitle.show()
 	
-	# 点滅アニメーション
 	var tween = create_tween().set_loops(4)
 	tween.tween_property(warning_title, "modulate:a", 0.1, 0.4)
 	tween.tween_property(warning_title, "modulate:a", 1.0, 0.4)
@@ -309,7 +315,6 @@ func show_game_over(result: String) -> void:
 	stats_label.text = "総パリィ数: " + str(parries) + " 回\n技術回収: 100%"
 	container.add_child(stats_label)
 	
-	# スコア表示
 	if result == "VICTORY":
 		var spacer_score = Control.new()
 		spacer_score.custom_minimum_size = Vector2(0, 15)
@@ -360,7 +365,6 @@ func show_game_over(result: String) -> void:
 	var style_hover = style_normal.duplicate()
 	style_hover.bg_color = theme_color
 	
-	# 勝利時は「次のステージへ」ボタンを表示
 	if result == "VICTORY":
 		var next_btn = Button.new()
 		next_btn.text = "次のステージへ"
@@ -379,7 +383,7 @@ func show_game_over(result: String) -> void:
 		container.add_child(next_btn)
 		
 		next_btn.pressed.connect(func():
-			get_tree().paused = false # ポーズ解除
+			get_tree().paused = false
 			if game_manager and game_manager.has_method("load_next_stage"):
 				game_manager.load_next_stage()
 			panel.queue_free()
@@ -406,12 +410,11 @@ func show_game_over(result: String) -> void:
 	container.add_child(retry_btn)
 	
 	retry_btn.pressed.connect(func():
-		get_tree().paused = false # リスタート前に一時停止を解除
+		get_tree().paused = false
 		if game_manager and game_manager.has_method("restart"):
 			game_manager.restart()
 	)
 	
-	# メインメニューに戻るボタン
 	var menu_btn = Button.new()
 	menu_btn.text = "メニューへ"
 	menu_btn.custom_minimum_size = Vector2(280, 56)
@@ -432,7 +435,7 @@ func show_game_over(result: String) -> void:
 	container.add_child(menu_btn)
 	
 	menu_btn.pressed.connect(func():
-		get_tree().paused = false # 一時停止を解除
+		get_tree().paused = false
 		get_tree().change_scene_to_file("res://game/core/main_menu.tscn")
 	)
 	
@@ -481,14 +484,13 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 
 
 func spawn_kill_popup(pos: Vector2, text: String = "撃破！") -> void:
-	"""敵撃破時の短く超巨大で分かりやすいテキスト演出"""
 	var label = Label.new()
 	label.text = text
 	
 	var settings = LabelSettings.new()
-	settings.font_size = 88 # 超巨大フォントサイズ
-	settings.font_color = Color(1.0, 0.85, 0.0) # 鮮やかなゴールドイエロー
-	settings.outline_size = 16 # くっきり見やすい太線枠
+	settings.font_size = 88
+	settings.font_color = Color(1.0, 0.85, 0.0)
+	settings.outline_size = 16
 	settings.outline_color = Color(0.1, 0.0, 0.0, 1.0)
 	
 	label.label_settings = settings
@@ -501,7 +503,6 @@ func spawn_kill_popup(pos: Vector2, text: String = "撃破！") -> void:
 	
 	label.scale = Vector2(0.1, 0.1)
 	var tween = create_tween().set_parallel(true)
-	# 一気に超巨大表示されてバウンド
 	tween.tween_property(label, "scale", Vector2(1.25, 1.25), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(label, "global_position", pos + Vector2(-150, -110), 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
