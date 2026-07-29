@@ -18,12 +18,12 @@ class WaveData:
 	var wave_id: String
 	var display_title: String
 	var start_message: String
-	var initial_spawns: Array[WaveSpawnConfig] = []
+	var initial_spawns: Array = []
 	var clear_condition_type: String = "analysis_or_parry" # "analysis_or_parry", "dual_analysis", "drone_count"
 	var target_analysis_count: int = 1
 	var target_parry_count: int = 15
 	var target_drone_count: int = 8
-	var replenish_types: Array[String] = []
+	var replenish_types: Array = []
 	var min_active_drones: int = 2
 	var drone_speed_override: float = 0.0
 	var drone_shoot_interval_beam: float = 0.0
