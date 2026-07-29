@@ -154,11 +154,11 @@ func start_charge_attack() -> void:
 
 
 func process_attacks() -> void:
-	var interval = 1.0
+	var interval = 2.5
 	if not laser_alive and not missile_alive:
-		interval = 0.45
+		interval = 1.5
 	elif not laser_alive or not missile_alive:
-		interval = 0.70
+		interval = 2.0
 		
 	if fire_timer >= interval:
 		fire_timer = 0.0
@@ -243,7 +243,7 @@ func execute_attack_pattern() -> void:
 			var dir = Vector2(cos(rad), sin(rad))
 			spawn_bullet(dir, BULLET_TYPE_LASER, speed_spiral, core_node.global_position)
 			
-		var charge_interval = 1.8 if stage_number == 2 else 2.2
+		var charge_interval = 4.0 if stage_number == 2 else 5.0
 		if pattern_timer >= charge_interval:
 			pattern_timer = 0.0
 			start_charge_attack()

@@ -41,16 +41,16 @@ class InterludeData:
 
 class BossConfig:
 	var name: String = "古代防衛兵器"
-	var max_hp: int = 6000
-	var laser_hp: int = 1200
-	var missile_hp: int = 1200
-	var core_hp: int = 3600
+	var max_hp: int = 2400
+	var laser_hp: int = 500
+	var missile_hp: int = 500
+	var core_hp: int = 1400
 	var base_move_speed: float = 140.0
 	var energy_laser: float = 30.0
 	var energy_missile: float = 30.0
 	var energy_core: float = 40.0
 	var enable_support_drones: bool = false
-	var support_drone_interval: float = 12.0
+	var support_drone_interval: float = 20.0
 
 class RewardConfig:
 	var counter_weapon_unlock: String = ""

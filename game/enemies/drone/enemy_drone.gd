@@ -21,7 +21,7 @@ const COLOR_BEAM = Color(1.0, 0.5, 0.5)
 const COLOR_MISSILE = Color(0.8, 0.4, 1.0)
 
 # デフォルト数値定数
-const DEFAULT_DRONE_HP: int = 380
+const DEFAULT_DRONE_HP: int = 200
 const DEFAULT_DRONE_SPEED: float = 160.0
 const SCREEN_MARGIN_X: float = 60.0
 

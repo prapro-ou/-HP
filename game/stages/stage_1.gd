@@ -65,9 +65,9 @@ func _setup_interlude() -> void:
 
 func _setup_boss() -> void:
 	boss_config.name = "古代防衛兵器"
-	boss_config.laser_hp = 1200
-	boss_config.missile_hp = 1200
-	boss_config.core_hp = 3600
+	boss_config.laser_hp = 500
+	boss_config.missile_hp = 500
+	boss_config.core_hp = 1400
 	boss_config.max_hp = boss_config.laser_hp + boss_config.missile_hp + boss_config.core_hp
 	boss_config.base_move_speed = 140.0
 	boss_config.energy_laser = 30.0

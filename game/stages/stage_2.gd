@@ -63,16 +63,16 @@ func _setup_interlude() -> void:
 
 func _setup_boss() -> void:
 	boss_config.name = "古代防衛兵器・オーバーロード"
-	boss_config.laser_hp = 2000
-	boss_config.missile_hp = 2000
-	boss_config.core_hp = 5500
+	boss_config.laser_hp = 700
+	boss_config.missile_hp = 700
+	boss_config.core_hp = 1800
 	boss_config.max_hp = boss_config.laser_hp + boss_config.missile_hp + boss_config.core_hp
 	boss_config.base_move_speed = 190.0
 	boss_config.energy_laser = 45.0
 	boss_config.energy_missile = 45.0
 	boss_config.energy_core = 55.0
 	boss_config.enable_support_drones = true
-	boss_config.support_drone_interval = 12.0
+	boss_config.support_drone_interval = 20.0
 
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_missile"
