@@ -119,6 +119,18 @@ func init_stages() -> void:
 	st4.scene_path = "res://game/stages/stage_4.tscn"
 	stages.append(st4)
 
+	# Stage 5
+	var st5 = StageData.new()
+	st5.id = 5
+	st5.title = "APEX OVERLORD"
+	st5.codename = "FINAL SECTOR: OVERLORD CORRIDOR"
+	st5.description = "最終決戦宙域。前哨防衛兵器を撃破後、脈動する真のラストボス「オーバーロード・オメガ」が降臨！"
+	st5.difficulty = "難易度: 最終決戦 (FINAL BOSS)"
+	st5.color = Color(1.0, 0.25, 0.4)
+	st5.scene_path = "res://game/stages/stage_5.tscn"
+	stages.append(st5)
+
+
 func setup_ui() -> void:
 	# 1. Base dark background
 	background_color = ColorRect.new()
