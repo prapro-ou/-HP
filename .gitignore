@@ -9,4 +9,5 @@
 $RECYCLE.BIN/
 *.lnk
 *.png
-
+*.jpg
+*.import
