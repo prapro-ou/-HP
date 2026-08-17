@@ -12,7 +12,7 @@ var sprite_height: float = 1200.0
 
 
 func _ready() -> void:
-	z_index = -10
+	z_index = -30
 	
 	var vp_size = get_viewport_rect().size
 	var target_w = vp_size.x
