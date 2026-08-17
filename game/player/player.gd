@@ -467,7 +467,13 @@ func check_parry() -> void:
 	var parry_triggered_now = false
 	var shield_type = Global.equipped_shield
 	
-	for bullet in enemy_bullets:
+	var all_targets = []
+	all_targets.append_array(enemy_bullets)
+	for p in get_tree().get_nodes_in_group("enemy_projectiles"):
+		if is_instance_valid(p) and not all_targets.has(p):
+			all_targets.append(p)
+	
+	for bullet in all_targets:
 		if is_instance_valid(bullet) and not bullet.is_friendly:
 			var dist = global_position.distance_to(bullet.global_position)
 			if dist <= parry_window_radius:
@@ -486,10 +492,16 @@ func check_parry() -> void:
 								current_stage = manager.current_stage_num
 						Global.save_game(current_stage, 0, {})
 				
-				advance_analysis(bullet.bullet_type, 3.5)
+				var b_type = bullet.bullet_type if "bullet_type" in bullet else "missile"
+				advance_analysis(b_type, 3.5)
 				
 				if shield_type == SHIELD_POWER:
-					bullet.recycle_bullet()
+					if bullet.has_method("recycle_bullet"):
+						bullet.recycle_bullet()
+					elif bullet.has_method("explode_and_free"):
+						bullet.explode_and_free()
+					else:
+						bullet.queue_free()
 					power_shield_damage_buff = min(power_shield_damage_buff + 4.0, 20.0)
 					
 					var main = get_node_or_null("/root/Main")
@@ -498,9 +510,11 @@ func check_parry() -> void:
 						if manager and manager.has_method("register_parry"):
 							manager.register_parry()
 				else:
-					bullet.convert_to_friendly()
+					if bullet.has_method("convert_to_friendly"):
+						bullet.convert_to_friendly()
 					if shield_type == SHIELD_COUNTER:
-						bullet.damage = int(bullet.damage * 1.5)
+						if "damage" in bullet:
+							bullet.damage = int(bullet.damage * 1.5)
 						
 				parry_triggered_now = true
 				
