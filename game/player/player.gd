@@ -521,7 +521,15 @@ func check_parry() -> void:
 						Global.save_game(current_stage, 0, {})
 				
 				var b_type = bullet.bullet_type if "bullet_type" in bullet else "missile"
-				advance_analysis(b_type, 4.0)
+				var analysis_pts = 4.0
+				if b_type.contains("meteor"):
+					analysis_pts = 16.0 # 巨大隕石パリィは+16%
+				elif b_type.contains("decel") or b_type.contains("boss_missile"):
+					analysis_pts = 10.0 # 追尾ミサイルパリィは+10%
+				elif b_type.contains("boss_laser") or b_type.contains("beam"):
+					analysis_pts = 8.0  # ビームマシンガンパリィは+8%
+					
+				advance_analysis(b_type, analysis_pts)
 				
 				if shield_type == SHIELD_POWER:
 					if bullet.has_method("recycle_bullet"):

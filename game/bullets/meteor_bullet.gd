@@ -12,6 +12,7 @@ const PARRY_SPEED: float = 1100.0
 var velocity: Vector2 = Vector2.ZERO
 var lifetime: float = 0.0
 var is_friendly: bool = false
+var bullet_type: String = "meteor"
 var target_node: Node2D = null
 var rotation_speed: float = 2.0
 var bounce_count: int = 0
