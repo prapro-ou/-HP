@@ -410,23 +410,23 @@ func show_game_over(result: String) -> void:
 	tween.tween_property(panel, "color", Color(0.05, 0.05, 0.08, 0.85), 0.6)
 	
 	var container = VBoxContainer.new()
-	container.anchor_left = 0.5
-	container.anchor_top = 0.5
-	container.anchor_right = 0.5
-	container.anchor_bottom = 0.5
+	container.anchor_left = 0.0
+	container.anchor_right = 1.0
+	container.anchor_top = 0.0
+	container.anchor_bottom = 1.0
 	container.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	container.grow_vertical = Control.GROW_DIRECTION_BOTH
 	container.alignment = BoxContainer.ALIGNMENT_CENTER
-	container.custom_minimum_size = Vector2(500, 300)
-	container.offset_left = -250
-	container.offset_top = -150
+	container.add_theme_constant_override("separation", 14)
 	panel.add_child(container)
 	
 	var result_label = Label.new()
 	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	var settings = LabelSettings.new()
-	settings.font_size = 42
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
+	settings.font_size = 48
 	settings.outline_size = 8
 	settings.outline_color = Color.BLACK
 	
@@ -447,6 +447,8 @@ func show_game_over(result: String) -> void:
 	var stats_label = Label.new()
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var stats_settings = LabelSettings.new()
+	if PIXEL_FONT:
+		stats_settings.font = PIXEL_FONT
 	stats_settings.font_size = 24
 	stats_settings.font_color = Color(0.8, 0.9, 1.0, 0.9)
 	stats_settings.outline_size = 4
@@ -461,7 +463,7 @@ func show_game_over(result: String) -> void:
 		if "total_damage_score" in game_manager:
 			score = game_manager.total_damage_score
 			
-	stats_label.text = "総パリィ数: " + str(parries) + " 回\n技術回収: 100%"
+	stats_label.text = "総パリィ数: %d 回\n技術回収: 100%%" % parries
 	container.add_child(stats_label)
 	
 	if result == "VICTORY":
@@ -473,6 +475,8 @@ func show_game_over(result: String) -> void:
 		score_title_label.text = "最終スコア"
 		score_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var score_title_settings = LabelSettings.new()
+		if PIXEL_FONT:
+			score_title_settings.font = PIXEL_FONT
 		score_title_settings.font_size = 22
 		score_title_settings.font_color = Color.GOLD
 		score_title_settings.outline_size = 4
@@ -484,6 +488,8 @@ func show_game_over(result: String) -> void:
 		score_val_label.text = format_score(score)
 		score_val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var score_val_settings = LabelSettings.new()
+		if PIXEL_FONT:
+			score_val_settings.font = PIXEL_FONT
 		score_val_settings.font_size = 52
 		score_val_settings.font_color = Color(1.0, 0.85, 0.1)
 		score_val_settings.outline_size = 10
