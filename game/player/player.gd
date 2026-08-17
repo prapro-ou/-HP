@@ -94,10 +94,21 @@ const PLAYER_BULLET_SCENE: PackedScene = preload("res://game/player/player_bulle
 
 
 func _ready() -> void:
+	apply_appearance()
 	reset_state()
 
 
+func apply_appearance() -> void:
+	var sprite = get_node_or_null("Sprite2D")
+	if sprite:
+		var tex_path = Global.get_player_texture_path()
+		if ResourceLoader.exists(tex_path):
+			sprite.texture = load(tex_path)
+		sprite.scale = Vector2(1.5, 1.5)
+
+
 func reset_state() -> void:
+	apply_appearance()
 	var hp_lvl = Global.upgrade_levels.get("hp", 0)
 	max_hp = 100 + 10 * hp_lvl
 	current_hp = max_hp
