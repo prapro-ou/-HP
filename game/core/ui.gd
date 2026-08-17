@@ -65,16 +65,117 @@ func _ready() -> void:
 	setup_label_style(slot_missile_label, FONT_SIZE_HP, Color.LIGHT_GRAY, 6)
 	
 	create_shield_heat_bar()
+	create_analysis_matrix_ui()
 
 
-func create_shield_heat_bar() -> void:
-	shield_heat_bar = ProgressBar.new()
-	shield_heat_bar.name = "ShieldHeatBar"
-	shield_heat_bar.show_percentage = false
-	shield_heat_bar.custom_minimum_size = Vector2(240, 16)
-	shield_heat_bar.position = Vector2(30, 72)
-	add_child(shield_heat_bar)
-	style_hp_bar(shield_heat_bar, COLOR_SHIELD_HEAT_DEFAULT)
+var matrix_panel: PanelContainer
+var matrix_rows: Dictionary = {}
+
+func create_analysis_matrix_ui() -> void:
+	matrix_panel = PanelContainer.new()
+	matrix_panel.name = "AnalysisMatrixPanel"
+	matrix_panel.position = Vector2(510, 18)
+	matrix_panel.custom_minimum_size = Vector2(270, 180)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.06, 0.1, 0.85)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
+	sb.border_color = Color(0.25, 0.45, 0.7, 0.9)
+	matrix_panel.add_theme_stylebox_override("panel", sb)
+	add_child(matrix_panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 3)
+	matrix_panel.add_child(vbox)
+	
+	var title = Label.new()
+	title.text = "【解析マトリクス (ANALYSIS)】"
+	var t_set = LabelSettings.new()
+	if PIXEL_FONT:
+		t_set.font = PIXEL_FONT
+	t_set.font_size = 14
+	t_set.font_color = Color.CYAN
+	title.label_settings = t_set
+	vbox.add_child(title)
+	
+	var pattern_defs = [
+		{ "key": "rapid",   "name": "高速連射", "color": Color(0.3, 0.8, 1.0) },
+		{ "key": "spread",  "name": "5-WAY拡散", "color": Color(0.2, 1.0, 0.6) },
+		{ "key": "pierce",  "name": "貫通重弾", "color": Color(1.0, 0.6, 0.2) },
+		{ "key": "homing",  "name": "誘導ミサイル", "color": Color(0.85, 0.45, 1.0) },
+		{ "key": "laser",   "name": "フォトン光線", "color": Color(0.4, 0.9, 1.0) },
+		{ "key": "cyclone", "name": "旋回スピン", "color": Color(1.0, 0.85, 0.2) },
+		{ "key": "meteor",  "name": "ギガメテオ", "color": Color(1.0, 0.35, 0.2) }
+	]
+	
+	for def in pattern_defs:
+		var row = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		
+		var name_lbl = Label.new()
+		name_lbl.text = def["name"]
+		name_lbl.custom_minimum_size = Vector2(76, 16)
+		var l_set = LabelSettings.new()
+		if PIXEL_FONT:
+			l_set.font = PIXEL_FONT
+		l_set.font_size = 12
+		l_set.font_color = Color.LIGHT_GRAY
+		name_lbl.label_settings = l_set
+		row.add_child(name_lbl)
+		
+		var bar = ProgressBar.new()
+		bar.show_percentage = false
+		bar.custom_minimum_size = Vector2(100, 10)
+		bar.max_value = 100
+		bar.value = 0
+		style_analysis_bar(bar, def["color"])
+		row.add_child(bar)
+		
+		var pct_lbl = Label.new()
+		pct_lbl.text = "0%"
+		pct_lbl.custom_minimum_size = Vector2(50, 16)
+		var p_set = LabelSettings.new()
+		if PIXEL_FONT:
+			p_set.font = PIXEL_FONT
+		p_set.font_size = 12
+		p_set.font_color = Color.GRAY
+		pct_lbl.label_settings = p_set
+		row.add_child(pct_lbl)
+		
+		vbox.add_child(row)
+		matrix_rows[def["key"]] = {
+			"bar": bar,
+			"pct_lbl": pct_lbl,
+			"name_lbl": name_lbl,
+			"color": def["color"]
+		}
+
+
+func update_pattern_analysis(patterns: Dictionary) -> void:
+	for key in patterns.keys():
+		if not matrix_rows.has(key):
+			continue
+		var row = matrix_rows[key]
+		var data = patterns[key]
+		var prog = int(data["progress"])
+		var is_done = data["analyzed"]
+		
+		row["bar"].value = prog
+		if is_done:
+			row["pct_lbl"].text = "⚡UNLOCKED"
+			row["pct_lbl"].label_settings.font_color = Color.GOLD
+			row["name_lbl"].label_settings.font_color = Color.GOLD
+		else:
+			row["pct_lbl"].text = "%d%%" % prog
+			if prog > 0:
+				row["pct_lbl"].label_settings.font_color = Color.WHITE
+				row["name_lbl"].label_settings.font_color = row["color"]
+			else:
+				row["pct_lbl"].label_settings.font_color = Color.GRAY
+				row["name_lbl"].label_settings.font_color = Color.LIGHT_GRAY
 
 
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
@@ -198,27 +299,7 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 		guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
-func update_pattern_analysis(patterns: Dictionary) -> void:
-	var summary_text = ""
-	for key in ["rapid", "spread", "pierce", "homing"]:
-		if not key in patterns:
-			continue
-		var data = patterns[key]
-		var name_str = data["name"]
-		var prog = int(data["progress"])
-		var is_done = data["analyzed"]
-		
-		if is_done:
-			summary_text += "【%s】100%% ⚡ " % name_str
-		elif prog > 0:
-			summary_text += "%s: %d%% | " % [name_str, prog]
-			
-	if summary_text != "":
-		slot_beam_label.text = "敵弾パターン解析: " + summary_text.trim_suffix(" | ")
-		slot_beam_label.label_settings.font_color = Color.GOLD
-	else:
-		slot_beam_label.text = "敵弾パターン解析: パリィで特徴を吸収せよ"
-		slot_beam_label.label_settings.font_color = Color.LIGHT_GRAY
+
 
 
 func update_analysis_progress(_beam_progress: float, _beam_ready: bool, _missile_progress: float, _missile_ready: bool, _active_weapon: String) -> void:
