@@ -11,7 +11,7 @@ size = Vector2(360, 200)
 size = Vector2(1400, 1000)
 
 [node name="Boss" type="Node2D" groups=["boss", "enemy"]]
-z_index = -5
+z_index = -15
 script = ExtResource("1_script")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

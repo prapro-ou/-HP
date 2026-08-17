@@ -7,6 +7,7 @@
 radius = 8.0
 
 [node name="PlayerBullet" type="Area2D" unique_id=922037484]
+z_index = 12
 script = ExtResource("1_script")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=987549589]
