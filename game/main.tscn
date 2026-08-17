@@ -1,5 +1,4 @@
-[gd_scene format=3 uid="uid://btioogirvaurj"]
-
+[ext_resource type="PackedScene" path="res://game/core/scrolling_background.tscn" id="1_bg"]
 [ext_resource type="PackedScene" uid="uid://dmua6sakwpwly" path="res://game/player/player.tscn" id="2_player"]
 [ext_resource type="Script" uid="uid://d0n03n6pyyjw7" path="res://game/core/game_manager.gd" id="3_gamemanager"]
 [ext_resource type="PackedScene" path="res://game/core/ui.tscn" id="4_ui"]
@@ -7,6 +6,8 @@
 
 [node name="Main" type="Node2D" unique_id=1066061339]
 position = Vector2(-1, 0)
+
+[node name="ScrollingBackground" parent="." instance=ExtResource("1_bg")]
 
 [node name="Player" parent="." unique_id=1961602926 instance=ExtResource("2_player")]
 position = Vector2(397, 869)
