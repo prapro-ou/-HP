@@ -50,6 +50,47 @@ var available_weapons: Dictionary = {
 	}
 }
 
+# Player Appearance variables
+var player_color: String = "blue"
+var available_player_colors: Dictionary = {
+	"blue": {
+		"name": "コバルトブルー (標準)",
+		"path": "res://game/assets/player/spaceship_small_blue.png",
+		"accent_color": Color(0.2, 0.65, 1.0)
+	},
+	"red": {
+		"name": "クリムゾンレッド",
+		"path": "res://game/assets/player/spaceship_small_red.png",
+		"accent_color": Color(1.0, 0.3, 0.3)
+	},
+	"green": {
+		"name": "エメラルドグリーン",
+		"path": "res://game/assets/player/spaceship_small_green.png",
+		"accent_color": Color(0.2, 0.9, 0.4)
+	},
+	"yellow": {
+		"name": "トパーズイエロー",
+		"path": "res://game/assets/player/spaceship_small_yellow.png",
+		"accent_color": Color(1.0, 0.85, 0.2)
+	},
+	"purple": {
+		"name": "アメジストパープル",
+		"path": "res://game/assets/player/spaceship_small_purple.png",
+		"accent_color": Color(0.8, 0.35, 1.0)
+	},
+	"orange": {
+		"name": "ソーラーオレンジ",
+		"path": "res://game/assets/player/spaceship_small_orange.png",
+		"accent_color": Color(1.0, 0.55, 0.1)
+	}
+}
+
+func get_player_texture_path(color_key: String = "") -> String:
+	var key = color_key if color_key != "" else player_color
+	if available_player_colors.has(key):
+		return available_player_colors[key]["path"]
+	return "res://game/assets/player/spaceship_small_blue.png"
+
 # Settings variables
 var master_volume: float = 80.0
 var bgm_volume: float = 80.0
@@ -152,6 +193,7 @@ func save_settings() -> void:
 	config.set_value("display", "aspect_ratio", aspect_ratio)
 	config.set_value("display", "vsync", vsync)
 	config.set_value("gameplay", "screen_shake", screen_shake)
+	config.set_value("player", "player_color", player_color)
 	config.save(SETTINGS_PATH)
 
 func load_settings() -> void:
@@ -165,6 +207,7 @@ func load_settings() -> void:
 		aspect_ratio = config.get_value("display", "aspect_ratio", 0)
 		vsync = config.get_value("display", "vsync", true)
 		screen_shake = config.get_value("gameplay", "screen_shake", true)
+		player_color = config.get_value("player", "player_color", "blue")
 
 func apply_all_settings() -> void:
 	apply_audio()
