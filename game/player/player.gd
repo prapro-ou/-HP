@@ -5,11 +5,11 @@ extends CharacterBody2D
 # --- 基本パラメータ ---
 @export var max_hp: int = 400
 @export var move_speed: float = 300.0
-@export var parry_window_radius: float = 65.0  # パリィ判定範囲
+@export var parry_window_radius: float = 85.0  # パリィ判定範囲 (65 -> 85へ拡大)
 @export var fire_rate: float = 0.2            # 射撃間隔
-@export var parry_active_time: float = 0.25  # ガード持続時間
-@export var parry_cooldown: float = 2.0      # クールダウン時間
-@export var invincible_duration: float = 1.0  # 被弾後無敵時間（秒）
+@export var parry_active_time: float = 0.28  # ガード持続時間
+@export var parry_cooldown: float = 1.5      # クールダウン時間
+@export var invincible_duration: float = 1.4  # 被弾後無敵時間（1.4秒）
 
 # 定数：武器タイプ定義
 const WEAPON_MACHINE_GUN = "machine_gun"
@@ -66,11 +66,11 @@ var parry_ring_alpha: float = 0.0
 var parried_in_current_frame: bool = false
 var is_full_burst: bool = false
 
-# --- シールド・オーバーヒートシステム ---
+# --- シールド・オーバーヒートシステム (マイルド調整) ---
 @export var max_shield_heat: float = 100.0
-@export var heat_per_use: float = 34.0
-@export var heat_recovery_rate: float = 28.0
-@export var overheat_cooldown: float = 3.5
+@export var heat_per_use: float = 20.0        # 1回あたり20% (連続5回使用可能)
+@export var heat_recovery_rate: float = 45.0   # 素早く放熱 (1秒で45%冷却)
+@export var overheat_cooldown: float = 2.0     # オーバーヒート2秒で復帰
 
 var shield_heat: float = 0.0
 var overheat_timer: float = 0.0
@@ -129,7 +129,7 @@ func reset_state() -> void:
 	invincibility_timer = 0.0
 	
 	var parry_lvl = Global.upgrade_levels.get("parry_window", 0)
-	parry_window_radius = 65.0 + 5.0 * parry_lvl
+	parry_window_radius = 85.0 + 5.0 * parry_lvl
 	
 	is_attack_unlocked = false
 	power_shield_damage_buff = 0.0
@@ -557,10 +557,10 @@ func check_parry() -> void:
 	if parry_triggered_now and not parried_in_current_frame:
 		parried_in_current_frame = true
 		consecutive_parries += 1
-		# 15連続パリィ達成時のみボーナス回復
-		if consecutive_parries % 15 == 0:
+		# 10連続パリィ達成ごとにボーナス回復
+		if consecutive_parries % 10 == 0:
 			heal(25)
-			spawn_popup_message("⚡ %dx PARRY COMBO! 機体緊急修復 +25 HP" % consecutive_parries)
+			spawn_popup_message("⚡ %dx PARRY COMBO! 機体修復 +25 HP" % consecutive_parries)
 			
 		trigger_parry_feedback()
 
@@ -581,7 +581,7 @@ func take_damage(amount: int) -> void:
 		is_guarding = false
 		velocity = Vector2.ZERO
 	else:
-		# 被弾無敵時間 (1.0秒) を付与して多段ヒット即死を防止
+		# 被弾無敵時間 (1.4秒) を付与して多段ヒット即死を防止
 		is_invincible = true
 		invincibility_timer = invincible_duration
 		
@@ -592,7 +592,7 @@ func heal(amount: int) -> void:
 	current_hp = min(current_hp + amount, max_hp)
 
 
-func advance_analysis(bullet_type: String, amount: float = 4.0) -> void:
+func advance_analysis(bullet_type: String, amount: float = 5.0) -> void:
 	var pattern_key = PATTERN_RAPID
 	if bullet_type.contains("meteor"):
 		pattern_key = PATTERN_METEOR
@@ -637,7 +637,7 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 	
 	if data["progress"] >= 100.0:
 		data["analyzed"] = true
-		heal(40) # 解析完了時に機体大幅修復 (+40 HP)
+		heal(50) # 解析完了時に機体大幅修復 (+50 HP)
 		apply_pattern_trait(pattern_key)
 
 
