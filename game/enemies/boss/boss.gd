@@ -1,458 +1,327 @@
 extends Node2D
-## ボススクリプト（古代防衛兵器）
-## - 3部位（Core, LaserCannon, MissilePod）のHPと状態管理
-## - 部位破壊によるエネルギー再配分と攻撃パターンの激化
-## - 突進攻撃や薙ぎ払い攻撃などの行動制御
+## 全画面背景・要塞ボススクリプト (5.png)
+## - 最背面に画面全体を覆う超巨大要塞として配置
+## - 画面上端からサブ砲台と一緒に5秒かけて降下出現
+## - 砲台はボスの上に被るように配置
+## - 4〜5分の骨太なバトル（耐久力・フェーズ再展開）
 
-# --- 調整定数 ---
-const BOSS_SCALE: Vector2 = Vector2(2.8, 2.8)
-const CHARGE_RUSH_SPEED: float = 1100.0
-const CHARGE_RETURN_SPEED: float = 350.0
-const SMOKE_PARTICLE_INTERVAL: float = 0.22
+const TURRET_SCENE: PackedScene = preload("res://game/enemies/boss/boss_turret.tscn")
+const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
 
-# 部位定義定数
-const PART_CORE = "core"
-const PART_LASER = "laser"
-const PART_MISSILE = "missile"
-
-# 弾丸タイプ定数
-const BULLET_TYPE_LASER = "boss_laser"
-const BULLET_TYPE_MISSILE = "boss_missile"
-
-# パラメータ（GameManager / StageConfig から注入可能）
-@export var max_hp: int = 6000
-var laser_hp: int = 1200
-var missile_hp: int = 1200
-var core_hp: int = 3600
-
-var laser_alive: bool = true
-var missile_alive: bool = true
-var core_alive: bool = true
-
-# エネルギー配分
-var energy_laser: float = 30.0
-var energy_missile: float = 30.0
-var energy_core: float = 40.0
+@export var max_hp: int = 7500
+var current_hp: int = 7500
+var is_alive: bool = true
+var is_active: bool = false
 
 var bullet_pool: Node2D
 var player: CharacterBody2D
-
 var fire_timer: float = 0.0
-var pattern_timer: float = 0.0
+var attack_pattern_index: int = 0
+var turrets: Array[Node2D] = []
+var reinforcement_wave_spawned: bool = false
+var turret_respawn_timer: float = 0.0
 
-# 移動・突進制御用
-var move_target: Vector2 = Vector2.ZERO
-var base_move_speed: float = 140.0
-var current_move_speed: float = 140.0
-var is_charging: bool = false
-var charge_state: int = 0 # 0: 通常移動, 1: 狙い定め, 2: 突進急降下, 3: 上昇復帰
-var charge_timer: float = 0.0
-var target_charge_x: float = 0.0
-
-# ビジュアルノード参照
-@onready var laser_node: Area2D = $LaserCannon
-@onready var missile_node: Area2D = $MissilePod
-@onready var core_node: Area2D = $Core
 @onready var sprite: Sprite2D = $Sprite2D
-
-var stage_number: int = 1
-var laser_smoke_timer: float = 0.0
-var missile_smoke_timer: float = 0.0
-
-const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
+@onready var core_node: Area2D = $Core
+@onready var core_glow: ColorRect = $Core/CoreGlow
+@onready var body_area: Area2D = $BodyArea
 
 
 func _ready() -> void:
-	bullet_pool = get_node_or_null("/root/Main/BulletPool")
-	player = get_node_or_null("/root/Main/Player")
-	choose_new_target()
-	
-	scale = BOSS_SCALE
-	
-	var save_data = Global.load_game_data()
-	stage_number = save_data.get("stage_num", 1)
-	
 	add_to_group("enemy")
 	add_to_group("boss")
+	
+	current_hp = max_hp
+	is_alive = true
+	is_active = false
+	reinforcement_wave_spawned = false
+	turret_respawn_timer = 0.0
+	
+	bullet_pool = get_node_or_null("/root/Main/BulletPool")
+	player = get_node_or_null("/root/Main/Player")
+	
+	# 初期位置：画面上端の見切れた位置
+	var vp_w = get_viewport_rect().size.x
+	position = Vector2(vp_w / 2.0, -700.0)
 
+
+func start_intro_sequence(duration: float = 5.0) -> void:
+	is_active = false
+	var vp_w = get_viewport_rect().size.x
+	var target_boss_pos = Vector2(vp_w / 2.0, 360.0)
+	
+	# ボスが画面上端から堂々と画面上部へ降下展開 (5秒)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(self, "position", target_boss_pos, duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	
+	# サブ砲台を2つランダム生成し、ボスの上に被るよう画面上端から降下配置
+	spawn_sub_turrets(duration, false)
+	
+	tween.chain().tween_callback(func():
+		is_active = true
+		fire_timer = 1.0
+	)
+
+
+func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
+	var types = [0, 1, 2]
+	types.shuffle()
+	
+	var selected_types = [types[0], types[1]]
+	if is_wave2:
+		selected_types = [types[1], types[2]]
+		
+	# 配置：ボス背景の上に被る位置 (画面中央上部、左右)
+	var left_x = randf_range(200.0, 320.0)
+	var left_y = randf_range(240.0, 380.0)
+	var right_x = randf_range(480.0, 600.0)
+	var right_y = randf_range(240.0, 380.0)
+	
+	var configs = [
+		{ "type": selected_types[0], "start": Vector2(left_x, -120.0), "target": Vector2(left_x, left_y) },
+		{ "type": selected_types[1], "start": Vector2(right_x, -120.0), "target": Vector2(right_x, right_y) }
+	]
+	
+	for cfg in configs:
+		if TURRET_SCENE:
+			var turret = TURRET_SCENE.instantiate()
+			turret.turret_type = cfg["type"]
+			turret.max_hp = 900
+			turret.current_hp = 900
+			get_parent().add_child(turret)
+			turret.spawn_intro(cfg["start"], cfg["target"], duration)
+			turrets.append(turret)
+
+
+var is_enraged: bool = false
+var enraged_notified: bool = false
+const METEOR_BULLET_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
 
 func _process(delta: float) -> void:
-	if not core_alive:
+	if not is_alive:
 		return
 		
-	if not laser_alive and is_instance_valid(laser_node):
-		laser_smoke_timer += delta
-		if laser_smoke_timer >= SMOKE_PARTICLE_INTERVAL:
-			laser_smoke_timer = 0.0
-			spawn_smoke_particles(laser_node.global_position, Color.CYAN)
+	# サブ砲台の生存チェック
+	var alive_turrets_count = 0
+	for t in turrets:
+		if is_instance_valid(t) and t.is_alive:
+			alive_turrets_count += 1
 			
-	if not missile_alive and is_instance_valid(missile_node):
-		missile_smoke_timer += delta
-		if missile_smoke_timer >= SMOKE_PARTICLE_INTERVAL:
-			missile_smoke_timer = 0.0
-			spawn_smoke_particles(missile_node.global_position, Color(0.9, 0.4, 1.0))
-		
-	if not is_charging:
-		position = position.move_toward(move_target, current_move_speed * delta)
-		if position.distance_to(move_target) < 10.0:
-			choose_new_target()
-	else:
-		process_charge(delta)
-		
-	fire_timer += delta
-	pattern_timer += delta
+	is_enraged = (alive_turrets_count == 0)
 	
-	process_attacks()
-
-
-func choose_new_target() -> void:
-	var viewport_rect = get_viewport_rect()
-	if viewport_rect:
-		var rx = randf_range(150.0, viewport_rect.size.x - 150.0)
-		var ry = randf_range(80.0, 180.0)
-		move_target = Vector2(rx, ry)
-
-
-func process_charge(delta: float) -> void:
-	match charge_state:
-		1: # 狙い定め
-			charge_timer += delta
-			sprite.modulate = Color(1.0, 0.2, 0.2) if int(charge_timer * 12.0) % 2 == 0 else Color.WHITE
-			if charge_timer >= 0.7:
-				charge_state = 2
-				charge_timer = 0.0
-				if is_instance_valid(player):
-					target_charge_x = player.global_position.x
-				else:
-					target_charge_x = position.x
-		2: # 突進急降下
-			sprite.modulate = Color.RED
-			var target_pos = Vector2(target_charge_x, 850.0)
-			position = position.move_toward(target_pos, CHARGE_RUSH_SPEED * delta)
-			
-			if int(Time.get_ticks_msec() / 40.0) % 2 == 0:
-				spawn_bullet(Vector2.UP.rotated(randf_range(-PI, PI)), BULLET_TYPE_MISSILE, 320.0)
-				
-			if position.distance_to(target_pos) < 20.0 or position.y >= 840.0:
-				charge_state = 3
-				sprite.modulate = Color.WHITE
-		3: # 上昇復帰
-			var home_pos = Vector2(get_viewport_rect().size.x / 2.0, 120.0)
-			position = position.move_toward(home_pos, CHARGE_RETURN_SPEED * delta)
-			if position.distance_to(home_pos) < 20.0:
-				is_charging = false
-				charge_state = 0
-				choose_new_target()
-
-
-func start_charge_attack() -> void:
-	if is_charging:
-		return
-	is_charging = true
-	charge_state = 1
-	charge_timer = 0.0
-
-
-func process_attacks() -> void:
-	var interval = 2.5
-	if not laser_alive and not missile_alive:
-		interval = 1.5
-	elif not laser_alive or not missile_alive:
-		interval = 2.0
+	# コアのパルス演出（砲台全滅後は高速パルスで暴走を表現）
+	if is_instance_valid(core_glow):
+		var pulse_speed = 120.0 if is_enraged else 300.0
+		var pulse = 0.3 + 0.3 * sin(Time.get_ticks_msec() / pulse_speed)
+		core_glow.color = Color(1.0, 0.1, 0.1, pulse) if is_enraged else Color(0.9, 0.2, 0.2, pulse)
 		
-	if fire_timer >= interval:
+	if not is_active:
+		return
+		
+	# 砲台全滅時の暴走アナウンス
+	if is_enraged and not enraged_notified:
+		enraged_notified = true
+		spawn_shield_message("⚠️ 砲台破壊！要塞コア暴走・攻撃頻度激化！")
+		if is_instance_valid(player) and player.has_method("trigger_screen_flash"):
+			player.trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.3))
+			
+	# 増援デッキ展開タイマー
+	if alive_turrets_count == 0 and not reinforcement_wave_spawned:
+		turret_respawn_timer += delta
+		if turret_respawn_timer >= 18.0:
+			reinforcement_wave_spawned = true
+			enraged_notified = false
+			spawn_shield_message("⚠️ 警告: 予備砲台デッキ展開！")
+			spawn_sub_turrets(4.0, true)
+			
+	fire_timer += delta
+	# 砲台生存中は3.5秒、砲台撃破後は1.5秒に手数が倍増！
+	var attack_interval = 1.5 if is_enraged else 3.5
+	if fire_timer >= attack_interval:
 		fire_timer = 0.0
-		execute_attack_pattern()
+		execute_fortress_attack()
 
 
-func execute_attack_pattern() -> void:
-	if laser_alive and missile_alive:
-		if stage_number == 2:
-			var angles = [30, 45, 60, 70, 80, 90, 100, 110, 120, 135, 150]
-			for angle in angles:
-				var rad = deg_to_rad(angle)
-				var dir = Vector2(cos(rad), sin(rad))
-				spawn_bullet(dir, BULLET_TYPE_LASER, 340.0, laser_node.global_position)
-				
-			var dir_to_player = Vector2.DOWN
-			if is_instance_valid(player):
-				dir_to_player = (player.global_position - missile_node.global_position).normalized()
-				
-			var main_tree = get_tree()
-			if main_tree:
-				for i in range(8):
-					main_tree.create_timer(i * 0.08).timeout.connect(func():
-						if is_instance_valid(self) and missile_alive:
-							var current_dir = dir_to_player
-							if is_instance_valid(player):
-								current_dir = (player.global_position - missile_node.global_position).normalized()
-							current_dir = current_dir.rotated(randf_range(-0.2, 0.2))
-							spawn_bullet(current_dir, BULLET_TYPE_MISSILE, 280.0, missile_node.global_position)
-					)
-		else:
-			var angles = [50, 60, 70, 80, 90, 100, 110, 120, 130]
-			for angle in angles:
-				var rad = deg_to_rad(angle)
-				var dir = Vector2(cos(rad), sin(rad))
-				spawn_bullet(dir, BULLET_TYPE_LASER, 300.0, laser_node.global_position)
-			
-			var dir_to_player = Vector2.DOWN
-			if is_instance_valid(player):
-				dir_to_player = (player.global_position - missile_node.global_position).normalized()
-			
-			var main_tree = get_tree()
-			if main_tree:
-				for i in range(5):
-					main_tree.create_timer(i * 0.10).timeout.connect(func():
-						if is_instance_valid(self) and missile_alive:
-							var current_dir = dir_to_player
-							if is_instance_valid(player):
-								current_dir = (player.global_position - missile_node.global_position).normalized()
-							spawn_bullet(current_dir, BULLET_TYPE_MISSILE, 240.0, missile_node.global_position)
-					)
-					
-	elif not laser_alive and missile_alive:
-		var num_missiles = 16 if stage_number == 2 else 12
-		var speed_mult = 320.0 if stage_number == 2 else 280.0
-		for i in range(num_missiles):
-			var angle = (360.0 / num_missiles) * i
-			var rad = deg_to_rad(angle)
-			var dir = Vector2(cos(rad), sin(rad))
-			spawn_bullet(dir, BULLET_TYPE_MISSILE, speed_mult, missile_node.global_position)
-			
-		if randf() > 0.1:
-			start_charge_attack()
-			
-	elif laser_alive and not missile_alive:
-		var num_lasers = 24 if stage_number == 2 else 18
-		var angle_start = 20.0 if stage_number == 2 else 30.0
-		var angle_span = 140.0 if stage_number == 2 else 120.0
-		for i in range(num_lasers):
-			var angle = angle_start + (angle_span / (num_lasers - 1)) * i
-			var rad = deg_to_rad(angle)
-			var dir = Vector2(cos(rad), sin(rad))
-			spawn_bullet(dir, BULLET_TYPE_LASER, 380.0, laser_node.global_position)
-			
-	else:
-		var num_spiral = 32 if stage_number == 2 else 24
-		var speed_spiral = 340.0 if stage_number == 2 else 300.0
-		var base_angle = randf_range(0, 360)
-		for i in range(num_spiral):
-			var angle = base_angle + (360.0 / num_spiral) * i
-			var rad = deg_to_rad(angle)
-			var dir = Vector2(cos(rad), sin(rad))
-			spawn_bullet(dir, BULLET_TYPE_LASER, speed_spiral, core_node.global_position)
-			
-		var charge_interval = 4.0 if stage_number == 2 else 5.0
-		if pattern_timer >= charge_interval:
-			pattern_timer = 0.0
-			start_charge_attack()
-
-
-func spawn_bullet(direction: Vector2, type: String, speed_override: float = 0.0, spawn_pos: Vector2 = Vector2.ZERO) -> void:
+func execute_fortress_attack() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
-	if spawn_pos == Vector2.ZERO:
-		spawn_pos = global_position
 		
-	var bullet = bullet_pool.get_bullet(type)
-	if bullet:
-		bullet.global_position = spawn_pos
-		bullet.set_direction(direction, speed_override)
+	var vp_w = get_viewport_rect().size.x
+	var num_patterns = 4 if is_enraged else 2
+	attack_pattern_index = (attack_pattern_index + 1) % num_patterns
+	
+	match attack_pattern_index:
+		0:
+			# パターン1: 画面上端からの広域扇状フォトン弾幕
+			var drop_count = 4 if is_enraged else 3
+			var step_w = vp_w / float(drop_count + 1)
+			for i in range(drop_count):
+				var drop_x = step_w * (i + 1)
+				var center_dir = Vector2.DOWN
+				if is_instance_valid(player):
+					center_dir = (player.global_position - Vector2(drop_x, 20.0)).normalized()
+					
+				var angles = [-24.0, -12.0, 0.0, 12.0, 24.0]
+				for angle_deg in angles:
+					var bullet = bullet_pool.get_bullet("laser")
+					if bullet:
+						bullet.global_position = Vector2(drop_x, 15.0)
+						bullet.damage = 10
+						var dir = center_dir.rotated(deg_to_rad(angle_deg))
+						bullet.set_direction(dir, 320.0)
+		1:
+			# パターン2: 画面上端からのクラスター追尾ミサイル雨
+			var missile_waves = 4 if is_enraged else 2
+			for wave in range(missile_waves):
+				get_tree().create_timer(wave * 0.22).timeout.connect(func():
+					if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+						var spawn_x = randf_range(100.0, vp_w - 100.0)
+						var bullet = bullet_pool.get_bullet("missile")
+						if bullet:
+							bullet.global_position = Vector2(spawn_x, 15.0)
+							bullet.damage = 10
+							var target_dir = Vector2.DOWN
+							if is_instance_valid(player):
+								target_dir = (player.global_position - bullet.global_position).normalized()
+							bullet.set_direction(target_dir, 260.0)
+				)
+		2:
+			# パターン3 (暴走時): コア直撃チャージボルト＋左右サイクロン弾
+			if is_instance_valid(core_node):
+				var core_pos = core_node.global_position
+				for c_i in range(2):
+					get_tree().create_timer(c_i * 0.15).timeout.connect(func():
+						if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+							var bullet = bullet_pool.get_bullet("charge")
+							if bullet:
+								bullet.global_position = core_pos + Vector2(0.0, 30.0)
+								bullet.damage = 16
+								var dir = Vector2.DOWN
+								if is_instance_valid(player):
+									dir = (player.global_position - bullet.global_position).normalized()
+								bullet.set_direction(dir, 450.0)
+					)
+				# 左右サイクロン弾
+				for side in [-1.0, 1.0]:
+					var c_bullet = bullet_pool.get_bullet("irregular")
+					if c_bullet:
+						c_bullet.global_position = core_pos + Vector2(side * 80.0, 20.0)
+						c_bullet.set_direction(Vector2(side * 0.6, 1.0).normalized(), 300.0)
+		3:
+			# パターン4 (暴走時): 要塞緊急防衛ギガメテオ投下
+			if METEOR_BULLET_SCENE:
+				for m_i in range(2):
+					get_tree().create_timer(m_i * 0.25).timeout.connect(func():
+						if is_instance_valid(self) and is_alive:
+							var meteor = METEOR_BULLET_SCENE.instantiate()
+							meteor.global_position = Vector2(vp_w * (0.3 if m_i == 0 else 0.7), 20.0)
+							var shoot_dir = Vector2.DOWN.rotated(randf_range(-0.4, 0.4))
+							if is_instance_valid(player):
+								shoot_dir = (player.global_position - meteor.global_position).normalized()
+							meteor.set_direction(shoot_dir, 300.0)
+							get_parent().add_child(meteor)
+					)
 
 
 func take_damage_on_part(part_name: String, amount: int) -> void:
-	var is_finish_phase = not core_alive
+	if not is_alive:
+		return
+		
+	var has_alive_turrets = false
+	for t in turrets:
+		if is_instance_valid(t) and t.is_alive:
+			has_alive_turrets = true
+			break
+			
+	var final_dmg = amount
+	if has_alive_turrets:
+		# 砲台生存中はバリアでダメージ80%カット
+		final_dmg = max(1, int(amount * 0.2))
+		if randf() < 0.2:
+			spawn_shield_message("⚠️ サブ砲台が防壁を展開中！")
+			
+	current_hp -= final_dmg
 	
-	var pop_pos = global_position
-	if part_name == PART_LASER and is_instance_valid(laser_node):
-		pop_pos = laser_node.global_position
-	elif part_name == PART_MISSILE and is_instance_valid(missile_node):
-		pop_pos = missile_node.global_position
-	elif is_instance_valid(core_node):
-		pop_pos = core_node.global_position
+	# 被弾フラッシュ
+	if is_instance_valid(sprite):
+		sprite.modulate = Color(1.5, 0.7, 0.7, 1.0)
+		var tween = create_tween()
+		tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.12)
 		
 	var main = get_node_or_null("/root/Main")
 	if main:
-		var manager = main.get_node_or_null("GameManager")
-		if manager and manager.has_method("add_damage_score"):
-			var score_add = amount * 10 if is_finish_phase else amount
-			manager.add_damage_score(score_add)
-			
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(pop_pos, amount * 10 if is_finish_phase else amount, is_finish_phase)
-
-	if is_finish_phase:
-		return
-		
-	match part_name:
-		PART_LASER:
-			if laser_alive:
-				laser_hp -= amount
-				if laser_hp <= 0:
-					laser_hp = 0
-					laser_alive = false
-					destroy_part(PART_LASER)
-		PART_MISSILE:
-			if missile_alive:
-				missile_hp -= amount
-				if missile_hp <= 0:
-					missile_hp = 0
-					missile_alive = false
-					destroy_part(PART_MISSILE)
-		PART_CORE:
-			var actual_amount = amount
-			if laser_alive or missile_alive:
-				actual_amount = int(amount * 0.05)
-				if actual_amount < 1:
-					actual_amount = 1
-				if randf() > 0.7:
-					spawn_shield_popup()
-					
-			core_hp -= actual_amount
-			if core_hp <= 0:
-				core_hp = 0
-				core_alive = false
-				destroy_boss()
+			var pop_pos = core_node.global_position if is_instance_valid(core_node) else global_position
+			ui_node.spawn_damage_popup(pop_pos, final_dmg, not has_alive_turrets)
+			
+		var mgr = main.get_node_or_null("GameManager")
+		if mgr and mgr.has_method("add_damage_score"):
+			mgr.add_damage_score(final_dmg)
+			
+	if current_hp <= 0:
+		current_hp = 0
+		destroy_boss()
 
 
-func spawn_shield_popup() -> void:
+func spawn_shield_message(text: String) -> void:
 	var label = Label.new()
-	label.text = "バリア発動中！部位を破壊せよ！"
-	var settings = LabelSettings.new()
-	settings.font_size = 22
-	settings.font_color = Color.RED
-	settings.outline_size = 6
-	settings.outline_color = Color.BLACK
-	label.label_settings = settings
+	label.text = text
+	var set = LabelSettings.new()
+	var pixel_font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+	if pixel_font:
+		set.font = pixel_font
+	set.font_size = 20
+	set.font_color = Color(1.0, 0.3, 0.3)
+	set.outline_size = 4
+	set.outline_color = Color.BLACK
+	label.label_settings = set
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.global_position = global_position + Vector2(-150.0, -60.0)
-	label.custom_minimum_size = Vector2(300.0, 30.0)
+	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 200, 180)
+	label.custom_minimum_size = Vector2(400, 30)
 	get_parent().add_child(label)
+	
 	var tween = create_tween()
-	tween.tween_property(label, "global_position", label.global_position + Vector2(0.0, -40.0), 1.0)
-	tween.tween_property(label, "modulate:a", 0.0, 1.0)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 30.0, 1.4)
+	tween.tween_property(label, "modulate:a", 0.0, 1.4)
 	tween.chain().tween_callback(label.queue_free)
 
 
-func destroy_part(part_type: String) -> void:
-	spawn_explosion_particles(part_type)
-	
-	if part_type == PART_LASER and is_instance_valid(laser_node):
-		laser_node.modulate = Color(0.2, 0.2, 0.2, 0.5)
-	elif part_type == PART_MISSILE and is_instance_valid(missile_node):
-		missile_node.modulate = Color(0.2, 0.2, 0.2, 0.5)
-		
-	if is_instance_valid(player) and player.has_method("upgrade_weapon"):
-		player.upgrade_weapon(part_type)
-		
-	var main = get_node_or_null("/root/Main")
-	if main:
-		var manager = main.get_node_or_null("GameManager")
-		if manager and manager.has_method("add_tech_points"):
-			manager.add_tech_points(12)
-			if player and player.has_method("spawn_popup_message"):
-				player.spawn_popup_message("部位破壊！ +12 TP")
-		
-	reallocate_energy()
-
-
-func reallocate_energy() -> void:
-	if laser_alive and missile_alive:
-		energy_laser = 30.0
-		energy_missile = 30.0
-		energy_core = 40.0
-	elif not laser_alive and missile_alive:
-		energy_laser = 0.0
-		energy_missile = 45.0
-		energy_core = 55.0
-		base_move_speed = 180.0
-		current_move_speed = 180.0
-	elif laser_alive and not missile_alive:
-		energy_laser = 45.0
-		energy_missile = 0.0
-		energy_core = 55.0
-		base_move_speed = 180.0
-		current_move_speed = 180.0
-	else:
-		energy_laser = 0.0
-		energy_missile = 0.0
-		energy_core = 100.0
-		base_move_speed = 280.0
-		current_move_speed = 280.0
-		var tween = create_tween().set_loops()
-		tween.tween_property(sprite, "modulate", Color(1.0, 0.4, 0.4), 0.3)
-		tween.tween_property(sprite, "modulate", Color.WHITE, 0.3)
-
-
-func spawn_explosion_particles(part_type: String) -> void:
-	var pos = global_position
-	var part_color = Color.WHITE
-	if part_type == PART_LASER and is_instance_valid(laser_node):
-		pos = laser_node.global_position
-		part_color = Color.CYAN
-	elif part_type == PART_MISSILE and is_instance_valid(missile_node):
-		pos = missile_node.global_position
-		part_color = Color.VIOLET
-		
-	if PARRY_PARTICLE_SCENE:
-		for i in range(3):
-			var particle = PARRY_PARTICLE_SCENE.instantiate()
-			particle.global_position = pos + Vector2(randf_range(-20.0, 20.0), randf_range(-20.0, 20.0))
-			particle.scale = Vector2(2.5, 2.5)
-			particle.modulate = part_color
-			get_parent().add_child(particle)
-
-
 func destroy_boss() -> void:
-	is_charging = false
-	charge_state = 0
-	current_move_speed = 0.0
+	is_alive = false
+	is_active = false
 	
+	# ボス撃破ボーナス: +10 TP
+	Global.tech_points += 10
+	var player_node = get_node_or_null("/root/Main/Player")
+	if player_node and player_node.has_method("spawn_popup_message"):
+		player_node.spawn_popup_message("🏆 要塞ボス完全撃破！ +10 TP 獲得！")
+		
+	for t in turrets:
+		if is_instance_valid(t) and t.is_alive:
+			t.destroy_turret()
+			
 	var main_tree = get_tree()
 	if PARRY_PARTICLE_SCENE and main_tree:
-		for i in range(15):
-			main_tree.create_timer(i * 0.12).timeout.connect(func():
+		for i in range(25):
+			main_tree.create_timer(i * 0.1).timeout.connect(func():
 				if is_instance_valid(self):
-					var particle = PARRY_PARTICLE_SCENE.instantiate()
-					particle.global_position = global_position + Vector2(randf_range(-80.0, 80.0), randf_range(-80.0, 80.0))
-					particle.scale = Vector2(3.5, 3.5)
-					particle.modulate = Color(1.0, randf_range(0.2, 0.7), 0.1)
-					get_parent().add_child(particle)
-					
-					sprite.modulate = Color(1.0, 0.3, 0.3, 0.7)
-					var flash_tween = create_tween()
-					flash_tween.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 0.7), 0.08)
+					var p = PARRY_PARTICLE_SCENE.instantiate()
+					p.global_position = global_position + Vector2(randf_range(-400, 400), randf_range(-300, 300))
+					p.scale = Vector2(4.0, 4.0)
+					p.modulate = Color(1.0, randf_range(0.2, 0.9), 0.1)
+					get_parent().add_child(p)
 			)
 			
-	main_tree.create_timer(2.2).timeout.connect(func():
-		if PARRY_PARTICLE_SCENE and get_parent():
-			for j in range(8):
-				var p = PARRY_PARTICLE_SCENE.instantiate()
-				p.global_position = global_position + Vector2(randf_range(-120.0, 120.0), randf_range(-120.0, 120.0))
-				p.scale = Vector2(5.0, 5.0)
-				p.modulate = Color.CYAN
-				get_parent().add_child(p)
-				
+	main_tree.create_timer(2.6).timeout.connect(func():
 		var main = get_node_or_null("/root/Main")
 		if main:
-			var manager = main.get_node_or_null("GameManager")
-			if manager and manager.has_method("on_boss_destroyed"):
-				manager.on_boss_destroyed()
-		
+			var mgr = main.get_node_or_null("GameManager")
+			if mgr and mgr.has_method("on_boss_destroyed"):
+				mgr.on_boss_destroyed()
 		queue_free()
 	)
 
 
 func get_current_hp() -> int:
-	return laser_hp + missile_hp + core_hp
-
-
-func spawn_smoke_particles(pos: Vector2, color: Color) -> void:
-	if PARRY_PARTICLE_SCENE and get_parent():
-		var particle = PARRY_PARTICLE_SCENE.instantiate()
-		particle.global_position = pos + Vector2(randf_range(-20.0, 20.0), randf_range(-20.0, 20.0))
-		particle.scale = Vector2(1.2, 1.2)
-		particle.modulate = color
-		get_parent().add_child(particle)
+	return current_hp

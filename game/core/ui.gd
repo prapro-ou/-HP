@@ -8,15 +8,12 @@ extends CanvasLayer
 # カラー定数
 const COLOR_PLAYER_HP = Color(0.2, 0.9, 0.4)
 const COLOR_BOSS_HP = Color(1.0, 0.2, 0.2)
-const COLOR_BEAM_ANALYSIS = Color.CYAN
-const COLOR_MISSILE_ANALYSIS = Color(0.8, 0.4, 1.0)
 const COLOR_SHIELD_HEAT_DEFAULT = Color(0.2, 0.8, 1.0)
 
 # フォントサイズ定数
 const FONT_SIZE_HP: int = 18
 const FONT_SIZE_PARRY: int = 22
 const FONT_SIZE_GUARD: int = 20
-const FONT_SIZE_ENERGY: int = 18
 const FONT_SIZE_WARNING_TITLE: int = 48
 const FONT_SIZE_WARNING_SUBTITLE: int = 24
 
@@ -28,15 +25,6 @@ const FONT_SIZE_WARNING_SUBTITLE: int = 24
 
 @onready var parry_count_label: Label = $ParryCountLabel
 @onready var guard_status_label: Label = $GuardStatusLabel
-
-# 武器解析UI
-@onready var slot_beam_label: Label = $BeamSlot/Label
-@onready var slot_beam_bar: ProgressBar = $BeamSlot/ProgressBar
-@onready var slot_missile_label: Label = $MissileSlot/Label
-@onready var slot_missile_bar: ProgressBar = $MissileSlot/ProgressBar
-
-# ボスエネルギー比率UI
-@onready var boss_energy_label: Label = $BossEnergyLabel
 
 # 警告・フラッシュ演出UI
 @onready var warning_title: Label = $WarningTitle
@@ -51,51 +39,203 @@ func _ready() -> void:
 	
 	style_hp_bar(player_hp_bar, COLOR_PLAYER_HP)
 	style_hp_bar(boss_hp_bar, COLOR_BOSS_HP)
-	style_analysis_bar(slot_beam_bar, COLOR_BEAM_ANALYSIS)
-	style_analysis_bar(slot_missile_bar, COLOR_MISSILE_ANALYSIS)
 	
-	setup_label_style(player_hp_label, FONT_SIZE_HP, Color.WHITE, 6)
-	setup_label_style(boss_hp_label, FONT_SIZE_HP, Color.WHITE, 6)
-	setup_label_style(parry_count_label, FONT_SIZE_PARRY, Color.CYAN, 6)
-	setup_label_style(guard_status_label, FONT_SIZE_GUARD, Color.GREEN, 6)
-	setup_label_style(boss_energy_label, FONT_SIZE_ENERGY, Color.GOLD, 6)
+	# 左上プレイヤー情報配置
+	player_hp_label.position = Vector2(20, 14)
+	player_hp_bar.position = Vector2(20, 32)
+	player_hp_bar.custom_minimum_size = Vector2(220, 14)
+	player_hp_bar.size = Vector2(220, 14)
+	
+	setup_label_style(player_hp_label, 12, Color.WHITE, 4)
+	setup_label_style(boss_hp_label, 12, Color.GOLD, 4)
+	setup_label_style(parry_count_label, 11, Color.CYAN, 4)
+	setup_label_style(guard_status_label, 11, Color.GREEN, 4)
 	setup_label_style(warning_title, FONT_SIZE_WARNING_TITLE, Color.RED, 10)
 	setup_label_style(warning_subtitle, FONT_SIZE_WARNING_SUBTITLE, Color.GOLD, 6)
-	setup_label_style(slot_beam_label, FONT_SIZE_HP, Color.LIGHT_GRAY, 6)
-	setup_label_style(slot_missile_label, FONT_SIZE_HP, Color.LIGHT_GRAY, 6)
+	
+	parry_count_label.position = Vector2(20, 64)
+	guard_status_label.position = Vector2(20, 80)
+	
+	# 中央ボス情報配置
+	boss_hp_label.position = Vector2(260, 14)
+	boss_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	boss_hp_bar.position = Vector2(260, 32)
+	boss_hp_bar.custom_minimum_size = Vector2(240, 14)
+	boss_hp_bar.size = Vector2(240, 14)
 	
 	create_shield_heat_bar()
+	create_analysis_matrix_ui()
 
 
 func create_shield_heat_bar() -> void:
 	shield_heat_bar = ProgressBar.new()
 	shield_heat_bar.name = "ShieldHeatBar"
 	shield_heat_bar.show_percentage = false
-	shield_heat_bar.custom_minimum_size = Vector2(240, 16)
-	shield_heat_bar.position = Vector2(30, 72)
+	shield_heat_bar.custom_minimum_size = Vector2(220, 10)
+	shield_heat_bar.size = Vector2(220, 10)
+	shield_heat_bar.position = Vector2(20, 48)
 	add_child(shield_heat_bar)
 	style_hp_bar(shield_heat_bar, COLOR_SHIELD_HEAT_DEFAULT)
 
 
+var slot_cards: Array = []
+var active_analysis_label: Label
+var active_analysis_bar: ProgressBar
+
+func create_analysis_matrix_ui() -> void:
+	var trait_panel = PanelContainer.new()
+	trait_panel.name = "TraitSlotsPanel"
+	trait_panel.position = Vector2(510, 14)
+	trait_panel.custom_minimum_size = Vector2(265, 86)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
+	sb.border_color = Color(0.25, 0.4, 0.65, 0.9)
+	trait_panel.add_theme_stylebox_override("panel", sb)
+	add_child(trait_panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	trait_panel.add_child(vbox)
+	
+	# タイトル
+	var title = Label.new()
+	title.text = "【変異スロット (MAX 3)】"
+	var t_set = LabelSettings.new()
+	if PIXEL_FONT:
+		t_set.font = PIXEL_FONT
+	t_set.font_size = 13
+	t_set.font_color = Color.CYAN
+	title.label_settings = t_set
+	vbox.add_child(title)
+	
+	# 3つのスロットボックス（横並び）
+	var hbox = HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 6)
+	vbox.add_child(hbox)
+	
+	slot_cards.clear()
+	for i in range(3):
+		var card = PanelContainer.new()
+		card.custom_minimum_size = Vector2(80, 32)
+		var c_sb = StyleBoxFlat.new()
+		c_sb.bg_color = Color(0.08, 0.1, 0.14, 0.9)
+		c_sb.border_width_left = 1
+		c_sb.border_width_top = 1
+		c_sb.border_width_right = 1
+		c_sb.border_width_bottom = 1
+		c_sb.border_color = Color(0.2, 0.25, 0.35, 0.8)
+		card.add_theme_stylebox_override("panel", c_sb)
+		
+		var lbl = Label.new()
+		lbl.text = "SLOT %d\n[空き]" % (i + 1)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		var l_set = LabelSettings.new()
+		if PIXEL_FONT:
+			l_set.font = PIXEL_FONT
+		l_set.font_size = 11
+		l_set.font_color = Color(0.4, 0.45, 0.55)
+		lbl.label_settings = l_set
+		card.add_child(lbl)
+		
+		hbox.add_child(card)
+		slot_cards.append({ "panel": card, "style": c_sb, "label": lbl })
+		
+	# 直近の解析進行バー (1行)
+	var prog_row = HBoxContainer.new()
+	prog_row.add_theme_constant_override("separation", 6)
+	vbox.add_child(prog_row)
+	
+	active_analysis_label = Label.new()
+	active_analysis_label.text = "解析待機中"
+	active_analysis_label.custom_minimum_size = Vector2(100, 14)
+	var a_set = LabelSettings.new()
+	if PIXEL_FONT:
+		a_set.font = PIXEL_FONT
+	a_set.font_size = 11
+	a_set.font_color = Color.LIGHT_GRAY
+	active_analysis_label.label_settings = a_set
+	prog_row.add_child(active_analysis_label)
+	
+	active_analysis_bar = ProgressBar.new()
+	active_analysis_bar.show_percentage = false
+	active_analysis_bar.custom_minimum_size = Vector2(150, 8)
+	active_analysis_bar.max_value = 100
+	active_analysis_bar.value = 0
+	style_analysis_bar(active_analysis_bar, Color.CYAN)
+	prog_row.add_child(active_analysis_bar)
+
+
+func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
+	# 1. 3つのスロット表示の更新
+	for i in range(3):
+		var card = slot_cards[i]
+		if i < active_traits.size():
+			var t_key = active_traits[i]
+			if patterns.has(t_key):
+				var data = patterns[t_key]
+				var lvl = data.get("level", 1)
+				card["label"].text = "%s %s\nLv.%d" % [data.get("icon", "⚡"), data.get("name", "属性"), lvl]
+				card["label"].label_settings.font_color = Color.WHITE if lvl == 1 else Color.GOLD
+				card["style"].border_color = data.get("color", Color.CYAN)
+				card["style"].bg_color = Color(0.1, 0.15, 0.22, 0.95)
+		else:
+			card["label"].text = "SLOT %d\n[空き]" % (i + 1)
+			card["label"].label_settings.font_color = Color(0.4, 0.45, 0.55)
+			card["style"].border_color = Color(0.2, 0.25, 0.35, 0.8)
+			card["style"].bg_color = Color(0.06, 0.08, 0.1, 0.85)
+			
+	# 2. 現在進行中の解析（直近で最も進捗の高い、未MAXパターン）の表示
+	var latest_pattern = null
+	var highest_progress = 0.0
+	for key in patterns.keys():
+		var data = patterns[key]
+		var prog = data.get("progress", 0.0)
+		var lvl = data.get("level", 0)
+		var max_lvl = data.get("max_level", 2)
+		if lvl < max_lvl and prog > highest_progress:
+			highest_progress = prog
+			latest_pattern = data
+			
+	if latest_pattern and highest_progress > 0:
+		var name_str = latest_pattern.get("name", "未知")
+		active_analysis_label.text = "解析中: %s" % name_str
+		active_analysis_label.label_settings.font_color = latest_pattern.get("color", Color.CYAN)
+		active_analysis_bar.value = highest_progress
+		style_analysis_bar(active_analysis_bar, latest_pattern.get("color", Color.CYAN))
+	else:
+		active_analysis_label.text = "解析: パリィで吸収"
+		active_analysis_label.label_settings.font_color = Color.GRAY
+		active_analysis_bar.value = 0
+
+
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
 func style_hp_bar(bar: ProgressBar, color: Color) -> void:
+	# ドット絵風の角張ったピクセルフレーム (角丸ゼロ・2px枠線)
 	var sb_bg = StyleBoxFlat.new()
-	sb_bg.bg_color = Color(0.1, 0.1, 0.13, 0.8)
-	sb_bg.border_width_left = 1
-	sb_bg.border_width_top = 1
-	sb_bg.border_width_right = 1
-	sb_bg.border_width_bottom = 1
-	sb_bg.border_color = Color(0.3, 0.3, 0.35, 1)
-	sb_bg.corner_radius_top_left = 3
-	sb_bg.corner_radius_top_right = 3
-	sb_bg.corner_radius_bottom_left = 3
-	sb_bg.corner_radius_bottom_right = 3
+	sb_bg.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb_bg.border_width_left = 2
+	sb_bg.border_width_top = 2
+	sb_bg.border_width_right = 2
+	sb_bg.border_width_bottom = 2
+	sb_bg.border_color = Color(0.25, 0.35, 0.5, 1.0)
+	sb_bg.corner_radius_top_left = 0
+	sb_bg.corner_radius_top_right = 0
+	sb_bg.corner_radius_bottom_left = 0
+	sb_bg.corner_radius_bottom_right = 0
 	
 	var sb_fg = StyleBoxFlat.new()
 	sb_fg.bg_color = color
-	sb_fg.corner_radius_top_left = 2
-	sb_fg.corner_radius_top_right = 2
-	sb_fg.corner_radius_bottom_left = 2
-	sb_fg.corner_radius_bottom_right = 2
+	sb_fg.corner_radius_top_left = 0
+	sb_fg.corner_radius_top_right = 0
+	sb_fg.corner_radius_bottom_left = 0
+	sb_fg.corner_radius_bottom_right = 0
 	
 	bar.add_theme_stylebox_override("background", sb_bg)
 	bar.add_theme_stylebox_override("fill", sb_fg)
@@ -103,22 +243,32 @@ func style_hp_bar(bar: ProgressBar, color: Color) -> void:
 
 func style_analysis_bar(bar: ProgressBar, color: Color) -> void:
 	var sb_bg = StyleBoxFlat.new()
-	sb_bg.bg_color = Color(0.08, 0.08, 0.1, 0.9)
-	sb_bg.border_width_left = 1
-	sb_bg.border_width_top = 1
-	sb_bg.border_width_right = 1
-	sb_bg.border_width_bottom = 1
-	sb_bg.border_color = Color(0.2, 0.2, 0.2, 0.8)
+	sb_bg.bg_color = Color(0.03, 0.04, 0.06, 0.95)
+	sb_bg.border_width_left = 2
+	sb_bg.border_width_top = 2
+	sb_bg.border_width_right = 2
+	sb_bg.border_width_bottom = 2
+	sb_bg.border_color = Color(0.2, 0.25, 0.35, 0.9)
+	sb_bg.corner_radius_top_left = 0
+	sb_bg.corner_radius_top_right = 0
+	sb_bg.corner_radius_bottom_left = 0
+	sb_bg.corner_radius_bottom_right = 0
 	
 	var sb_fg = StyleBoxFlat.new()
 	sb_fg.bg_color = color
+	sb_fg.corner_radius_top_left = 0
+	sb_fg.corner_radius_top_right = 0
+	sb_fg.corner_radius_bottom_left = 0
+	sb_fg.corner_radius_bottom_right = 0
 	
 	bar.add_theme_stylebox_override("background", sb_bg)
 	bar.add_theme_stylebox_override("fill", sb_fg)
 
 
-func setup_label_style(label: Label, size: int, color: Color, outline: int = 6) -> void:
+func setup_label_style(label: Label, size: int, color: Color, outline: int = 4) -> void:
 	var settings = LabelSettings.new()
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
 	settings.font_size = size
 	settings.font_color = color
 	settings.outline_size = outline
@@ -185,39 +335,7 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 		guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
-func update_pattern_analysis(patterns: Dictionary) -> void:
-	var summary_text = ""
-	for key in ["rapid", "spread", "pierce", "homing"]:
-		if not key in patterns:
-			continue
-		var data = patterns[key]
-		var name_str = data["name"]
-		var prog = int(data["progress"])
-		var is_done = data["analyzed"]
-		
-		if is_done:
-			summary_text += "【%s】100%% ⚡ " % name_str
-		elif prog > 0:
-			summary_text += "%s: %d%% | " % [name_str, prog]
-			
-	if summary_text != "":
-		slot_beam_label.text = "敵弾パターン解析: " + summary_text.trim_suffix(" | ")
-		slot_beam_label.label_settings.font_color = Color.GOLD
-	else:
-		slot_beam_label.text = "敵弾パターン解析: パリィで特徴を吸収せよ"
-		slot_beam_label.label_settings.font_color = Color.LIGHT_GRAY
 
-
-func update_analysis_progress(_beam_progress: float, _beam_ready: bool, _missile_progress: float, _missile_ready: bool, _active_weapon: String) -> void:
-	pass
-
-
-func update_boss_energy(laser: float, missile: float, core: float) -> void:
-	boss_energy_label.text = "エネルギー再分配\nコア %d%% | レーザー %d%% | ミサイル %d%%" % [int(core), int(laser), int(missile)]
-
-
-func hide_boss_energy() -> void:
-	boss_energy_label.text = ""
 
 
 func trigger_flash(color: Color = Color(1.0, 1.0, 1.0, 0.5)) -> void:
@@ -261,23 +379,23 @@ func show_game_over(result: String) -> void:
 	tween.tween_property(panel, "color", Color(0.05, 0.05, 0.08, 0.85), 0.6)
 	
 	var container = VBoxContainer.new()
-	container.anchor_left = 0.5
-	container.anchor_top = 0.5
-	container.anchor_right = 0.5
-	container.anchor_bottom = 0.5
+	container.anchor_left = 0.0
+	container.anchor_right = 1.0
+	container.anchor_top = 0.0
+	container.anchor_bottom = 1.0
 	container.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	container.grow_vertical = Control.GROW_DIRECTION_BOTH
 	container.alignment = BoxContainer.ALIGNMENT_CENTER
-	container.custom_minimum_size = Vector2(500, 300)
-	container.offset_left = -250
-	container.offset_top = -150
+	container.add_theme_constant_override("separation", 14)
 	panel.add_child(container)
 	
 	var result_label = Label.new()
 	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	var settings = LabelSettings.new()
-	settings.font_size = 42
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
+	settings.font_size = 48
 	settings.outline_size = 8
 	settings.outline_color = Color.BLACK
 	
@@ -298,6 +416,8 @@ func show_game_over(result: String) -> void:
 	var stats_label = Label.new()
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var stats_settings = LabelSettings.new()
+	if PIXEL_FONT:
+		stats_settings.font = PIXEL_FONT
 	stats_settings.font_size = 24
 	stats_settings.font_color = Color(0.8, 0.9, 1.0, 0.9)
 	stats_settings.outline_size = 4
@@ -312,7 +432,7 @@ func show_game_over(result: String) -> void:
 		if "total_damage_score" in game_manager:
 			score = game_manager.total_damage_score
 			
-	stats_label.text = "総パリィ数: " + str(parries) + " 回\n技術回収: 100%"
+	stats_label.text = "総パリィ数: %d 回\n技術回収: 100%%" % parries
 	container.add_child(stats_label)
 	
 	if result == "VICTORY":
@@ -324,6 +444,8 @@ func show_game_over(result: String) -> void:
 		score_title_label.text = "最終スコア"
 		score_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var score_title_settings = LabelSettings.new()
+		if PIXEL_FONT:
+			score_title_settings.font = PIXEL_FONT
 		score_title_settings.font_size = 22
 		score_title_settings.font_color = Color.GOLD
 		score_title_settings.outline_size = 4
@@ -335,6 +457,8 @@ func show_game_over(result: String) -> void:
 		score_val_label.text = format_score(score)
 		score_val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var score_val_settings = LabelSettings.new()
+		if PIXEL_FONT:
+			score_val_settings.font = PIXEL_FONT
 		score_val_settings.font_size = 52
 		score_val_settings.font_color = Color(1.0, 0.85, 0.1)
 		score_val_settings.outline_size = 10
@@ -351,16 +475,16 @@ func show_game_over(result: String) -> void:
 	var theme_color = Color.CYAN if result == "VICTORY" else Color.ORANGE_RED
 	
 	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.08, 0.08, 0.12, 1.0)
-	style_normal.border_width_left = 2
-	style_normal.border_width_top = 2
-	style_normal.border_width_right = 2
-	style_normal.border_width_bottom = 2
+	style_normal.bg_color = Color(0.06, 0.07, 0.1, 0.95)
+	style_normal.border_width_left = 3
+	style_normal.border_width_top = 3
+	style_normal.border_width_right = 3
+	style_normal.border_width_bottom = 3
 	style_normal.border_color = theme_color
-	style_normal.corner_radius_top_left = 4
-	style_normal.corner_radius_top_right = 4
-	style_normal.corner_radius_bottom_left = 4
-	style_normal.corner_radius_bottom_right = 4
+	style_normal.corner_radius_top_left = 0
+	style_normal.corner_radius_top_right = 0
+	style_normal.corner_radius_bottom_left = 0
+	style_normal.corner_radius_bottom_right = 0
 	
 	var style_hover = style_normal.duplicate()
 	style_hover.bg_color = theme_color
@@ -371,6 +495,8 @@ func show_game_over(result: String) -> void:
 		next_btn.custom_minimum_size = Vector2(280, 56)
 		next_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		next_btn.add_theme_font_size_override("font_size", 22)
+		if PIXEL_FONT:
+			next_btn.add_theme_font_override("font", PIXEL_FONT)
 		
 		next_btn.add_theme_color_override("font_color", Color.WHITE)
 		next_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -398,6 +524,8 @@ func show_game_over(result: String) -> void:
 	retry_btn.custom_minimum_size = Vector2(280, 56)
 	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	retry_btn.add_theme_font_size_override("font_size", 22)
+	if PIXEL_FONT:
+		retry_btn.add_theme_font_override("font", PIXEL_FONT)
 	
 	retry_btn.add_theme_color_override("font_color", Color.WHITE)
 	retry_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -420,6 +548,8 @@ func show_game_over(result: String) -> void:
 	menu_btn.custom_minimum_size = Vector2(280, 56)
 	menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_btn.add_theme_font_size_override("font_size", 22)
+	if PIXEL_FONT:
+		menu_btn.add_theme_font_override("font", PIXEL_FONT)
 	
 	menu_btn.add_theme_color_override("font_color", Color.WHITE)
 	menu_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -447,19 +577,21 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	label.text = str(amount)
 	
 	var settings = LabelSettings.new()
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
 	if is_finish:
-		settings.font_size = randi_range(72, 90)
+		settings.font_size = randi_range(64, 80)
 		settings.font_color = Color(1.0, 0.35, 0.1)
-		settings.outline_size = 14
+		settings.outline_size = 8
 		settings.outline_color = Color.BLACK
 	else:
-		settings.font_size = randi_range(28, 36)
+		settings.font_size = randi_range(24, 32)
 		if amount > 15:
 			settings.font_color = Color(1.0, 0.9, 0.2)
-			settings.font_size = randi_range(36, 44)
+			settings.font_size = randi_range(32, 40)
 		else:
 			settings.font_color = Color.WHITE
-		settings.outline_size = 6
+		settings.outline_size = 4
 		settings.outline_color = Color.BLACK
 		
 	label.label_settings = settings

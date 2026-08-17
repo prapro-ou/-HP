@@ -10,6 +10,8 @@ class Star:
 var stars: Array[Star] = []
 const NUM_STARS = 60
 
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
 # UI Nodes reference
 var background_color: ColorRect
 var main_margin: MarginContainer
@@ -35,6 +37,10 @@ var scale_option: OptionButton
 var aspect_option: OptionButton
 var vsync_check: CheckButton
 var shake_check: CheckButton
+var player_color_option: OptionButton
+var player_ship_preview: TextureRect
+var player_ship_color_name_lbl: Label
+var player_color_keys: Array = ["blue", "red", "green", "yellow", "purple", "orange"]
 var master_slider: HSlider
 var master_lbl: Label
 var bgm_slider: HSlider
@@ -104,9 +110,11 @@ func setup_layout() -> void:
 	title_label.text = "カウンターコア"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 64
+	if PIXEL_FONT:
+		title_set.font = PIXEL_FONT
+	title_set.font_size = 56
 	title_set.font_color = Color.CYAN
-	title_set.outline_size = 14
+	title_set.outline_size = 8
 	title_set.outline_color = Color(0.05, 0.05, 0.1)
 	title_label.label_settings = title_set
 	title_label.pivot_offset = Vector2(350, 60)
@@ -117,9 +125,11 @@ func setup_layout() -> void:
 	subtitle_label.text = "パリィで解析・カウンターで撃破"
 	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var sub_set = LabelSettings.new()
-	sub_set.font_size = 22
+	if PIXEL_FONT:
+		sub_set.font = PIXEL_FONT
+	sub_set.font_size = 20
 	sub_set.font_color = Color.GOLD
-	sub_set.outline_size = 6
+	sub_set.outline_size = 4
 	sub_set.outline_color = Color.BLACK
 	subtitle_label.label_settings = sub_set
 	main_vbox.add_child(subtitle_label)
@@ -152,9 +162,11 @@ func setup_menu_container() -> void:
 	# Play Start Button
 	play_start_btn = Button.new()
 	play_start_btn.text = "出撃開始"
-	play_start_btn.custom_minimum_size = Vector2(340, 75)
+	play_start_btn.custom_minimum_size = Vector2(340, 70)
 	play_start_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	play_start_btn.add_theme_font_size_override("font_size", 28)
+	play_start_btn.add_theme_font_size_override("font_size", 24)
+	if PIXEL_FONT:
+		play_start_btn.add_theme_font_override("font", PIXEL_FONT)
 	menu_container.add_child(play_start_btn)
 	style_button(play_start_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	add_button_animations(play_start_btn)
@@ -162,9 +174,11 @@ func setup_menu_container() -> void:
 	# Settings Button
 	settings_btn = Button.new()
 	settings_btn.text = "設定"
-	settings_btn.custom_minimum_size = Vector2(340, 75)
+	settings_btn.custom_minimum_size = Vector2(340, 70)
 	settings_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_btn.add_theme_font_size_override("font_size", 28)
+	settings_btn.add_theme_font_size_override("font_size", 24)
+	if PIXEL_FONT:
+		settings_btn.add_theme_font_override("font", PIXEL_FONT)
 	menu_container.add_child(settings_btn)
 	style_button(settings_btn, Color(0.8, 0.4, 1.0), Color(0.9, 0.6, 1.0))
 	add_button_animations(settings_btn)
@@ -176,24 +190,22 @@ func setup_menu_container() -> void:
 func setup_settings_container() -> void:
 	settings_container = PanelContainer.new()
 	settings_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_container.custom_minimum_size = Vector2(480, 700)
+	settings_container.custom_minimum_size = Vector2(500, 720)
 	settings_container.hide()
 	main_vbox.add_child(settings_container)
 	
-	# Translucent glassmorphic panel style
+	# Translucent pixel-art panel style (カクカクした3pxドット枠)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.08, 0.12, 0.95)
+	sb.bg_color = Color(0.05, 0.06, 0.1, 0.98)
 	sb.border_width_left = 3
 	sb.border_width_top = 3
 	sb.border_width_right = 3
 	sb.border_width_bottom = 3
-	sb.border_color = Color(0.8, 0.4, 1.0, 0.8) # Purple sci-fi theme
-	sb.corner_radius_top_left = 12
-	sb.corner_radius_top_right = 12
-	sb.corner_radius_bottom_left = 12
-	sb.corner_radius_bottom_right = 12
-	sb.shadow_color = Color(0.8, 0.4, 1.0, 0.3)
-	sb.shadow_size = 15
+	sb.border_color = Color(0.8, 0.4, 1.0, 0.9)
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	settings_container.add_theme_stylebox_override("panel", sb)
 	
 	var margin_inner = MarginContainer.new()
@@ -288,7 +300,87 @@ func setup_settings_container() -> void:
 	shake_check.text = ""
 	grid_display.add_child(shake_check)
 	
-	# --- SECTION 2: AUDIO ---
+	# --- SECTION 2: SHIP CUSTOMIZATION ---
+	var p_title = Label.new()
+	p_title.text = "自機機体カラー設定"
+	p_title.label_settings = sec_set
+	scroll_content.add_child(p_title)
+	
+	var ship_card = PanelContainer.new()
+	var sc_sb = StyleBoxFlat.new()
+	sc_sb.bg_color = Color(0.05, 0.07, 0.12, 0.8)
+	sc_sb.border_width_left = 2
+	sc_sb.border_width_top = 2
+	sc_sb.border_width_right = 2
+	sc_sb.border_width_bottom = 2
+	sc_sb.border_color = Color(0.2, 0.6, 0.9, 0.6)
+	sc_sb.corner_radius_top_left = 8
+	sc_sb.corner_radius_top_right = 8
+	sc_sb.corner_radius_bottom_left = 8
+	sc_sb.corner_radius_bottom_right = 8
+	ship_card.add_theme_stylebox_override("panel", sc_sb)
+	scroll_content.add_child(ship_card)
+	
+	var ship_margin = MarginContainer.new()
+	ship_margin.add_theme_constant_override("margin_left", 15)
+	ship_margin.add_theme_constant_override("margin_top", 12)
+	ship_margin.add_theme_constant_override("margin_right", 15)
+	ship_margin.add_theme_constant_override("margin_bottom", 12)
+	ship_card.add_child(ship_margin)
+	
+	var ship_box = HBoxContainer.new()
+	ship_box.add_theme_constant_override("separation", 20)
+	ship_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	ship_margin.add_child(ship_box)
+	
+	# Preview Box
+	var preview_panel = PanelContainer.new()
+	preview_panel.custom_minimum_size = Vector2(80, 80)
+	var pp_sb = StyleBoxFlat.new()
+	pp_sb.bg_color = Color(0.02, 0.03, 0.06, 0.9)
+	pp_sb.border_width_left = 1
+	pp_sb.border_width_top = 1
+	pp_sb.border_width_right = 1
+	pp_sb.border_width_bottom = 1
+	pp_sb.border_color = Color(0.3, 0.7, 1.0, 0.5)
+	pp_sb.corner_radius_top_left = 6
+	pp_sb.corner_radius_top_right = 6
+	pp_sb.corner_radius_bottom_left = 6
+	pp_sb.corner_radius_bottom_right = 6
+	preview_panel.add_theme_stylebox_override("panel", pp_sb)
+	ship_box.add_child(preview_panel)
+	
+	player_ship_preview = TextureRect.new()
+	player_ship_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	player_ship_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	player_ship_preview.custom_minimum_size = Vector2(64, 64)
+	preview_panel.add_child(player_ship_preview)
+	
+	# Color controls
+	var controls_vbox = VBoxContainer.new()
+	controls_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	controls_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	controls_vbox.add_theme_constant_override("separation", 8)
+	ship_box.add_child(controls_vbox)
+	
+	player_ship_color_name_lbl = Label.new()
+	player_ship_color_name_lbl.text = "コバルトブルー (標準)"
+	var cn_set = LabelSettings.new()
+	cn_set.font_size = 17
+	cn_set.font_color = Color.CYAN
+	player_ship_color_name_lbl.label_settings = cn_set
+	controls_vbox.add_child(player_ship_color_name_lbl)
+	
+	player_color_option = OptionButton.new()
+	player_color_option.custom_minimum_size = Vector2(210, 36)
+	player_color_option.add_theme_font_size_override("font_size", 15)
+	for i in range(player_color_keys.size()):
+		var key = player_color_keys[i]
+		var col_info = Global.available_player_colors.get(key, {"name": key})
+		player_color_option.add_item(col_info["name"], i)
+	controls_vbox.add_child(player_color_option)
+	
+	# --- SECTION 3: AUDIO ---
 	var a_title = Label.new()
 	a_title.text = "音量設定"
 	a_title.label_settings = sec_set
@@ -381,6 +473,7 @@ func setup_settings_container() -> void:
 	mode_option.item_selected.connect(_on_display_mode_changed)
 	scale_option.item_selected.connect(_on_display_scale_changed)
 	aspect_option.item_selected.connect(_on_display_aspect_changed)
+	player_color_option.item_selected.connect(_on_player_color_changed)
 	vsync_check.toggled.connect(func(t): Global.vsync = t)
 	shake_check.toggled.connect(func(t): Global.screen_shake = t)
 	
@@ -411,7 +504,6 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.hide()
 	add_child(confirm_dialog)
 	
-	# Center it on top of everything
 	confirm_dialog.anchor_left = 0.5
 	confirm_dialog.anchor_top = 0.5
 	confirm_dialog.anchor_right = 0.5
@@ -422,18 +514,16 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.offset_top = -120
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.12, 0.04, 0.04, 0.98) # Dark Red themed
+	sb.bg_color = Color(0.1, 0.03, 0.03, 0.98) # Dark Red pixel theme
 	sb.border_width_left = 3
 	sb.border_width_top = 3
 	sb.border_width_right = 3
 	sb.border_width_bottom = 3
 	sb.border_color = Color(1.0, 0.2, 0.2)
-	sb.corner_radius_top_left = 8
-	sb.corner_radius_top_right = 8
-	sb.corner_radius_bottom_left = 8
-	sb.corner_radius_bottom_right = 8
-	sb.shadow_color = Color(1.0, 0.0, 0.0, 0.3)
-	sb.shadow_size = 20
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	confirm_dialog.add_theme_stylebox_override("panel", sb)
 	
 	var margin = MarginContainer.new()
@@ -452,7 +542,9 @@ func setup_confirm_dialog() -> void:
 	warn_title.text = "⚠️ 警告"
 	warn_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var w_lbl_set = LabelSettings.new()
-	w_lbl_set.font_size = 26
+	if PIXEL_FONT:
+		w_lbl_set.font = PIXEL_FONT
+	w_lbl_set.font_size = 24
 	w_lbl_set.font_color = Color.RED
 	w_lbl_set.outline_size = 4
 	w_lbl_set.outline_color = Color.BLACK
@@ -463,8 +555,12 @@ func setup_confirm_dialog() -> void:
 	warn_desc.text = "セーブデータを削除しますか？\nこの操作は元に戻せません。"
 	warn_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var d_lbl_set = LabelSettings.new()
-	d_lbl_set.font_size = 18
+	if PIXEL_FONT:
+		d_lbl_set.font = PIXEL_FONT
+	d_lbl_set.font_size = 17
 	d_lbl_set.font_color = Color.WHITE
+	d_lbl_set.outline_size = 3
+	d_lbl_set.outline_color = Color.BLACK
 	warn_desc.label_settings = d_lbl_set
 	box.add_child(warn_desc)
 	
@@ -476,14 +572,18 @@ func setup_confirm_dialog() -> void:
 	var delete_confirm_btn = Button.new()
 	delete_confirm_btn.text = "削除"
 	delete_confirm_btn.custom_minimum_size = Vector2(150, 48)
-	delete_confirm_btn.add_theme_font_size_override("font_size", 20)
+	delete_confirm_btn.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		delete_confirm_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(delete_confirm_btn, Color.RED, Color(1.0, 0.4, 0.4))
 	btns_box.add_child(delete_confirm_btn)
 	
 	var cancel_confirm_btn = Button.new()
 	cancel_confirm_btn.text = "キャンセル"
 	cancel_confirm_btn.custom_minimum_size = Vector2(150, 48)
-	cancel_confirm_btn.add_theme_font_size_override("font_size", 20)
+	cancel_confirm_btn.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		cancel_confirm_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(cancel_confirm_btn, Color.LIGHT_GRAY, Color.WHITE)
 	btns_box.add_child(cancel_confirm_btn)
 	
@@ -504,7 +604,6 @@ func setup_tutorial_confirm_dialog() -> void:
 	tutorial_dialog.hide()
 	add_child(tutorial_dialog)
 	
-	# Center it on top of everything
 	tutorial_dialog.anchor_left = 0.5
 	tutorial_dialog.anchor_top = 0.5
 	tutorial_dialog.anchor_right = 0.5
@@ -515,18 +614,16 @@ func setup_tutorial_confirm_dialog() -> void:
 	tutorial_dialog.offset_top = -125
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.08, 0.12, 0.98) # Dark blue themed
+	sb.bg_color = Color(0.04, 0.06, 0.1, 0.98) # Dark blue pixel theme
 	sb.border_width_left = 3
 	sb.border_width_top = 3
 	sb.border_width_right = 3
 	sb.border_width_bottom = 3
 	sb.border_color = Color.CYAN
-	sb.corner_radius_top_left = 8
-	sb.corner_radius_top_right = 8
-	sb.corner_radius_bottom_left = 8
-	sb.corner_radius_bottom_right = 8
-	sb.shadow_color = Color(0.0, 0.8, 1.0, 0.3)
-	sb.shadow_size = 20
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	tutorial_dialog.add_theme_stylebox_override("panel", sb)
 	
 	var margin = MarginContainer.new()
@@ -545,7 +642,9 @@ func setup_tutorial_confirm_dialog() -> void:
 	t_title.text = "🤖 チュートリアル"
 	t_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var t_lbl_set = LabelSettings.new()
-	t_lbl_set.font_size = 26
+	if PIXEL_FONT:
+		t_lbl_set.font = PIXEL_FONT
+	t_lbl_set.font_size = 24
 	t_lbl_set.font_color = Color.CYAN
 	t_lbl_set.outline_size = 4
 	t_lbl_set.outline_color = Color.BLACK
@@ -556,8 +655,12 @@ func setup_tutorial_confirm_dialog() -> void:
 	t_desc.text = "操作説明（スロー機能）の\nチュートリアルをプレイしますか？"
 	t_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var d_lbl_set = LabelSettings.new()
-	d_lbl_set.font_size = 18
+	if PIXEL_FONT:
+		d_lbl_set.font = PIXEL_FONT
+	d_lbl_set.font_size = 17
 	d_lbl_set.font_color = Color.WHITE
+	d_lbl_set.outline_size = 3
+	d_lbl_set.outline_color = Color.BLACK
 	t_desc.label_settings = d_lbl_set
 	box.add_child(t_desc)
 	
@@ -569,14 +672,18 @@ func setup_tutorial_confirm_dialog() -> void:
 	var play_btn = Button.new()
 	play_btn.text = "プレイ"
 	play_btn.custom_minimum_size = Vector2(150, 48)
-	play_btn.add_theme_font_size_override("font_size", 20)
+	play_btn.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		play_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(play_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
 	btns_box.add_child(play_btn)
 	
 	var skip_btn = Button.new()
 	skip_btn.text = "スキップ"
 	skip_btn.custom_minimum_size = Vector2(150, 48)
-	skip_btn.add_theme_font_size_override("font_size", 20)
+	skip_btn.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		skip_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(skip_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
 	btns_box.add_child(skip_btn)
 	
@@ -597,63 +704,66 @@ func create_label(text: String) -> Label:
 	var l = Label.new()
 	l.text = text
 	var l_set = LabelSettings.new()
-	l_set.font_size = 18
+	if PIXEL_FONT:
+		l_set.font = PIXEL_FONT
+	l_set.font_size = 17
 	l_set.font_color = Color.WHITE
+	l_set.outline_size = 3
+	l_set.outline_color = Color.BLACK
 	l.label_settings = l_set
 	return l
 
 func style_button(btn: Button, normal_color: Color, hover_color: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
+		
 	var sb_normal = StyleBoxFlat.new()
-	sb_normal.bg_color = Color(0.06, 0.06, 0.1, 0.8)
-	sb_normal.border_width_left = 2
-	sb_normal.border_width_top = 2
-	sb_normal.border_width_right = 2
-	sb_normal.border_width_bottom = 2
+	sb_normal.bg_color = Color(0.04, 0.05, 0.08, 0.9)
+	sb_normal.border_width_left = 3
+	sb_normal.border_width_top = 3
+	sb_normal.border_width_right = 3
+	sb_normal.border_width_bottom = 3
 	sb_normal.border_color = normal_color
-	sb_normal.corner_radius_top_left = 6
-	sb_normal.corner_radius_top_right = 6
-	sb_normal.corner_radius_bottom_left = 6
-	sb_normal.corner_radius_bottom_right = 6
-	sb_normal.shadow_color = Color(normal_color.r, normal_color.g, normal_color.b, 0.15)
-	sb_normal.shadow_size = 4
+	sb_normal.corner_radius_top_left = 0
+	sb_normal.corner_radius_top_right = 0
+	sb_normal.corner_radius_bottom_left = 0
+	sb_normal.corner_radius_bottom_right = 0
 	
 	var sb_hover = StyleBoxFlat.new()
-	sb_hover.bg_color = Color(0.12, 0.12, 0.22, 0.85)
-	sb_hover.border_width_left = 2
-	sb_hover.border_width_top = 2
-	sb_hover.border_width_right = 2
-	sb_hover.border_width_bottom = 2
+	sb_hover.bg_color = Color(0.1, 0.12, 0.2, 0.95)
+	sb_hover.border_width_left = 3
+	sb_hover.border_width_top = 3
+	sb_hover.border_width_right = 3
+	sb_hover.border_width_bottom = 3
 	sb_hover.border_color = hover_color
-	sb_hover.corner_radius_top_left = 6
-	sb_hover.corner_radius_top_right = 6
-	sb_hover.corner_radius_bottom_left = 6
-	sb_hover.corner_radius_bottom_right = 6
-	sb_hover.shadow_color = Color(hover_color.r, hover_color.g, hover_color.b, 0.4)
-	sb_hover.shadow_size = 8
+	sb_hover.corner_radius_top_left = 0
+	sb_hover.corner_radius_top_right = 0
+	sb_hover.corner_radius_bottom_left = 0
+	sb_hover.corner_radius_bottom_right = 0
 	
 	var sb_pressed = StyleBoxFlat.new()
 	sb_pressed.bg_color = hover_color
-	sb_pressed.border_width_left = 2
-	sb_pressed.border_width_top = 2
-	sb_pressed.border_width_right = 2
-	sb_pressed.border_width_bottom = 2
+	sb_pressed.border_width_left = 3
+	sb_pressed.border_width_top = 3
+	sb_pressed.border_width_right = 3
+	sb_pressed.border_width_bottom = 3
 	sb_pressed.border_color = Color.WHITE
-	sb_pressed.corner_radius_top_left = 6
-	sb_pressed.corner_radius_top_right = 6
-	sb_pressed.corner_radius_bottom_left = 6
-	sb_pressed.corner_radius_bottom_right = 6
+	sb_pressed.corner_radius_top_left = 0
+	sb_pressed.corner_radius_top_right = 0
+	sb_pressed.corner_radius_bottom_left = 0
+	sb_pressed.corner_radius_bottom_right = 0
 	
 	var sb_disabled = StyleBoxFlat.new()
-	sb_disabled.bg_color = Color(0.03, 0.03, 0.05, 0.5)
-	sb_disabled.border_width_left = 1
-	sb_disabled.border_width_top = 1
-	sb_disabled.border_width_right = 1
-	sb_disabled.border_width_bottom = 1
+	sb_disabled.bg_color = Color(0.02, 0.02, 0.04, 0.5)
+	sb_disabled.border_width_left = 2
+	sb_disabled.border_width_top = 2
+	sb_disabled.border_width_right = 2
+	sb_disabled.border_width_bottom = 2
 	sb_disabled.border_color = Color(0.2, 0.2, 0.2, 0.4)
-	sb_disabled.corner_radius_top_left = 6
-	sb_disabled.corner_radius_top_right = 6
-	sb_disabled.corner_radius_bottom_left = 6
-	sb_disabled.corner_radius_bottom_right = 6
+	sb_disabled.corner_radius_top_left = 0
+	sb_disabled.corner_radius_top_right = 0
+	sb_disabled.corner_radius_bottom_left = 0
+	sb_disabled.corner_radius_bottom_right = 0
 	
 	btn.add_theme_stylebox_override("normal", sb_normal)
 	btn.add_theme_stylebox_override("hover", sb_hover)
@@ -711,6 +821,30 @@ func sync_settings_to_ui() -> void:
 	
 	sfx_slider.value = Global.sfx_volume
 	sfx_lbl.text = str(int(Global.sfx_volume)) + "%"
+	
+	var color_idx = player_color_keys.find(Global.player_color)
+	if color_idx != -1:
+		player_color_option.selected = color_idx
+	else:
+		player_color_option.selected = 0
+	update_ship_preview()
+
+func update_ship_preview() -> void:
+	if not player_ship_preview:
+		return
+	var cur_color = Global.player_color
+	var tex_path = Global.get_player_texture_path(cur_color)
+	if ResourceLoader.exists(tex_path):
+		player_ship_preview.texture = load(tex_path)
+	if Global.available_player_colors.has(cur_color):
+		var data = Global.available_player_colors[cur_color]
+		player_ship_color_name_lbl.text = data["name"]
+		player_ship_color_name_lbl.label_settings.font_color = data.get("accent_color", Color.CYAN)
+
+func _on_player_color_changed(idx: int) -> void:
+	if idx >= 0 and idx < player_color_keys.size():
+		Global.player_color = player_color_keys[idx]
+		update_ship_preview()
 
 func _on_play_start_pressed() -> void:
 	# Check if first launch or not

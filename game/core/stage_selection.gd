@@ -75,61 +75,60 @@ func _input(event: InputEvent) -> void:
 		_on_select_pressed()
 
 func init_stages() -> void:
-	# Stage 1
+	# Stage 1: 惑星到達前のデブリ帯
 	var st1 = StageData.new()
 	st1.id = 1
-	st1.title = "遺跡コア"
-	st1.codename = "第1エリア: 古代聖域"
-	st1.description = "地下コアへの入口。パリィ操作の慣らしに最適なテストエリア。"
-	st1.difficulty = "難易度: 初級"
-	st1.color = Color.GREEN
+	st1.title = "デブリ帯突破"
+	st1.codename = "第1エリア: 惑星到達前・デブリ宙域"
+	st1.description = "惑星到達前の小惑星・残骸漂流地帯。高密度なデブリと哨戒防衛網をパリィで解析・突破せよ。"
+	st1.difficulty = "難易度: ★☆☆☆☆"
+	st1.color = Color(0.2, 0.8, 1.0)
 	st1.scene_path = "res://game/stages/stage_1.tscn"
 	stages.append(st1)
 	
-	# Stage 2
+	# Stage 2: 惑星の地上上空
 	var st2 = StageData.new()
 	st2.id = 2
-	st2.title = "防衛グリッド"
-	st2.codename = "第2エリア: 警備要塞"
-	st2.description = "自動防衛システムが稼働中。高密度弾幕と高速機動兵器が待ち受ける。"
-	st2.difficulty = "難易度: 中級"
-	st2.color = Color.CYAN
+	st2.title = "大気圏降下戦"
+	st2.codename = "第2エリア: 惑星地上上空・成層圏"
+	st2.description = "惑星大気圏へ突入。地上防衛迎撃編隊と雲海を切り裂く高速ドッグファイトを展開せよ。"
+	st2.difficulty = "難易度: ★★☆☆☆"
+	st2.color = Color(0.3, 0.9, 0.4)
 	st2.scene_path = "res://game/stages/stage_2.tscn"
 	stages.append(st2)
 	
-	# Stage 3 (Locked/Demos for progression feel)
+	# Stage 3: 惑星内部施設
 	var st3 = StageData.new()
 	st3.id = 3
-	st3.title = "大気圏境界"
-	st3.codename = "第3エリア: 軌道ターミナル"
-	st3.description = "軌道防衛アレイ。超高速迎撃システムが展開されている。"
-	st3.difficulty = "難易度: 上級 (開発中)"
-	st3.color = Color.RED
-	st3.scene_path = "res://game/stages/stage_1.tscn" # Loops for demo
+	st3.title = "地底要塞中枢"
+	st3.codename = "第3エリア: 惑星内部・軍事工廠"
+	st3.description = "惑星の地底深く侵入。網の目のように張り巡らされた防衛電磁タレットと中枢コアを制圧せよ。"
+	st3.difficulty = "難易度: ★★★☆☆"
+	st3.color = Color(1.0, 0.7, 0.2)
+	st3.scene_path = "res://game/stages/stage_3.tscn"
 	stages.append(st3)
 
-	# Stage 4
+	# Stage 4: 惑星内部からの脱出
 	var st4 = StageData.new()
 	st4.id = 4
-	st4.title = "PHANTOM CLOAK"
-	st4.codename = "SECTOR-04: MIRAGE MATRIX NEBULA"
-	st4.description = "Stealth field and optical illusions. Face stealth blinking drones and the Phantom Dreadnought carrier."
-	st4.difficulty = "VERY HARD"
-	st4.color = Color(0.7, 0.4, 1.0)
+	st4.title = "崩壊地底脱出"
+	st4.codename = "第4エリア: 崩壊地底・脱出ルート"
+	st4.description = "中枢破壊に伴う大崩壊が発生。マグマと崩落トラップを回避し、追撃殲滅部隊を振り切って脱出せよ。"
+	st4.difficulty = "難易度: ★★★★☆"
+	st4.color = Color(0.9, 0.3, 1.0)
 	st4.scene_path = "res://game/stages/stage_4.tscn"
 	stages.append(st4)
 
-	# Stage 5
+	# Stage 5: 最終決戦 - 終焉の支配者
 	var st5 = StageData.new()
 	st5.id = 5
 	st5.title = "APEX OVERLORD"
-	st5.codename = "FINAL SECTOR: OVERLORD CORRIDOR"
+	st5.codename = "最終エリア: 終焉の支配者・オメガ"
 	st5.description = "最終決戦宙域。前哨防衛兵器を撃破後、脈動する真のラストボス「オーバーロード・オメガ」が降臨！"
-	st5.difficulty = "難易度: 最終決戦 (FINAL BOSS)"
+	st5.difficulty = "難易度: ★★★★★ (FINAL BOSS)"
 	st5.color = Color(1.0, 0.25, 0.4)
 	st5.scene_path = "res://game/stages/stage_5.tscn"
 	stages.append(st5)
-
 
 func setup_ui() -> void:
 	# 1. Base dark background
@@ -236,33 +235,38 @@ func setup_ui() -> void:
 	detail_diff.label_settings = diff_set
 	info_vbox.add_child(detail_diff)
 	
-	# 4. Stage list scroll container at the bottom
-	var list_panel = Panel.new()
-	list_panel.anchor_left = 0.08
-	list_panel.anchor_top = 0.64
-	list_panel.anchor_right = 0.92
-	list_panel.anchor_bottom = 0.84
-	list_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	list_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	list_panel.offset_left = 0
-	list_panel.offset_right = 0
-	list_panel.offset_top = 0
-	list_panel.offset_bottom = 0
-	add_child(list_panel)
+	# 4. Stage list with navigation arrows integrated
+	var carousel_row = HBoxContainer.new()
+	carousel_row.anchor_left = 0.04
+	carousel_row.anchor_right = 0.96
+	carousel_row.anchor_top = 0.65
+	carousel_row.anchor_bottom = 0.83
+	carousel_row.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	carousel_row.grow_vertical = Control.GROW_DIRECTION_BOTH
+	carousel_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	carousel_row.add_theme_constant_override("separation", 16)
+	add_child(carousel_row)
 	
-	var sb_list = StyleBoxEmpty.new()
-	list_panel.add_theme_stylebox_override("panel", sb_list)
+	# Left Arrow button
+	prev_btn = Button.new()
+	prev_btn.text = "◀"
+	prev_btn.custom_minimum_size = Vector2(48, 64)
+	prev_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	prev_btn.add_theme_font_size_override("font_size", 22)
+	carousel_row.add_child(prev_btn)
+	style_nav_button(prev_btn)
+	prev_btn.pressed.connect(func(): navigate_selection(-1))
 	
 	# Scroll view
 	var scroll = ScrollContainer.new()
-	scroll.anchor_right = 1.0
-	scroll.anchor_bottom = 1.0
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	list_panel.add_child(scroll)
+	carousel_row.add_child(scroll)
 	
 	stage_container = HBoxContainer.new()
-	stage_container.add_theme_constant_override("separation", 35)
+	stage_container.add_theme_constant_override("separation", 24)
 	stage_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	stage_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -282,6 +286,8 @@ func setup_ui() -> void:
 		card_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		var lbl_set = LabelSettings.new()
+		if PIXEL_FONT:
+			lbl_set.font = PIXEL_FONT
 		lbl_set.font_size = 18
 		lbl_set.font_color = Color.WHITE
 		lbl_set.outline_size = 4
@@ -311,29 +317,13 @@ func setup_ui() -> void:
 					navigate_to_index(idx)
 		)
 
-	# 5. Buttons controls
-	# Previous & Next Arrow buttons
-	prev_btn = Button.new()
-	prev_btn.text = "◀"
-	prev_btn.custom_minimum_size = Vector2(45, 55)
-	prev_btn.anchor_left = 0.02
-	prev_btn.anchor_top = 0.74
-	prev_btn.anchor_bottom = 0.74
-	prev_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
-	prev_btn.offset_top = -27
-	add_child(prev_btn)
-	style_nav_button(prev_btn)
-	prev_btn.pressed.connect(func(): navigate_selection(-1))
-	
+	# Right Arrow button
 	next_btn = Button.new()
 	next_btn.text = "▶"
-	next_btn.custom_minimum_size = Vector2(45, 55)
-	next_btn.anchor_right = 0.98
-	next_btn.anchor_top = 0.74
-	next_btn.anchor_bottom = 0.74
-	next_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
-	next_btn.offset_top = -27
-	add_child(next_btn)
+	next_btn.custom_minimum_size = Vector2(48, 64)
+	next_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	next_btn.add_theme_font_size_override("font_size", 22)
+	carousel_row.add_child(next_btn)
 	style_nav_button(next_btn)
 	next_btn.pressed.connect(func(): navigate_selection(1))
 	
@@ -373,21 +363,25 @@ func setup_ui() -> void:
 	style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	select_btn.pressed.connect(_on_select_pressed)
 
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
 func style_nav_button(btn: Button) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.08, 0.15, 0.7)
-	sb.border_width_left = 1
-	sb.border_width_top = 1
-	sb.border_width_right = 1
-	sb.border_width_bottom = 1
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
 	sb.border_color = Color.CYAN
-	sb.corner_radius_top_left = 4
-	sb.corner_radius_top_right = 4
-	sb.corner_radius_bottom_left = 4
-	sb.corner_radius_bottom_right = 4
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = sb.duplicate()
-	sb_hover.bg_color = Color(0.15, 0.15, 0.28, 0.8)
+	sb_hover.bg_color = Color(0.1, 0.12, 0.2, 0.95)
 	sb_hover.border_color = Color.WHITE
 	
 	btn.add_theme_stylebox_override("normal", sb)
@@ -397,29 +391,31 @@ func style_nav_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
 
 func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.06, 0.1, 0.9)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
 	sb.border_color = border
-	sb.corner_radius_top_left = 6
-	sb.corner_radius_top_right = 6
-	sb.corner_radius_bottom_left = 6
-	sb.corner_radius_bottom_right = 6
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = StyleBoxFlat.new()
-	sb_hover.bg_color = Color(0.12, 0.12, 0.2, 0.9)
-	sb_hover.border_width_left = 2
-	sb_hover.border_width_top = 2
-	sb_hover.border_width_right = 2
-	sb_hover.border_width_bottom = 2
+	sb_hover.bg_color = Color(0.1, 0.12, 0.22, 0.95)
+	sb_hover.border_width_left = 3
+	sb_hover.border_width_top = 3
+	sb_hover.border_width_right = 3
+	sb_hover.border_width_bottom = 3
 	sb_hover.border_color = hover_border
-	sb_hover.corner_radius_top_left = 6
-	sb_hover.corner_radius_top_right = 6
-	sb_hover.corner_radius_bottom_left = 6
-	sb_hover.corner_radius_bottom_right = 6
+	sb_hover.corner_radius_top_left = 0
+	sb_hover.corner_radius_top_right = 0
+	sb_hover.corner_radius_bottom_left = 0
+	sb_hover.corner_radius_bottom_right = 0
 	
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb_hover)

@@ -28,6 +28,8 @@ var state: String = "start" # 外部互換用文字列プロパティ
 var current_state: State = State.START
 var current_wave_index: int = 0
 var swarm_destroyed_count: int = 0
+var wave_parry_count: int = 0
+var wave_upgrade_count: int = 0
 
 # 戦績データ
 var parry_count: int = 0
@@ -95,6 +97,8 @@ func clean_stage_entities() -> void:
 		current_stage = null
 		
 	parry_count = 0
+	wave_parry_count = 0
+	wave_upgrade_count = 0
 	state_timer = 0.0
 	boss_drone_timer = 0.0
 	swarm_destroyed_count = 0
@@ -163,6 +167,8 @@ func start_wave(index: int) -> void:
 	current_state = State.WAVE
 	state = "wave" + str(index + 1)
 	swarm_destroyed_count = 0
+	wave_parry_count = 0
+	wave_upgrade_count = 0
 	
 	var wave_data = current_stage.get_wave(index)
 	if not wave_data:
@@ -229,24 +235,18 @@ func process_wave_state() -> void:
 	var is_cleared = false
 	match wave_data.clear_condition_type:
 		"analysis_or_parry":
-			var analyzed_count = get_player_analyzed_count()
-			if analyzed_count >= wave_data.target_analysis_count or parry_count >= wave_data.target_parry_count:
-				is_cleared = true
-				
-		"dual_analysis":
-			if is_instance_valid(player) and "weapons" in player:
-				var beam_done = player.weapons.get("beam", {}).get("analyzed", false)
-				var missile_done = player.weapons.get("missile", {}).get("analyzed", false)
-				if beam_done and missile_done:
-					is_cleared = true
-				else:
-					check_dual_replenish()
-					return
-			else:
+			# 各ウェーブ独立のパリィ数またはウェーブ内レベルアップ数(2回)で判定！
+			var target_parries = wave_data.target_parry_count
+			if wave_parry_count >= target_parries or wave_upgrade_count >= 2:
 				is_cleared = true
 				
 		"drone_count":
 			if swarm_destroyed_count >= wave_data.target_drone_count:
+				is_cleared = true
+				
+		_:
+			# フォールバック
+			if wave_parry_count >= wave_data.target_parry_count:
 				is_cleared = true
 				
 	if is_cleared:
@@ -261,8 +261,7 @@ func process_wave_state() -> void:
 		else:
 			trigger_interlude()
 	else:
-		if wave_data.clear_condition_type != "dual_analysis":
-			check_drone_replenish(wave_data)
+		check_drone_replenish(wave_data)
 
 
 func get_player_analyzed_count() -> int:
@@ -272,6 +271,46 @@ func get_player_analyzed_count() -> int:
 			if p.get("analyzed", false):
 				count += 1
 	return count
+
+
+func get_boosted_replenish_type(wave_data: BaseStage.WaveData = null) -> String:
+	# プレイヤーが装備中（Lv.2未満）または解析進行中の属性に対応する敵を優先抽出
+	var target_drone_types: Array[String] = []
+	
+	if is_instance_valid(player) and "analysis_patterns" in player:
+		var trait_to_drone = {
+			"rapid": "straight",
+			"spread": "wave",
+			"pierce": "charge",
+			"homing": "missile",
+			"laser": "laser",
+			"cyclone": "irregular"
+		}
+		
+		# 1. スロット装備中の属性でLv.2未満のものを最優先
+		var active = player.active_traits if "active_traits" in player else []
+		for t_key in active:
+			if player.analysis_patterns.has(t_key):
+				var data = player.analysis_patterns[t_key]
+				if data.get("level", 0) < data.get("max_level", 2):
+					if trait_to_drone.has(t_key):
+						target_drone_types.append(trait_to_drone[t_key])
+						
+		# 2. 直近でパリィ・解析中の属性も対象に追加
+		for t_key in player.analysis_patterns.keys():
+			var data = player.analysis_patterns[t_key]
+			if data.get("progress", 0.0) > 0.0 and data.get("level", 0) < data.get("max_level", 2):
+				if trait_to_drone.has(t_key) and not target_drone_types.has(trait_to_drone[t_key]):
+					target_drone_types.append(trait_to_drone[t_key])
+					
+	# 75%の確率で育成対象の敵タイプを集中出現！
+	if target_drone_types.size() > 0 and randf() < 0.75:
+		return target_drone_types.pick_random()
+		
+	# 通常フォールバック
+	if wave_data and wave_data.replenish_types.size() > 0:
+		return wave_data.replenish_types.pick_random()
+	return "straight"
 
 
 func check_drone_replenish(wave_data: BaseStage.WaveData) -> void:
@@ -286,55 +325,32 @@ func check_drone_replenish(wave_data: BaseStage.WaveData) -> void:
 				return
 				
 		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		var chosen_type = wave_data.replenish_types.pick_random() if wave_data.replenish_types.size() > 0 else "straight"
+		var chosen_type = get_boosted_replenish_type(wave_data)
 		var drone = spawn_drone(chosen_type, Vector2(rx, -50))
 		if drone and wave_data.drone_speed_override > 0.0:
 			drone.speed = wave_data.drone_speed_override
-			if chosen_type == "beam" and wave_data.drone_shoot_interval_beam > 0.0:
+			if chosen_type == "laser" and wave_data.drone_shoot_interval_beam > 0.0:
 				drone.shoot_interval = wave_data.drone_shoot_interval_beam
 			elif chosen_type == "missile" and wave_data.drone_shoot_interval_missile > 0.0:
 				drone.shoot_interval = wave_data.drone_shoot_interval_missile
 
 
-func check_dual_replenish() -> void:
-	if not is_instance_valid(player) or not "weapons" in player:
-		return
-	var active_beam = 0
-	var active_missile = 0
-	for d in spawned_drones:
-		if is_instance_valid(d):
-			if d.drone_type == "beam":
-				active_beam += 1
-			elif d.drone_type == "missile":
-				active_missile += 1
-				
-	var beam_analyzed = player.weapons.get("beam", {}).get("analyzed", false)
-	var missile_analyzed = player.weapons.get("missile", {}).get("analyzed", false)
-	
-	if active_beam == 0 and not beam_analyzed:
-		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		spawn_drone("beam", Vector2(rx, -50))
-	if active_missile == 0 and not missile_analyzed:
-		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		spawn_drone("missile", Vector2(rx, -50))
-
-
 func process_boss_support_drones(delta: float) -> void:
 	boss_drone_timer += delta
-	var interval = current_stage.boss_config.support_drone_interval
+	var interval = current_stage.boss_config.support_drone_interval if current_stage else 8.0
 	if boss_drone_timer >= interval:
 		boss_drone_timer = 0.0
 		var active = 0
 		for d in spawned_drones:
 			if is_instance_valid(d):
 				active += 1
-		if active < 1:
-			var type = "beam" if randf() > 0.5 else "missile"
+		if active < 2:
+			var type = get_boosted_replenish_type(null)
 			var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
 			var drone = spawn_drone(type, Vector2(rx, -50))
 			if drone:
-				drone.speed = 180.0
-				drone.shoot_interval = 1.2 if type == "beam" else 1.8
+				drone.speed = 160.0
+				drone.shoot_interval = 2.0
 
 
 func clear_drones() -> void:
@@ -385,25 +401,19 @@ func start_boss_battle() -> void:
 	if boss:
 		boss.visible = true
 		boss.process_mode = PROCESS_MODE_INHERIT
-		boss.position = Vector2(get_viewport_rect().size.x / 2.0, BOSS_INITIAL_Y)
 		
 		# ボスパラメータ適用
-		var cfg = current_stage.boss_config
-		boss.max_hp = cfg.max_hp
-		boss.laser_hp = cfg.laser_hp
-		boss.missile_hp = cfg.missile_hp
-		boss.core_hp = cfg.core_hp
-		boss.base_move_speed = cfg.base_move_speed
-		boss.current_move_speed = cfg.base_move_speed
-		boss.energy_laser = cfg.energy_laser
-		boss.energy_missile = cfg.energy_missile
-		boss.energy_core = cfg.energy_core
+		var cfg = current_stage.boss_config if current_stage else null
+		if cfg:
+			boss.max_hp = cfg.max_hp
+			if "current_hp" in boss:
+				boss.current_hp = cfg.max_hp
 		
-		var tween = create_tween()
-		var target_pos = Vector2(get_viewport_rect().size.x / 2.0, BOSS_TARGET_Y)
-		tween.tween_property(boss, "position", target_pos, BOSS_DESCENT_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		if boss.has_method("start_intro_sequence"):
+			boss.start_intro_sequence(5.0)
 		
-		spawn_popup("ボス出現: " + cfg.name)
+		var b_name = cfg.name if cfg else "古代防衛要塞"
+		spawn_popup("ボス出現: " + b_name)
 
 
 func check_win_lose() -> void:
@@ -453,17 +463,23 @@ func update_ui() -> void:
 		ui.update_guard_heat(player.shield_heat, player.max_shield_heat, player.is_overheated, player.overheat_timer, player.is_guarding)
 		
 	if ui.has_method("update_pattern_analysis"):
-		ui.update_pattern_analysis(player.analysis_patterns)
+		var traits = player.active_traits if "active_traits" in player else []
+		ui.update_pattern_analysis(player.analysis_patterns, traits)
 		
-	if (current_state == State.BOSS or current_state == State.VICTORY_TRANSITION) and is_instance_valid(boss) and ui.has_method("update_boss_energy"):
+	if (current_state == State.BOSS or current_state == State.VICTORY_TRANSITION) and is_instance_valid(boss) and "energy_laser" in boss and ui.has_method("update_boss_energy"):
 		ui.update_boss_energy(boss.energy_laser, boss.energy_missile, boss.energy_core)
 	else:
-		if ui.has_method("hide_boss_energy"):
+		if ui and ui.has_method("hide_boss_energy"):
 			ui.hide_boss_energy()
 
 
 func register_parry() -> void:
 	parry_count += 1
+	wave_parry_count += 1
+
+
+func register_analysis_upgrade() -> void:
+	wave_upgrade_count += 1
 
 
 func add_damage_score(amount: int) -> void:

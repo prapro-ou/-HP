@@ -18,6 +18,10 @@ var parry_cost_btn: Button
 var cd_lvl_lbl: Label
 var cd_cost_btn: Button
 
+# Shield research buttons
+var shield_gauge_btn: Button
+var shield_power_btn: Button
+
 # Weapon research buttons
 var plasma_btn: Button
 var tackle_btn: Button
@@ -154,10 +158,37 @@ func setup_ui() -> void:
 	cd_cost_btn = cd_row.cost_button
 	cd_cost_btn.pressed.connect(func(): perform_upgrade("cooldown"))
 	
-	# --- SECTION 2: WEAPONS ANALYSIS & RESEARCH ---
-	var wp_sec = create_section_vbox("兵装開発", vbox)
+	# --- SECTION 2: SHIELDS RESEARCH (1個 30 TP) ---
+	var sh_sec = create_section_vbox("特殊シールド開発 (各 30 TP)", vbox)
+	var sh_vbox = VBoxContainer.new()
+	sh_vbox.add_theme_constant_override("separation", 8)
+	sh_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sh_sec.add_child(sh_vbox)
+	
+	# Gauge shield card (エナジーオーブ吸引機能解放)
+	var gauge_card = create_weapon_research_card(
+		"吸収マトリクス",
+		"敵撃破時に解析エナジーオーブを放出し、自機へ磁力吸引！EXP＆HP修復。",
+		"コスト: 30 TP",
+		sh_vbox
+	)
+	shield_gauge_btn = gauge_card.unlock_button
+	shield_gauge_btn.pressed.connect(func(): unlock_shield("gauge", 30))
+	
+	# Power shield card
+	var power_card = create_weapon_research_card(
+		"増幅ブースター",
+		"パリィ成功時に弾丸を吸収し、主兵装の攻撃力を永続スタック強化。",
+		"コスト: 30 TP",
+		sh_vbox
+	)
+	shield_power_btn = power_card.unlock_button
+	shield_power_btn.pressed.connect(func(): unlock_shield("power", 30))
+
+	# --- SECTION 3: WEAPONS ANALYSIS & RESEARCH ---
+	var wp_sec = create_section_vbox("特殊兵装開発", vbox)
 	var wp_vbox = VBoxContainer.new()
-	wp_vbox.add_theme_constant_override("separation", 10)
+	wp_vbox.add_theme_constant_override("separation", 8)
 	wp_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wp_sec.add_child(wp_vbox)
 	
@@ -362,6 +393,8 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	btn.text = "開発 (" + cost_text + ")"
 	btn.custom_minimum_size = Vector2(0, 42)
 	btn.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	vbox.add_child(btn)
 	style_action_btn(btn, Color.GOLD)
 	
@@ -369,21 +402,48 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	ret.unlock_button = btn
 	return ret
 
-func style_action_btn(btn: Button, accent_color: Color) -> void:
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
+func style_config_button(btn: Button, accent_color: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.04, 0.07, 0.8)
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
+	sb.border_color = Color(0.2, 0.25, 0.35)
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
+	
+	var sb_hover = sb.duplicate()
+	sb_hover.bg_color = Color(accent_color.r * 0.2, accent_color.g * 0.2, accent_color.b * 0.2)
+	sb_hover.border_color = accent_color
+	
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", sb_hover)
+	btn.add_theme_stylebox_override("pressed", sb_hover)
+
+func style_action_btn(btn: Button, accent_color: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.04, 0.07, 0.95)
 	sb.border_width_left = 2
 	sb.border_width_top = 2
 	sb.border_width_right = 2
 	sb.border_width_bottom = 2
 	sb.border_color = accent_color
-	sb.corner_radius_top_left = 4
-	sb.corner_radius_top_right = 4
-	sb.corner_radius_bottom_left = 4
-	sb.corner_radius_bottom_right = 4
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = sb.duplicate()
-	sb_hover.bg_color = Color(accent_color.r * 0.15, accent_color.g * 0.15, accent_color.b * 0.15)
+	sb_hover.bg_color = Color(accent_color.r * 0.25, accent_color.g * 0.25, accent_color.b * 0.25)
 	
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb_hover)
@@ -399,21 +459,23 @@ func style_action_btn(btn: Button, accent_color: Color) -> void:
 	)
 
 func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.07, 0.1, 0.95)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
 	sb.border_color = border
-	sb.corner_radius_top_left = 6
-	sb.corner_radius_top_right = 6
-	sb.corner_radius_bottom_left = 6
-	sb.corner_radius_bottom_right = 6
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = sb.duplicate()
 	sb_hover.border_color = hover_border
-	sb_hover.bg_color = Color(0.12, 0.12, 0.2, 0.95)
+	sb_hover.bg_color = Color(0.1, 0.12, 0.22, 0.95)
 	
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb_hover)
@@ -469,7 +531,22 @@ func update_lab_hud() -> void:
 		cd_cost_btn.text = "強化\n(" + str(cost) + " TP)"
 		cd_cost_btn.disabled = Global.tech_points < cost
 
-	# 4. Weapons Research states
+	# 4. Shields Research states (30 TP each)
+	if Global.unlocked_shields.has("gauge"):
+		shield_gauge_btn.disabled = true
+		shield_gauge_btn.text = "開発完了"
+	else:
+		shield_gauge_btn.disabled = Global.tech_points < 30
+		shield_gauge_btn.text = "開発 (30 TP)"
+
+	if Global.unlocked_shields.has("power"):
+		shield_power_btn.disabled = true
+		shield_power_btn.text = "開発完了"
+	else:
+		shield_power_btn.disabled = Global.tech_points < 30
+		shield_power_btn.text = "開発 (30 TP)"
+
+	# 5. Weapons Research states
 	if Global.unlocked_weapons.has("plasma_emitter"):
 		plasma_btn.disabled = true
 		plasma_btn.text = "開発完了"
@@ -501,6 +578,14 @@ func perform_upgrade(type: String) -> void:
 	if Global.tech_points >= cost and lvl < 5:
 		Global.tech_points -= cost
 		Global.upgrade_levels[type] = lvl + 1
+		Global.save_game(1, 0, {})
+		update_lab_hud()
+		play_flash_effect(Color.CYAN)
+
+func unlock_shield(s_id: String, cost: int) -> void:
+	if Global.tech_points >= cost and not Global.unlocked_shields.has(s_id):
+		Global.tech_points -= cost
+		Global.unlocked_shields.append(s_id)
 		Global.save_game(1, 0, {})
 		update_lab_hud()
 		play_flash_effect(Color.CYAN)

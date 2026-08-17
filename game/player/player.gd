@@ -3,12 +3,13 @@ extends CharacterBody2D
 ## - 移動・ガード・攻撃・各種解析変異およびフルバースト制御
 
 # --- 基本パラメータ ---
-@export var max_hp: int = 100
+@export var max_hp: int = 400
 @export var move_speed: float = 300.0
-@export var parry_window_radius: float = 65.0  # パリィ判定範囲
+@export var parry_window_radius: float = 85.0  # パリィ判定範囲 (65 -> 85へ拡大)
 @export var fire_rate: float = 0.2            # 射撃間隔
-@export var parry_active_time: float = 0.25  # ガード持続時間
-@export var parry_cooldown: float = 2.0      # クールダウン時間
+@export var parry_active_time: float = 0.28  # ガード持続時間
+@export var parry_cooldown: float = 1.5      # クールダウン時間
+@export var invincible_duration: float = 1.4  # 被弾後無敵時間（1.4秒）
 
 # 定数：武器タイプ定義
 const WEAPON_MACHINE_GUN = "machine_gun"
@@ -23,11 +24,14 @@ const SHIELD_COUNTER = "counter"
 const SHIELD_GAUGE = "gauge"
 const SHIELD_POWER = "power"
 
-# 定数：解析パターンキー
+# 定数：解析パターンキー (敵の全7挙動)
 const PATTERN_RAPID = "rapid"
 const PATTERN_SPREAD = "spread"
 const PATTERN_PIERCE = "pierce"
 const PATTERN_HOMING = "homing"
+const PATTERN_LASER = "laser"
+const PATTERN_CYCLONE = "cyclone"
+const PATTERN_METEOR = "meteor"
 
 # 定数：カラー定義
 const COLOR_SHIELD_COUNTER = Color(0.8, 0.3, 1.0)
@@ -42,9 +46,12 @@ const SUB_MISSILE_SPEED: float = 450.0
 const GIGA_LASER_SPEED: float = 2500.0
 const HYPER_MISSILE_SPEED: float = 800.0
 
-var current_hp: int = 100
+var current_hp: int = 400
 var last_fire_time: float = 0.0
 var enemy_bullets: Array = []
+
+var is_invincible: bool = false
+var invincibility_timer: float = 0.0
 
 var active_timer: float = 0.0
 var cooldown_timer: float = 0.0
@@ -59,51 +66,57 @@ var parry_ring_alpha: float = 0.0
 var parried_in_current_frame: bool = false
 var is_full_burst: bool = false
 
-# --- シールド・オーバーヒートシステム ---
+# --- シールド・オーバーヒートシステム (マイルド調整) ---
 @export var max_shield_heat: float = 100.0
-@export var heat_per_use: float = 34.0
-@export var heat_recovery_rate: float = 28.0
-@export var overheat_cooldown: float = 3.5
+@export var heat_per_use: float = 20.0        # 1回あたり20% (連続5回使用可能)
+@export var heat_recovery_rate: float = 45.0   # 素早く放熱 (1秒で45%冷却)
+@export var overheat_cooldown: float = 2.0     # オーバーヒート2秒で復帰
 
 var shield_heat: float = 0.0
 var overheat_timer: float = 0.0
 var is_overheated: bool = false
 
-# --- 攻撃パターン解析＆自機兵装反映システム ---
+# --- 攻撃パターン解析＆変異スロットシステム (最大3枠制限＆Lv制) ---
+const MAX_TRAIT_SLOTS: int = 3
+var active_traits: Array[String] = [] # 現在装備中の最大3つの属性キー
+
 var analysis_patterns: Dictionary = {
-	PATTERN_RAPID:  { "progress": 0.0, "analyzed": false, "name": "連射強化", "desc": "発射速度UP＆弾速1.5倍" },
-	PATTERN_SPREAD: { "progress": 0.0, "analyzed": false, "name": "拡散射撃", "desc": "3-WAY 扇状拡散発射" },
-	PATTERN_PIERCE: { "progress": 0.0, "analyzed": false, "name": "貫通重弾", "desc": "敵貫通＆威力+50%" },
-	PATTERN_HOMING: { "progress": 0.0, "analyzed": false, "name": "追尾ミサイル", "desc": "誘導サブミサイル自動追射" }
+	PATTERN_RAPID:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "高速連射", "icon": "⚡", "color": Color(0.3, 0.8, 1.0) },
+	PATTERN_SPREAD:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "拡散射撃", "icon": "◈", "color": Color(0.2, 1.0, 0.6) },
+	PATTERN_PIERCE:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "貫通重弾", "icon": "▲", "color": Color(1.0, 0.6, 0.2) },
+	PATTERN_HOMING:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "誘導ミサイル", "icon": "▶", "color": Color(0.85, 0.45, 1.0) },
+	PATTERN_LASER:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "フォトン光線", "icon": "━", "color": Color(0.4, 0.9, 1.0) },
+	PATTERN_CYCLONE: { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "旋回スピン", "icon": "◎", "color": Color(1.0, 0.85, 0.2) },
+	PATTERN_METEOR:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "ギガメテオ", "icon": "●", "color": Color(1.0, 0.35, 0.2) }
 }
-
-var trait_rapid_unlocked: bool = false
-var trait_spread_unlocked: bool = false
-var trait_pierce_unlocked: bool = false
-var trait_homing_unlocked: bool = false
-
-# 旧互換変数
-var weapons: Dictionary = {
-	"beam": { "analyzed": false, "progress": 0, "level": 1 },
-	"missile": { "analyzed": false, "progress": 0, "level": 1 }
-}
-var current_weapon: String = "none"
-var toggle_key_pressed: bool = false
 
 const PLAYER_BULLET_SCENE: PackedScene = preload("res://game/player/player_bullet.tscn")
 
 
 func _ready() -> void:
+	apply_appearance()
 	reset_state()
 
 
+func apply_appearance() -> void:
+	var sprite = get_node_or_null("Sprite2D")
+	if sprite:
+		var tex_path = Global.get_player_texture_path()
+		if ResourceLoader.exists(tex_path):
+			sprite.texture = load(tex_path)
+		sprite.scale = Vector2(1.5, 1.5)
+
+
 func reset_state() -> void:
+	apply_appearance()
 	var hp_lvl = Global.upgrade_levels.get("hp", 0)
-	max_hp = 100 + 10 * hp_lvl
+	max_hp = 400 + 50 * hp_lvl
 	current_hp = max_hp
+	is_invincible = false
+	invincibility_timer = 0.0
 	
 	var parry_lvl = Global.upgrade_levels.get("parry_window", 0)
-	parry_window_radius = 65.0 + 5.0 * parry_lvl
+	parry_window_radius = 85.0 + 5.0 * parry_lvl
 	
 	is_attack_unlocked = false
 	power_shield_damage_buff = 0.0
@@ -118,24 +131,20 @@ func reset_state() -> void:
 	overheat_timer = 0.0
 	is_overheated = false
 	
-	trait_rapid_unlocked = false
-	trait_spread_unlocked = false
-	trait_pierce_unlocked = false
-	trait_homing_unlocked = false
+	active_traits.clear()
 	
 	for key in analysis_patterns.keys():
 		analysis_patterns[key]["progress"] = 0.0
 		analysis_patterns[key]["analyzed"] = false
-	
-	current_weapon = "none"
-	if "beam" in weapons:
-		weapons["beam"]["analyzed"] = false
-		weapons["beam"]["progress"] = 0
-	if "missile" in weapons:
-		weapons["missile"]["analyzed"] = false
-		weapons["missile"]["progress"] = 0
+		analysis_patterns[key]["level"] = 0
 	
 	apply_equipped_weapon_settings()
+	
+	if Global.is_first_launch:
+		get_tree().create_timer(0.8).timeout.connect(func():
+			if is_instance_valid(self) and not is_attack_unlocked:
+				spawn_popup_message("【AIアシスト】方向キー（矢印キー / WASD）で機体を移動してください。")
+		)
 
 
 func apply_equipped_weapon_settings() -> void:
@@ -156,11 +165,23 @@ func apply_equipped_weapon_settings() -> void:
 		_:
 			fire_rate = 0.35
 			
-	if trait_rapid_unlocked:
-		fire_rate *= 0.55
+	if active_traits.has(PATTERN_RAPID):
+		var r_lvl = analysis_patterns[PATTERN_RAPID]["level"]
+		fire_rate *= (0.65 if r_lvl == 1 else 0.45)
 
 
 func _process(delta: float) -> void:
+	# 無敵タイマー減算 & 点滅処理
+	if is_invincible:
+		invincibility_timer -= delta
+		var sprite = get_node_or_null("Sprite2D")
+		if sprite:
+			sprite.modulate.a = 0.3 if int(invincibility_timer * 22.0) % 2 == 0 else 0.9
+		if invincibility_timer <= 0.0:
+			is_invincible = false
+			if sprite:
+				sprite.modulate.a = 1.0
+
 	var input_vector = Vector2.ZERO
 	input_vector.x = Input.get_axis("ui_left", "ui_right")
 	input_vector.y = Input.get_axis("ui_up", "ui_down")
@@ -171,14 +192,6 @@ func _process(delta: float) -> void:
 	var viewport_size = get_viewport_rect().size
 	position.x = clamp(position.x, 20.0, viewport_size.x - 20.0)
 	position.y = clamp(position.y, 20.0, viewport_size.y - 20.0)
-	
-	var is_toggle_pressed = Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_Z) or Input.is_key_pressed(KEY_C)
-	if is_toggle_pressed:
-		if not toggle_key_pressed:
-			toggle_key_pressed = true
-			toggle_weapon()
-	else:
-		toggle_key_pressed = false
 	
 	if is_attack_unlocked:
 		var current_time = Time.get_ticks_msec() / 1000.0
@@ -204,6 +217,30 @@ func _process(delta: float) -> void:
 		if not is_guarding and shield_heat > 0.0:
 			shield_heat = max(0.0, shield_heat - heat_recovery_rate * delta)
 	
+	# --- チュートリアル：初回パリィ接近時スローモーション判定 ---
+	if not is_attack_unlocked:
+		var has_close_bullet = false
+		var all_targets = []
+		all_targets.append_array(enemy_bullets)
+		for p in get_tree().get_nodes_in_group("enemy_projectiles"):
+			if is_instance_valid(p) and not all_targets.has(p):
+				all_targets.append(p)
+				
+		for b in all_targets:
+			if is_instance_valid(b) and not b.is_friendly:
+				var dist = global_position.distance_to(b.global_position)
+				if dist <= parry_window_radius + 45.0:
+					has_close_bullet = true
+					break
+					
+		if has_close_bullet:
+			if Engine.time_scale > 0.3:
+				Engine.time_scale = 0.15
+				spawn_popup_message("【AIアシスト】敵弾がガード範囲に接近！SPACEキーでパリィ！")
+		else:
+			if Engine.time_scale < 0.5:
+				Engine.time_scale = 1.0
+
 	var space_pressed = Input.is_key_pressed(KEY_SPACE)
 	var space_just_pressed = space_pressed and not space_was_pressed
 	space_was_pressed = space_pressed
@@ -274,97 +311,93 @@ func _process(delta: float) -> void:
 					)
 
 
-func toggle_weapon() -> void:
-	if not weapons["beam"]["analyzed"] and not weapons["missile"]["analyzed"]:
-		return
-		
-	if weapons["beam"]["analyzed"] and not weapons["missile"]["analyzed"]:
-		if current_weapon != "beam":
-			current_weapon = "beam"
-			spawn_popup_message("WEAPON ENGAGED: BEAM")
-		return
-	if weapons["missile"]["analyzed"] and not weapons["beam"]["analyzed"]:
-		if current_weapon != "missile":
-			current_weapon = "missile"
-			spawn_popup_message("WEAPON ENGAGED: MISSILE")
-		return
-		
-	if current_weapon == "beam":
-		current_weapon = "missile"
-	else:
-		current_weapon = "beam"
-	spawn_popup_message("WEAPON ENGAGED: " + current_weapon.to_upper())
-
-
 func fire() -> void:
-	if not PLAYER_BULLET_SCENE:
+	if current_hp <= 0 or not is_attack_unlocked or not PLAYER_BULLET_SCENE:
 		return
 		
 	var player_bullets_container = get_node_or_null("/root/Main/PlayerBullets")
 	var target_parent = player_bullets_container if player_bullets_container else get_parent()
 	
+	var is_pierce_active = active_traits.has(PATTERN_PIERCE)
+	var pierce_lvl = analysis_patterns[PATTERN_PIERCE]["level"] if is_pierce_active else 0
+	
+	# 1. 拡散射撃 (スロット装備時: Lv.1=3-WAY, Lv.2=5-WAY)
+	var is_spread_active = active_traits.has(PATTERN_SPREAD)
+	var spread_lvl = analysis_patterns[PATTERN_SPREAD]["level"] if is_spread_active else 0
 	var angles = [0.0]
-	if trait_spread_unlocked:
-		angles = [-15.0, 0.0, 15.0]
+	if is_spread_active:
+		angles = [-15.0, 0.0, 15.0] if spread_lvl == 1 else [-24.0, -12.0, 0.0, 12.0, 24.0]
 		
 	for deg in angles:
 		var analysis_shot = PLAYER_BULLET_SCENE.instantiate()
-		analysis_shot.bullet_type = "charge_bolt" if trait_pierce_unlocked else "analysis"
+		analysis_shot.bullet_type = "charge_bolt" if is_pierce_active else "analysis"
 		analysis_shot.global_position = global_position + Vector2(deg * 0.4, -20.0)
-		var spd = ANALYSIS_BULLET_SPEED_RAPID if trait_rapid_unlocked else ANALYSIS_BULLET_SPEED_NORMAL
+		var is_rapid_active = active_traits.has(PATTERN_RAPID)
+		var spd = ANALYSIS_BULLET_SPEED_RAPID if is_rapid_active else ANALYSIS_BULLET_SPEED_NORMAL
 		var dir = Vector2.UP.rotated(deg_to_rad(deg))
 		analysis_shot.velocity = dir * spd
 		analysis_shot.damage += int(power_shield_damage_buff)
+		if is_pierce_active and pierce_lvl >= 2:
+			analysis_shot.damage += 15
 		target_parent.add_child(analysis_shot)
 		
-	if trait_homing_unlocked:
+	# 2. 誘導ミサイル (スロット装備時: Lv.1=2基, Lv.2=4基)
+	if active_traits.has(PATTERN_HOMING):
+		var homing_lvl = analysis_patterns[PATTERN_HOMING]["level"]
 		var offsets = [Vector2(-22.0, 5.0), Vector2(22.0, 5.0)]
+		if homing_lvl >= 2:
+			offsets.append(Vector2(-36.0, 15.0))
+			offsets.append(Vector2(36.0, 15.0))
 		for off in offsets:
 			var m_bullet = PLAYER_BULLET_SCENE.instantiate()
-			m_bullet.bullet_type = "missile"
+			m_bullet.bullet_type = "hyper_missile" if homing_lvl >= 2 else "missile"
 			m_bullet.global_position = global_position + off
 			var launch_dir = Vector2(off.x, -40.0).normalized()
 			m_bullet.velocity = launch_dir * SUB_MISSILE_SPEED
 			m_bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(m_bullet)
+
+	# 3. フォトンレーザー (スロット装備時: Lv.1=1本, Lv.2=ツイン)
+	if active_traits.has(PATTERN_LASER):
+		var laser_lvl = analysis_patterns[PATTERN_LASER]["level"]
+		var x_offsets = [0.0] if laser_lvl == 1 else [-16.0, 16.0]
+		for lx in x_offsets:
+			var l_bullet = PLAYER_BULLET_SCENE.instantiate()
+			l_bullet.bullet_type = "photon_laser"
+			l_bullet.global_position = global_position + Vector2(lx, -30.0)
+			l_bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(l_bullet)
+
+	# 4. サイクロンスピン弾 (スロット装備時: Lv.1=2発, Lv.2=4発)
+	if active_traits.has(PATTERN_CYCLONE):
+		var cyc_lvl = analysis_patterns[PATTERN_CYCLONE]["level"]
+		var dirs = [-1.0, 1.0] if cyc_lvl == 1 else [-1.5, -0.6, 0.6, 1.5]
+		for dir_x in dirs:
+			var c_bullet = PLAYER_BULLET_SCENE.instantiate()
+			c_bullet.bullet_type = "cyclone"
+			c_bullet.global_position = global_position + Vector2(dir_x * 16.0, -10.0)
+			c_bullet.velocity = Vector2(dir_x * 110.0, -650.0)
+			c_bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(c_bullet)
+
+	# 5. ギガメテオ (スロット装備時: 確率で射出)
+	if active_traits.has(PATTERN_METEOR):
+		var met_lvl = analysis_patterns[PATTERN_METEOR]["level"]
+		var chance = 0.22 if met_lvl == 1 else 0.35
+		if randf() < chance:
+			var meteor = PLAYER_BULLET_SCENE.instantiate()
+			meteor.bullet_type = "player_meteor"
+			meteor.global_position = global_position + Vector2(randf_range(-30, 30), -35.0)
+			meteor.velocity = Vector2(randf_range(-180, 180), -550.0)
+			meteor.damage += int(power_shield_damage_buff)
+			target_parent.add_child(meteor)
 			
 	fire_equipped_physics_weapon(target_parent)
-	
-	if current_weapon == "beam" and weapons["beam"]["analyzed"]:
-		if weapons["beam"]["level"] == 1:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = "beam"
-			bullet.global_position = global_position
-			bullet.velocity = Vector2.UP * 1500.0
-			bullet.damage += int(power_shield_damage_buff)
-			target_parent.add_child(bullet)
-		else:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = "giga_laser"
-			bullet.global_position = global_position
-			bullet.velocity = Vector2.UP * 2000.0
-			bullet.damage += int(power_shield_damage_buff)
-			target_parent.add_child(bullet)
-			
-	elif current_weapon == "missile" and weapons["missile"]["analyzed"]:
-		var is_hyper = weapons["missile"]["level"] > 1
-		var missile_type = "hyper_missile" if is_hyper else "missile"
-		var offsets = [Vector2(-20.0, 0.0), Vector2(20.0, 0.0)]
-		if is_hyper:
-			offsets.append(Vector2(-35.0, 10.0))
-			offsets.append(Vector2(35.0, 10.0))
-			
-		for offset in offsets:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = missile_type
-			bullet.global_position = global_position + offset
-			bullet.damage += int(power_shield_damage_buff)
-			var launch_dir = Vector2(offset.x, -50.0).normalized()
-			bullet.velocity = launch_dir * (550.0 if is_hyper else 450.0)
-			target_parent.add_child(bullet)
 
 
 func fire_equipped_physics_weapon(target_parent: Node) -> void:
+	if current_hp <= 0:
+		return
 	var eq_w = Global.equipped_weapon
 	match eq_w:
 		WEAPON_MACHINE_GUN:
@@ -380,7 +413,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 		WEAPON_BURST_RIFLE:
 			for i in range(3):
 				get_tree().create_timer(i * 0.07).timeout.connect(func():
-					if is_instance_valid(self) and is_instance_valid(target_parent):
+					if is_instance_valid(self) and current_hp > 0 and is_instance_valid(target_parent):
 						var bullet = PLAYER_BULLET_SCENE.instantiate()
 						bullet.bullet_type = "burst_rifle"
 						bullet.global_position = global_position + Vector2(0, -20.0)
@@ -400,26 +433,23 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 			
 		WEAPON_PULSE_GUN:
 			var angles = [-12.0, 12.0]
-			for angle in angles:
+			for angle_deg in angles:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "pulse"
-				bullet.global_position = global_position + Vector2(angle * 0.8, -15.0)
-				var dir = Vector2.UP.rotated(deg_to_rad(angle))
+				bullet.global_position = global_position + Vector2(angle_deg * 0.8, -15.0)
+				var dir = Vector2.UP.rotated(deg_to_rad(angle_deg))
 				bullet.velocity = dir * 950.0
 				bullet.damage += int(power_shield_damage_buff)
 				target_parent.add_child(bullet)
 				
 		WEAPON_PLASMA_EMITTER:
-			var angles = [-20.0, 0.0, 20.0]
-			for angle in angles:
-				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "plasma"
-				bullet.global_position = global_position + Vector2(angle * 0.5, -20.0)
-				var dir = Vector2.UP.rotated(deg_to_rad(angle))
-				bullet.velocity = dir * 500.0
-				bullet.damage += int(power_shield_damage_buff)
-				target_parent.add_child(bullet)
-				
+			var bullet = PLAYER_BULLET_SCENE.instantiate()
+			bullet.bullet_type = "plasma"
+			bullet.global_position = global_position + Vector2(0, -20.0)
+			bullet.velocity = Vector2.UP * 550.0
+			bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(bullet)
+			
 		WEAPON_KINETIC_TACKLE:
 			var bullet = PLAYER_BULLET_SCENE.instantiate()
 			bullet.bullet_type = "tackle"
@@ -443,20 +473,24 @@ func update_visual_state() -> void:
 	elif is_overheated:
 		modulate = COLOR_OVERHEAT
 	else:
-		match current_weapon:
-			"beam":
-				modulate = Color(0.7, 1.0, 1.0)
-			"missile":
-				modulate = Color(0.9, 0.7, 1.0)
-			_:
-				modulate = Color.WHITE
+		modulate = Color.WHITE
 
+
+var consecutive_parries: int = 0
 
 func check_parry() -> void:
+	if current_hp <= 0:
+		return
 	var parry_triggered_now = false
 	var shield_type = Global.equipped_shield
 	
-	for bullet in enemy_bullets:
+	var all_targets = []
+	all_targets.append_array(enemy_bullets)
+	for p in get_tree().get_nodes_in_group("enemy_projectiles"):
+		if is_instance_valid(p) and not all_targets.has(p):
+			all_targets.append(p)
+	
+	for bullet in all_targets:
 		if is_instance_valid(bullet) and not bullet.is_friendly:
 			var dist = global_position.distance_to(bullet.global_position)
 			if dist <= parry_window_radius:
@@ -475,10 +509,24 @@ func check_parry() -> void:
 								current_stage = manager.current_stage_num
 						Global.save_game(current_stage, 0, {})
 				
-				advance_analysis(bullet.bullet_type, 3.5)
+				var b_type = bullet.bullet_type if "bullet_type" in bullet else "missile"
+				var analysis_pts = 4.0
+				if b_type.contains("meteor"):
+					analysis_pts = 16.0 # 巨大隕石パリィは+16%
+				elif b_type.contains("decel") or b_type.contains("boss_missile"):
+					analysis_pts = 10.0 # 追尾ミサイルパリィは+10%
+				elif b_type.contains("boss_laser") or b_type.contains("beam"):
+					analysis_pts = 8.0  # ビームマシンガンパリィは+8%
+					
+				advance_analysis(b_type, analysis_pts)
 				
 				if shield_type == SHIELD_POWER:
-					bullet.recycle_bullet()
+					if bullet.has_method("recycle_bullet"):
+						bullet.recycle_bullet()
+					elif bullet.has_method("explode_and_free"):
+						bullet.explode_and_free()
+					else:
+						bullet.queue_free()
 					power_shield_damage_buff = min(power_shield_damage_buff + 4.0, 20.0)
 					
 					var main = get_node_or_null("/root/Main")
@@ -487,20 +535,30 @@ func check_parry() -> void:
 						if manager and manager.has_method("register_parry"):
 							manager.register_parry()
 				else:
-					bullet.convert_to_friendly()
+					if bullet.has_method("convert_to_friendly"):
+						bullet.convert_to_friendly()
 					if shield_type == SHIELD_COUNTER:
-						bullet.damage = int(bullet.damage * 1.5)
+						if "damage" in bullet:
+							bullet.damage = int(bullet.damage * 1.5)
 						
 				parry_triggered_now = true
 				
 	if parry_triggered_now and not parried_in_current_frame:
 		parried_in_current_frame = true
+		consecutive_parries += 1
+		# 10連続パリィ達成ごとにボーナス回復
+		if consecutive_parries % 10 == 0:
+			heal(25)
+			spawn_popup_message("⚡ %dx PARRY COMBO! 機体修復 +25 HP" % consecutive_parries)
+			
 		trigger_parry_feedback()
 
 
 func take_damage(amount: int) -> void:
-	if is_guarding:
+	if is_guarding or is_invincible:
 		return
+		
+	consecutive_parries = 0 # 被弾でコンボリセット
 		
 	if Global.is_first_launch and Engine.time_scale < 0.5:
 		Engine.time_scale = 1.0
@@ -508,6 +566,13 @@ func take_damage(amount: int) -> void:
 	current_hp -= amount
 	if current_hp <= 0:
 		current_hp = 0
+		is_attack_unlocked = false
+		is_guarding = false
+		velocity = Vector2.ZERO
+	else:
+		# 被弾無敵時間 (1.4秒) を付与して多段ヒット即死を防止
+		is_invincible = true
+		invincibility_timer = invincible_duration
 		
 	trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
 
@@ -516,31 +581,29 @@ func heal(amount: int) -> void:
 	current_hp = min(current_hp + amount, max_hp)
 
 
-func advance_analysis(bullet_type: String, amount: float = 3.5) -> void:
+func advance_analysis(bullet_type: String, amount: float = 8.0) -> void:
 	var pattern_key = PATTERN_RAPID
-	if bullet_type.contains("wave") or bullet_type.contains("pulse") or bullet_type.contains("spread"):
-		pattern_key = PATTERN_SPREAD
-	elif bullet_type.contains("charge") or bullet_type.contains("laser"):
-		pattern_key = PATTERN_PIERCE
-	elif bullet_type.contains("missile") or bullet_type.contains("irregular"):
-		pattern_key = PATTERN_HOMING
-	else:
-		pattern_key = PATTERN_RAPID
+	match bullet_type:
+		"meteor":
+			pattern_key = PATTERN_METEOR
+		"irregular", "cyclone":
+			pattern_key = PATTERN_CYCLONE
+		"laser", "boss_laser", "beam":
+			pattern_key = PATTERN_LASER
+		"missile", "boss_missile", "decel_missile", "homing":
+			pattern_key = PATTERN_HOMING
+		"charge", "pierce":
+			pattern_key = PATTERN_PIERCE
+		"wave", "spread", "pulse":
+			pattern_key = PATTERN_SPREAD
+		"straight", "rapid", _:
+			pattern_key = PATTERN_RAPID
 		
 	var actual_amount = amount
 	if Global.equipped_shield == SHIELD_GAUGE:
 		actual_amount *= 1.5
 		
 	add_pattern_analysis(pattern_key, actual_amount)
-	
-	if bullet_type.contains("beam") and "beam" in weapons and not weapons["beam"]["analyzed"]:
-		weapons["beam"]["progress"] = min(100, weapons["beam"]["progress"] + int(actual_amount))
-		if weapons["beam"]["progress"] >= 100:
-			weapons["beam"]["analyzed"] = true
-	elif bullet_type.contains("missile") and "missile" in weapons and not weapons["missile"]["analyzed"]:
-		weapons["missile"]["progress"] = min(100, weapons["missile"]["progress"] + int(actual_amount))
-		if weapons["missile"]["progress"] >= 100:
-			weapons["missile"]["analyzed"] = true
 
 
 func add_pattern_analysis(pattern_key: String, amount: float) -> void:
@@ -548,47 +611,107 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 		return
 		
 	var data = analysis_patterns[pattern_key]
-	if data["analyzed"]:
-		return
+	var current_lvl = data["level"]
+	if current_lvl >= data["max_level"]:
+		return # 最大レベル到達時はこれ以上加算しない
 		
 	data["progress"] = min(100.0, data["progress"] + amount)
 	
-	var pop_text = "【%s解析】%d%%" % [data["name"], int(data["progress"])]
-	spawn_popup_message(pop_text)
-	
 	if data["progress"] >= 100.0:
+		data["progress"] = 0.0
+		data["level"] += 1
 		data["analyzed"] = true
+		heal(50) # 解析完了時に機体大幅修復 (+50 HP)
 		apply_pattern_trait(pattern_key)
 
 
 func apply_pattern_trait(pattern_key: String) -> void:
-	match pattern_key:
-		PATTERN_RAPID:
-			trait_rapid_unlocked = true
-			apply_equipped_weapon_settings()
-			spawn_popup_message("⚡【連射強化】連射速度が大幅アップ！")
-		PATTERN_SPREAD:
-			trait_spread_unlocked = true
-			spawn_popup_message("⚡【拡散機能獲得】3-WAY 拡散射撃を解放！")
-		PATTERN_PIERCE:
-			trait_pierce_unlocked = true
-			spawn_popup_message("⚡【貫通機能獲得】貫通重弾に進化！")
-		PATTERN_HOMING:
-			trait_homing_unlocked = true
-			spawn_popup_message("⚡【追尾機能獲得】誘導ミサイル追撃解放！")
+	var data = analysis_patterns[pattern_key]
+	var lvl = data["level"]
+	
+	# スロット装備判定 (最大3枠)
+	if not active_traits.has(pattern_key):
+		if active_traits.size() >= MAX_TRAIT_SLOTS:
+			var removed_key = active_traits.pop_front() # 最も古いスロットを押し出し
+			if analysis_patterns.has(removed_key):
+				spawn_popup_message("【スロット交代】%s ➔ %s" % [analysis_patterns[removed_key]["name"], data["name"]])
+		active_traits.append(pattern_key)
+	
+	trigger_level_up_burst(data, lvl)
+	apply_equipped_weapon_settings()
+	
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var manager = main.get_node_or_null("GameManager")
+		if manager and manager.has_method("register_analysis_upgrade"):
+			manager.register_analysis_upgrade()
+
+
+func trigger_level_up_burst(data: Dictionary, lvl: int) -> void:
+	# 1. HP大幅修復 (+60 HP)
+	heal(60)
+	
+	# 2. 全画面金色フラッシュ
+	trigger_screen_flash(Color(1.0, 0.9, 0.2, 0.45))
+	
+	# 3. EMPバースト：画面内の敵弾を全消滅
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var pool = main.get_node_or_null("BulletPool")
+		if pool and "active_bullets" in pool:
+			var bullets = pool.active_bullets.duplicate()
+			for b in bullets:
+				if is_instance_valid(b) and not b.is_queued_for_deletion():
+					pool.return_bullet(b)
+					
+	# 4. 画面内の全ドローンに EMP ショックウェーブ（100ダメージ）
+	var drones = get_tree().get_nodes_in_group("drones")
+	for d in drones:
+		if is_instance_valid(d) and d.has_method("take_damage"):
+			d.take_damage(100)
 			
-	trigger_screen_flash(Color.GOLD)
+	# 5. ドット調ビッグバナー演出
+	spawn_big_levelup_banner(data["name"], lvl, data.get("icon", "⚡"))
+	
+	# 6. パーティクル爆発
+	var p_scene = preload("res://game/bullets/parry_particle.tscn")
+	if p_scene and get_parent():
+		for i in range(12):
+			var p = p_scene.instantiate()
+			p.global_position = global_position + Vector2(randf_range(-40, 40), randf_range(-40, 40))
+			p.scale = Vector2(2.5, 2.5)
+			p.modulate = Color.GOLD
+			get_parent().add_child(p)
 
 
-func upgrade_weapon(weapon_type: String) -> void:
-	if weapons.has(weapon_type):
-		weapons[weapon_type]["level"] = 2
-		weapons[weapon_type]["analyzed"] = true
-		current_weapon = weapon_type
-		
-		var label_text = "TECHNOLOGY HARVESTED: [" + weapon_type.to_upper() + " LV2]!"
-		spawn_popup_message(label_text)
-		trigger_screen_flash(Color(1.0, 0.8, 0.2, 0.6))
+func spawn_big_levelup_banner(trait_name: String, lvl: int, icon: String) -> void:
+	var label = Label.new()
+	label.text = "⚡ LEVEL UP! ⚡\n%s 【%s Lv.%d】 解放！" % [icon, trait_name, lvl]
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var set = LabelSettings.new()
+	var pixel_font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+	if pixel_font:
+		set.font = pixel_font
+	set.font_size = 24
+	set.font_color = Color.GOLD
+	set.outline_size = 8
+	set.outline_color = Color(0.1, 0.05, 0.0)
+	label.label_settings = set
+	
+	var vp_w = get_viewport_rect().size.x
+	label.custom_minimum_size = Vector2(500, 70)
+	label.global_position = Vector2(vp_w / 2.0 - 250, 240)
+	label.z_index = 30
+	get_parent().add_child(label)
+	
+	var tween = create_tween()
+	tween.tween_property(label, "scale", Vector2(1.15, 1.15), 0.2).from(Vector2(0.6, 0.6))
+	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.15)
+	tween.tween_interval(1.0)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 40.0, 0.6)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.6)
+	tween.chain().tween_callback(label.queue_free)
 
 
 func trigger_screen_flash(color: Color = Color(1.0, 1.0, 1.0, 0.5)) -> void:

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dmua6sakwpwly"]
 
 [ext_resource type="Script" uid="uid://beu3eun0nnd5x" path="res://game/player/player.gd" id="1_g2els"]
-[ext_resource type="Texture2D" uid="uid://c7yq8672clws5" path="res://game/assets/player.png" id="2_qhqgy"]
+[ext_resource type="Texture2D" path="res://game/assets/player/spaceship_small_blue.png" id="2_qhqgy"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_dqkch"]
 radius = 12.0
@@ -14,7 +14,7 @@ radius = 126.14278
 script = ExtResource("1_g2els")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1189553547]
-scale = Vector2(0.4, 0.4)
+scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_qhqgy")
 
 [node name="DamageShape" type="CollisionShape2D" parent="." unique_id=1297327662]

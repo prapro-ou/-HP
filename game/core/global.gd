@@ -13,7 +13,8 @@ var equipped_weapon: String = "machine_gun"
 # New game state variables for customization & progression
 var is_first_launch: bool = true
 var tech_points: int = 0
-var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (faster charge), "power" (buff primary)
+var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (faster charge/absorb), "power" (buff primary)
+var unlocked_shields: Array = ["counter"] # Available shield frameworks
 var unlocked_weapons: Array = ["machine_gun", "pulse_gun"] # Available primary weapon frameworks
 var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
 var upgrade_levels: Dictionary = {
@@ -50,6 +51,47 @@ var available_weapons: Dictionary = {
 	}
 }
 
+# Player Appearance variables
+var player_color: String = "blue"
+var available_player_colors: Dictionary = {
+	"blue": {
+		"name": "コバルトブルー (標準)",
+		"path": "res://game/assets/player/spaceship_small_blue.png",
+		"accent_color": Color(0.2, 0.65, 1.0)
+	},
+	"red": {
+		"name": "クリムゾンレッド",
+		"path": "res://game/assets/player/spaceship_small_red.png",
+		"accent_color": Color(1.0, 0.3, 0.3)
+	},
+	"green": {
+		"name": "エメラルドグリーン",
+		"path": "res://game/assets/player/spaceship_small_green.png",
+		"accent_color": Color(0.2, 0.9, 0.4)
+	},
+	"yellow": {
+		"name": "トパーズイエロー",
+		"path": "res://game/assets/player/spaceship_small_yellow.png",
+		"accent_color": Color(1.0, 0.85, 0.2)
+	},
+	"purple": {
+		"name": "アメジストパープル",
+		"path": "res://game/assets/player/spaceship_small_purple.png",
+		"accent_color": Color(0.8, 0.35, 1.0)
+	},
+	"orange": {
+		"name": "ソーラーオレンジ",
+		"path": "res://game/assets/player/spaceship_small_orange.png",
+		"accent_color": Color(1.0, 0.55, 0.1)
+	}
+}
+
+func get_player_texture_path(color_key: String = "") -> String:
+	var key = color_key if color_key != "" else player_color
+	if available_player_colors.has(key):
+		return available_player_colors[key]["path"]
+	return "res://game/assets/player/spaceship_small_blue.png"
+
 # Settings variables
 var master_volume: float = 80.0
 var bgm_volume: float = 80.0
@@ -81,6 +123,7 @@ func save_game(stage_num: int, score: int, weapons: Dictionary) -> void:
 	config.set_value("game", "is_first_launch", is_first_launch)
 	config.set_value("game", "tech_points", tech_points)
 	config.set_value("game", "equipped_shield", equipped_shield)
+	config.set_value("game", "unlocked_shields", unlocked_shields)
 	config.set_value("game", "unlocked_weapons", unlocked_weapons)
 	config.set_value("game", "unlocked_counter_weapons", unlocked_counter_weapons)
 	config.set_value("game", "upgrade_levels", upgrade_levels)
@@ -97,6 +140,7 @@ func load_game_data() -> Dictionary:
 		"is_first_launch": true,
 		"tech_points": 0,
 		"equipped_shield": "counter",
+		"unlocked_shields": ["counter"],
 		"unlocked_weapons": ["machine_gun", "pulse_gun"],
 		"unlocked_counter_weapons": [],
 		"upgrade_levels": {"hp": 0, "parry_window": 0, "cooldown": 0}
@@ -116,6 +160,9 @@ func load_game_data() -> Dictionary:
 		
 		data["equipped_shield"] = config.get_value("game", "equipped_shield", "counter")
 		equipped_shield = data["equipped_shield"]
+		
+		data["unlocked_shields"] = config.get_value("game", "unlocked_shields", ["counter"])
+		unlocked_shields = data["unlocked_shields"]
 		
 		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "pulse_gun"])
 		unlocked_weapons = data["unlocked_weapons"]
@@ -138,6 +185,7 @@ func delete_save_game() -> void:
 	is_first_launch = true
 	tech_points = 0
 	equipped_shield = "counter"
+	unlocked_shields = ["counter"]
 	unlocked_weapons = ["machine_gun", "pulse_gun"]
 	unlocked_counter_weapons = []
 	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
@@ -152,6 +200,7 @@ func save_settings() -> void:
 	config.set_value("display", "aspect_ratio", aspect_ratio)
 	config.set_value("display", "vsync", vsync)
 	config.set_value("gameplay", "screen_shake", screen_shake)
+	config.set_value("player", "player_color", player_color)
 	config.save(SETTINGS_PATH)
 
 func load_settings() -> void:
@@ -165,6 +214,7 @@ func load_settings() -> void:
 		aspect_ratio = config.get_value("display", "aspect_ratio", 0)
 		vsync = config.get_value("display", "vsync", true)
 		screen_shake = config.get_value("gameplay", "screen_shake", true)
+		player_color = config.get_value("player", "player_color", "blue")
 
 func apply_all_settings() -> void:
 	apply_audio()

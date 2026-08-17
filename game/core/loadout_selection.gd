@@ -116,26 +116,29 @@ func init_data() -> void:
 	w6.is_unlocked = Global.unlocked_weapons.has("kinetic_tackle")
 	primary_weapons.append(w6)
 
-	# 2. Shields
+	# 2. Shields (技研で各30 TPで開発可能)
 	var s1 = LoadoutItem.new()
 	s1.id = "counter"
 	s1.name = "カウンターシールド"
 	s1.description = "パリィ反撃の威力を最大化する標準モデル。"
 	s1.stats = "反射:★★★ | 溜め:★★☆ | 強化:★☆☆"
+	s1.is_unlocked = Global.unlocked_shields.has("counter")
 	shields.append(s1)
 	
 	var s2 = LoadoutItem.new()
 	s2.id = "gauge"
 	s2.name = "吸収マトリクス"
-	s2.description = "エネルギー吸収率を高め、ゲージ蓄積を高速化。"
-	s2.stats = "反射:★☆☆ | 溜め:★★★ | 強化:★★☆"
+	s2.description = "敵撃破時に解析エナジーオーブを磁力吸引！EXP蓄積＆機体修復。"
+	s2.stats = "反射:★☆☆ | 吸収:★★★ | 修復:★★☆"
+	s2.is_unlocked = Global.unlocked_shields.has("gauge")
 	shields.append(s2)
 	
 	var s3 = LoadoutItem.new()
 	s3.id = "power"
 	s3.name = "増幅ブースター"
-	s3.description = "パリィ成功時に主兵装の威力を永続強化。"
+	s3.description = "パリィ成功時に弾丸を吸収し、主兵装の威力を永続スタック強化。"
 	s3.stats = "反射:★★☆ | 溜め:★☆☆ | 強化:★★★"
+	s3.is_unlocked = Global.unlocked_shields.has("power")
 	shields.append(s3)
 
 	# 3. Counter System Weapons (Boss weapons)
@@ -387,18 +390,22 @@ func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 	
 	return vbox
 
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
 func style_config_button(btn: Button, accent_color: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.05, 0.05, 0.08, 0.9)
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
 	sb.border_width_left = 2
 	sb.border_width_top = 2
 	sb.border_width_right = 2
 	sb.border_width_bottom = 2
-	sb.border_color = Color(0.2, 0.2, 0.25)
-	sb.corner_radius_top_left = 4
-	sb.corner_radius_top_right = 4
-	sb.corner_radius_bottom_left = 4
-	sb.corner_radius_bottom_right = 4
+	sb.border_color = Color(0.2, 0.25, 0.35)
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb)
@@ -415,21 +422,23 @@ func style_config_button(btn: Button, accent_color: Color) -> void:
 	)
 
 func style_action_btn(btn: Button, border: Color, hover_border: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.07, 0.1, 0.95)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
 	sb.border_color = border
-	sb.corner_radius_top_left = 6
-	sb.corner_radius_top_right = 6
-	sb.corner_radius_bottom_left = 6
-	sb.corner_radius_bottom_right = 6
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = sb.duplicate()
+	sb_hover.bg_color = Color(0.1, 0.12, 0.22, 0.95)
 	sb_hover.border_color = hover_border
-	sb_hover.bg_color = Color(0.12, 0.12, 0.2, 0.95)
 	
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb_hover)
