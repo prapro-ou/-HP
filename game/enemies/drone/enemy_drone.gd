@@ -44,29 +44,36 @@ func _ready_enemy() -> void:
 	max_hp = DEFAULT_DRONE_HP
 	current_hp = max_hp
 	
-	shoot_interval = 1.3 # 攻撃スパンを全種共通化 (1.3秒)
-	
+	# タイプ別に攻撃スパンをゆったり長く設定（2.8〜3.8秒）
 	match drone_type:
 		TYPE_CHARGE:
+			shoot_interval = randf_range(3.4, 4.0)
 			modulate = Color(1.0, 0.35, 0.25) # チャージ赤橙
 		TYPE_STRAIGHT:
+			shoot_interval = randf_range(2.6, 3.2)
 			modulate = Color(0.3, 0.75, 1.0)  # 直進シアン
 		TYPE_IRREGULAR:
+			shoot_interval = randf_range(2.8, 3.5)
 			modulate = Color(1.0, 0.85, 0.2)  # 不規則イエロー
 		TYPE_LASER:
+			shoot_interval = randf_range(3.2, 3.8)
 			modulate = Color(1.0, 0.55, 0.1)  # レーザーオレンジ
 		TYPE_WAVE:
+			shoot_interval = randf_range(3.0, 3.6)
 			modulate = Color(0.2, 0.9, 0.5)   # 拡散エメラルド
 		TYPE_BEAM:
+			shoot_interval = randf_range(2.8, 3.4)
 			modulate = Color(1.0, 0.3, 0.6)   # ビームマゼンタ
 		TYPE_MISSILE, _:
+			shoot_interval = randf_range(3.2, 3.8)
 			modulate = Color(0.8, 0.4, 1.0)   # 追尾パープル
 		
 	bullet_pool = get_node_or_null("/root/Main/BulletPool")
 	player = get_node_or_null("/root/Main/Player")
 	
 	target_y = randf_range(100.0, 260.0)
-	time_since_last_shot = randf_range(0.0, 0.8)
+	# 攻撃タイミングを敵ごとに大きくばらけさせる (0.0 〜 スパンの80%の間でランダム開始)
+	time_since_last_shot = randf_range(0.0, shoot_interval * 0.75)
 	move_direction = 1.0 if randf() > 0.5 else -1.0
 
 
