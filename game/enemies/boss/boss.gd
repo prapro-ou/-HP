@@ -93,34 +93,51 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 			turrets.append(turret)
 
 
+var is_enraged: bool = false
+var enraged_notified: bool = false
+const METEOR_BULLET_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
+
 func _process(delta: float) -> void:
 	if not is_alive:
 		return
 		
-	# コアの微弱なパルス演出
-	if is_instance_valid(core_glow):
-		var pulse = 0.25 + 0.2 * sin(Time.get_ticks_msec() / 300.0)
-		core_glow.color = Color(0.9, 0.2, 0.2, pulse)
-		
-	if not is_active:
-		return
-		
-	# サブ砲台の生存チェックと増援判定
+	# サブ砲台の生存チェック
 	var alive_turrets_count = 0
 	for t in turrets:
 		if is_instance_valid(t) and t.is_alive:
 			alive_turrets_count += 1
 			
+	is_enraged = (alive_turrets_count == 0)
+	
+	# コアのパルス演出（砲台全滅後は高速パルスで暴走を表現）
+	if is_instance_valid(core_glow):
+		var pulse_speed = 120.0 if is_enraged else 300.0
+		var pulse = 0.3 + 0.3 * sin(Time.get_ticks_msec() / pulse_speed)
+		core_glow.color = Color(1.0, 0.1, 0.1, pulse) if is_enraged else Color(0.9, 0.2, 0.2, pulse)
+		
+	if not is_active:
+		return
+		
+	# 砲台全滅時の暴走アナウンス
+	if is_enraged and not enraged_notified:
+		enraged_notified = true
+		spawn_shield_message("⚠️ 砲台破壊！要塞コア暴走・攻撃頻度激化！")
+		if is_instance_valid(player) and player.has_method("trigger_screen_flash"):
+			player.trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.3))
+			
+	# 増援デッキ展開タイマー
 	if alive_turrets_count == 0 and not reinforcement_wave_spawned:
 		turret_respawn_timer += delta
 		if turret_respawn_timer >= 18.0:
 			reinforcement_wave_spawned = true
+			enraged_notified = false
 			spawn_shield_message("⚠️ 警告: 予備砲台デッキ展開！")
 			spawn_sub_turrets(4.0, true)
 			
 	fire_timer += delta
-	# 3.5秒間隔で画面上端から暗めの要塞弾幕を投下
-	if fire_timer >= 3.5:
+	# 砲台生存中は3.5秒、砲台撃破後は1.5秒に手数が倍増！
+	var attack_interval = 1.5 if is_enraged else 3.5
+	if fire_timer >= attack_interval:
 		fire_timer = 0.0
 		execute_fortress_attack()
 
@@ -129,40 +146,81 @@ func execute_fortress_attack() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
 		
-	attack_pattern_index = (attack_pattern_index + 1) % 2
 	var vp_w = get_viewport_rect().size.x
+	var num_patterns = 4 if is_enraged else 2
+	attack_pattern_index = (attack_pattern_index + 1) % num_patterns
 	
-	if attack_pattern_index == 0:
-		# パターン1: 画面上端からの広域扇状弾幕 (暗めの視認しやすい弾)
-		var drop_x_positions = [vp_w * 0.25, vp_w * 0.5, vp_w * 0.75]
-		for drop_x in drop_x_positions:
-			var center_dir = Vector2.DOWN
-			if is_instance_valid(player):
-				center_dir = (player.global_position - Vector2(drop_x, 20.0)).normalized()
-				
-			var angles = [-25.0, -12.0, 0.0, 12.0, 25.0]
-			for angle_deg in angles:
-				var bullet = bullet_pool.get_bullet("boss_laser")
-				if bullet:
-					bullet.global_position = Vector2(drop_x, 15.0)
-					bullet.damage = 10
-					var dir = center_dir.rotated(deg_to_rad(angle_deg))
-					bullet.set_direction(dir, 300.0)
-	else:
-		# パターン2: 画面上端からのクラスター追尾弾
-		for wave in range(3):
-			get_tree().create_timer(wave * 0.28).timeout.connect(func():
-				if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
-					var spawn_x = randf_range(120.0, vp_w - 120.0)
-					var bullet = bullet_pool.get_bullet("boss_missile")
+	match attack_pattern_index:
+		0:
+			# パターン1: 画面上端からの広域扇状フォトン弾幕
+			var drop_count = 4 if is_enraged else 3
+			var step_w = vp_w / float(drop_count + 1)
+			for i in range(drop_count):
+				var drop_x = step_w * (i + 1)
+				var center_dir = Vector2.DOWN
+				if is_instance_valid(player):
+					center_dir = (player.global_position - Vector2(drop_x, 20.0)).normalized()
+					
+				var angles = [-24.0, -12.0, 0.0, 12.0, 24.0]
+				for angle_deg in angles:
+					var bullet = bullet_pool.get_bullet("laser")
 					if bullet:
-						bullet.global_position = Vector2(spawn_x, 15.0)
-						bullet.damage = 12
-						var target_dir = Vector2.DOWN
-						if is_instance_valid(player):
-							target_dir = (player.global_position - bullet.global_position).normalized()
-						bullet.set_direction(target_dir, 240.0)
-			)
+						bullet.global_position = Vector2(drop_x, 15.0)
+						bullet.damage = 10
+						var dir = center_dir.rotated(deg_to_rad(angle_deg))
+						bullet.set_direction(dir, 320.0)
+		1:
+			# パターン2: 画面上端からのクラスター追尾ミサイル雨
+			var missile_waves = 4 if is_enraged else 2
+			for wave in range(missile_waves):
+				get_tree().create_timer(wave * 0.22).timeout.connect(func():
+					if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+						var spawn_x = randf_range(100.0, vp_w - 100.0)
+						var bullet = bullet_pool.get_bullet("missile")
+						if bullet:
+							bullet.global_position = Vector2(spawn_x, 15.0)
+							bullet.damage = 10
+							var target_dir = Vector2.DOWN
+							if is_instance_valid(player):
+								target_dir = (player.global_position - bullet.global_position).normalized()
+							bullet.set_direction(target_dir, 260.0)
+				)
+		2:
+			# パターン3 (暴走時): コア直撃チャージボルト＋左右サイクロン弾
+			if is_instance_valid(core_node):
+				var core_pos = core_node.global_position
+				for c_i in range(2):
+					get_tree().create_timer(c_i * 0.15).timeout.connect(func():
+						if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+							var bullet = bullet_pool.get_bullet("charge")
+							if bullet:
+								bullet.global_position = core_pos + Vector2(0.0, 30.0)
+								bullet.damage = 16
+								var dir = Vector2.DOWN
+								if is_instance_valid(player):
+									dir = (player.global_position - bullet.global_position).normalized()
+								bullet.set_direction(dir, 450.0)
+					)
+				# 左右サイクロン弾
+				for side in [-1.0, 1.0]:
+					var c_bullet = bullet_pool.get_bullet("irregular")
+					if c_bullet:
+						c_bullet.global_position = core_pos + Vector2(side * 80.0, 20.0)
+						c_bullet.set_direction(Vector2(side * 0.6, 1.0).normalized(), 300.0)
+		3:
+			# パターン4 (暴走時): 要塞緊急防衛ギガメテオ投下
+			if METEOR_BULLET_SCENE:
+				for m_i in range(2):
+					get_tree().create_timer(m_i * 0.25).timeout.connect(func():
+						if is_instance_valid(self) and is_alive:
+							var meteor = METEOR_BULLET_SCENE.instantiate()
+							meteor.global_position = Vector2(vp_w * (0.3 if m_i == 0 else 0.7), 20.0)
+							var shoot_dir = Vector2.DOWN.rotated(randf_range(-0.4, 0.4))
+							if is_instance_valid(player):
+								shoot_dir = (player.global_position - meteor.global_position).normalized()
+							meteor.set_direction(shoot_dir, 300.0)
+							get_parent().add_child(meteor)
+					)
 
 
 func take_damage_on_part(part_name: String, amount: int) -> void:
