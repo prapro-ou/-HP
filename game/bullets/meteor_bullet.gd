@@ -21,6 +21,8 @@ const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_part
 
 
 func _ready() -> void:
+	z_index = 50
+	z_as_relative = false
 	add_to_group("enemy_projectiles")
 	is_friendly = false
 	rotation_speed = randf_range(-3.0, 3.0)

@@ -12,6 +12,8 @@ var bullet_type: String = "analysis"  # "analysis", "beam", "giga_laser", "missi
 
 
 func _ready() -> void:
+	z_index = 50
+	z_as_relative = false
 	update_visual()
 	area_entered.connect(_on_area_entered)
 
