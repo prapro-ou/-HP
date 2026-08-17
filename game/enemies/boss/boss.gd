@@ -48,9 +48,9 @@ func _ready() -> void:
 func start_intro_sequence(duration: float = 5.0) -> void:
 	is_active = false
 	var vp_w = get_viewport_rect().size.x
-	var target_boss_pos = Vector2(vp_w / 2.0, 520.0)
+	var target_boss_pos = Vector2(vp_w / 2.0, 360.0)
 	
-	# ボスが画面上端からゆっくり画面全体へ降下展開 (5秒)
+	# ボスが画面上端から堂々と画面上部へ降下展開 (5秒)
 	var tween = create_tween().set_parallel(true)
 	tween.tween_property(self, "position", target_boss_pos, duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	
@@ -244,9 +244,9 @@ func take_damage_on_part(part_name: String, amount: int) -> void:
 	
 	# 被弾フラッシュ
 	if is_instance_valid(sprite):
-		sprite.modulate = Color(0.6, 0.5, 0.6, 0.95)
+		sprite.modulate = Color(1.5, 0.7, 0.7, 1.0)
 		var tween = create_tween()
-		tween.tween_property(sprite, "modulate", Color(0.38, 0.42, 0.52, 0.95), 0.1)
+		tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.12)
 		
 	var main = get_node_or_null("/root/Main")
 	if main:
