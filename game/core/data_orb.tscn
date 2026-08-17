@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://game/core/data_orb.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://game/assets/bullets/player_bullet.png" id="2_texture"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_orb"]
+radius = 24.0
+
+[node name="DataOrb" type="Area2D"]
+z_index = 15
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_texture")
+
+[node name="Glow" type="ColorRect" parent="."]
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+color = Color(0.2, 0.9, 1.0, 0.6)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_orb")

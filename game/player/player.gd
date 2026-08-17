@@ -667,12 +667,76 @@ func apply_pattern_trait(pattern_key: String) -> void:
 			if analysis_patterns.has(removed_key):
 				spawn_popup_message("【スロット交代】%s ➔ %s" % [analysis_patterns[removed_key]["name"], data["name"]])
 		active_traits.append(pattern_key)
-		spawn_popup_message("⚡【%s Lv.%d】スロット装備！" % [data["name"], lvl])
-	else:
-		spawn_popup_message("⚡【%s】Lv.%d に強化！" % [data["name"], lvl])
-		
+	
+	trigger_level_up_burst(data, lvl)
 	apply_equipped_weapon_settings()
-	trigger_screen_flash(Color.GOLD)
+
+
+func trigger_level_up_burst(data: Dictionary, lvl: int) -> void:
+	# 1. HP大幅修復 (+60 HP)
+	heal(60)
+	
+	# 2. 全画面金色フラッシュ
+	trigger_screen_flash(Color(1.0, 0.9, 0.2, 0.45))
+	
+	# 3. EMPバースト：画面内の敵弾を全消滅
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var pool = main.get_node_or_null("BulletPool")
+		if pool and "active_bullets" in pool:
+			var bullets = pool.active_bullets.duplicate()
+			for b in bullets:
+				if is_instance_valid(b) and not b.is_queued_for_deletion():
+					pool.return_bullet(b)
+					
+	# 4. 画面内の全ドローンに EMP ショックウェーブ（100ダメージ）
+	var drones = get_tree().get_nodes_in_group("drones")
+	for d in drones:
+		if is_instance_valid(d) and d.has_method("take_damage"):
+			d.take_damage(100)
+			
+	# 5. ドット調ビッグバナー演出
+	spawn_big_levelup_banner(data["name"], lvl, data.get("icon", "⚡"))
+	
+	# 6. パーティクル爆発
+	var p_scene = preload("res://game/bullets/parry_particle.tscn")
+	if p_scene and get_parent():
+		for i in range(12):
+			var p = p_scene.instantiate()
+			p.global_position = global_position + Vector2(randf_range(-40, 40), randf_range(-40, 40))
+			p.scale = Vector2(2.5, 2.5)
+			p.modulate = Color.GOLD
+			get_parent().add_child(p)
+
+
+func spawn_big_levelup_banner(trait_name: String, lvl: int, icon: String) -> void:
+	var label = Label.new()
+	label.text = "⚡ LEVEL UP! ⚡\n%s 【%s Lv.%d】 解放！" % [icon, trait_name, lvl]
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var set = LabelSettings.new()
+	var pixel_font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+	if pixel_font:
+		set.font = pixel_font
+	set.font_size = 24
+	set.font_color = Color.GOLD
+	set.outline_size = 8
+	set.outline_color = Color(0.1, 0.05, 0.0)
+	label.label_settings = set
+	
+	var vp_w = get_viewport_rect().size.x
+	label.custom_minimum_size = Vector2(500, 70)
+	label.global_position = Vector2(vp_w / 2.0 - 250, 240)
+	label.z_index = 30
+	get_parent().add_child(label)
+	
+	var tween = create_tween()
+	tween.tween_property(label, "scale", Vector2(1.15, 1.15), 0.2).from(Vector2(0.6, 0.6))
+	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.15)
+	tween.tween_interval(1.0)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 40.0, 0.6)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.6)
+	tween.chain().tween_callback(label.queue_free)
 
 
 func upgrade_weapon(weapon_type: String) -> void:

@@ -187,14 +187,16 @@ func fire_charged_shot() -> void:
 		)
 
 
+const DATA_ORB_SCENE: PackedScene = preload("res://game/core/data_orb.tscn")
+
 func die() -> void:
-	if is_instance_valid(player):
-		if player.has_method("advance_analysis"):
-			player.advance_analysis(drone_type, 2.0)
-		if randf() < 0.25 and player.has_method("heal"):
-			player.heal(15)
-			if player.has_method("spawn_popup_message"):
-				player.spawn_popup_message("エナジー回収 +15 HP")
+	# 敵撃破時に1〜2個の解析データオーブを放出（プレイヤーへ高速吸引）
+	if DATA_ORB_SCENE and get_parent():
+		var num_orbs = randi_range(1, 2)
+		for _i in range(num_orbs):
+			var orb = DATA_ORB_SCENE.instantiate()
+			orb.setup_orb(drone_type, global_position, player)
+			get_parent().add_child(orb)
 		
 	var main = get_node_or_null("/root/Main")
 	if main:
