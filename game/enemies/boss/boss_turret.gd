@@ -132,7 +132,7 @@ func start_attack_sequence() -> void:
 	match turret_type:
 		TurretType.BEAM_MACHINEGUN:
 			is_charging = true
-			charge_timer = 1.0 # 1秒チャージ
+			charge_timer = 1.3 # 1.3秒チャージ (ゆったり予兆)
 			var player = get_node_or_null("/root/Main/Player")
 			beam_warning_target_x = player.global_position.x if is_instance_valid(player) else global_position.x
 			spawn_turret_warning("⚠️ LASER CHARGE!")
@@ -141,7 +141,7 @@ func start_attack_sequence() -> void:
 			execute_attack()
 		TurretType.METEOR_LAUNCHER:
 			is_charging = true
-			charge_timer = 1.0 # 赤く光って1秒チャージ
+			charge_timer = 1.3 # 赤く光って1.3秒チャージ
 			spawn_turret_warning("⚠️ METEOR LAUNCH!")
 
 
@@ -152,34 +152,34 @@ func execute_attack() -> void:
 	
 	match turret_type:
 		TurretType.BEAM_MACHINEGUN:
-			# すり抜け不可な高速ビームマシンガン連射 (15発連射)
+			# 8発連射（ゆったりパリィ可能）
 			if pool:
-				for i in range(15):
-					get_tree().create_timer(i * 0.07).timeout.connect(func():
+				for i in range(8):
+					get_tree().create_timer(i * 0.1).timeout.connect(func():
 						if is_instance_valid(self) and is_alive and is_instance_valid(pool):
 							var bullet = pool.get_bullet("boss_laser")
 							if bullet:
 								bullet.global_position = global_position + Vector2(randf_range(-12, 12), 25)
-								bullet.damage = 18
-								# プレイヤー方向へわずかに角度をブレさせながら高速直進
+								bullet.damage = 10
+								# プレイヤー方向へわずかに角度をブレさせながら直進
 								var dir = Vector2.DOWN
 								if is_instance_valid(player):
-									var target_x = player.global_position.x + randf_range(-40, 40)
+									var target_x = player.global_position.x + randf_range(-30, 30)
 									dir = (Vector2(target_x, player.global_position.y) - global_position).normalized()
-								bullet.set_direction(dir, 750.0)
+								bullet.set_direction(dir, 620.0)
 					)
 					
 		TurretType.HOMING_MISSILE:
-			# 砲台から両斜めに2発ずつ (合計4発) 発射 ➔ 1秒で減速停止 ➔ 1.2倍速で追尾
+			# 砲台から合計4発発射 ➔ 減速停止 ➔ 追尾
 			if pool:
-				var spread_angles = [-45.0, -25.0, 25.0, 45.0]
+				var spread_angles = [-40.0, -20.0, 20.0, 40.0]
 				for angle_deg in spread_angles:
 					var bullet = pool.get_bullet("decel_missile")
 					if bullet:
 						bullet.global_position = global_position + Vector2(0.0, 20.0)
-						bullet.damage = 14
+						bullet.damage = 8
 						var launch_dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
-						bullet.set_direction(launch_dir, 360.0)
+						bullet.set_direction(launch_dir, 320.0)
 						
 		TurretType.METEOR_LAUNCHER:
 			# 巨大隕石射出 (画面内に最大4個)

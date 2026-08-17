@@ -8,8 +8,8 @@ extends Node2D
 const TURRET_SCENE: PackedScene = preload("res://game/enemies/boss/boss_turret.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
 
-@export var max_hp: int = 18000
-var current_hp: int = 18000
+@export var max_hp: int = 7500
+var current_hp: int = 7500
 var is_alive: bool = true
 var is_active: bool = false
 
@@ -86,8 +86,8 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 		if TURRET_SCENE:
 			var turret = TURRET_SCENE.instantiate()
 			turret.turret_type = cfg["type"]
-			turret.max_hp = 2200
-			turret.current_hp = 2200
+			turret.max_hp = 900
+			turret.current_hp = 900
 			get_parent().add_child(turret)
 			turret.spawn_intro(cfg["start"], cfg["target"], duration)
 			turrets.append(turret)
