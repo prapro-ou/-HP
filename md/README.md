@@ -7,6 +7,7 @@
 ゲームの全体仕様、武器やシールドのカスタマイズ、敵の個性、特殊技研（ラボ）などの詳細設計については以下を参照してください。
 
 *   **[DESIGN.md](DESIGN.md)** - 新仕様・設計ドキュメント
+*   **[assets_guide.md](assets_guide.md)** - アセット配置・機体カラー設定ガイド
 *   **[github_management_guide.md](github_management_guide.md)** - GitHub運用・管理ガイド
 *   **[team_management_guide.md](team_management_guide.md)** - チーム管理ガイド
 

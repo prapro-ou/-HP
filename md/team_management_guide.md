@@ -49,7 +49,7 @@
 - **ファイル形式**: `.wav` または `.ogg` (Godotで扱いやすい形式)
 
 ## 📁 提出先 (いずれかにチェック)
-- [ ] GitHubの `assets/sounds/` フォルダに直接アップロードした
+- [ ] GitHubの `game/assets/sounds/` (または対応する `game/assets/` 内) フォルダに直接アップロードした
 - [ ] Google Drive / Dropbox等の共有リンク: [リンクURLをここに貼る]
 ```
 
