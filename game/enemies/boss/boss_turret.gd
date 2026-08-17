@@ -268,8 +268,11 @@ func destroy_turret() -> void:
 		if mgr and mgr.has_method("add_tech_points"):
 			mgr.add_tech_points(15)
 		var player = main.get_node_or_null("Player")
-		if player and player.has_method("spawn_popup_message"):
-			player.spawn_popup_message("サブ砲台撃破！ +15 TP")
+		if player:
+			if player.has_method("heal"):
+				player.heal(50)
+			if player.has_method("spawn_popup_message"):
+				player.spawn_popup_message("サブ砲台撃破！ +15 TP / 機体修復 +50 HP")
 			
 	# フェードアウトして消滅
 	var tween = create_tween()

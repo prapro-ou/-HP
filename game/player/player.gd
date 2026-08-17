@@ -480,6 +480,8 @@ func update_visual_state() -> void:
 				modulate = Color.WHITE
 
 
+var consecutive_parries: int = 0
+
 func check_parry() -> void:
 	var parry_triggered_now = false
 	var shield_type = Global.equipped_shield
@@ -537,13 +539,20 @@ func check_parry() -> void:
 				
 	if parry_triggered_now and not parried_in_current_frame:
 		parried_in_current_frame = true
-		heal(6) # パリィ成功時に機体小リペア (+6 HP)
+		consecutive_parries += 1
+		# 15連続パリィ達成時のみボーナス回復
+		if consecutive_parries % 15 == 0:
+			heal(25)
+			spawn_popup_message("⚡ %dx PARRY COMBO! 機体緊急修復 +25 HP" % consecutive_parries)
+			
 		trigger_parry_feedback()
 
 
 func take_damage(amount: int) -> void:
 	if is_guarding or is_invincible:
 		return
+		
+	consecutive_parries = 0 # 被弾でコンボリセット
 		
 	if Global.is_first_launch and Engine.time_scale < 0.5:
 		Engine.time_scale = 1.0
@@ -605,6 +614,7 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 	
 	if data["progress"] >= 100.0:
 		data["analyzed"] = true
+		heal(40) # 解析完了時に機体大幅修復 (+40 HP)
 		apply_pattern_trait(pattern_key)
 
 
