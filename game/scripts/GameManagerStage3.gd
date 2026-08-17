@@ -42,16 +42,11 @@ func _ready() -> void:
 		boss.visible = false
 		boss.process_mode = PROCESS_MODE_DISABLED
 		
-		# ボスのステータスを最高峰に強化 (Stage 3仕様)
+		# ボスのステータスを強化 (Stage 3仕様)
 		boss.max_hp = 6800
-		boss.laser_hp = 1200
-		boss.missile_hp = 1200
-		boss.core_hp = 4400
-		boss.base_move_speed = 220.0
-		boss.current_move_speed = 220.0
-		boss.energy_laser = 50.0
-		boss.energy_missile = 50.0
-		boss.energy_core = 60.0
+		if "current_hp" in boss:
+			boss.current_hp = 6800
+
 		
 	# シーン開始
 	state = "wave1_overload"
@@ -289,11 +284,12 @@ func update_ui() -> void:
 			player.current_weapon
 		)
 		
-	if (state == "boss" or state == "victory_transition") and is_instance_valid(boss) and ui.has_method("update_boss_energy"):
+	if (state == "boss" or state == "victory_transition") and is_instance_valid(boss) and "energy_laser" in boss and ui.has_method("update_boss_energy"):
 		ui.update_boss_energy(boss.energy_laser, boss.energy_missile, boss.energy_core)
 	else:
-		if ui.has_method("hide_boss_energy"):
+		if ui and ui.has_method("hide_boss_energy"):
 			ui.hide_boss_energy()
+
 
 
 func get_failed_stage_name() -> String:

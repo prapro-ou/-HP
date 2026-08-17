@@ -58,9 +58,9 @@ func _ready() -> void:
 		boss1.visible = false
 		boss1.process_mode = PROCESS_MODE_DISABLED
 		boss1.max_hp = 6500
-		boss1.laser_hp = 1800
-		boss1.missile_hp = 1800
-		boss1.core_hp = 4700
+		if "current_hp" in boss1:
+			boss1.current_hp = 6500
+
 		
 	if is_instance_valid(final_boss):
 		final_boss.visible = false
@@ -289,11 +289,12 @@ func update_ui() -> void:
 		var b_hp = 0
 		var b_max = 1
 		if state == "boss1" and is_instance_valid(boss1):
-			b_hp = boss1.laser_hp + boss1.missile_hp + boss1.core_hp
+			b_hp = boss1.current_hp if "current_hp" in boss1 else boss1.max_hp
 			b_max = boss1.max_hp
 		elif (state == "final_boss" or state == "interlude_boss1_defeat") and is_instance_valid(final_boss):
 			b_hp = final_boss.laser_hp + final_boss.missile_hp + final_boss.core_hp
 			b_max = final_boss.max_hp
+
 			
 		ui.update_hud(hp, max_hp, b_hp, b_max, total_damage_score, state.to_upper())
 
