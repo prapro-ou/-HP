@@ -274,6 +274,46 @@ func get_player_analyzed_count() -> int:
 	return count
 
 
+func get_boosted_replenish_type(wave_data: BaseStage.WaveData = null) -> String:
+	# プレイヤーが装備中（Lv.2未満）または解析進行中の属性に対応する敵を優先抽出
+	var target_drone_types: Array[String] = []
+	
+	if is_instance_valid(player) and "analysis_patterns" in player:
+		var trait_to_drone = {
+			"rapid": "straight",
+			"spread": "wave",
+			"pierce": "charge",
+			"homing": "missile",
+			"laser": "laser",
+			"cyclone": "irregular"
+		}
+		
+		# 1. スロット装備中の属性でLv.2未満のものを最優先
+		var active = player.active_traits if "active_traits" in player else []
+		for t_key in active:
+			if player.analysis_patterns.has(t_key):
+				var data = player.analysis_patterns[t_key]
+				if data.get("level", 0) < data.get("max_level", 2):
+					if trait_to_drone.has(t_key):
+						target_drone_types.append(trait_to_drone[t_key])
+						
+		# 2. 直近でパリィ・解析中の属性も対象に追加
+		for t_key in player.analysis_patterns.keys():
+			var data = player.analysis_patterns[t_key]
+			if data.get("progress", 0.0) > 0.0 and data.get("level", 0) < data.get("max_level", 2):
+				if trait_to_drone.has(t_key) and not target_drone_types.has(trait_to_drone[t_key]):
+					target_drone_types.append(trait_to_drone[t_key])
+					
+	# 75%の確率で育成対象の敵タイプを集中出現！
+	if target_drone_types.size() > 0 and randf() < 0.75:
+		return target_drone_types.pick_random()
+		
+	# 通常フォールバック
+	if wave_data and wave_data.replenish_types.size() > 0:
+		return wave_data.replenish_types.pick_random()
+	return "straight"
+
+
 func check_drone_replenish(wave_data: BaseStage.WaveData) -> void:
 	var active = 0
 	for d in spawned_drones:
@@ -286,11 +326,11 @@ func check_drone_replenish(wave_data: BaseStage.WaveData) -> void:
 				return
 				
 		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		var chosen_type = wave_data.replenish_types.pick_random() if wave_data.replenish_types.size() > 0 else "straight"
+		var chosen_type = get_boosted_replenish_type(wave_data)
 		var drone = spawn_drone(chosen_type, Vector2(rx, -50))
 		if drone and wave_data.drone_speed_override > 0.0:
 			drone.speed = wave_data.drone_speed_override
-			if chosen_type == "beam" and wave_data.drone_shoot_interval_beam > 0.0:
+			if chosen_type == "laser" and wave_data.drone_shoot_interval_beam > 0.0:
 				drone.shoot_interval = wave_data.drone_shoot_interval_beam
 			elif chosen_type == "missile" and wave_data.drone_shoot_interval_missile > 0.0:
 				drone.shoot_interval = wave_data.drone_shoot_interval_missile
@@ -303,7 +343,7 @@ func check_dual_replenish() -> void:
 	var active_missile = 0
 	for d in spawned_drones:
 		if is_instance_valid(d):
-			if d.drone_type == "beam":
+			if d.drone_type == "beam" or d.drone_type == "laser":
 				active_beam += 1
 			elif d.drone_type == "missile":
 				active_missile += 1
@@ -313,7 +353,7 @@ func check_dual_replenish() -> void:
 	
 	if active_beam == 0 and not beam_analyzed:
 		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		spawn_drone("beam", Vector2(rx, -50))
+		spawn_drone("laser", Vector2(rx, -50))
 	if active_missile == 0 and not missile_analyzed:
 		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
 		spawn_drone("missile", Vector2(rx, -50))
@@ -321,20 +361,20 @@ func check_dual_replenish() -> void:
 
 func process_boss_support_drones(delta: float) -> void:
 	boss_drone_timer += delta
-	var interval = current_stage.boss_config.support_drone_interval
+	var interval = current_stage.boss_config.support_drone_interval if current_stage else 8.0
 	if boss_drone_timer >= interval:
 		boss_drone_timer = 0.0
 		var active = 0
 		for d in spawned_drones:
 			if is_instance_valid(d):
 				active += 1
-		if active < 1:
-			var type = "beam" if randf() > 0.5 else "missile"
+		if active < 2:
+			var type = get_boosted_replenish_type(null)
 			var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
 			var drone = spawn_drone(type, Vector2(rx, -50))
 			if drone:
-				drone.speed = 180.0
-				drone.shoot_interval = 1.2 if type == "beam" else 1.8
+				drone.speed = 160.0
+				drone.shoot_interval = 2.0
 
 
 func clear_drones() -> void:

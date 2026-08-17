@@ -68,7 +68,8 @@ func _setup_boss() -> void:
 	boss_config.core_hp = 7500
 	boss_config.max_hp = 7500
 	boss_config.base_move_speed = 0.0
-	boss_config.enable_support_drones = false
+	boss_config.enable_support_drones = true
+	boss_config.support_drone_interval = 8.0
 
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_beam"
