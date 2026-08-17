@@ -76,24 +76,19 @@ var shield_heat: float = 0.0
 var overheat_timer: float = 0.0
 var is_overheated: bool = false
 
-# --- 攻撃パターン解析＆自機兵装反映システム (全7種) ---
-var analysis_patterns: Dictionary = {
-	PATTERN_RAPID:   { "progress": 0.0, "analyzed": false, "name": "高速連射", "desc": "発射速度UP＆弾速1.5倍" },
-	PATTERN_SPREAD:  { "progress": 0.0, "analyzed": false, "name": "5-WAY拡散", "desc": "扇状5方向ワイドショット" },
-	PATTERN_PIERCE:  { "progress": 0.0, "analyzed": false, "name": "貫通重弾", "desc": "装甲貫通ヘビーボルト" },
-	PATTERN_HOMING:  { "progress": 0.0, "analyzed": false, "name": "誘導ミサイル", "desc": "自動追尾マイクロミサイル" },
-	PATTERN_LASER:   { "progress": 0.0, "analyzed": false, "name": "フォトン光線", "desc": "正面連続貫通レーザー" },
-	PATTERN_CYCLONE: { "progress": 0.0, "analyzed": false, "name": "旋回スピン", "desc": "左右螺旋サイクロン弾" },
-	PATTERN_METEOR:  { "progress": 0.0, "analyzed": false, "name": "ギガメテオ", "desc": "画面内バウンド巨大隕石" }
-}
+# --- 攻撃パターン解析＆変異スロットシステム (最大3枠制限＆Lv制) ---
+const MAX_TRAIT_SLOTS: int = 3
+var active_traits: Array[String] = [] # 現在装備中の最大3つの属性キー
 
-var trait_rapid_unlocked: bool = false
-var trait_spread_unlocked: bool = false
-var trait_pierce_unlocked: bool = false
-var trait_homing_unlocked: bool = false
-var trait_laser_unlocked: bool = false
-var trait_cyclone_unlocked: bool = false
-var trait_meteor_unlocked: bool = false
+var analysis_patterns: Dictionary = {
+	PATTERN_RAPID:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "高速連射", "icon": "⚡", "color": Color(0.3, 0.8, 1.0) },
+	PATTERN_SPREAD:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "拡散射撃", "icon": "◈", "color": Color(0.2, 1.0, 0.6) },
+	PATTERN_PIERCE:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "貫通重弾", "icon": "▲", "color": Color(1.0, 0.6, 0.2) },
+	PATTERN_HOMING:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "誘導ミサイル", "icon": "▶", "color": Color(0.85, 0.45, 1.0) },
+	PATTERN_LASER:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "フォトン光線", "icon": "━", "color": Color(0.4, 0.9, 1.0) },
+	PATTERN_CYCLONE: { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "旋回スピン", "icon": "◎", "color": Color(1.0, 0.85, 0.2) },
+	PATTERN_METEOR:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "ギガメテオ", "icon": "●", "color": Color(1.0, 0.35, 0.2) }
+}
 
 # 旧互換変数
 var weapons: Dictionary = {
@@ -144,17 +139,12 @@ func reset_state() -> void:
 	overheat_timer = 0.0
 	is_overheated = false
 	
-	trait_rapid_unlocked = false
-	trait_spread_unlocked = false
-	trait_pierce_unlocked = false
-	trait_homing_unlocked = false
-	trait_laser_unlocked = false
-	trait_cyclone_unlocked = false
-	trait_meteor_unlocked = false
+	active_traits.clear()
 	
 	for key in analysis_patterns.keys():
 		analysis_patterns[key]["progress"] = 0.0
 		analysis_patterns[key]["analyzed"] = false
+		analysis_patterns[key]["level"] = 0
 	
 	current_weapon = "none"
 	if "beam" in weapons:
@@ -185,8 +175,9 @@ func apply_equipped_weapon_settings() -> void:
 		_:
 			fire_rate = 0.35
 			
-	if trait_rapid_unlocked:
-		fire_rate *= 0.55
+	if active_traits.has(PATTERN_RAPID):
+		var r_lvl = analysis_patterns[PATTERN_RAPID]["level"]
+		fire_rate *= (0.65 if r_lvl == 1 else 0.45)
 
 
 func _process(delta: float) -> void:
@@ -343,59 +334,79 @@ func fire() -> void:
 	var player_bullets_container = get_node_or_null("/root/Main/PlayerBullets")
 	var target_parent = player_bullets_container if player_bullets_container else get_parent()
 	
-	# 1. 拡散射撃 (5-WAY) or 通常射撃
+	var is_pierce_active = active_traits.has(PATTERN_PIERCE)
+	var pierce_lvl = analysis_patterns[PATTERN_PIERCE]["level"] if is_pierce_active else 0
+	
+	# 1. 拡散射撃 (スロット装備時: Lv.1=3-WAY, Lv.2=5-WAY)
+	var is_spread_active = active_traits.has(PATTERN_SPREAD)
+	var spread_lvl = analysis_patterns[PATTERN_SPREAD]["level"] if is_spread_active else 0
 	var angles = [0.0]
-	if trait_spread_unlocked:
-		angles = [-22.0, -11.0, 0.0, 11.0, 22.0]
+	if is_spread_active:
+		angles = [-15.0, 0.0, 15.0] if spread_lvl == 1 else [-24.0, -12.0, 0.0, 12.0, 24.0]
 		
 	for deg in angles:
 		var analysis_shot = PLAYER_BULLET_SCENE.instantiate()
-		analysis_shot.bullet_type = "charge_bolt" if trait_pierce_unlocked else "analysis"
+		analysis_shot.bullet_type = "charge_bolt" if is_pierce_active else "analysis"
 		analysis_shot.global_position = global_position + Vector2(deg * 0.4, -20.0)
-		var spd = ANALYSIS_BULLET_SPEED_RAPID if trait_rapid_unlocked else ANALYSIS_BULLET_SPEED_NORMAL
+		var is_rapid_active = active_traits.has(PATTERN_RAPID)
+		var spd = ANALYSIS_BULLET_SPEED_RAPID if is_rapid_active else ANALYSIS_BULLET_SPEED_NORMAL
 		var dir = Vector2.UP.rotated(deg_to_rad(deg))
 		analysis_shot.velocity = dir * spd
 		analysis_shot.damage += int(power_shield_damage_buff)
+		if is_pierce_active and pierce_lvl >= 2:
+			analysis_shot.damage += 15
 		target_parent.add_child(analysis_shot)
 		
-	# 2. 誘導ミサイル
-	if trait_homing_unlocked:
+	# 2. 誘導ミサイル (スロット装備時: Lv.1=2基, Lv.2=4基)
+	if active_traits.has(PATTERN_HOMING):
+		var homing_lvl = analysis_patterns[PATTERN_HOMING]["level"]
 		var offsets = [Vector2(-22.0, 5.0), Vector2(22.0, 5.0)]
+		if homing_lvl >= 2:
+			offsets.append(Vector2(-36.0, 15.0))
+			offsets.append(Vector2(36.0, 15.0))
 		for off in offsets:
 			var m_bullet = PLAYER_BULLET_SCENE.instantiate()
-			m_bullet.bullet_type = "missile"
+			m_bullet.bullet_type = "hyper_missile" if homing_lvl >= 2 else "missile"
 			m_bullet.global_position = global_position + off
 			var launch_dir = Vector2(off.x, -40.0).normalized()
 			m_bullet.velocity = launch_dir * SUB_MISSILE_SPEED
 			m_bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(m_bullet)
 
-	# 3. フォトンレーザー
-	if trait_laser_unlocked:
-		var l_bullet = PLAYER_BULLET_SCENE.instantiate()
-		l_bullet.bullet_type = "photon_laser"
-		l_bullet.global_position = global_position + Vector2(0.0, -30.0)
-		l_bullet.damage += int(power_shield_damage_buff)
-		target_parent.add_child(l_bullet)
+	# 3. フォトンレーザー (スロット装備時: Lv.1=1本, Lv.2=ツイン)
+	if active_traits.has(PATTERN_LASER):
+		var laser_lvl = analysis_patterns[PATTERN_LASER]["level"]
+		var x_offsets = [0.0] if laser_lvl == 1 else [-16.0, 16.0]
+		for lx in x_offsets:
+			var l_bullet = PLAYER_BULLET_SCENE.instantiate()
+			l_bullet.bullet_type = "photon_laser"
+			l_bullet.global_position = global_position + Vector2(lx, -30.0)
+			l_bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(l_bullet)
 
-	# 4. サイクロンスピン弾
-	if trait_cyclone_unlocked:
-		for dir_x in [-1.0, 1.0]:
+	# 4. サイクロンスピン弾 (スロット装備時: Lv.1=2発, Lv.2=4発)
+	if active_traits.has(PATTERN_CYCLONE):
+		var cyc_lvl = analysis_patterns[PATTERN_CYCLONE]["level"]
+		var dirs = [-1.0, 1.0] if cyc_lvl == 1 else [-1.5, -0.6, 0.6, 1.5]
+		for dir_x in dirs:
 			var c_bullet = PLAYER_BULLET_SCENE.instantiate()
 			c_bullet.bullet_type = "cyclone"
-			c_bullet.global_position = global_position + Vector2(dir_x * 20.0, -10.0)
-			c_bullet.velocity = Vector2(dir_x * 120.0, -650.0)
+			c_bullet.global_position = global_position + Vector2(dir_x * 16.0, -10.0)
+			c_bullet.velocity = Vector2(dir_x * 110.0, -650.0)
 			c_bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(c_bullet)
 
-	# 5. ギガメテオ (跳ね返り巨大隕石)
-	if trait_meteor_unlocked and randf() < 0.25:
-		var meteor = PLAYER_BULLET_SCENE.instantiate()
-		meteor.bullet_type = "player_meteor"
-		meteor.global_position = global_position + Vector2(randf_range(-30, 30), -35.0)
-		meteor.velocity = Vector2(randf_range(-180, 180), -550.0)
-		meteor.damage += int(power_shield_damage_buff)
-		target_parent.add_child(meteor)
+	# 5. ギガメテオ (スロット装備時: 確率で射出)
+	if active_traits.has(PATTERN_METEOR):
+		var met_lvl = analysis_patterns[PATTERN_METEOR]["level"]
+		var chance = 0.22 if met_lvl == 1 else 0.35
+		if randf() < chance:
+			var meteor = PLAYER_BULLET_SCENE.instantiate()
+			meteor.bullet_type = "player_meteor"
+			meteor.global_position = global_position + Vector2(randf_range(-30, 30), -35.0)
+			meteor.velocity = Vector2(randf_range(-180, 180), -550.0)
+			meteor.damage += int(power_shield_damage_buff)
+			target_parent.add_child(meteor)
 			
 	fire_equipped_physics_weapon(target_parent)
 
@@ -631,42 +642,36 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 		return
 		
 	var data = analysis_patterns[pattern_key]
-	if data["analyzed"]:
-		return
+	var current_lvl = data["level"]
+	if current_lvl >= data["max_level"]:
+		return # 最大レベル到達時はこれ以上加算しない
 		
 	data["progress"] = min(100.0, data["progress"] + amount)
 	
 	if data["progress"] >= 100.0:
+		data["progress"] = 0.0
+		data["level"] += 1
 		data["analyzed"] = true
 		heal(50) # 解析完了時に機体大幅修復 (+50 HP)
 		apply_pattern_trait(pattern_key)
 
 
 func apply_pattern_trait(pattern_key: String) -> void:
-	match pattern_key:
-		PATTERN_RAPID:
-			trait_rapid_unlocked = true
-			apply_equipped_weapon_settings()
-			spawn_popup_message("⚡【高速連射 獲得】連射速度が大幅アップ！")
-		PATTERN_SPREAD:
-			trait_spread_unlocked = true
-			spawn_popup_message("⚡【5-WAY拡散 獲得】ワイド拡散射撃を解放！")
-		PATTERN_PIERCE:
-			trait_pierce_unlocked = true
-			spawn_popup_message("⚡【貫通重弾 獲得】装甲貫通ヘビーボルトに進化！")
-		PATTERN_HOMING:
-			trait_homing_unlocked = true
-			spawn_popup_message("⚡【誘導ミサイル 獲得】スマート追撃ミサイル解放！")
-		PATTERN_LASER:
-			trait_laser_unlocked = true
-			spawn_popup_message("⚡【フォトン光線 獲得】正面貫通レーザー砲を解放！")
-		PATTERN_CYCLONE:
-			trait_cyclone_unlocked = true
-			spawn_popup_message("⚡【旋回スピン 獲得】左右螺旋サイクロン弾を解放！")
-		PATTERN_METEOR:
-			trait_meteor_unlocked = true
-			spawn_popup_message("⚡【ギガメテオ 獲得】画面反射巨大隕石弾を解放！")
-			
+	var data = analysis_patterns[pattern_key]
+	var lvl = data["level"]
+	
+	# スロット装備判定 (最大3枠)
+	if not active_traits.has(pattern_key):
+		if active_traits.size() >= MAX_TRAIT_SLOTS:
+			var removed_key = active_traits.pop_front() # 最も古いスロットを押し出し
+			if analysis_patterns.has(removed_key):
+				spawn_popup_message("【スロット交代】%s ➔ %s" % [analysis_patterns[removed_key]["name"], data["name"]])
+		active_traits.append(pattern_key)
+		spawn_popup_message("⚡【%s Lv.%d】スロット装備！" % [data["name"], lvl])
+	else:
+		spawn_popup_message("⚡【%s】Lv.%d に強化！" % [data["name"], lvl])
+		
+	apply_equipped_weapon_settings()
 	trigger_screen_flash(Color.GOLD)
 
 
