@@ -178,7 +178,7 @@ func fire_charged_shot() -> void:
 		dir = (player.global_position - global_position).normalized()
 	for i in range(2):
 		get_tree().create_timer(i * 0.12).timeout.connect(func():
-			if is_instance_valid(self) and is_instance_valid(bullet_pool):
+			if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 				var bullet = bullet_pool.get_bullet("boss_laser")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 25.0)

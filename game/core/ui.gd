@@ -68,6 +68,16 @@ func _ready() -> void:
 	create_analysis_matrix_ui()
 
 
+func create_shield_heat_bar() -> void:
+	shield_heat_bar = ProgressBar.new()
+	shield_heat_bar.name = "ShieldHeatBar"
+	shield_heat_bar.show_percentage = false
+	shield_heat_bar.custom_minimum_size = Vector2(240, 16)
+	shield_heat_bar.position = Vector2(30, 72)
+	add_child(shield_heat_bar)
+	style_hp_bar(shield_heat_bar, COLOR_SHIELD_HEAT_DEFAULT)
+
+
 var matrix_panel: PanelContainer
 var matrix_rows: Dictionary = {}
 

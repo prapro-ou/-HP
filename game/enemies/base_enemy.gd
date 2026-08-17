@@ -5,9 +5,11 @@ class_name BaseEnemy
 
 @export var max_hp: int = 10
 var current_hp: int
+var is_alive: bool = true
 
 func _ready() -> void:
 	current_hp = max_hp
+	is_alive = true
 	add_to_group("enemy")
 	_ready_enemy()
 
@@ -17,6 +19,8 @@ func _ready_enemy() -> void:
 
 ## ダメージ処理（スコア加算とポップアップ演出を共通化）
 func take_damage(amount: int) -> void:
+	if not is_alive:
+		return
 	current_hp -= amount
 	var is_dead = current_hp <= 0
 	
@@ -34,6 +38,7 @@ func take_damage(amount: int) -> void:
 
 ## 撃破時の処理（子クラスでオーバーライド可能）
 func die() -> void:
+	is_alive = false
 	# 敵撃破時に短く超巨大なテキスト演出（"DESTROY!"）を生成
 	var main = get_node_or_null("/root/Main")
 	if main:
