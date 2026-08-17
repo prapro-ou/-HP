@@ -25,16 +25,15 @@ window/size/viewport_width=800
 window/size/viewport_height=1200
 window/stretch/mode="canvas_items"
 
+[gui]
+
+theme/default_font_antialiasing=0
+theme/default_font_subpixel_positioning=0
+theme/default_font="res://game/assets/fonts/DotGothic16-Regular.ttf"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
-
-[gui]
-
-theme/default_font="res://game/assets/fonts/DotGothic16-Regular.ttf"
-theme/default_font_antialiasing=0
-theme/default_font_generate_mipmaps=false
-theme/default_font_subpixel_positioning=0
 
 [rendering]
 
