@@ -504,24 +504,6 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.hide()
 	add_child(confirm_dialog)
 	
-	# Center it on top of everything
-	confirm_dialog.anchor_left = 0.5
-	confirm_dialog.anchor_top = 0.5
-	confirm_dialog.anchor_right = 0.5
-	confirm_dialog.anchor_bottom = 0.5
-	confirm_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	confirm_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
-	confirm_dialog.offset_left = -210
-	confirm_dialog.offset_top = -120
-	
-func setup_confirm_dialog() -> void:
-	confirm_dialog = PanelContainer.new()
-	confirm_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	confirm_dialog.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	confirm_dialog.custom_minimum_size = Vector2(420, 240)
-	confirm_dialog.hide()
-	add_child(confirm_dialog)
-	
 	confirm_dialog.anchor_left = 0.5
 	confirm_dialog.anchor_top = 0.5
 	confirm_dialog.anchor_right = 0.5
