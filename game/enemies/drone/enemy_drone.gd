@@ -119,7 +119,7 @@ func shoot() -> void:
 				dir = (player.global_position - global_position).normalized()
 			for i in range(3):
 				get_tree().create_timer(i * 0.1).timeout.connect(func():
-					if is_instance_valid(self) and is_instance_valid(bullet_pool):
+					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 						var bullet = bullet_pool.get_bullet("beam")
 						if bullet:
 							bullet.global_position = global_position + Vector2(0.0, 20.0)
@@ -129,7 +129,7 @@ func shoot() -> void:
 			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
 			for i in range(4):
 				get_tree().create_timer(i * 0.08).timeout.connect(func():
-					if is_instance_valid(self) and is_instance_valid(bullet_pool):
+					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 						var angle_offset = randf_range(-0.35, 0.35)
 						var dir = base_dir.rotated(angle_offset)
 						var bullet = bullet_pool.get_bullet("irregular")
@@ -160,7 +160,7 @@ func shoot() -> void:
 				dir = (player.global_position - global_position).normalized()
 			for i in range(2):
 				get_tree().create_timer(i * 0.15).timeout.connect(func():
-					if is_instance_valid(self) and is_instance_valid(bullet_pool):
+					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 						var bullet = bullet_pool.get_bullet("missile")
 						if bullet:
 							var offset_x = -15.0 if i == 0 else 15.0
