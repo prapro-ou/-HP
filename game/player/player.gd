@@ -24,11 +24,14 @@ const SHIELD_COUNTER = "counter"
 const SHIELD_GAUGE = "gauge"
 const SHIELD_POWER = "power"
 
-# 定数：解析パターンキー
+# 定数：解析パターンキー (敵の全7挙動)
 const PATTERN_RAPID = "rapid"
 const PATTERN_SPREAD = "spread"
 const PATTERN_PIERCE = "pierce"
 const PATTERN_HOMING = "homing"
+const PATTERN_LASER = "laser"
+const PATTERN_CYCLONE = "cyclone"
+const PATTERN_METEOR = "meteor"
 
 # 定数：カラー定義
 const COLOR_SHIELD_COUNTER = Color(0.8, 0.3, 1.0)
@@ -73,18 +76,24 @@ var shield_heat: float = 0.0
 var overheat_timer: float = 0.0
 var is_overheated: bool = false
 
-# --- 攻撃パターン解析＆自機兵装反映システム ---
+# --- 攻撃パターン解析＆自機兵装反映システム (全7種) ---
 var analysis_patterns: Dictionary = {
-	PATTERN_RAPID:  { "progress": 0.0, "analyzed": false, "name": "連射強化", "desc": "発射速度UP＆弾速1.5倍" },
-	PATTERN_SPREAD: { "progress": 0.0, "analyzed": false, "name": "拡散射撃", "desc": "3-WAY 扇状拡散発射" },
-	PATTERN_PIERCE: { "progress": 0.0, "analyzed": false, "name": "貫通重弾", "desc": "敵貫通＆威力+50%" },
-	PATTERN_HOMING: { "progress": 0.0, "analyzed": false, "name": "追尾ミサイル", "desc": "誘導サブミサイル自動追射" }
+	PATTERN_RAPID:   { "progress": 0.0, "analyzed": false, "name": "高速連射", "desc": "発射速度UP＆弾速1.5倍" },
+	PATTERN_SPREAD:  { "progress": 0.0, "analyzed": false, "name": "5-WAY拡散", "desc": "扇状5方向ワイドショット" },
+	PATTERN_PIERCE:  { "progress": 0.0, "analyzed": false, "name": "貫通重弾", "desc": "装甲貫通ヘビーボルト" },
+	PATTERN_HOMING:  { "progress": 0.0, "analyzed": false, "name": "誘導ミサイル", "desc": "自動追尾マイクロミサイル" },
+	PATTERN_LASER:   { "progress": 0.0, "analyzed": false, "name": "フォトン光線", "desc": "正面連続貫通レーザー" },
+	PATTERN_CYCLONE: { "progress": 0.0, "analyzed": false, "name": "旋回スピン", "desc": "左右螺旋サイクロン弾" },
+	PATTERN_METEOR:  { "progress": 0.0, "analyzed": false, "name": "ギガメテオ", "desc": "画面内バウンド巨大隕石" }
 }
 
 var trait_rapid_unlocked: bool = false
 var trait_spread_unlocked: bool = false
 var trait_pierce_unlocked: bool = false
 var trait_homing_unlocked: bool = false
+var trait_laser_unlocked: bool = false
+var trait_cyclone_unlocked: bool = false
+var trait_meteor_unlocked: bool = false
 
 # 旧互換変数
 var weapons: Dictionary = {
@@ -139,6 +148,9 @@ func reset_state() -> void:
 	trait_spread_unlocked = false
 	trait_pierce_unlocked = false
 	trait_homing_unlocked = false
+	trait_laser_unlocked = false
+	trait_cyclone_unlocked = false
+	trait_meteor_unlocked = false
 	
 	for key in analysis_patterns.keys():
 		analysis_patterns[key]["progress"] = 0.0
@@ -325,15 +337,16 @@ func toggle_weapon() -> void:
 
 
 func fire() -> void:
-	if not PLAYER_BULLET_SCENE:
+	if current_hp <= 0 or not is_attack_unlocked or not PLAYER_BULLET_SCENE:
 		return
 		
 	var player_bullets_container = get_node_or_null("/root/Main/PlayerBullets")
 	var target_parent = player_bullets_container if player_bullets_container else get_parent()
 	
+	# 1. 拡散射撃 (5-WAY) or 通常射撃
 	var angles = [0.0]
 	if trait_spread_unlocked:
-		angles = [-15.0, 0.0, 15.0]
+		angles = [-22.0, -11.0, 0.0, 11.0, 22.0]
 		
 	for deg in angles:
 		var analysis_shot = PLAYER_BULLET_SCENE.instantiate()
@@ -345,6 +358,7 @@ func fire() -> void:
 		analysis_shot.damage += int(power_shield_damage_buff)
 		target_parent.add_child(analysis_shot)
 		
+	# 2. 誘導ミサイル
 	if trait_homing_unlocked:
 		var offsets = [Vector2(-22.0, 5.0), Vector2(22.0, 5.0)]
 		for off in offsets:
@@ -355,44 +369,40 @@ func fire() -> void:
 			m_bullet.velocity = launch_dir * SUB_MISSILE_SPEED
 			m_bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(m_bullet)
+
+	# 3. フォトンレーザー
+	if trait_laser_unlocked:
+		var l_bullet = PLAYER_BULLET_SCENE.instantiate()
+		l_bullet.bullet_type = "photon_laser"
+		l_bullet.global_position = global_position + Vector2(0.0, -30.0)
+		l_bullet.damage += int(power_shield_damage_buff)
+		target_parent.add_child(l_bullet)
+
+	# 4. サイクロンスピン弾
+	if trait_cyclone_unlocked:
+		for dir_x in [-1.0, 1.0]:
+			var c_bullet = PLAYER_BULLET_SCENE.instantiate()
+			c_bullet.bullet_type = "cyclone"
+			c_bullet.global_position = global_position + Vector2(dir_x * 20.0, -10.0)
+			c_bullet.velocity = Vector2(dir_x * 120.0, -650.0)
+			c_bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(c_bullet)
+
+	# 5. ギガメテオ (跳ね返り巨大隕石)
+	if trait_meteor_unlocked and randf() < 0.25:
+		var meteor = PLAYER_BULLET_SCENE.instantiate()
+		meteor.bullet_type = "player_meteor"
+		meteor.global_position = global_position + Vector2(randf_range(-30, 30), -35.0)
+		meteor.velocity = Vector2(randf_range(-180, 180), -550.0)
+		meteor.damage += int(power_shield_damage_buff)
+		target_parent.add_child(meteor)
 			
 	fire_equipped_physics_weapon(target_parent)
-	
-	if current_weapon == "beam" and weapons["beam"]["analyzed"]:
-		if weapons["beam"]["level"] == 1:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = "beam"
-			bullet.global_position = global_position
-			bullet.velocity = Vector2.UP * 1500.0
-			bullet.damage += int(power_shield_damage_buff)
-			target_parent.add_child(bullet)
-		else:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = "giga_laser"
-			bullet.global_position = global_position
-			bullet.velocity = Vector2.UP * 2000.0
-			bullet.damage += int(power_shield_damage_buff)
-			target_parent.add_child(bullet)
-			
-	elif current_weapon == "missile" and weapons["missile"]["analyzed"]:
-		var is_hyper = weapons["missile"]["level"] > 1
-		var missile_type = "hyper_missile" if is_hyper else "missile"
-		var offsets = [Vector2(-20.0, 0.0), Vector2(20.0, 0.0)]
-		if is_hyper:
-			offsets.append(Vector2(-35.0, 10.0))
-			offsets.append(Vector2(35.0, 10.0))
-			
-		for offset in offsets:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = missile_type
-			bullet.global_position = global_position + offset
-			bullet.damage += int(power_shield_damage_buff)
-			var launch_dir = Vector2(offset.x, -50.0).normalized()
-			bullet.velocity = launch_dir * (550.0 if is_hyper else 450.0)
-			target_parent.add_child(bullet)
 
 
 func fire_equipped_physics_weapon(target_parent: Node) -> void:
+	if current_hp <= 0:
+		return
 	var eq_w = Global.equipped_weapon
 	match eq_w:
 		WEAPON_MACHINE_GUN:
@@ -408,7 +418,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 		WEAPON_BURST_RIFLE:
 			for i in range(3):
 				get_tree().create_timer(i * 0.07).timeout.connect(func():
-					if is_instance_valid(self) and is_instance_valid(target_parent):
+					if is_instance_valid(self) and current_hp > 0 and is_instance_valid(target_parent):
 						var bullet = PLAYER_BULLET_SCENE.instantiate()
 						bullet.bullet_type = "burst_rifle"
 						bullet.global_position = global_position + Vector2(0, -20.0)
@@ -428,26 +438,23 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 			
 		WEAPON_PULSE_GUN:
 			var angles = [-12.0, 12.0]
-			for angle in angles:
+			for angle_deg in angles:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "pulse"
-				bullet.global_position = global_position + Vector2(angle * 0.8, -15.0)
-				var dir = Vector2.UP.rotated(deg_to_rad(angle))
+				bullet.global_position = global_position + Vector2(angle_deg * 0.8, -15.0)
+				var dir = Vector2.UP.rotated(deg_to_rad(angle_deg))
 				bullet.velocity = dir * 950.0
 				bullet.damage += int(power_shield_damage_buff)
 				target_parent.add_child(bullet)
 				
 		WEAPON_PLASMA_EMITTER:
-			var angles = [-20.0, 0.0, 20.0]
-			for angle in angles:
-				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "plasma"
-				bullet.global_position = global_position + Vector2(angle * 0.5, -20.0)
-				var dir = Vector2.UP.rotated(deg_to_rad(angle))
-				bullet.velocity = dir * 500.0
-				bullet.damage += int(power_shield_damage_buff)
-				target_parent.add_child(bullet)
-				
+			var bullet = PLAYER_BULLET_SCENE.instantiate()
+			bullet.bullet_type = "plasma"
+			bullet.global_position = global_position + Vector2(0, -20.0)
+			bullet.velocity = Vector2.UP * 550.0
+			bullet.damage += int(power_shield_damage_buff)
+			target_parent.add_child(bullet)
+			
 		WEAPON_KINETIC_TACKLE:
 			var bullet = PLAYER_BULLET_SCENE.instantiate()
 			bullet.bullet_type = "tackle"
@@ -483,6 +490,8 @@ func update_visual_state() -> void:
 var consecutive_parries: int = 0
 
 func check_parry() -> void:
+	if current_hp <= 0:
+		return
 	var parry_triggered_now = false
 	var shield_type = Global.equipped_shield
 	
@@ -512,7 +521,7 @@ func check_parry() -> void:
 						Global.save_game(current_stage, 0, {})
 				
 				var b_type = bullet.bullet_type if "bullet_type" in bullet else "missile"
-				advance_analysis(b_type, 3.5)
+				advance_analysis(b_type, 4.0)
 				
 				if shield_type == SHIELD_POWER:
 					if bullet.has_method("recycle_bullet"):
@@ -560,6 +569,9 @@ func take_damage(amount: int) -> void:
 	current_hp -= amount
 	if current_hp <= 0:
 		current_hp = 0
+		is_attack_unlocked = false
+		is_guarding = false
+		velocity = Vector2.ZERO
 	else:
 		# 被弾無敵時間 (1.0秒) を付与して多段ヒット即死を防止
 		is_invincible = true
@@ -572,14 +584,20 @@ func heal(amount: int) -> void:
 	current_hp = min(current_hp + amount, max_hp)
 
 
-func advance_analysis(bullet_type: String, amount: float = 3.5) -> void:
+func advance_analysis(bullet_type: String, amount: float = 4.0) -> void:
 	var pattern_key = PATTERN_RAPID
-	if bullet_type.contains("wave") or bullet_type.contains("pulse") or bullet_type.contains("spread"):
-		pattern_key = PATTERN_SPREAD
-	elif bullet_type.contains("charge") or bullet_type.contains("laser"):
-		pattern_key = PATTERN_PIERCE
-	elif bullet_type.contains("missile") or bullet_type.contains("irregular"):
+	if bullet_type.contains("meteor"):
+		pattern_key = PATTERN_METEOR
+	elif bullet_type.contains("irregular") or bullet_type.contains("cyclone"):
+		pattern_key = PATTERN_CYCLONE
+	elif bullet_type.contains("laser") or bullet_type.contains("beam") or bullet_type.contains("boss_laser"):
+		pattern_key = PATTERN_LASER
+	elif bullet_type.contains("missile") or bullet_type.contains("decel") or bullet_type.contains("homing"):
 		pattern_key = PATTERN_HOMING
+	elif bullet_type.contains("charge") or bullet_type.contains("pierce"):
+		pattern_key = PATTERN_PIERCE
+	elif bullet_type.contains("wave") or bullet_type.contains("spread") or bullet_type.contains("pulse"):
+		pattern_key = PATTERN_SPREAD
 	else:
 		pattern_key = PATTERN_RAPID
 		
@@ -609,9 +627,6 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 		
 	data["progress"] = min(100.0, data["progress"] + amount)
 	
-	var pop_text = "【%s解析】%d%%" % [data["name"], int(data["progress"])]
-	spawn_popup_message(pop_text)
-	
 	if data["progress"] >= 100.0:
 		data["analyzed"] = true
 		heal(40) # 解析完了時に機体大幅修復 (+40 HP)
@@ -623,16 +638,25 @@ func apply_pattern_trait(pattern_key: String) -> void:
 		PATTERN_RAPID:
 			trait_rapid_unlocked = true
 			apply_equipped_weapon_settings()
-			spawn_popup_message("⚡【連射強化】連射速度が大幅アップ！")
+			spawn_popup_message("⚡【高速連射 獲得】連射速度が大幅アップ！")
 		PATTERN_SPREAD:
 			trait_spread_unlocked = true
-			spawn_popup_message("⚡【拡散機能獲得】3-WAY 拡散射撃を解放！")
+			spawn_popup_message("⚡【5-WAY拡散 獲得】ワイド拡散射撃を解放！")
 		PATTERN_PIERCE:
 			trait_pierce_unlocked = true
-			spawn_popup_message("⚡【貫通機能獲得】貫通重弾に進化！")
+			spawn_popup_message("⚡【貫通重弾 獲得】装甲貫通ヘビーボルトに進化！")
 		PATTERN_HOMING:
 			trait_homing_unlocked = true
-			spawn_popup_message("⚡【追尾機能獲得】誘導ミサイル追撃解放！")
+			spawn_popup_message("⚡【誘導ミサイル 獲得】スマート追撃ミサイル解放！")
+		PATTERN_LASER:
+			trait_laser_unlocked = true
+			spawn_popup_message("⚡【フォトン光線 獲得】正面貫通レーザー砲を解放！")
+		PATTERN_CYCLONE:
+			trait_cyclone_unlocked = true
+			spawn_popup_message("⚡【旋回スピン 獲得】左右螺旋サイクロン弾を解放！")
+		PATTERN_METEOR:
+			trait_meteor_unlocked = true
+			spawn_popup_message("⚡【ギガメテオ 獲得】画面反射巨大隕石弾を解放！")
 			
 	trigger_screen_flash(Color.GOLD)
 

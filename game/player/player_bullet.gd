@@ -68,40 +68,66 @@ func update_visual() -> void:
 			modulate = Color(0.6, 0.9, 0.2) # Yellow-Green
 			damage = 6
 			speed = 500.0
-		"tackle":
-			scale = Vector2(2.5, 0.6)
-			modulate = Color(1.0, 0.4, 0.0) # Intense Orange
-			damage = 18
+		"cyclone":
+			scale = Vector2(1.1, 1.1)
+			modulate = Color(1.0, 0.85, 0.2) # イエロー
+			damage = 14
 			speed = 750.0
+		"photon_laser":
+			scale = Vector2(1.6, 5.0)
+			modulate = Color(0.4, 0.9, 1.0) # シアンレーザー
+			damage = 22
+			speed = 2200.0
+		"player_meteor":
+			scale = Vector2(1.8, 1.8)
+			modulate = Color(1.0, 0.35, 0.2) # 隕石オレンジレッド
+			damage = 35
+			speed = 600.0
 			
 	if velocity == Vector2.ZERO:
 		velocity = Vector2.UP * speed
 
 
+var life_timer: float = 0.0
+
 func _process(delta: float) -> void:
+	life_timer += delta
 	# ミサイルの追尾処理
 	if bullet_type == "missile" or bullet_type == "hyper_missile":
 		var target = find_closest_target()
 		if is_instance_valid(target):
 			var target_dir = (target.global_position - global_position).normalized()
 			var target_velocity = target_dir * speed
-			# ターゲットへ旋回
 			velocity = velocity.lerp(target_velocity, delta * 6.5)
 		else:
-			# ターゲットが存在しない場合は前回の進行方向（直進）を維持
 			if velocity == Vector2.ZERO:
 				velocity = Vector2.UP * speed
 			else:
 				velocity = velocity.normalized() * speed
-				
 		rotation = velocity.angle() + PI/2
+		
+	elif bullet_type == "cyclone":
+		# 螺旋スピン軌道
+		var side_wave = sin(life_timer * 14.0) * 280.0
+		position.x += side_wave * delta
+		rotation += delta * 12.0
+		
+	elif bullet_type == "player_meteor":
+		rotation += delta * 4.0
+		var vp_rect = get_viewport_rect()
+		if position.x < 30.0:
+			position.x = 30.0
+			velocity.x = abs(velocity.x)
+		elif position.x > vp_rect.size.x - 30.0:
+			position.x = vp_rect.size.x - 30.0
+			velocity.x = -abs(velocity.x)
 
 	position += velocity * delta
 	
 	# 画面外で消去
 	var viewport_rect = get_viewport_rect()
-	if position.y < -100 or position.y > viewport_rect.size.y + 100 or \
-	   position.x < -100 or position.x > viewport_rect.size.x + 100:
+	if position.y < -120 or position.y > viewport_rect.size.y + 120 or \
+	   position.x < -120 or position.x > viewport_rect.size.x + 120:
 		queue_free()
 
 
@@ -110,7 +136,7 @@ func find_closest_target() -> Node2D:
 	var closest: Node2D = null
 	var min_dist = 999999.0
 	for t in targets:
-		if is_instance_valid(t):
+		if is_instance_valid(t) and t.visible:
 			var dist = global_position.distance_to(t.global_position)
 			if dist < min_dist:
 				min_dist = dist
@@ -120,30 +146,28 @@ func find_closest_target() -> Node2D:
 
 func _on_area_entered(area: Area2D) -> void:
 	"""他のArea2Dに入った時の処理"""
-	var is_boss_part = area.is_in_group("boss") or area.name == "BossDamageShape" or area.name.contains("Cannon") or area.name.contains("Pod")
-	var is_enemy = area.is_in_group("enemy")
+	var is_boss_part = area.is_in_group("boss") or area.is_in_group("boss_turrets") or area.name == "BossDamageShape" or area.name.contains("Cannon") or area.name.contains("Pod") or area.name == "Core"
+	var is_enemy = area.is_in_group("enemy") or area.is_in_group("drones")
 	
 	if is_boss_part or is_enemy:
-		# ダメージ適用先の決定
 		var damage_target = area
-		if not area.has_method("take_damage") and area.get_parent().has_method("take_damage"):
+		if not area.has_method("take_damage") and area.get_parent() and area.get_parent().has_method("take_damage"):
 			damage_target = area.get_parent()
 			
 		if damage_target.has_method("take_damage"):
-			var actual_damage = damage
-			# 「解析ショット」はボス部位には1ダメージしか与えられない
-			if bullet_type == "analysis" and (is_boss_part or damage_target.is_in_group("boss")):
-				actual_damage = 1
-			damage_target.take_damage(actual_damage)
+			damage_target.take_damage(damage)
+		elif damage_target.has_method("take_damage_on_part"):
+			damage_target.take_damage_on_part("core", damage)
 		
-		# ミサイル爆発エフェクト＆スプラッシュダメージ
-		if bullet_type == "hyper_missile":
+		# 爆発エフェクト
+		if bullet_type == "hyper_missile" or bullet_type == "player_meteor":
 			trigger_explosion()
 		elif bullet_type == "missile":
 			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0))
 			
-		# Giga Laser, Charge Bolt, Plasma, and Tackle pierce all targets
-		if bullet_type != "giga_laser" and bullet_type != "charge_bolt" and bullet_type != "plasma" and bullet_type != "tackle":
+		# 貫通弾以外の弾丸は消去 (レーザー、チャージボルト、プラズマ、タクル、サイクロン、フォトンレーザー、隕石は貫通)
+		var is_piercing = (bullet_type == "giga_laser" or bullet_type == "charge_bolt" or bullet_type == "plasma" or bullet_type == "tackle" or bullet_type == "photon_laser" or bullet_type == "cyclone" or bullet_type == "player_meteor")
+		if not is_piercing:
 			queue_free()
 
 
