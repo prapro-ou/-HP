@@ -155,6 +155,12 @@ func reset_state() -> void:
 		weapons["missile"]["progress"] = 0
 	
 	apply_equipped_weapon_settings()
+	
+	if Global.is_first_launch:
+		get_tree().create_timer(0.8).timeout.connect(func():
+			if is_instance_valid(self) and not is_attack_unlocked:
+				spawn_popup_message("【AIアシスト】方向キー（矢印キー / WASD）で機体を移動してください。")
+		)
 
 
 func apply_equipped_weapon_settings() -> void:
@@ -235,6 +241,30 @@ func _process(delta: float) -> void:
 		if not is_guarding and shield_heat > 0.0:
 			shield_heat = max(0.0, shield_heat - heat_recovery_rate * delta)
 	
+	# --- チュートリアル：初回パリィ接近時スローモーション判定 ---
+	if not is_attack_unlocked:
+		var has_close_bullet = false
+		var all_targets = []
+		all_targets.append_array(enemy_bullets)
+		for p in get_tree().get_nodes_in_group("enemy_projectiles"):
+			if is_instance_valid(p) and not all_targets.has(p):
+				all_targets.append(p)
+				
+		for b in all_targets:
+			if is_instance_valid(b) and not b.is_friendly:
+				var dist = global_position.distance_to(b.global_position)
+				if dist <= parry_window_radius + 45.0:
+					has_close_bullet = true
+					break
+					
+		if has_close_bullet:
+			if Engine.time_scale > 0.3:
+				Engine.time_scale = 0.15
+				spawn_popup_message("【AIアシスト】敵弾がガード範囲に接近！SPACEキーでパリィ！")
+		else:
+			if Engine.time_scale < 0.5:
+				Engine.time_scale = 1.0
+
 	var space_pressed = Input.is_key_pressed(KEY_SPACE)
 	var space_just_pressed = space_pressed and not space_was_pressed
 	space_was_pressed = space_pressed

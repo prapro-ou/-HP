@@ -300,27 +300,28 @@ func setup_ui() -> void:
 		)
 
 	# 5. Buttons controls
-	# Previous & Next Arrow buttons
+	# Previous & Next Arrow buttons (カード一覧の左右に美しく配置)
 	prev_btn = Button.new()
 	prev_btn.text = "◀"
-	prev_btn.custom_minimum_size = Vector2(45, 55)
-	prev_btn.anchor_left = 0.02
+	prev_btn.custom_minimum_size = Vector2(40, 50)
+	prev_btn.anchor_left = 0.03
 	prev_btn.anchor_top = 0.74
 	prev_btn.anchor_bottom = 0.74
 	prev_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
-	prev_btn.offset_top = -27
+	prev_btn.offset_top = -25
 	add_child(prev_btn)
 	style_nav_button(prev_btn)
 	prev_btn.pressed.connect(func(): navigate_selection(-1))
 	
 	next_btn = Button.new()
 	next_btn.text = "▶"
-	next_btn.custom_minimum_size = Vector2(45, 55)
-	next_btn.anchor_right = 0.98
+	next_btn.custom_minimum_size = Vector2(40, 50)
+	next_btn.anchor_right = 0.97
 	next_btn.anchor_top = 0.74
 	next_btn.anchor_bottom = 0.74
 	next_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
-	next_btn.offset_top = -27
+	next_btn.offset_top = -25
+	next_btn.offset_left = -40
 	add_child(next_btn)
 	style_nav_button(next_btn)
 	next_btn.pressed.connect(func(): navigate_selection(1))
