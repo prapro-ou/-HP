@@ -21,8 +21,8 @@ const COLOR_BEAM = Color(1.0, 0.5, 0.5)
 const COLOR_MISSILE = Color(0.8, 0.4, 1.0)
 
 # デフォルト数値定数
-const DEFAULT_DRONE_HP: int = 200
-const DEFAULT_DRONE_SPEED: float = 160.0
+const DEFAULT_DRONE_HP: int = 75
+const DEFAULT_DRONE_SPEED: float = 140.0
 const SCREEN_MARGIN_X: float = 60.0
 
 @export var drone_type: String = TYPE_STRAIGHT
@@ -188,8 +188,13 @@ func fire_charged_shot() -> void:
 
 
 func die() -> void:
-	if is_instance_valid(player) and player.has_method("advance_analysis"):
-		player.advance_analysis(drone_type, 1.5)
+	if is_instance_valid(player):
+		if player.has_method("advance_analysis"):
+			player.advance_analysis(drone_type, 2.0)
+		if randf() < 0.25 and player.has_method("heal"):
+			player.heal(15)
+			if player.has_method("spawn_popup_message"):
+				player.spawn_popup_message("エナジー回収 +15 HP")
 		
 	var main = get_node_or_null("/root/Main")
 	if main:
