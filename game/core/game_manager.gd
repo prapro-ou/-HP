@@ -447,7 +447,8 @@ func update_ui() -> void:
 		ui.update_guard_heat(player.shield_heat, player.max_shield_heat, player.is_overheated, player.overheat_timer, player.is_guarding)
 		
 	if ui.has_method("update_pattern_analysis"):
-		ui.update_pattern_analysis(player.analysis_patterns)
+		var traits = player.active_traits if "active_traits" in player else []
+		ui.update_pattern_analysis(player.analysis_patterns, traits)
 		
 	if (current_state == State.BOSS or current_state == State.VICTORY_TRANSITION) and is_instance_valid(boss) and "energy_laser" in boss and ui.has_method("update_boss_energy"):
 		ui.update_boss_energy(boss.energy_laser, boss.energy_missile, boss.energy_core)

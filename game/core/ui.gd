@@ -51,18 +51,36 @@ func _ready() -> void:
 	
 	style_hp_bar(player_hp_bar, COLOR_PLAYER_HP)
 	style_hp_bar(boss_hp_bar, COLOR_BOSS_HP)
-	style_analysis_bar(slot_beam_bar, COLOR_BEAM_ANALYSIS)
-	style_analysis_bar(slot_missile_bar, COLOR_MISSILE_ANALYSIS)
 	
-	setup_label_style(player_hp_label, FONT_SIZE_HP, Color.WHITE, 6)
-	setup_label_style(boss_hp_label, FONT_SIZE_HP, Color.WHITE, 6)
-	setup_label_style(parry_count_label, FONT_SIZE_PARRY, Color.CYAN, 6)
-	setup_label_style(guard_status_label, FONT_SIZE_GUARD, Color.GREEN, 6)
-	setup_label_style(boss_energy_label, FONT_SIZE_ENERGY, Color.GOLD, 6)
+	# 旧2枠スロットを非表示
+	var beam_slot = get_node_or_null("BeamSlot")
+	if beam_slot: beam_slot.hide()
+	var missile_slot = get_node_or_null("MissileSlot")
+	if missile_slot: missile_slot.hide()
+	
+	# 左上プレイヤー情報配置
+	player_hp_label.position = Vector2(20, 14)
+	player_hp_bar.position = Vector2(20, 32)
+	player_hp_bar.custom_minimum_size = Vector2(220, 14)
+	player_hp_bar.size = Vector2(220, 14)
+	
+	setup_label_style(player_hp_label, 12, Color.WHITE, 4)
+	setup_label_style(boss_hp_label, 12, Color.GOLD, 4)
+	setup_label_style(parry_count_label, 11, Color.CYAN, 4)
+	setup_label_style(guard_status_label, 11, Color.GREEN, 4)
+	setup_label_style(boss_energy_label, FONT_SIZE_ENERGY, Color.GOLD, 4)
 	setup_label_style(warning_title, FONT_SIZE_WARNING_TITLE, Color.RED, 10)
 	setup_label_style(warning_subtitle, FONT_SIZE_WARNING_SUBTITLE, Color.GOLD, 6)
-	setup_label_style(slot_beam_label, FONT_SIZE_HP, Color.LIGHT_GRAY, 6)
-	setup_label_style(slot_missile_label, FONT_SIZE_HP, Color.LIGHT_GRAY, 6)
+	
+	parry_count_label.position = Vector2(20, 64)
+	guard_status_label.position = Vector2(20, 80)
+	
+	# 中央ボス情報配置
+	boss_hp_label.position = Vector2(260, 14)
+	boss_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	boss_hp_bar.position = Vector2(260, 32)
+	boss_hp_bar.custom_minimum_size = Vector2(240, 14)
+	boss_hp_bar.size = Vector2(240, 14)
 	
 	create_shield_heat_bar()
 	create_analysis_matrix_ui()
@@ -72,120 +90,147 @@ func create_shield_heat_bar() -> void:
 	shield_heat_bar = ProgressBar.new()
 	shield_heat_bar.name = "ShieldHeatBar"
 	shield_heat_bar.show_percentage = false
-	shield_heat_bar.custom_minimum_size = Vector2(240, 16)
-	shield_heat_bar.position = Vector2(30, 72)
+	shield_heat_bar.custom_minimum_size = Vector2(220, 10)
+	shield_heat_bar.size = Vector2(220, 10)
+	shield_heat_bar.position = Vector2(20, 48)
 	add_child(shield_heat_bar)
 	style_hp_bar(shield_heat_bar, COLOR_SHIELD_HEAT_DEFAULT)
 
 
-var matrix_panel: PanelContainer
-var matrix_rows: Dictionary = {}
+var slot_cards: Array = []
+var active_analysis_label: Label
+var active_analysis_bar: ProgressBar
 
 func create_analysis_matrix_ui() -> void:
-	matrix_panel = PanelContainer.new()
-	matrix_panel.name = "AnalysisMatrixPanel"
-	matrix_panel.position = Vector2(510, 18)
-	matrix_panel.custom_minimum_size = Vector2(270, 180)
+	var trait_panel = PanelContainer.new()
+	trait_panel.name = "TraitSlotsPanel"
+	trait_panel.position = Vector2(510, 14)
+	trait_panel.custom_minimum_size = Vector2(265, 86)
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.06, 0.1, 0.85)
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
 	sb.border_width_left = 2
 	sb.border_width_top = 2
 	sb.border_width_right = 2
 	sb.border_width_bottom = 2
-	sb.border_color = Color(0.25, 0.45, 0.7, 0.9)
-	matrix_panel.add_theme_stylebox_override("panel", sb)
-	add_child(matrix_panel)
+	sb.border_color = Color(0.25, 0.4, 0.65, 0.9)
+	trait_panel.add_theme_stylebox_override("panel", sb)
+	add_child(trait_panel)
 	
 	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 3)
-	matrix_panel.add_child(vbox)
+	vbox.add_theme_constant_override("separation", 4)
+	trait_panel.add_child(vbox)
 	
+	# タイトル
 	var title = Label.new()
-	title.text = "【解析マトリクス (ANALYSIS)】"
+	title.text = "【変異スロット (MAX 3)】"
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_set.font = PIXEL_FONT
-	t_set.font_size = 14
+	t_set.font_size = 13
 	t_set.font_color = Color.CYAN
 	title.label_settings = t_set
 	vbox.add_child(title)
 	
-	var pattern_defs = [
-		{ "key": "rapid",   "name": "高速連射", "color": Color(0.3, 0.8, 1.0) },
-		{ "key": "spread",  "name": "5-WAY拡散", "color": Color(0.2, 1.0, 0.6) },
-		{ "key": "pierce",  "name": "貫通重弾", "color": Color(1.0, 0.6, 0.2) },
-		{ "key": "homing",  "name": "誘導ミサイル", "color": Color(0.85, 0.45, 1.0) },
-		{ "key": "laser",   "name": "フォトン光線", "color": Color(0.4, 0.9, 1.0) },
-		{ "key": "cyclone", "name": "旋回スピン", "color": Color(1.0, 0.85, 0.2) },
-		{ "key": "meteor",  "name": "ギガメテオ", "color": Color(1.0, 0.35, 0.2) }
-	]
+	# 3つのスロットボックス（横並び）
+	var hbox = HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 6)
+	vbox.add_child(hbox)
 	
-	for def in pattern_defs:
-		var row = HBoxContainer.new()
-		row.add_theme_constant_override("separation", 6)
+	slot_cards.clear()
+	for i in range(3):
+		var card = PanelContainer.new()
+		card.custom_minimum_size = Vector2(80, 32)
+		var c_sb = StyleBoxFlat.new()
+		c_sb.bg_color = Color(0.08, 0.1, 0.14, 0.9)
+		c_sb.border_width_left = 1
+		c_sb.border_width_top = 1
+		c_sb.border_width_right = 1
+		c_sb.border_width_bottom = 1
+		c_sb.border_color = Color(0.2, 0.25, 0.35, 0.8)
+		card.add_theme_stylebox_override("panel", c_sb)
 		
-		var name_lbl = Label.new()
-		name_lbl.text = def["name"]
-		name_lbl.custom_minimum_size = Vector2(76, 16)
+		var lbl = Label.new()
+		lbl.text = "SLOT %d\n[空き]" % (i + 1)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		var l_set = LabelSettings.new()
 		if PIXEL_FONT:
 			l_set.font = PIXEL_FONT
-		l_set.font_size = 12
-		l_set.font_color = Color.LIGHT_GRAY
-		name_lbl.label_settings = l_set
-		row.add_child(name_lbl)
+		l_set.font_size = 11
+		l_set.font_color = Color(0.4, 0.45, 0.55)
+		lbl.label_settings = l_set
+		card.add_child(lbl)
 		
-		var bar = ProgressBar.new()
-		bar.show_percentage = false
-		bar.custom_minimum_size = Vector2(100, 10)
-		bar.max_value = 100
-		bar.value = 0
-		style_analysis_bar(bar, def["color"])
-		row.add_child(bar)
+		hbox.add_child(card)
+		slot_cards.append({ "panel": card, "style": c_sb, "label": lbl })
 		
-		var pct_lbl = Label.new()
-		pct_lbl.text = "0%"
-		pct_lbl.custom_minimum_size = Vector2(50, 16)
-		var p_set = LabelSettings.new()
-		if PIXEL_FONT:
-			p_set.font = PIXEL_FONT
-		p_set.font_size = 12
-		p_set.font_color = Color.GRAY
-		pct_lbl.label_settings = p_set
-		row.add_child(pct_lbl)
-		
-		vbox.add_child(row)
-		matrix_rows[def["key"]] = {
-			"bar": bar,
-			"pct_lbl": pct_lbl,
-			"name_lbl": name_lbl,
-			"color": def["color"]
-		}
+	# 直近の解析進行バー (1行)
+	var prog_row = HBoxContainer.new()
+	prog_row.add_theme_constant_override("separation", 6)
+	vbox.add_child(prog_row)
+	
+	active_analysis_label = Label.new()
+	active_analysis_label.text = "解析待機中"
+	active_analysis_label.custom_minimum_size = Vector2(100, 14)
+	var a_set = LabelSettings.new()
+	if PIXEL_FONT:
+		a_set.font = PIXEL_FONT
+	a_set.font_size = 11
+	a_set.font_color = Color.LIGHT_GRAY
+	active_analysis_label.label_settings = a_set
+	prog_row.add_child(active_analysis_label)
+	
+	active_analysis_bar = ProgressBar.new()
+	active_analysis_bar.show_percentage = false
+	active_analysis_bar.custom_minimum_size = Vector2(150, 8)
+	active_analysis_bar.max_value = 100
+	active_analysis_bar.value = 0
+	style_analysis_bar(active_analysis_bar, Color.CYAN)
+	prog_row.add_child(active_analysis_bar)
 
 
-func update_pattern_analysis(patterns: Dictionary) -> void:
-	for key in patterns.keys():
-		if not matrix_rows.has(key):
-			continue
-		var row = matrix_rows[key]
-		var data = patterns[key]
-		var prog = int(data["progress"])
-		var is_done = data["analyzed"]
-		
-		row["bar"].value = prog
-		if is_done:
-			row["pct_lbl"].text = "⚡UNLOCKED"
-			row["pct_lbl"].label_settings.font_color = Color.GOLD
-			row["name_lbl"].label_settings.font_color = Color.GOLD
+func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
+	# 1. 3つのスロット表示の更新
+	for i in range(3):
+		var card = slot_cards[i]
+		if i < active_traits.size():
+			var t_key = active_traits[i]
+			if patterns.has(t_key):
+				var data = patterns[t_key]
+				var lvl = data.get("level", 1)
+				card["label"].text = "%s %s\nLv.%d" % [data.get("icon", "⚡"), data.get("name", "属性"), lvl]
+				card["label"].label_settings.font_color = Color.WHITE if lvl == 1 else Color.GOLD
+				card["style"].border_color = data.get("color", Color.CYAN)
+				card["style"].bg_color = Color(0.1, 0.15, 0.22, 0.95)
 		else:
-			row["pct_lbl"].text = "%d%%" % prog
-			if prog > 0:
-				row["pct_lbl"].label_settings.font_color = Color.WHITE
-				row["name_lbl"].label_settings.font_color = row["color"]
-			else:
-				row["pct_lbl"].label_settings.font_color = Color.GRAY
-				row["name_lbl"].label_settings.font_color = Color.LIGHT_GRAY
+			card["label"].text = "SLOT %d\n[空き]" % (i + 1)
+			card["label"].label_settings.font_color = Color(0.4, 0.45, 0.55)
+			card["style"].border_color = Color(0.2, 0.25, 0.35, 0.8)
+			card["style"].bg_color = Color(0.06, 0.08, 0.1, 0.85)
+			
+	# 2. 現在進行中の解析（直近で最も進捗の高い、未MAXパターン）の表示
+	var latest_pattern = null
+	var highest_progress = 0.0
+	for key in patterns.keys():
+		var data = patterns[key]
+		var prog = data.get("progress", 0.0)
+		var lvl = data.get("level", 0)
+		var max_lvl = data.get("max_level", 2)
+		if lvl < max_lvl and prog > highest_progress:
+			highest_progress = prog
+			latest_pattern = data
+			
+	if latest_pattern and highest_progress > 0:
+		var name_str = latest_pattern.get("name", "未知")
+		active_analysis_label.text = "解析中: %s" % name_str
+		active_analysis_label.label_settings.font_color = latest_pattern.get("color", Color.CYAN)
+		active_analysis_bar.value = highest_progress
+		style_analysis_bar(active_analysis_bar, latest_pattern.get("color", Color.CYAN))
+	else:
+		active_analysis_label.text = "解析: パリィで吸収"
+		active_analysis_label.label_settings.font_color = Color.GRAY
+		active_analysis_bar.value = 0
 
 
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
