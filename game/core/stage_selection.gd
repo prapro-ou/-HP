@@ -224,33 +224,38 @@ func setup_ui() -> void:
 	detail_diff.label_settings = diff_set
 	info_vbox.add_child(detail_diff)
 	
-	# 4. Stage list scroll container at the bottom
-	var list_panel = Panel.new()
-	list_panel.anchor_left = 0.08
-	list_panel.anchor_top = 0.64
-	list_panel.anchor_right = 0.92
-	list_panel.anchor_bottom = 0.84
-	list_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	list_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	list_panel.offset_left = 0
-	list_panel.offset_right = 0
-	list_panel.offset_top = 0
-	list_panel.offset_bottom = 0
-	add_child(list_panel)
+	# 4. Stage list with navigation arrows integrated
+	var carousel_row = HBoxContainer.new()
+	carousel_row.anchor_left = 0.04
+	carousel_row.anchor_right = 0.96
+	carousel_row.anchor_top = 0.65
+	carousel_row.anchor_bottom = 0.83
+	carousel_row.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	carousel_row.grow_vertical = Control.GROW_DIRECTION_BOTH
+	carousel_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	carousel_row.add_theme_constant_override("separation", 16)
+	add_child(carousel_row)
 	
-	var sb_list = StyleBoxEmpty.new()
-	list_panel.add_theme_stylebox_override("panel", sb_list)
+	# Left Arrow button
+	prev_btn = Button.new()
+	prev_btn.text = "◀"
+	prev_btn.custom_minimum_size = Vector2(48, 64)
+	prev_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	prev_btn.add_theme_font_size_override("font_size", 22)
+	carousel_row.add_child(prev_btn)
+	style_nav_button(prev_btn)
+	prev_btn.pressed.connect(func(): navigate_selection(-1))
 	
 	# Scroll view
 	var scroll = ScrollContainer.new()
-	scroll.anchor_right = 1.0
-	scroll.anchor_bottom = 1.0
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	list_panel.add_child(scroll)
+	carousel_row.add_child(scroll)
 	
 	stage_container = HBoxContainer.new()
-	stage_container.add_theme_constant_override("separation", 35)
+	stage_container.add_theme_constant_override("separation", 24)
 	stage_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	stage_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -270,6 +275,8 @@ func setup_ui() -> void:
 		card_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		var lbl_set = LabelSettings.new()
+		if PIXEL_FONT:
+			lbl_set.font = PIXEL_FONT
 		lbl_set.font_size = 18
 		lbl_set.font_color = Color.WHITE
 		lbl_set.outline_size = 4
@@ -299,30 +306,13 @@ func setup_ui() -> void:
 					navigate_to_index(idx)
 		)
 
-	# 5. Buttons controls
-	# Previous & Next Arrow buttons (カード一覧の左右に美しく配置)
-	prev_btn = Button.new()
-	prev_btn.text = "◀"
-	prev_btn.custom_minimum_size = Vector2(40, 50)
-	prev_btn.anchor_left = 0.03
-	prev_btn.anchor_top = 0.74
-	prev_btn.anchor_bottom = 0.74
-	prev_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
-	prev_btn.offset_top = -25
-	add_child(prev_btn)
-	style_nav_button(prev_btn)
-	prev_btn.pressed.connect(func(): navigate_selection(-1))
-	
+	# Right Arrow button
 	next_btn = Button.new()
 	next_btn.text = "▶"
-	next_btn.custom_minimum_size = Vector2(40, 50)
-	next_btn.anchor_right = 0.97
-	next_btn.anchor_top = 0.74
-	next_btn.anchor_bottom = 0.74
-	next_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
-	next_btn.offset_top = -25
-	next_btn.offset_left = -40
-	add_child(next_btn)
+	next_btn.custom_minimum_size = Vector2(48, 64)
+	next_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	next_btn.add_theme_font_size_override("font_size", 22)
+	carousel_row.add_child(next_btn)
 	style_nav_button(next_btn)
 	next_btn.pressed.connect(func(): navigate_selection(1))
 	
