@@ -262,17 +262,16 @@ func destroy_turret() -> void:
 			p.modulate = Color(1.0, randf_range(0.3, 0.8), 0.1)
 			get_parent().add_child(p)
 			
+	Global.tech_points += 5
+	
 	var main = get_node_or_null("/root/Main")
 	if main:
-		var mgr = main.get_node_or_null("GameManager")
-		if mgr and mgr.has_method("add_tech_points"):
-			mgr.add_tech_points(15)
 		var player = main.get_node_or_null("Player")
 		if player:
 			if player.has_method("heal"):
 				player.heal(50)
 			if player.has_method("spawn_popup_message"):
-				player.spawn_popup_message("サブ砲台撃破！ +15 TP / 機体修復 +50 HP")
+				player.spawn_popup_message("サブ砲台撃破！ +5 TP / 機体修復 +50 HP")
 			
 	# フェードアウトして消滅
 	var tween = create_tween()

@@ -190,8 +190,11 @@ func fire_charged_shot() -> void:
 const DATA_ORB_SCENE: PackedScene = preload("res://game/core/data_orb.tscn")
 
 func die() -> void:
-	# 敵撃破時に1〜2個の解析データオーブを放出（プレイヤーへ高速吸引）
-	if DATA_ORB_SCENE and get_parent():
+	# 技研ポイント獲得: 雑魚敵撃破で +3 TP
+	Global.tech_points += 3
+	
+	# 吸収マトリクス（GAUGE SHIELD）装備時のみ解析データオーブを放出して高速吸引！
+	if Global.equipped_shield == "gauge" and DATA_ORB_SCENE and get_parent():
 		var num_orbs = randi_range(1, 2)
 		for _i in range(num_orbs):
 			var orb = DATA_ORB_SCENE.instantiate()

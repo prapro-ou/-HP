@@ -13,7 +13,8 @@ var equipped_weapon: String = "machine_gun"
 # New game state variables for customization & progression
 var is_first_launch: bool = true
 var tech_points: int = 0
-var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (faster charge), "power" (buff primary)
+var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (faster charge/absorb), "power" (buff primary)
+var unlocked_shields: Array = ["counter"] # Available shield frameworks
 var unlocked_weapons: Array = ["machine_gun", "pulse_gun"] # Available primary weapon frameworks
 var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
 var upgrade_levels: Dictionary = {
@@ -122,6 +123,7 @@ func save_game(stage_num: int, score: int, weapons: Dictionary) -> void:
 	config.set_value("game", "is_first_launch", is_first_launch)
 	config.set_value("game", "tech_points", tech_points)
 	config.set_value("game", "equipped_shield", equipped_shield)
+	config.set_value("game", "unlocked_shields", unlocked_shields)
 	config.set_value("game", "unlocked_weapons", unlocked_weapons)
 	config.set_value("game", "unlocked_counter_weapons", unlocked_counter_weapons)
 	config.set_value("game", "upgrade_levels", upgrade_levels)
@@ -138,6 +140,7 @@ func load_game_data() -> Dictionary:
 		"is_first_launch": true,
 		"tech_points": 0,
 		"equipped_shield": "counter",
+		"unlocked_shields": ["counter"],
 		"unlocked_weapons": ["machine_gun", "pulse_gun"],
 		"unlocked_counter_weapons": [],
 		"upgrade_levels": {"hp": 0, "parry_window": 0, "cooldown": 0}
@@ -157,6 +160,9 @@ func load_game_data() -> Dictionary:
 		
 		data["equipped_shield"] = config.get_value("game", "equipped_shield", "counter")
 		equipped_shield = data["equipped_shield"]
+		
+		data["unlocked_shields"] = config.get_value("game", "unlocked_shields", ["counter"])
+		unlocked_shields = data["unlocked_shields"]
 		
 		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "pulse_gun"])
 		unlocked_weapons = data["unlocked_weapons"]
@@ -179,6 +185,7 @@ func delete_save_game() -> void:
 	is_first_launch = true
 	tech_points = 0
 	equipped_shield = "counter"
+	unlocked_shields = ["counter"]
 	unlocked_weapons = ["machine_gun", "pulse_gun"]
 	unlocked_counter_weapons = []
 	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}

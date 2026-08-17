@@ -291,6 +291,12 @@ func destroy_boss() -> void:
 	is_alive = false
 	is_active = false
 	
+	# ボス撃破ボーナス: +10 TP
+	Global.tech_points += 10
+	var player_node = get_node_or_null("/root/Main/Player")
+	if player_node and player_node.has_method("spawn_popup_message"):
+		player_node.spawn_popup_message("🏆 要塞ボス完全撃破！ +10 TP 獲得！")
+		
 	for t in turrets:
 		if is_instance_valid(t) and t.is_alive:
 			t.destroy_turret()

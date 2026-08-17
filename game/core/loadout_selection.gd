@@ -116,26 +116,29 @@ func init_data() -> void:
 	w6.is_unlocked = Global.unlocked_weapons.has("kinetic_tackle")
 	primary_weapons.append(w6)
 
-	# 2. Shields
+	# 2. Shields (技研で各30 TPで開発可能)
 	var s1 = LoadoutItem.new()
 	s1.id = "counter"
 	s1.name = "カウンターシールド"
 	s1.description = "パリィ反撃の威力を最大化する標準モデル。"
 	s1.stats = "反射:★★★ | 溜め:★★☆ | 強化:★☆☆"
+	s1.is_unlocked = Global.unlocked_shields.has("counter")
 	shields.append(s1)
 	
 	var s2 = LoadoutItem.new()
 	s2.id = "gauge"
 	s2.name = "吸収マトリクス"
-	s2.description = "エネルギー吸収率を高め、ゲージ蓄積を高速化。"
-	s2.stats = "反射:★☆☆ | 溜め:★★★ | 強化:★★☆"
+	s2.description = "敵撃破時に解析エナジーオーブを磁力吸引！EXP蓄積＆機体修復。"
+	s2.stats = "反射:★☆☆ | 吸収:★★★ | 修復:★★☆"
+	s2.is_unlocked = Global.unlocked_shields.has("gauge")
 	shields.append(s2)
 	
 	var s3 = LoadoutItem.new()
 	s3.id = "power"
 	s3.name = "増幅ブースター"
-	s3.description = "パリィ成功時に主兵装の威力を永続強化。"
+	s3.description = "パリィ成功時に弾丸を吸収し、主兵装の威力を永続スタック強化。"
 	s3.stats = "反射:★★☆ | 溜め:★☆☆ | 強化:★★★"
+	s3.is_unlocked = Global.unlocked_shields.has("power")
 	shields.append(s3)
 
 	# 3. Counter System Weapons (Boss weapons)
