@@ -57,25 +57,22 @@ func _setup_waves() -> void:
 	waves.append(w2)
 
 func _setup_interlude() -> void:
-	interlude.title = "⚠️ 警告 ⚠️"
-	interlude.subtitle = "強大な敵反応を検知！"
-	interlude.flash_color = Color(1.0, 0.0, 0.0, 0.4)
-	interlude.assist_message = "【AIアシスト】\n敵は巨大ですが『部位破壊』で無力化できます。\n[X]キーで『カウンター』を発動可能です！"
-	interlude.duration = 4.0
+	interlude.title = "⚠️ WARNING ⚠️"
+	interlude.subtitle = "巨大要塞接近！サブ砲台を感知！"
+	interlude.flash_color = Color(1.0, 0.0, 0.0, 0.5)
+	interlude.assist_message = "【AIアシスト】\n要塞型巨大ボスが出現！\nパリィ反射弾（8割）でサブ砲台を集中撃破してください！"
+	interlude.duration = 5.0
 
 func _setup_boss() -> void:
-	boss_config.name = "古代防衛兵器"
-	boss_config.laser_hp = 500
-	boss_config.missile_hp = 500
-	boss_config.core_hp = 1400
-	boss_config.max_hp = boss_config.laser_hp + boss_config.missile_hp + boss_config.core_hp
-	boss_config.base_move_speed = 140.0
-	boss_config.energy_laser = 30.0
-	boss_config.energy_missile = 30.0
-	boss_config.energy_core = 40.0
+	boss_config.name = "古代防衛要塞"
+	boss_config.laser_hp = 800
+	boss_config.missile_hp = 800
+	boss_config.core_hp = 2400
+	boss_config.max_hp = 4000
+	boss_config.base_move_speed = 0.0
 	boss_config.enable_support_drones = false
 
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_beam"
 	reward_config.tech_points = 30
-	reward_config.unlock_message = "【AIアシスト】ボス技術の回収成功！\n『ギガレーザー』がカウンター兵装で装備可能です。"
+	reward_config.unlock_message = "【AIアシスト】要塞解析データの回収成功！\n『ギガレーザー』がカウンター兵装で装備可能です。"

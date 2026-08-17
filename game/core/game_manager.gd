@@ -385,25 +385,19 @@ func start_boss_battle() -> void:
 	if boss:
 		boss.visible = true
 		boss.process_mode = PROCESS_MODE_INHERIT
-		boss.position = Vector2(get_viewport_rect().size.x / 2.0, BOSS_INITIAL_Y)
 		
 		# ボスパラメータ適用
-		var cfg = current_stage.boss_config
-		boss.max_hp = cfg.max_hp
-		boss.laser_hp = cfg.laser_hp
-		boss.missile_hp = cfg.missile_hp
-		boss.core_hp = cfg.core_hp
-		boss.base_move_speed = cfg.base_move_speed
-		boss.current_move_speed = cfg.base_move_speed
-		boss.energy_laser = cfg.energy_laser
-		boss.energy_missile = cfg.energy_missile
-		boss.energy_core = cfg.energy_core
+		var cfg = current_stage.boss_config if current_stage else null
+		if cfg:
+			boss.max_hp = cfg.max_hp
+			if "current_hp" in boss:
+				boss.current_hp = cfg.max_hp
 		
-		var tween = create_tween()
-		var target_pos = Vector2(get_viewport_rect().size.x / 2.0, BOSS_TARGET_Y)
-		tween.tween_property(boss, "position", target_pos, BOSS_DESCENT_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		if boss.has_method("start_intro_sequence"):
+			boss.start_intro_sequence(5.0)
 		
-		spawn_popup("ボス出現: " + cfg.name)
+		var b_name = cfg.name if cfg else "古代防衛要塞"
+		spawn_popup("ボス出現: " + b_name)
 
 
 func check_win_lose() -> void:
