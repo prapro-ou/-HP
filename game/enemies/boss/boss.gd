@@ -1,24 +1,25 @@
 extends Node2D
-## 巨大要塞ボススクリプト (5.png)
-## - 画面最下部を埋め尽くすように配置
-## - 警告演出とともに5秒かけて2つのサブ砲台を伴って登場
-## - 画面上端から3〜4秒間隔で拡散弾や追尾弾を投下
-## - パリィ反射弾の8割が砲台、2割がボス本体へ飛翔
+## 全画面背景・要塞ボススクリプト (5.png)
+## - 最背面に画面全体を覆う超巨大要塞として配置
+## - 画面上端からサブ砲台と一緒に5秒かけて降下出現
+## - 砲台はボスの上に被るように配置
+## - 4〜5分の骨太なバトル（耐久力・フェーズ再展開）
 
 const TURRET_SCENE: PackedScene = preload("res://game/enemies/boss/boss_turret.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
 
-@export var max_hp: int = 5000
-var current_hp: int = 5000
+@export var max_hp: int = 18000
+var current_hp: int = 18000
 var is_alive: bool = true
 var is_active: bool = false
-var intro_timer: float = 0.0
 
 var bullet_pool: Node2D
 var player: CharacterBody2D
 var fire_timer: float = 0.0
 var attack_pattern_index: int = 0
 var turrets: Array[Node2D] = []
+var reinforcement_wave_spawned: bool = false
+var turret_respawn_timer: float = 0.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var core_node: Area2D = $Core
@@ -33,54 +34,60 @@ func _ready() -> void:
 	current_hp = max_hp
 	is_alive = true
 	is_active = false
+	reinforcement_wave_spawned = false
+	turret_respawn_timer = 0.0
 	
 	bullet_pool = get_node_or_null("/root/Main/BulletPool")
 	player = get_node_or_null("/root/Main/Player")
 	
-	# 初期位置：画面下の見切れた位置
+	# 初期位置：画面上端の見切れた位置
 	var vp_w = get_viewport_rect().size.x
-	position = Vector2(vp_w / 2.0, 1320.0)
+	position = Vector2(vp_w / 2.0, -700.0)
 
 
 func start_intro_sequence(duration: float = 5.0) -> void:
 	is_active = false
 	var vp_w = get_viewport_rect().size.x
-	var target_boss_pos = Vector2(vp_w / 2.0, 1080.0)
+	var target_boss_pos = Vector2(vp_w / 2.0, 520.0)
 	
-	# ボスせり上がり (5秒)
+	# ボスが画面上端からゆっくり画面全体へ降下展開 (5秒)
 	var tween = create_tween().set_parallel(true)
 	tween.tween_property(self, "position", target_boss_pos, duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	
-	# サブ砲台を2つランダム生成 (3種の中から2種を選択)
-	spawn_sub_turrets(duration)
+	# サブ砲台を2つランダム生成し、ボスの上に被るよう画面上端から降下配置
+	spawn_sub_turrets(duration, false)
 	
 	tween.chain().tween_callback(func():
 		is_active = true
-		fire_timer = 1.0 # 登場後1秒で初回攻撃
+		fire_timer = 1.0
 	)
 
 
-func spawn_sub_turrets(duration: float = 5.0) -> void:
-	# 3種類 (0: BEAM, 1: MISSILE, 2: METEOR) から重複なしで2種選定
+func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 	var types = [0, 1, 2]
 	types.shuffle()
-	var selected_types = [types[0], types[1]]
 	
-	# 配置：画面中央より上、左右に分散 (最低200px離す)
-	var left_x = randf_range(160.0, 320.0)
-	var left_y = randf_range(180.0, 360.0)
-	var right_x = randf_range(480.0, 640.0)
-	var right_y = randf_range(180.0, 360.0)
+	var selected_types = [types[0], types[1]]
+	if is_wave2:
+		selected_types = [types[1], types[2]]
+		
+	# 配置：ボス背景の上に被る位置 (画面中央上部、左右)
+	var left_x = randf_range(200.0, 320.0)
+	var left_y = randf_range(240.0, 380.0)
+	var right_x = randf_range(480.0, 600.0)
+	var right_y = randf_range(240.0, 380.0)
 	
 	var configs = [
-		{ "type": selected_types[0], "start": Vector2(left_x, -100.0), "target": Vector2(left_x, left_y) },
-		{ "type": selected_types[1], "start": Vector2(right_x, -100.0), "target": Vector2(right_x, right_y) }
+		{ "type": selected_types[0], "start": Vector2(left_x, -120.0), "target": Vector2(left_x, left_y) },
+		{ "type": selected_types[1], "start": Vector2(right_x, -120.0), "target": Vector2(right_x, right_y) }
 	]
 	
 	for cfg in configs:
 		if TURRET_SCENE:
 			var turret = TURRET_SCENE.instantiate()
 			turret.turret_type = cfg["type"]
+			turret.max_hp = 2200
+			turret.current_hp = 2200
 			get_parent().add_child(turret)
 			turret.spawn_intro(cfg["start"], cfg["target"], duration)
 			turrets.append(turret)
@@ -90,22 +97,35 @@ func _process(delta: float) -> void:
 	if not is_alive:
 		return
 		
-	# コアの鼓動パルス演出
+	# コアの微弱なパルス演出
 	if is_instance_valid(core_glow):
-		var pulse = 0.3 + 0.25 * sin(Time.get_ticks_msec() / 250.0)
-		core_glow.color = Color(1.0, 0.2, 0.2, pulse)
+		var pulse = 0.25 + 0.2 * sin(Time.get_ticks_msec() / 300.0)
+		core_glow.color = Color(0.9, 0.2, 0.2, pulse)
 		
 	if not is_active:
 		return
 		
+	# サブ砲台の生存チェックと増援判定
+	var alive_turrets_count = 0
+	for t in turrets:
+		if is_instance_valid(t) and t.is_alive:
+			alive_turrets_count += 1
+			
+	if alive_turrets_count == 0 and not reinforcement_wave_spawned:
+		turret_respawn_timer += delta
+		if turret_respawn_timer >= 18.0:
+			reinforcement_wave_spawned = true
+			spawn_shield_message("⚠️ 警告: 予備砲台デッキ展開！")
+			spawn_sub_turrets(4.0, true)
+			
 	fire_timer += delta
-	# 3〜4秒間隔で画面上端から攻撃
+	# 3.5秒間隔で画面上端から暗めの要塞弾幕を投下
 	if fire_timer >= 3.5:
 		fire_timer = 0.0
-		execute_orbital_attack()
+		execute_fortress_attack()
 
 
-func execute_orbital_attack() -> void:
+func execute_fortress_attack() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
 		
@@ -113,35 +133,35 @@ func execute_orbital_attack() -> void:
 	var vp_w = get_viewport_rect().size.x
 	
 	if attack_pattern_index == 0:
-		# パターン1: 画面上端からの広域扇状拡散弾（レイン弾幕）
+		# パターン1: 画面上端からの広域扇状弾幕 (暗めの視認しやすい弾)
 		var drop_x_positions = [vp_w * 0.25, vp_w * 0.5, vp_w * 0.75]
 		for drop_x in drop_x_positions:
 			var center_dir = Vector2.DOWN
 			if is_instance_valid(player):
 				center_dir = (player.global_position - Vector2(drop_x, 20.0)).normalized()
 				
-			var angles = [-30.0, -15.0, 0.0, 15.0, 30.0]
+			var angles = [-25.0, -12.0, 0.0, 12.0, 25.0]
 			for angle_deg in angles:
 				var bullet = bullet_pool.get_bullet("boss_laser")
 				if bullet:
 					bullet.global_position = Vector2(drop_x, 15.0)
-					bullet.damage = 12
+					bullet.damage = 10
 					var dir = center_dir.rotated(deg_to_rad(angle_deg))
-					bullet.set_direction(dir, 320.0)
+					bullet.set_direction(dir, 300.0)
 	else:
-		# パターン2: 画面上端からのクラスター追尾弾（3連波）
+		# パターン2: 画面上端からのクラスター追尾弾
 		for wave in range(3):
-			get_tree().create_timer(wave * 0.25).timeout.connect(func():
+			get_tree().create_timer(wave * 0.28).timeout.connect(func():
 				if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
-					var spawn_x = randf_range(100.0, vp_w - 100.0)
+					var spawn_x = randf_range(120.0, vp_w - 120.0)
 					var bullet = bullet_pool.get_bullet("boss_missile")
 					if bullet:
 						bullet.global_position = Vector2(spawn_x, 15.0)
-						bullet.damage = 14
+						bullet.damage = 12
 						var target_dir = Vector2.DOWN
 						if is_instance_valid(player):
 							target_dir = (player.global_position - bullet.global_position).normalized()
-						bullet.set_direction(target_dir, 260.0)
+						bullet.set_direction(target_dir, 240.0)
 			)
 
 
@@ -149,7 +169,6 @@ func take_damage_on_part(part_name: String, amount: int) -> void:
 	if not is_alive:
 		return
 		
-	# サブ砲台の生存確認
 	var has_alive_turrets = false
 	for t in turrets:
 		if is_instance_valid(t) and t.is_alive:
@@ -160,16 +179,16 @@ func take_damage_on_part(part_name: String, amount: int) -> void:
 	if has_alive_turrets:
 		# 砲台生存中はバリアでダメージ80%カット
 		final_dmg = max(1, int(amount * 0.2))
-		if randf() < 0.3:
+		if randf() < 0.2:
 			spawn_shield_message("⚠️ サブ砲台が防壁を展開中！")
 			
 	current_hp -= final_dmg
 	
-	# 被弾演出
+	# 被弾フラッシュ
 	if is_instance_valid(sprite):
-		sprite.modulate = Color(1.0, 0.5, 0.5)
+		sprite.modulate = Color(0.6, 0.5, 0.6, 0.95)
 		var tween = create_tween()
-		tween.tween_property(sprite, "modulate", Color.WHITE, 0.1)
+		tween.tween_property(sprite, "modulate", Color(0.38, 0.42, 0.52, 0.95), 0.1)
 		
 	var main = get_node_or_null("/root/Main")
 	if main:
@@ -191,19 +210,22 @@ func spawn_shield_message(text: String) -> void:
 	var label = Label.new()
 	label.text = text
 	var set = LabelSettings.new()
+	var pixel_font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+	if pixel_font:
+		set.font = pixel_font
 	set.font_size = 20
 	set.font_color = Color(1.0, 0.3, 0.3)
-	set.outline_size = 6
+	set.outline_size = 4
 	set.outline_color = Color.BLACK
 	label.label_settings = set
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.global_position = global_position + Vector2(-200, -180)
+	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 200, 180)
 	label.custom_minimum_size = Vector2(400, 30)
 	get_parent().add_child(label)
 	
 	var tween = create_tween()
-	tween.tween_property(label, "global_position:y", label.global_position.y - 40.0, 1.2)
-	tween.tween_property(label, "modulate:a", 0.0, 1.2)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 30.0, 1.4)
+	tween.tween_property(label, "modulate:a", 0.0, 1.4)
 	tween.chain().tween_callback(label.queue_free)
 
 
@@ -211,25 +233,23 @@ func destroy_boss() -> void:
 	is_alive = false
 	is_active = false
 	
-	# サブ砲台も一斉爆散
 	for t in turrets:
 		if is_instance_valid(t) and t.is_alive:
 			t.destroy_turret()
 			
-	# 大爆発シーケンス
 	var main_tree = get_tree()
 	if PARRY_PARTICLE_SCENE and main_tree:
-		for i in range(20):
+		for i in range(25):
 			main_tree.create_timer(i * 0.1).timeout.connect(func():
 				if is_instance_valid(self):
 					var p = PARRY_PARTICLE_SCENE.instantiate()
-					p.global_position = global_position + Vector2(randf_range(-350, 350), randf_range(-100, 100))
+					p.global_position = global_position + Vector2(randf_range(-400, 400), randf_range(-300, 300))
 					p.scale = Vector2(4.0, 4.0)
 					p.modulate = Color(1.0, randf_range(0.2, 0.9), 0.1)
 					get_parent().add_child(p)
 			)
 			
-	main_tree.create_timer(2.2).timeout.connect(func():
+	main_tree.create_timer(2.6).timeout.connect(func():
 		var main = get_node_or_null("/root/Main")
 		if main:
 			var mgr = main.get_node_or_null("GameManager")
