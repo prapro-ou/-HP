@@ -1,16 +1,16 @@
 [gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://game/enemies/drone/enemy_drone.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://game/assets/enemies/enemy.png" id="2_texture"]
+[ext_resource type="Texture2D" path="res://game/assets/boss/stage1/2.png" id="2_texture"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_drone"]
-radius = 24.0
+radius = 22.0
 
 [node name="EnemyDrone" type="Area2D"]
 script = ExtResource("1_script")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.35, 0.35)
+scale = Vector2(0.65, 0.65)
 texture = ExtResource("2_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

@@ -44,28 +44,23 @@ func _ready_enemy() -> void:
 	max_hp = DEFAULT_DRONE_HP
 	current_hp = max_hp
 	
+	shoot_interval = 1.3 # 攻撃スパンを全種共通化 (1.3秒)
+	
 	match drone_type:
 		TYPE_CHARGE:
-			modulate = COLOR_CHARGE
-			shoot_interval = 1.8
+			modulate = Color(1.0, 0.35, 0.25) # チャージ赤橙
 		TYPE_STRAIGHT:
-			modulate = COLOR_STRAIGHT
-			shoot_interval = 1.1
+			modulate = Color(0.3, 0.75, 1.0)  # 直進シアン
 		TYPE_IRREGULAR:
-			modulate = COLOR_IRREGULAR
-			shoot_interval = 1.2
+			modulate = Color(1.0, 0.85, 0.2)  # 不規則イエロー
 		TYPE_LASER:
-			modulate = COLOR_LASER
-			shoot_interval = 1.3
+			modulate = Color(1.0, 0.55, 0.1)  # レーザーオレンジ
 		TYPE_WAVE:
-			modulate = COLOR_WAVE
-			shoot_interval = 1.2
+			modulate = Color(0.2, 0.9, 0.5)   # 拡散エメラルド
 		TYPE_BEAM:
-			modulate = COLOR_BEAM
-			shoot_interval = 1.1
+			modulate = Color(1.0, 0.3, 0.6)   # ビームマゼンタ
 		TYPE_MISSILE, _:
-			modulate = COLOR_MISSILE
-			shoot_interval = 1.3
+			modulate = Color(0.8, 0.4, 1.0)   # 追尾パープル
 		
 	bullet_pool = get_node_or_null("/root/Main/BulletPool")
 	player = get_node_or_null("/root/Main/Player")
