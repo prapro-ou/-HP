@@ -449,10 +449,10 @@ func update_ui() -> void:
 	if ui.has_method("update_pattern_analysis"):
 		ui.update_pattern_analysis(player.analysis_patterns)
 		
-	if (current_state == State.BOSS or current_state == State.VICTORY_TRANSITION) and is_instance_valid(boss) and ui.has_method("update_boss_energy"):
+	if (current_state == State.BOSS or current_state == State.VICTORY_TRANSITION) and is_instance_valid(boss) and "energy_laser" in boss and ui.has_method("update_boss_energy"):
 		ui.update_boss_energy(boss.energy_laser, boss.energy_missile, boss.energy_core)
 	else:
-		if ui.has_method("hide_boss_energy"):
+		if ui and ui.has_method("hide_boss_energy"):
 			ui.hide_boss_energy()
 
 
