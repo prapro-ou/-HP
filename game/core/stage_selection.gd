@@ -361,21 +361,25 @@ func setup_ui() -> void:
 	style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	select_btn.pressed.connect(_on_select_pressed)
 
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
 func style_nav_button(btn: Button) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.08, 0.15, 0.7)
-	sb.border_width_left = 1
-	sb.border_width_top = 1
-	sb.border_width_right = 1
-	sb.border_width_bottom = 1
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
 	sb.border_color = Color.CYAN
-	sb.corner_radius_top_left = 4
-	sb.corner_radius_top_right = 4
-	sb.corner_radius_bottom_left = 4
-	sb.corner_radius_bottom_right = 4
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = sb.duplicate()
-	sb_hover.bg_color = Color(0.15, 0.15, 0.28, 0.8)
+	sb_hover.bg_color = Color(0.1, 0.12, 0.2, 0.95)
 	sb_hover.border_color = Color.WHITE
 	
 	btn.add_theme_stylebox_override("normal", sb)
@@ -385,29 +389,31 @@ func style_nav_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
 
 func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.06, 0.1, 0.9)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
 	sb.border_color = border
-	sb.corner_radius_top_left = 6
-	sb.corner_radius_top_right = 6
-	sb.corner_radius_bottom_left = 6
-	sb.corner_radius_bottom_right = 6
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = StyleBoxFlat.new()
-	sb_hover.bg_color = Color(0.12, 0.12, 0.2, 0.9)
-	sb_hover.border_width_left = 2
-	sb_hover.border_width_top = 2
-	sb_hover.border_width_right = 2
-	sb_hover.border_width_bottom = 2
+	sb_hover.bg_color = Color(0.1, 0.12, 0.22, 0.95)
+	sb_hover.border_width_left = 3
+	sb_hover.border_width_top = 3
+	sb_hover.border_width_right = 3
+	sb_hover.border_width_bottom = 3
 	sb_hover.border_color = hover_border
-	sb_hover.corner_radius_top_left = 6
-	sb_hover.corner_radius_top_right = 6
-	sb_hover.corner_radius_bottom_left = 6
-	sb_hover.corner_radius_bottom_right = 6
+	sb_hover.corner_radius_top_left = 0
+	sb_hover.corner_radius_top_right = 0
+	sb_hover.corner_radius_bottom_left = 0
+	sb_hover.corner_radius_bottom_right = 0
 	
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb_hover)

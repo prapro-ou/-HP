@@ -362,6 +362,8 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	btn.text = "開発 (" + cost_text + ")"
 	btn.custom_minimum_size = Vector2(0, 42)
 	btn.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	vbox.add_child(btn)
 	style_action_btn(btn, Color.GOLD)
 	
@@ -369,21 +371,48 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	ret.unlock_button = btn
 	return ret
 
-func style_action_btn(btn: Button, accent_color: Color) -> void:
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
+func style_config_button(btn: Button, accent_color: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.04, 0.07, 0.8)
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
+	sb.border_color = Color(0.2, 0.25, 0.35)
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
+	
+	var sb_hover = sb.duplicate()
+	sb_hover.bg_color = Color(accent_color.r * 0.2, accent_color.g * 0.2, accent_color.b * 0.2)
+	sb_hover.border_color = accent_color
+	
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", sb_hover)
+	btn.add_theme_stylebox_override("pressed", sb_hover)
+
+func style_action_btn(btn: Button, accent_color: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.04, 0.07, 0.95)
 	sb.border_width_left = 2
 	sb.border_width_top = 2
 	sb.border_width_right = 2
 	sb.border_width_bottom = 2
 	sb.border_color = accent_color
-	sb.corner_radius_top_left = 4
-	sb.corner_radius_top_right = 4
-	sb.corner_radius_bottom_left = 4
-	sb.corner_radius_bottom_right = 4
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = sb.duplicate()
-	sb_hover.bg_color = Color(accent_color.r * 0.15, accent_color.g * 0.15, accent_color.b * 0.15)
+	sb_hover.bg_color = Color(accent_color.r * 0.25, accent_color.g * 0.25, accent_color.b * 0.25)
 	
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb_hover)
@@ -399,21 +428,23 @@ func style_action_btn(btn: Button, accent_color: Color) -> void:
 	)
 
 func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.07, 0.1, 0.95)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
 	sb.border_color = border
-	sb.corner_radius_top_left = 6
-	sb.corner_radius_top_right = 6
-	sb.corner_radius_bottom_left = 6
-	sb.corner_radius_bottom_right = 6
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = sb.duplicate()
 	sb_hover.border_color = hover_border
-	sb_hover.bg_color = Color(0.12, 0.12, 0.2, 0.95)
+	sb_hover.bg_color = Color(0.1, 0.12, 0.22, 0.95)
 	
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb_hover)

@@ -77,25 +77,28 @@ func create_shield_heat_bar() -> void:
 	style_hp_bar(shield_heat_bar, COLOR_SHIELD_HEAT_DEFAULT)
 
 
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
 func style_hp_bar(bar: ProgressBar, color: Color) -> void:
+	# ドット絵風の角張ったピクセルフレーム (角丸ゼロ・2px枠線)
 	var sb_bg = StyleBoxFlat.new()
-	sb_bg.bg_color = Color(0.1, 0.1, 0.13, 0.8)
-	sb_bg.border_width_left = 1
-	sb_bg.border_width_top = 1
-	sb_bg.border_width_right = 1
-	sb_bg.border_width_bottom = 1
-	sb_bg.border_color = Color(0.3, 0.3, 0.35, 1)
-	sb_bg.corner_radius_top_left = 3
-	sb_bg.corner_radius_top_right = 3
-	sb_bg.corner_radius_bottom_left = 3
-	sb_bg.corner_radius_bottom_right = 3
+	sb_bg.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb_bg.border_width_left = 2
+	sb_bg.border_width_top = 2
+	sb_bg.border_width_right = 2
+	sb_bg.border_width_bottom = 2
+	sb_bg.border_color = Color(0.25, 0.35, 0.5, 1.0)
+	sb_bg.corner_radius_top_left = 0
+	sb_bg.corner_radius_top_right = 0
+	sb_bg.corner_radius_bottom_left = 0
+	sb_bg.corner_radius_bottom_right = 0
 	
 	var sb_fg = StyleBoxFlat.new()
 	sb_fg.bg_color = color
-	sb_fg.corner_radius_top_left = 2
-	sb_fg.corner_radius_top_right = 2
-	sb_fg.corner_radius_bottom_left = 2
-	sb_fg.corner_radius_bottom_right = 2
+	sb_fg.corner_radius_top_left = 0
+	sb_fg.corner_radius_top_right = 0
+	sb_fg.corner_radius_bottom_left = 0
+	sb_fg.corner_radius_bottom_right = 0
 	
 	bar.add_theme_stylebox_override("background", sb_bg)
 	bar.add_theme_stylebox_override("fill", sb_fg)
@@ -103,22 +106,32 @@ func style_hp_bar(bar: ProgressBar, color: Color) -> void:
 
 func style_analysis_bar(bar: ProgressBar, color: Color) -> void:
 	var sb_bg = StyleBoxFlat.new()
-	sb_bg.bg_color = Color(0.08, 0.08, 0.1, 0.9)
-	sb_bg.border_width_left = 1
-	sb_bg.border_width_top = 1
-	sb_bg.border_width_right = 1
-	sb_bg.border_width_bottom = 1
-	sb_bg.border_color = Color(0.2, 0.2, 0.2, 0.8)
+	sb_bg.bg_color = Color(0.03, 0.04, 0.06, 0.95)
+	sb_bg.border_width_left = 2
+	sb_bg.border_width_top = 2
+	sb_bg.border_width_right = 2
+	sb_bg.border_width_bottom = 2
+	sb_bg.border_color = Color(0.2, 0.25, 0.35, 0.9)
+	sb_bg.corner_radius_top_left = 0
+	sb_bg.corner_radius_top_right = 0
+	sb_bg.corner_radius_bottom_left = 0
+	sb_bg.corner_radius_bottom_right = 0
 	
 	var sb_fg = StyleBoxFlat.new()
 	sb_fg.bg_color = color
+	sb_fg.corner_radius_top_left = 0
+	sb_fg.corner_radius_top_right = 0
+	sb_fg.corner_radius_bottom_left = 0
+	sb_fg.corner_radius_bottom_right = 0
 	
 	bar.add_theme_stylebox_override("background", sb_bg)
 	bar.add_theme_stylebox_override("fill", sb_fg)
 
 
-func setup_label_style(label: Label, size: int, color: Color, outline: int = 6) -> void:
+func setup_label_style(label: Label, size: int, color: Color, outline: int = 4) -> void:
 	var settings = LabelSettings.new()
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
 	settings.font_size = size
 	settings.font_color = color
 	settings.outline_size = outline
@@ -351,16 +364,16 @@ func show_game_over(result: String) -> void:
 	var theme_color = Color.CYAN if result == "VICTORY" else Color.ORANGE_RED
 	
 	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.08, 0.08, 0.12, 1.0)
-	style_normal.border_width_left = 2
-	style_normal.border_width_top = 2
-	style_normal.border_width_right = 2
-	style_normal.border_width_bottom = 2
+	style_normal.bg_color = Color(0.06, 0.07, 0.1, 0.95)
+	style_normal.border_width_left = 3
+	style_normal.border_width_top = 3
+	style_normal.border_width_right = 3
+	style_normal.border_width_bottom = 3
 	style_normal.border_color = theme_color
-	style_normal.corner_radius_top_left = 4
-	style_normal.corner_radius_top_right = 4
-	style_normal.corner_radius_bottom_left = 4
-	style_normal.corner_radius_bottom_right = 4
+	style_normal.corner_radius_top_left = 0
+	style_normal.corner_radius_top_right = 0
+	style_normal.corner_radius_bottom_left = 0
+	style_normal.corner_radius_bottom_right = 0
 	
 	var style_hover = style_normal.duplicate()
 	style_hover.bg_color = theme_color
@@ -371,6 +384,8 @@ func show_game_over(result: String) -> void:
 		next_btn.custom_minimum_size = Vector2(280, 56)
 		next_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		next_btn.add_theme_font_size_override("font_size", 22)
+		if PIXEL_FONT:
+			next_btn.add_theme_font_override("font", PIXEL_FONT)
 		
 		next_btn.add_theme_color_override("font_color", Color.WHITE)
 		next_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -398,6 +413,8 @@ func show_game_over(result: String) -> void:
 	retry_btn.custom_minimum_size = Vector2(280, 56)
 	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	retry_btn.add_theme_font_size_override("font_size", 22)
+	if PIXEL_FONT:
+		retry_btn.add_theme_font_override("font", PIXEL_FONT)
 	
 	retry_btn.add_theme_color_override("font_color", Color.WHITE)
 	retry_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -420,6 +437,8 @@ func show_game_over(result: String) -> void:
 	menu_btn.custom_minimum_size = Vector2(280, 56)
 	menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_btn.add_theme_font_size_override("font_size", 22)
+	if PIXEL_FONT:
+		menu_btn.add_theme_font_override("font", PIXEL_FONT)
 	
 	menu_btn.add_theme_color_override("font_color", Color.WHITE)
 	menu_btn.add_theme_color_override("font_hover_color", Color.BLACK)
@@ -447,19 +466,21 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	label.text = str(amount)
 	
 	var settings = LabelSettings.new()
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
 	if is_finish:
-		settings.font_size = randi_range(72, 90)
+		settings.font_size = randi_range(64, 80)
 		settings.font_color = Color(1.0, 0.35, 0.1)
-		settings.outline_size = 14
+		settings.outline_size = 8
 		settings.outline_color = Color.BLACK
 	else:
-		settings.font_size = randi_range(28, 36)
+		settings.font_size = randi_range(24, 32)
 		if amount > 15:
 			settings.font_color = Color(1.0, 0.9, 0.2)
-			settings.font_size = randi_range(36, 44)
+			settings.font_size = randi_range(32, 40)
 		else:
 			settings.font_color = Color.WHITE
-		settings.outline_size = 6
+		settings.outline_size = 4
 		settings.outline_color = Color.BLACK
 		
 	label.label_settings = settings
