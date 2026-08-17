@@ -75,49 +75,60 @@ func _input(event: InputEvent) -> void:
 		_on_select_pressed()
 
 func init_stages() -> void:
-	# Stage 1
+	# Stage 1: 惑星到達前のデブリ帯
 	var st1 = StageData.new()
 	st1.id = 1
-	st1.title = "遺跡コア"
-	st1.codename = "第1エリア: 古代聖域"
-	st1.description = "地下コアへの入口。パリィ操作の慣らしに最適なテストエリア。"
-	st1.difficulty = "難易度: 初級"
-	st1.color = Color.GREEN
+	st1.title = "デブリ帯突破"
+	st1.codename = "第1エリア: 惑星到達前・デブリ宙域"
+	st1.description = "惑星到達前の小惑星・残骸漂流地帯。高密度なデブリと哨戒防衛網をパリィで解析・突破せよ。"
+	st1.difficulty = "難易度: ★☆☆☆☆"
+	st1.color = Color(0.2, 0.8, 1.0)
 	st1.scene_path = "res://game/stages/stage_1.tscn"
 	stages.append(st1)
 	
-	# Stage 2
+	# Stage 2: 惑星の地上上空
 	var st2 = StageData.new()
 	st2.id = 2
-	st2.title = "防衛グリッド"
-	st2.codename = "第2エリア: 警備要塞"
-	st2.description = "自動防衛システムが稼働中。高密度弾幕と高速機動兵器が待ち受ける。"
-	st2.difficulty = "難易度: 中級"
-	st2.color = Color.CYAN
+	st2.title = "大気圏降下戦"
+	st2.codename = "第2エリア: 惑星地上上空・成層圏"
+	st2.description = "惑星大気圏へ突入。地上防衛迎撃編隊と雲海を切り裂く高速ドッグファイトを展開せよ。"
+	st2.difficulty = "難易度: ★★☆☆☆"
+	st2.color = Color(0.3, 0.9, 0.4)
 	st2.scene_path = "res://game/stages/stage_2.tscn"
 	stages.append(st2)
 	
-	# Stage 3 (Locked/Demos for progression feel)
+	# Stage 3: 惑星内部施設
 	var st3 = StageData.new()
 	st3.id = 3
-	st3.title = "大気圏境界"
-	st3.codename = "第3エリア: 軌道ターミナル"
-	st3.description = "軌道防衛アレイ。超高速迎撃システムが展開されている。"
-	st3.difficulty = "難易度: 上級 (開発中)"
-	st3.color = Color.RED
-	st3.scene_path = "res://game/stages/stage_1.tscn" # Loops for demo
+	st3.title = "地底要塞中枢"
+	st3.codename = "第3エリア: 惑星内部・軍事工廠"
+	st3.description = "惑星の地底深く侵入。網の目のように張り巡らされた防衛電磁タレットと中枢コアを制圧せよ。"
+	st3.difficulty = "難易度: ★★★☆☆"
+	st3.color = Color(1.0, 0.7, 0.2)
+	st3.scene_path = "res://game/stages/stage_3.tscn"
 	stages.append(st3)
 
-	# Stage 4
+	# Stage 4: 惑星内部からの脱出
 	var st4 = StageData.new()
 	st4.id = 4
-	st4.title = "PHANTOM CLOAK"
-	st4.codename = "SECTOR-04: MIRAGE MATRIX NEBULA"
-	st4.description = "Stealth field and optical illusions. Face stealth blinking drones and the Phantom Dreadnought carrier."
-	st4.difficulty = "VERY HARD"
-	st4.color = Color(0.7, 0.4, 1.0)
+	st4.title = "崩壊地底脱出"
+	st4.codename = "第4エリア: 崩壊地底・脱出ルート"
+	st4.description = "中枢破壊に伴う大崩壊が発生。マグマと崩落トラップを回避し、追撃殲滅部隊を振り切って脱出せよ。"
+	st4.difficulty = "難易度: ★★★★☆"
+	st4.color = Color(0.9, 0.3, 1.0)
 	st4.scene_path = "res://game/stages/stage_4.tscn"
 	stages.append(st4)
+
+	# Stage 5: 惑星そのものの破壊
+	var st5 = StageData.new()
+	st5.id = 5
+	st5.title = "惑星最終決戦"
+	st5.codename = "最終エリア: 惑星融合型超兵器・ガイア"
+	st5.description = "宇宙空間へ脱出後、星そのものが異形覚醒。惑星級エネルギー弾をパリィで撃ち返し、惑星ごと粉砕せよ！"
+	st5.difficulty = "難易度: ★★★★★"
+	st5.color = Color(1.0, 0.2, 0.3)
+	st5.scene_path = "res://game/stages/stage_5.tscn"
+	stages.append(st5)
 
 func setup_ui() -> void:
 	# 1. Base dark background
