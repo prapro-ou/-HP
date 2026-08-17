@@ -311,28 +311,6 @@ func _process(delta: float) -> void:
 					)
 
 
-func toggle_weapon() -> void:
-	if not weapons["beam"]["analyzed"] and not weapons["missile"]["analyzed"]:
-		return
-		
-	if weapons["beam"]["analyzed"] and not weapons["missile"]["analyzed"]:
-		if current_weapon != "beam":
-			current_weapon = "beam"
-			spawn_popup_message("WEAPON ENGAGED: BEAM")
-		return
-	if weapons["missile"]["analyzed"] and not weapons["beam"]["analyzed"]:
-		if current_weapon != "missile":
-			current_weapon = "missile"
-			spawn_popup_message("WEAPON ENGAGED: MISSILE")
-		return
-		
-	if current_weapon == "beam":
-		current_weapon = "missile"
-	else:
-		current_weapon = "beam"
-	spawn_popup_message("WEAPON ENGAGED: " + current_weapon.to_upper())
-
-
 func fire() -> void:
 	if current_hp <= 0 or not is_attack_unlocked or not PLAYER_BULLET_SCENE:
 		return
