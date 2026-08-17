@@ -240,20 +240,13 @@ func process_wave_state() -> void:
 			if wave_parry_count >= target_parries or wave_upgrade_count >= 2:
 				is_cleared = true
 				
-		"dual_analysis":
-			if is_instance_valid(player) and "weapons" in player:
-				var beam_done = player.weapons.get("beam", {}).get("analyzed", false)
-				var missile_done = player.weapons.get("missile", {}).get("analyzed", false)
-				if beam_done and missile_done:
-					is_cleared = true
-				else:
-					check_dual_replenish()
-					return
-			else:
-				is_cleared = true
-				
 		"drone_count":
 			if swarm_destroyed_count >= wave_data.target_drone_count:
+				is_cleared = true
+				
+		_:
+			# フォールバック
+			if wave_parry_count >= wave_data.target_parry_count:
 				is_cleared = true
 				
 	if is_cleared:
@@ -268,8 +261,7 @@ func process_wave_state() -> void:
 		else:
 			trigger_interlude()
 	else:
-		if wave_data.clear_condition_type != "dual_analysis":
-			check_drone_replenish(wave_data)
+		check_drone_replenish(wave_data)
 
 
 func get_player_analyzed_count() -> int:
@@ -341,29 +333,6 @@ func check_drone_replenish(wave_data: BaseStage.WaveData) -> void:
 				drone.shoot_interval = wave_data.drone_shoot_interval_beam
 			elif chosen_type == "missile" and wave_data.drone_shoot_interval_missile > 0.0:
 				drone.shoot_interval = wave_data.drone_shoot_interval_missile
-
-
-func check_dual_replenish() -> void:
-	if not is_instance_valid(player) or not "weapons" in player:
-		return
-	var active_beam = 0
-	var active_missile = 0
-	for d in spawned_drones:
-		if is_instance_valid(d):
-			if d.drone_type == "beam" or d.drone_type == "laser":
-				active_beam += 1
-			elif d.drone_type == "missile":
-				active_missile += 1
-				
-	var beam_analyzed = player.weapons.get("beam", {}).get("analyzed", false)
-	var missile_analyzed = player.weapons.get("missile", {}).get("analyzed", false)
-	
-	if active_beam == 0 and not beam_analyzed:
-		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		spawn_drone("laser", Vector2(rx, -50))
-	if active_missile == 0 and not missile_analyzed:
-		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		spawn_drone("missile", Vector2(rx, -50))
 
 
 func process_boss_support_drones(delta: float) -> void:

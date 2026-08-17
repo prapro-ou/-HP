@@ -90,14 +90,6 @@ var analysis_patterns: Dictionary = {
 	PATTERN_METEOR:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 2, "name": "ギガメテオ", "icon": "●", "color": Color(1.0, 0.35, 0.2) }
 }
 
-# 旧互換変数
-var weapons: Dictionary = {
-	"beam": { "analyzed": false, "progress": 0, "level": 1 },
-	"missile": { "analyzed": false, "progress": 0, "level": 1 }
-}
-var current_weapon: String = "none"
-var toggle_key_pressed: bool = false
-
 const PLAYER_BULLET_SCENE: PackedScene = preload("res://game/player/player_bullet.tscn")
 
 
@@ -145,14 +137,6 @@ func reset_state() -> void:
 		analysis_patterns[key]["progress"] = 0.0
 		analysis_patterns[key]["analyzed"] = false
 		analysis_patterns[key]["level"] = 0
-	
-	current_weapon = "none"
-	if "beam" in weapons:
-		weapons["beam"]["analyzed"] = false
-		weapons["beam"]["progress"] = 0
-	if "missile" in weapons:
-		weapons["missile"]["analyzed"] = false
-		weapons["missile"]["progress"] = 0
 	
 	apply_equipped_weapon_settings()
 	
@@ -208,14 +192,6 @@ func _process(delta: float) -> void:
 	var viewport_size = get_viewport_rect().size
 	position.x = clamp(position.x, 20.0, viewport_size.x - 20.0)
 	position.y = clamp(position.y, 20.0, viewport_size.y - 20.0)
-	
-	var is_toggle_pressed = Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_Z) or Input.is_key_pressed(KEY_C)
-	if is_toggle_pressed:
-		if not toggle_key_pressed:
-			toggle_key_pressed = true
-			toggle_weapon()
-	else:
-		toggle_key_pressed = false
 	
 	if is_attack_unlocked:
 		var current_time = Time.get_ticks_msec() / 1000.0
@@ -519,13 +495,7 @@ func update_visual_state() -> void:
 	elif is_overheated:
 		modulate = COLOR_OVERHEAT
 	else:
-		match current_weapon:
-			"beam":
-				modulate = Color(0.7, 1.0, 1.0)
-			"missile":
-				modulate = Color(0.9, 0.7, 1.0)
-			_:
-				modulate = Color.WHITE
+		modulate = Color.WHITE
 
 
 var consecutive_parries: int = 0
@@ -656,15 +626,6 @@ func advance_analysis(bullet_type: String, amount: float = 8.0) -> void:
 		actual_amount *= 1.5
 		
 	add_pattern_analysis(pattern_key, actual_amount)
-	
-	if bullet_type.contains("beam") and "beam" in weapons and not weapons["beam"]["analyzed"]:
-		weapons["beam"]["progress"] = min(100, weapons["beam"]["progress"] + int(actual_amount))
-		if weapons["beam"]["progress"] >= 100:
-			weapons["beam"]["analyzed"] = true
-	elif bullet_type.contains("missile") and "missile" in weapons and not weapons["missile"]["analyzed"]:
-		weapons["missile"]["progress"] = min(100, weapons["missile"]["progress"] + int(actual_amount))
-		if weapons["missile"]["progress"] >= 100:
-			weapons["missile"]["analyzed"] = true
 
 
 func add_pattern_analysis(pattern_key: String, amount: float) -> void:
@@ -773,17 +734,6 @@ func spawn_big_levelup_banner(trait_name: String, lvl: int, icon: String) -> voi
 	tween.tween_property(label, "global_position:y", label.global_position.y - 40.0, 0.6)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.6)
 	tween.chain().tween_callback(label.queue_free)
-
-
-func upgrade_weapon(weapon_type: String) -> void:
-	if weapons.has(weapon_type):
-		weapons[weapon_type]["level"] = 2
-		weapons[weapon_type]["analyzed"] = true
-		current_weapon = weapon_type
-		
-		var label_text = "TECHNOLOGY HARVESTED: [" + weapon_type.to_upper() + " LV2]!"
-		spawn_popup_message(label_text)
-		trigger_screen_flash(Color(1.0, 0.8, 0.2, 0.6))
 
 
 func trigger_screen_flash(color: Color = Color(1.0, 1.0, 1.0, 0.5)) -> void:

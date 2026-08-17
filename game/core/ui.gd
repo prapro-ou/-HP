@@ -8,15 +8,12 @@ extends CanvasLayer
 # カラー定数
 const COLOR_PLAYER_HP = Color(0.2, 0.9, 0.4)
 const COLOR_BOSS_HP = Color(1.0, 0.2, 0.2)
-const COLOR_BEAM_ANALYSIS = Color.CYAN
-const COLOR_MISSILE_ANALYSIS = Color(0.8, 0.4, 1.0)
 const COLOR_SHIELD_HEAT_DEFAULT = Color(0.2, 0.8, 1.0)
 
 # フォントサイズ定数
 const FONT_SIZE_HP: int = 18
 const FONT_SIZE_PARRY: int = 22
 const FONT_SIZE_GUARD: int = 20
-const FONT_SIZE_ENERGY: int = 18
 const FONT_SIZE_WARNING_TITLE: int = 48
 const FONT_SIZE_WARNING_SUBTITLE: int = 24
 
@@ -28,15 +25,6 @@ const FONT_SIZE_WARNING_SUBTITLE: int = 24
 
 @onready var parry_count_label: Label = $ParryCountLabel
 @onready var guard_status_label: Label = $GuardStatusLabel
-
-# 武器解析UI
-@onready var slot_beam_label: Label = $BeamSlot/Label
-@onready var slot_beam_bar: ProgressBar = $BeamSlot/ProgressBar
-@onready var slot_missile_label: Label = $MissileSlot/Label
-@onready var slot_missile_bar: ProgressBar = $MissileSlot/ProgressBar
-
-# ボスエネルギー比率UI
-@onready var boss_energy_label: Label = $BossEnergyLabel
 
 # 警告・フラッシュ演出UI
 @onready var warning_title: Label = $WarningTitle
@@ -52,12 +40,6 @@ func _ready() -> void:
 	style_hp_bar(player_hp_bar, COLOR_PLAYER_HP)
 	style_hp_bar(boss_hp_bar, COLOR_BOSS_HP)
 	
-	# 旧2枠スロットを非表示
-	var beam_slot = get_node_or_null("BeamSlot")
-	if beam_slot: beam_slot.hide()
-	var missile_slot = get_node_or_null("MissileSlot")
-	if missile_slot: missile_slot.hide()
-	
 	# 左上プレイヤー情報配置
 	player_hp_label.position = Vector2(20, 14)
 	player_hp_bar.position = Vector2(20, 32)
@@ -68,7 +50,6 @@ func _ready() -> void:
 	setup_label_style(boss_hp_label, 12, Color.GOLD, 4)
 	setup_label_style(parry_count_label, 11, Color.CYAN, 4)
 	setup_label_style(guard_status_label, 11, Color.GREEN, 4)
-	setup_label_style(boss_energy_label, FONT_SIZE_ENERGY, Color.GOLD, 4)
 	setup_label_style(warning_title, FONT_SIZE_WARNING_TITLE, Color.RED, 10)
 	setup_label_style(warning_subtitle, FONT_SIZE_WARNING_SUBTITLE, Color.GOLD, 6)
 	
@@ -355,18 +336,6 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 
 
 
-
-
-func update_analysis_progress(_beam_progress: float, _beam_ready: bool, _missile_progress: float, _missile_ready: bool, _active_weapon: String) -> void:
-	pass
-
-
-func update_boss_energy(laser: float, missile: float, core: float) -> void:
-	boss_energy_label.text = "エネルギー再分配\nコア %d%% | レーザー %d%% | ミサイル %d%%" % [int(core), int(laser), int(missile)]
-
-
-func hide_boss_energy() -> void:
-	boss_energy_label.text = ""
 
 
 func trigger_flash(color: Color = Color(1.0, 1.0, 1.0, 0.5)) -> void:
