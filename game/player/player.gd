@@ -592,22 +592,23 @@ func heal(amount: int) -> void:
 	current_hp = min(current_hp + amount, max_hp)
 
 
-func advance_analysis(bullet_type: String, amount: float = 5.0) -> void:
+func advance_analysis(bullet_type: String, amount: float = 8.0) -> void:
 	var pattern_key = PATTERN_RAPID
-	if bullet_type.contains("meteor"):
-		pattern_key = PATTERN_METEOR
-	elif bullet_type.contains("irregular") or bullet_type.contains("cyclone"):
-		pattern_key = PATTERN_CYCLONE
-	elif bullet_type.contains("laser") or bullet_type.contains("beam") or bullet_type.contains("boss_laser"):
-		pattern_key = PATTERN_LASER
-	elif bullet_type.contains("missile") or bullet_type.contains("decel") or bullet_type.contains("homing"):
-		pattern_key = PATTERN_HOMING
-	elif bullet_type.contains("charge") or bullet_type.contains("pierce"):
-		pattern_key = PATTERN_PIERCE
-	elif bullet_type.contains("wave") or bullet_type.contains("spread") or bullet_type.contains("pulse"):
-		pattern_key = PATTERN_SPREAD
-	else:
-		pattern_key = PATTERN_RAPID
+	match bullet_type:
+		"meteor":
+			pattern_key = PATTERN_METEOR
+		"irregular", "cyclone":
+			pattern_key = PATTERN_CYCLONE
+		"laser", "boss_laser", "beam":
+			pattern_key = PATTERN_LASER
+		"missile", "boss_missile", "decel_missile", "homing":
+			pattern_key = PATTERN_HOMING
+		"charge", "pierce":
+			pattern_key = PATTERN_PIERCE
+		"wave", "spread", "pulse":
+			pattern_key = PATTERN_SPREAD
+		"straight", "rapid", _:
+			pattern_key = PATTERN_RAPID
 		
 	var actual_amount = amount
 	if Global.equipped_shield == SHIELD_GAUGE:

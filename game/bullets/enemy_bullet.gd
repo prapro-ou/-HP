@@ -64,16 +64,27 @@ func update_bullet_color() -> void:
 		if sprite:
 			sprite.scale = Vector2(0.5, 0.5)
 		match bullet_type:
-			BULLET_TYPE_BEAM:
-				modulate = COLOR_BEAM
-			BULLET_TYPE_MISSILE:
-				modulate = COLOR_MISSILE
-			BULLET_TYPE_BOSS_LASER:
-				modulate = COLOR_BOSS_LASER
-			BULLET_TYPE_BOSS_MISSILE:
-				modulate = COLOR_BOSS_MISSILE
+			"straight":
+				modulate = Color(0.3, 0.75, 1.0) # 直進シアン
+				if sprite: sprite.scale = Vector2(0.45, 0.7)
+			"charge":
+				modulate = Color(1.0, 0.35, 0.15) # チャージ赤橙
+				if sprite: sprite.scale = Vector2(0.8, 1.2)
+			"wave":
+				modulate = Color(0.2, 0.9, 0.5) # 拡散エメラルド
+				if sprite: sprite.scale = Vector2(0.55, 0.55)
+			"irregular":
+				modulate = Color(1.0, 0.85, 0.2) # 不規則イエロー
+				if sprite: sprite.scale = Vector2(0.5, 0.5)
+			"laser", BULLET_TYPE_BOSS_LASER:
+				modulate = Color(0.4, 0.8, 1.0) # レーザーシアン
+				if sprite: sprite.scale = Vector2(0.4, 1.5)
+			"missile", BULLET_TYPE_BOSS_MISSILE:
+				modulate = Color(0.85, 0.4, 1.0) # 追尾パープル
+				if sprite: sprite.scale = Vector2(0.6, 0.6)
 			BULLET_TYPE_DECEL_MISSILE:
-				modulate = COLOR_DECEL_MISSILE
+				modulate = Color(1.0, 0.3, 0.8) # 減速追尾ピンク
+				if sprite: sprite.scale = Vector2(0.7, 0.7)
 			_:
 				modulate = COLOR_BEAM
 

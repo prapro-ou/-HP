@@ -113,18 +113,28 @@ func shoot() -> void:
 		TYPE_CHARGE:
 			is_charging = true
 			charge_timer = 0.45
-		TYPE_STRAIGHT, TYPE_BEAM:
+		TYPE_STRAIGHT:
 			var dir = Vector2.DOWN
 			if is_instance_valid(player):
 				dir = (player.global_position - global_position).normalized()
 			for i in range(3):
 				get_tree().create_timer(i * 0.1).timeout.connect(func():
 					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
-						var bullet = bullet_pool.get_bullet("beam")
+						var bullet = bullet_pool.get_bullet("straight")
 						if bullet:
 							bullet.global_position = global_position + Vector2(0.0, 20.0)
-							bullet.set_direction(dir, 360.0)
+							bullet.set_direction(dir, 320.0)
 				)
+		TYPE_BEAM, TYPE_LASER:
+			var center_dir = Vector2.DOWN
+			if is_instance_valid(player):
+				center_dir = (player.global_position - global_position).normalized()
+			var angles = [-0.3, 0.0, 0.3]
+			for a in angles:
+				var bullet = bullet_pool.get_bullet("laser")
+				if bullet:
+					bullet.global_position = global_position + Vector2(0.0, 20.0)
+					bullet.set_direction(center_dir.rotated(a), 340.0)
 		TYPE_IRREGULAR:
 			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
 			for i in range(4):
@@ -135,25 +145,15 @@ func shoot() -> void:
 						var bullet = bullet_pool.get_bullet("irregular")
 						if bullet:
 							bullet.global_position = global_position + Vector2(0.0, 20.0)
-							bullet.set_direction(dir, 310.0)
+							bullet.set_direction(dir, 280.0)
 				)
-		TYPE_LASER:
-			var center_dir = Vector2.DOWN
-			if is_instance_valid(player):
-				center_dir = (player.global_position - global_position).normalized()
-			var angles = [-0.4, -0.2, 0.0, 0.2, 0.4]
-			for a in angles:
-				var bullet = bullet_pool.get_bullet("boss_laser")
-				if bullet:
-					bullet.global_position = global_position + Vector2(0.0, 20.0)
-					bullet.set_direction(center_dir.rotated(a), 340.0)
 		TYPE_WAVE:
-			var angles = [-0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6]
+			var angles = [-0.5, -0.25, 0.0, 0.25, 0.5]
 			for a in angles:
 				var bullet = bullet_pool.get_bullet("wave")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 20.0)
-					bullet.set_direction(Vector2.DOWN.rotated(a), 300.0)
+					bullet.set_direction(Vector2.DOWN.rotated(a), 260.0)
 		TYPE_MISSILE, _:
 			var dir = Vector2.DOWN
 			if is_instance_valid(player):
@@ -166,7 +166,7 @@ func shoot() -> void:
 							var offset_x = -15.0 if i == 0 else 15.0
 							bullet.global_position = global_position + Vector2(offset_x, 20.0)
 							var shoot_dir = dir.rotated(randf_range(-0.1, 0.1))
-							bullet.set_direction(shoot_dir, 280.0)
+							bullet.set_direction(shoot_dir, 240.0)
 				)
 
 
@@ -177,13 +177,13 @@ func fire_charged_shot() -> void:
 	if is_instance_valid(player):
 		dir = (player.global_position - global_position).normalized()
 	for i in range(2):
-		get_tree().create_timer(i * 0.12).timeout.connect(func():
+		get_tree().create_timer(i * 0.15).timeout.connect(func():
 			if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
-				var bullet = bullet_pool.get_bullet("boss_laser")
+				var bullet = bullet_pool.get_bullet("charge")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 25.0)
-					bullet.damage = 30
-					bullet.set_direction(dir, 650.0)
+					bullet.damage = 16
+					bullet.set_direction(dir, 480.0)
 		)
 
 
