@@ -28,6 +28,8 @@ var state: String = "start" # 外部互換用文字列プロパティ
 var current_state: State = State.START
 var current_wave_index: int = 0
 var swarm_destroyed_count: int = 0
+var wave_parry_count: int = 0
+var wave_upgrade_count: int = 0
 
 # 戦績データ
 var parry_count: int = 0
@@ -95,6 +97,8 @@ func clean_stage_entities() -> void:
 		current_stage = null
 		
 	parry_count = 0
+	wave_parry_count = 0
+	wave_upgrade_count = 0
 	state_timer = 0.0
 	boss_drone_timer = 0.0
 	swarm_destroyed_count = 0
@@ -163,6 +167,8 @@ func start_wave(index: int) -> void:
 	current_state = State.WAVE
 	state = "wave" + str(index + 1)
 	swarm_destroyed_count = 0
+	wave_parry_count = 0
+	wave_upgrade_count = 0
 	
 	var wave_data = current_stage.get_wave(index)
 	if not wave_data:
@@ -229,8 +235,9 @@ func process_wave_state() -> void:
 	var is_cleared = false
 	match wave_data.clear_condition_type:
 		"analysis_or_parry":
-			var analyzed_count = get_player_analyzed_count()
-			if analyzed_count >= wave_data.target_analysis_count or parry_count >= wave_data.target_parry_count:
+			# 各ウェーブ独立のパリィ数またはウェーブ内レベルアップ数(2回)で判定！
+			var target_parries = wave_data.target_parry_count
+			if wave_parry_count >= target_parries or wave_upgrade_count >= 2:
 				is_cleared = true
 				
 		"dual_analysis":
@@ -499,6 +506,11 @@ func update_ui() -> void:
 
 func register_parry() -> void:
 	parry_count += 1
+	wave_parry_count += 1
+
+
+func register_analysis_upgrade() -> void:
+	wave_upgrade_count += 1
 
 
 func add_damage_score(amount: int) -> void:

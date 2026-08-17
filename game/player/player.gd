@@ -700,6 +700,12 @@ func apply_pattern_trait(pattern_key: String) -> void:
 	
 	trigger_level_up_burst(data, lvl)
 	apply_equipped_weapon_settings()
+	
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var manager = main.get_node_or_null("GameManager")
+		if manager and manager.has_method("register_analysis_upgrade"):
+			manager.register_analysis_upgrade()
 
 
 func trigger_level_up_burst(data: Dictionary, lvl: int) -> void:
