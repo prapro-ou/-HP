@@ -3,12 +3,13 @@ extends CharacterBody2D
 ## - 移動・ガード・攻撃・各種解析変異およびフルバースト制御
 
 # --- 基本パラメータ ---
-@export var max_hp: int = 100
+@export var max_hp: int = 400
 @export var move_speed: float = 300.0
 @export var parry_window_radius: float = 65.0  # パリィ判定範囲
 @export var fire_rate: float = 0.2            # 射撃間隔
 @export var parry_active_time: float = 0.25  # ガード持続時間
 @export var parry_cooldown: float = 2.0      # クールダウン時間
+@export var invincible_duration: float = 1.0  # 被弾後無敵時間（秒）
 
 # 定数：武器タイプ定義
 const WEAPON_MACHINE_GUN = "machine_gun"
@@ -42,9 +43,12 @@ const SUB_MISSILE_SPEED: float = 450.0
 const GIGA_LASER_SPEED: float = 2500.0
 const HYPER_MISSILE_SPEED: float = 800.0
 
-var current_hp: int = 100
+var current_hp: int = 400
 var last_fire_time: float = 0.0
 var enemy_bullets: Array = []
+
+var is_invincible: bool = false
+var invincibility_timer: float = 0.0
 
 var active_timer: float = 0.0
 var cooldown_timer: float = 0.0
@@ -110,8 +114,10 @@ func apply_appearance() -> void:
 func reset_state() -> void:
 	apply_appearance()
 	var hp_lvl = Global.upgrade_levels.get("hp", 0)
-	max_hp = 100 + 10 * hp_lvl
+	max_hp = 400 + 50 * hp_lvl
 	current_hp = max_hp
+	is_invincible = false
+	invincibility_timer = 0.0
 	
 	var parry_lvl = Global.upgrade_levels.get("parry_window", 0)
 	parry_window_radius = 65.0 + 5.0 * parry_lvl
@@ -172,6 +178,17 @@ func apply_equipped_weapon_settings() -> void:
 
 
 func _process(delta: float) -> void:
+	# 無敵タイマー減算 & 点滅処理
+	if is_invincible:
+		invincibility_timer -= delta
+		var sprite = get_node_or_null("Sprite2D")
+		if sprite:
+			sprite.modulate.a = 0.3 if int(invincibility_timer * 22.0) % 2 == 0 else 0.9
+		if invincibility_timer <= 0.0:
+			is_invincible = false
+			if sprite:
+				sprite.modulate.a = 1.0
+
 	var input_vector = Vector2.ZERO
 	input_vector.x = Input.get_axis("ui_left", "ui_right")
 	input_vector.y = Input.get_axis("ui_up", "ui_down")
@@ -520,11 +537,12 @@ func check_parry() -> void:
 				
 	if parry_triggered_now and not parried_in_current_frame:
 		parried_in_current_frame = true
+		heal(6) # パリィ成功時に機体小リペア (+6 HP)
 		trigger_parry_feedback()
 
 
 func take_damage(amount: int) -> void:
-	if is_guarding:
+	if is_guarding or is_invincible:
 		return
 		
 	if Global.is_first_launch and Engine.time_scale < 0.5:
@@ -533,6 +551,10 @@ func take_damage(amount: int) -> void:
 	current_hp -= amount
 	if current_hp <= 0:
 		current_hp = 0
+	else:
+		# 被弾無敵時間 (1.0秒) を付与して多段ヒット即死を防止
+		is_invincible = true
+		invincibility_timer = invincible_duration
 		
 	trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
 
