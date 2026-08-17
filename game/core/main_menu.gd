@@ -35,6 +35,10 @@ var scale_option: OptionButton
 var aspect_option: OptionButton
 var vsync_check: CheckButton
 var shake_check: CheckButton
+var player_color_option: OptionButton
+var player_ship_preview: TextureRect
+var player_ship_color_name_lbl: Label
+var player_color_keys: Array = ["blue", "red", "green", "yellow", "purple", "orange"]
 var master_slider: HSlider
 var master_lbl: Label
 var bgm_slider: HSlider
@@ -288,7 +292,87 @@ func setup_settings_container() -> void:
 	shake_check.text = ""
 	grid_display.add_child(shake_check)
 	
-	# --- SECTION 2: AUDIO ---
+	# --- SECTION 2: SHIP CUSTOMIZATION ---
+	var p_title = Label.new()
+	p_title.text = "自機機体カラー設定"
+	p_title.label_settings = sec_set
+	scroll_content.add_child(p_title)
+	
+	var ship_card = PanelContainer.new()
+	var sc_sb = StyleBoxFlat.new()
+	sc_sb.bg_color = Color(0.05, 0.07, 0.12, 0.8)
+	sc_sb.border_width_left = 2
+	sc_sb.border_width_top = 2
+	sc_sb.border_width_right = 2
+	sc_sb.border_width_bottom = 2
+	sc_sb.border_color = Color(0.2, 0.6, 0.9, 0.6)
+	sc_sb.corner_radius_top_left = 8
+	sc_sb.corner_radius_top_right = 8
+	sc_sb.corner_radius_bottom_left = 8
+	sc_sb.corner_radius_bottom_right = 8
+	ship_card.add_theme_stylebox_override("panel", sc_sb)
+	scroll_content.add_child(ship_card)
+	
+	var ship_margin = MarginContainer.new()
+	ship_margin.add_theme_constant_override("margin_left", 15)
+	ship_margin.add_theme_constant_override("margin_top", 12)
+	ship_margin.add_theme_constant_override("margin_right", 15)
+	ship_margin.add_theme_constant_override("margin_bottom", 12)
+	ship_card.add_child(ship_margin)
+	
+	var ship_box = HBoxContainer.new()
+	ship_box.add_theme_constant_override("separation", 20)
+	ship_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	ship_margin.add_child(ship_box)
+	
+	# Preview Box
+	var preview_panel = PanelContainer.new()
+	preview_panel.custom_minimum_size = Vector2(80, 80)
+	var pp_sb = StyleBoxFlat.new()
+	pp_sb.bg_color = Color(0.02, 0.03, 0.06, 0.9)
+	pp_sb.border_width_left = 1
+	pp_sb.border_width_top = 1
+	pp_sb.border_width_right = 1
+	pp_sb.border_width_bottom = 1
+	pp_sb.border_color = Color(0.3, 0.7, 1.0, 0.5)
+	pp_sb.corner_radius_top_left = 6
+	pp_sb.corner_radius_top_right = 6
+	pp_sb.corner_radius_bottom_left = 6
+	pp_sb.corner_radius_bottom_right = 6
+	preview_panel.add_theme_stylebox_override("panel", pp_sb)
+	ship_box.add_child(preview_panel)
+	
+	player_ship_preview = TextureRect.new()
+	player_ship_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	player_ship_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	player_ship_preview.custom_minimum_size = Vector2(64, 64)
+	preview_panel.add_child(player_ship_preview)
+	
+	# Color controls
+	var controls_vbox = VBoxContainer.new()
+	controls_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	controls_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	controls_vbox.add_theme_constant_override("separation", 8)
+	ship_box.add_child(controls_vbox)
+	
+	player_ship_color_name_lbl = Label.new()
+	player_ship_color_name_lbl.text = "コバルトブルー (標準)"
+	var cn_set = LabelSettings.new()
+	cn_set.font_size = 17
+	cn_set.font_color = Color.CYAN
+	player_ship_color_name_lbl.label_settings = cn_set
+	controls_vbox.add_child(player_ship_color_name_lbl)
+	
+	player_color_option = OptionButton.new()
+	player_color_option.custom_minimum_size = Vector2(210, 36)
+	player_color_option.add_theme_font_size_override("font_size", 15)
+	for i in range(player_color_keys.size()):
+		var key = player_color_keys[i]
+		var col_info = Global.available_player_colors.get(key, {"name": key})
+		player_color_option.add_item(col_info["name"], i)
+	controls_vbox.add_child(player_color_option)
+	
+	# --- SECTION 3: AUDIO ---
 	var a_title = Label.new()
 	a_title.text = "音量設定"
 	a_title.label_settings = sec_set
@@ -381,6 +465,7 @@ func setup_settings_container() -> void:
 	mode_option.item_selected.connect(_on_display_mode_changed)
 	scale_option.item_selected.connect(_on_display_scale_changed)
 	aspect_option.item_selected.connect(_on_display_aspect_changed)
+	player_color_option.item_selected.connect(_on_player_color_changed)
 	vsync_check.toggled.connect(func(t): Global.vsync = t)
 	shake_check.toggled.connect(func(t): Global.screen_shake = t)
 	
@@ -711,6 +796,30 @@ func sync_settings_to_ui() -> void:
 	
 	sfx_slider.value = Global.sfx_volume
 	sfx_lbl.text = str(int(Global.sfx_volume)) + "%"
+	
+	var color_idx = player_color_keys.find(Global.player_color)
+	if color_idx != -1:
+		player_color_option.selected = color_idx
+	else:
+		player_color_option.selected = 0
+	update_ship_preview()
+
+func update_ship_preview() -> void:
+	if not player_ship_preview:
+		return
+	var cur_color = Global.player_color
+	var tex_path = Global.get_player_texture_path(cur_color)
+	if ResourceLoader.exists(tex_path):
+		player_ship_preview.texture = load(tex_path)
+	if Global.available_player_colors.has(cur_color):
+		var data = Global.available_player_colors[cur_color]
+		player_ship_color_name_lbl.text = data["name"]
+		player_ship_color_name_lbl.label_settings.font_color = data.get("accent_color", Color.CYAN)
+
+func _on_player_color_changed(idx: int) -> void:
+	if idx >= 0 and idx < player_color_keys.size():
+		Global.player_color = player_color_keys[idx]
+		update_ship_preview()
 
 func _on_play_start_pressed() -> void:
 	# Check if first launch or not
