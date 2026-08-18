@@ -15,15 +15,16 @@ func _setup_waves() -> void:
 	# Wave 1: 崩壊地底ルート・緊急脱出
 	var w1 = WaveData.new()
 	w1.wave_id = "wave1_escape"
-	w1.display_title = "第4エリア: 崩壊地底・脱出ルート"
-	w1.start_message = "【MISSION 04: 惑星内部脱出】\n中枢コア崩壊！地底崩落と追撃部隊を振り切れ！\n高速ミサイルと破砕弾をパリィで突破せよ！"
+	w1.display_title = "PHASE 1: 崩壊地底・緊急脱出ルート"
+	w1.start_message = "【MISSION 04: 崩壊地底脱出サバイバル】\n制限時間（90秒）まで追撃部隊を振り切れ！\n高速ミサイルと破砕弾をパリィで突破せよ！"
 	w1.clear_condition_type = "analysis_or_parry"
-	w1.target_analysis_count = 3
-	w1.target_parry_count = 42
-	w1.transition_delay = 2.5
-	w1.completion_message = "【脱出加速】地底第1隔壁突破！"
+	w1.target_drone_count = 16
+	w1.target_parry_count = 28
+	w1.transition_delay = 2.2
+	w1.completion_message = "【PHASE 1 突破】地底第1隔壁突破！加速せよ！"
 	w1.replenish_types = ["missile", "irregular", "laser", "charge"]
-	w1.min_active_drones = 4
+	w1.min_active_drones = 5
+	w1.drone_speed_override = 220.0
 	
 	w1.initial_spawns = [
 		WaveSpawnConfig.new("missile", 0.15, -60.0),
@@ -36,15 +37,16 @@ func _setup_waves() -> void:
 	# Wave 2: 追撃自律殲滅包囲網
 	var w2 = WaveData.new()
 	w2.wave_id = "wave2_pursuit"
-	w2.display_title = "脱出ルート出口: 追撃殲滅包囲網"
+	w2.display_title = "PHASE 2: 地底脱出中間点・自律殲滅包囲網"
 	w2.start_message = "[ASSIST AI]: 追撃自律部隊の挟撃を検知！\n全方位からの重弾幕をパリィして地表へ脱出せよ！"
 	w2.clear_condition_type = "analysis_or_parry"
-	w2.target_analysis_count = 4
-	w2.target_parry_count = 52
-	w2.transition_delay = 3.0
+	w2.target_drone_count = 22
+	w2.target_parry_count = 38
+	w2.transition_delay = 2.5
+	w2.completion_message = "【PHASE 2 突破】追撃包囲網を突破！"
 	w2.replenish_types = ["charge", "missile", "laser", "wave", "irregular"]
 	w2.min_active_drones = 5
-	w2.drone_speed_override = 260.0
+	w2.drone_speed_override = 240.0
 	
 	w2.initial_spawns = [
 		WaveSpawnConfig.new("charge", 0.12, -70.0),
@@ -54,6 +56,29 @@ func _setup_waves() -> void:
 		WaveSpawnConfig.new("charge", 0.90, -70.0)
 	]
 	waves.append(w2)
+
+	# Wave 3: 地表出口直前・超重追撃大編隊
+	var w3 = WaveData.new()
+	w3.wave_id = "wave3_dread_escort"
+	w3.display_title = "PHASE 3: 脱出ルート出口・最終追撃大編隊"
+	w3.start_message = "[ASSIST AI]: ドレッドノート直属の追撃大隊が襲来！\n全兵装の最大火力を解放し、地表へ抜け出せ！"
+	w3.clear_condition_type = "analysis_or_parry"
+	w3.target_drone_count = 26
+	w3.target_parry_count = 48
+	w3.transition_delay = 3.0
+	w3.completion_message = "【PHASE 3 突破】地表脱出成功！ドレッドノート出現！"
+	w3.replenish_types = ["missile", "charge", "laser", "irregular", "wave"]
+	w3.min_active_drones = 6
+	w3.drone_speed_override = 260.0
+	
+	w3.initial_spawns = [
+		WaveSpawnConfig.new("missile", 0.10, -60.0),
+		WaveSpawnConfig.new("charge", 0.30, -90.0),
+		WaveSpawnConfig.new("laser", 0.50, -60.0),
+		WaveSpawnConfig.new("missile", 0.70, -90.0),
+		WaveSpawnConfig.new("charge", 0.90, -60.0)
+	]
+	waves.append(w3)
 
 func _setup_interlude() -> void:
 	interlude.title = "⚠️ CRITICAL WARNING ⚠️"

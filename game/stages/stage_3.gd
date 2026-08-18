@@ -15,15 +15,16 @@ func _setup_waves() -> void:
 	# Wave 1: 地底プラント防衛ライン
 	var w1 = WaveData.new()
 	w1.wave_id = "wave1_facility"
-	w1.display_title = "第3エリア: 惑星内部・軍事工廠"
-	w1.start_message = "【MISSION 03: 惑星内部施設侵入】\n惑星地底深くの中枢工廠へ突入！\n電磁プラズマと高出力ビームをパリィせよ！"
+	w1.display_title = "PHASE 1: 惑星内部・軍事工廠前衛"
+	w1.start_message = "【MISSION 03: 惑星内部工廠・制圧戦】\n制限時間（90秒）まで工廠警備部隊を殲滅せよ！\n電磁プラズマと高出力ビームをパリィで制圧せよ！"
 	w1.clear_condition_type = "analysis_or_parry"
-	w1.target_analysis_count = 3
-	w1.target_parry_count = 40
-	w1.transition_delay = 2.5
-	w1.completion_message = "【防壁突破】第1工廠ライン制圧！"
+	w1.target_drone_count = 15
+	w1.target_parry_count = 25
+	w1.transition_delay = 2.2
+	w1.completion_message = "【PHASE 1 突破】第1工廠ライン制圧！"
 	w1.replenish_types = ["laser", "charge", "wave", "irregular"]
-	w1.min_active_drones = 4
+	w1.min_active_drones = 5
+	w1.drone_speed_override = 200.0
 	
 	w1.initial_spawns = [
 		WaveSpawnConfig.new("laser", 0.15, -50.0),
@@ -33,18 +34,19 @@ func _setup_waves() -> void:
 	]
 	waves.append(w1)
 	
-	# Wave 2: 中枢防衛ヘビーセキュリティ
+	# Wave 2: プラズマ工廠警備部隊
 	var w2 = WaveData.new()
 	w2.wave_id = "wave2_facility_core"
-	w2.display_title = "内部中枢: ヘビーセキュリティ部隊"
+	w2.display_title = "PHASE 2: 高度軍事プラント・警備大隊"
 	w2.start_message = "[ASSIST AI]: 惑星中枢防衛セキュリティが最大稼働！\nチャージボルトと誘導弾の嵐をパリィで制圧せよ！"
 	w2.clear_condition_type = "analysis_or_parry"
-	w2.target_analysis_count = 4
-	w2.target_parry_count = 50
-	w2.transition_delay = 3.0
+	w2.target_drone_count = 20
+	w2.target_parry_count = 35
+	w2.transition_delay = 2.5
+	w2.completion_message = "【PHASE 2 制圧】工廠警備大隊を完全壊滅！"
 	w2.replenish_types = ["charge", "missile", "laser", "irregular", "wave"]
-	w2.min_active_drones = 4
-	w2.drone_speed_override = 250.0
+	w2.min_active_drones = 5
+	w2.drone_speed_override = 220.0
 	
 	w2.initial_spawns = [
 		WaveSpawnConfig.new("charge", 0.15, -60.0),
@@ -53,6 +55,29 @@ func _setup_waves() -> void:
 		WaveSpawnConfig.new("charge", 0.85, -90.0)
 	]
 	waves.append(w2)
+
+	# Wave 3: 中枢ヘビーセキュリティ総動員
+	var w3 = WaveData.new()
+	w3.wave_id = "wave3_facility_overdrive"
+	w3.display_title = "PHASE 3: コア直轄・ヘビーセキュリティ総動員"
+	w3.start_message = "[ASSIST AI]: 最終迎撃セキュリティが限界突破！\n全方位から迫る重弾幕をパリィ反射し、コロッサスコアを解放せよ！"
+	w3.clear_condition_type = "analysis_or_parry"
+	w3.target_drone_count = 25
+	w3.target_parry_count = 45
+	w3.transition_delay = 3.0
+	w3.completion_message = "【PHASE 3 突破】工廠中枢を完全制圧！巨大コア起動！"
+	w3.replenish_types = ["laser", "charge", "missile", "wave", "irregular"]
+	w3.min_active_drones = 6
+	w3.drone_speed_override = 240.0
+	
+	w3.initial_spawns = [
+		WaveSpawnConfig.new("laser", 0.10, -60.0),
+		WaveSpawnConfig.new("missile", 0.30, -90.0),
+		WaveSpawnConfig.new("charge", 0.50, -60.0),
+		WaveSpawnConfig.new("wave", 0.70, -90.0),
+		WaveSpawnConfig.new("laser", 0.90, -60.0)
+	]
+	waves.append(w3)
 
 func _setup_interlude() -> void:
 	interlude.title = "⚠️ CRITICAL WARNING ⚠️"

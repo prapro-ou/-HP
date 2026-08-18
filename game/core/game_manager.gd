@@ -27,9 +27,15 @@ var current_stage_num: int = 1
 var state: String = "start" # 外部互換用文字列プロパティ
 var current_state: State = State.START
 var current_wave_index: int = 0
+var current_wave_level: int = 1
 var swarm_destroyed_count: int = 0
+var total_wave_kills: int = 0
 var wave_parry_count: int = 0
 var wave_upgrade_count: int = 0
+
+# 90秒防衛＆育成タイマー定数
+const WAVE_PHASE_MAX_DURATION: float = 90.0
+var wave_phase_timer: float = 90.0
 
 # 戦績データ
 var parry_count: int = 0
@@ -102,7 +108,10 @@ func clean_stage_entities() -> void:
 	state_timer = 0.0
 	boss_drone_timer = 0.0
 	swarm_destroyed_count = 0
+	total_wave_kills = 0
 	current_wave_index = 0
+	current_wave_level = 1
+	wave_phase_timer = WAVE_PHASE_MAX_DURATION
 	current_state = State.START
 	state = "start"
 	
@@ -204,7 +213,7 @@ func spawn_drone(type: String, pos: Vector2) -> Node2D:
 func _process(delta: float) -> void:
 	match current_state:
 		State.WAVE:
-			process_wave_state()
+			process_wave_state(delta)
 			
 		State.WAVE_TRANSITION:
 			state_timer += delta
@@ -226,41 +235,43 @@ func _process(delta: float) -> void:
 	update_ui()
 
 
-func process_wave_state() -> void:
-	var wave_data = current_stage.get_wave(current_wave_index)
-	if not wave_data:
+func process_wave_state(delta: float) -> void:
+	# 90秒制限時間タイマーの減算
+	wave_phase_timer -= delta
+	
+	if wave_phase_timer <= 0.0:
+		wave_phase_timer = 0.0
+		clear_drones()
+		spawn_popup("⏱️ 90秒防衛達成！強大な敵反応を検知！")
 		trigger_interlude()
 		return
 		
-	var is_cleared = false
-	match wave_data.clear_condition_type:
-		"analysis_or_parry":
-			# 各ウェーブ独立のパリィ数またはウェーブ内レベルアップ数(2回)で判定！
-			var target_parries = wave_data.target_parry_count
-			if wave_parry_count >= target_parries or wave_upgrade_count >= 2:
-				is_cleared = true
-				
-		"drone_count":
-			if swarm_destroyed_count >= wave_data.target_drone_count:
-				is_cleared = true
-				
-		_:
-			# フォールバック
-			if wave_parry_count >= wave_data.target_parry_count:
-				is_cleared = true
-				
-	if is_cleared:
-		clear_drones()
-		current_wave_index += 1
-		state_timer = 0.0
+	# 90秒間の時間経過に合わせて、ステージのWave段階を自動ステップアップ！
+	if current_stage and current_stage.waves.size() > 0:
+		var total_waves = current_stage.waves.size()
+		var elapsed_time = WAVE_PHASE_MAX_DURATION - wave_phase_timer
+		var step_duration = WAVE_PHASE_MAX_DURATION / float(total_waves)
+		var target_wave_idx = clamp(int(elapsed_time / step_duration), 0, total_waves - 1)
 		
-		if current_wave_index < current_stage.waves.size():
-			current_state = State.WAVE_TRANSITION
-			if wave_data.completion_message != "":
-				spawn_popup(wave_data.completion_message)
-		else:
-			trigger_interlude()
-	else:
+		if target_wave_idx > current_wave_index:
+			current_wave_index = target_wave_idx
+			current_wave_level = current_wave_index + 1
+			state = "wave" + str(current_wave_level)
+			
+			# ウェーブ移行ボーナス：機体修復 (+30 HP) & ボーナスTP (+10 TP)
+			if is_instance_valid(player) and player.has_method("heal"):
+				player.heal(30)
+			Global.tech_points += 10
+			
+			var new_wave_data = current_stage.get_wave(current_wave_index)
+			if new_wave_data:
+				var title_str = new_wave_data.display_title
+				if title_str == "":
+					title_str = "⚡ WAVE %d 突入！敵増援！" % current_wave_level
+				spawn_popup(title_str)
+				
+	var wave_data = current_stage.get_wave(current_wave_index) if current_stage else null
+	if wave_data:
 		check_drone_replenish(wave_data)
 
 
@@ -319,11 +330,8 @@ func check_drone_replenish(wave_data: BaseStage.WaveData) -> void:
 		if is_instance_valid(d):
 			active += 1
 			
+	# 目標撃破数による停止は行わず、制限時間いっぱいまで常時敵を補充！
 	if active < wave_data.min_active_drones:
-		if wave_data.clear_condition_type == "drone_count":
-			if swarm_destroyed_count + active >= wave_data.target_drone_count:
-				return
-				
 		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
 		var chosen_type = get_boosted_replenish_type(wave_data)
 		var drone = spawn_drone(chosen_type, Vector2(rx, -50))
@@ -363,16 +371,20 @@ func clear_drones() -> void:
 func on_drone_destroyed(drone) -> void:
 	if spawned_drones.has(drone):
 		spawned_drones.erase(drone)
-		var wave_data = current_stage.get_wave(current_wave_index) if current_stage else null
-		if wave_data and wave_data.clear_condition_type == "drone_count":
-			swarm_destroyed_count += 1
-			spawn_popup("SWARM ELIMINATED: %d/%d" % [swarm_destroyed_count, wave_data.target_drone_count])
+		swarm_destroyed_count += 1
+		total_wave_kills += 1
+		
+		if ui and ui.has_method("update_wave_phase_hud"):
+			ui.update_wave_phase_hud(current_wave_level, wave_phase_timer, total_wave_kills)
 
 
 func trigger_interlude() -> void:
 	current_state = State.INTERLUDE
 	state = "interlude"
 	state_timer = 0.0
+	
+	if ui and ui.has_method("hide_wave_phase_hud"):
+		ui.hide_wave_phase_hud()
 	
 	var inter_data = current_stage.interlude
 	if ui and ui.has_method("show_warning"):
@@ -397,6 +409,9 @@ func trigger_interlude() -> void:
 func start_boss_battle() -> void:
 	current_state = State.BOSS
 	state = "boss"
+	
+	if ui and ui.has_method("hide_wave_phase_hud"):
+		ui.hide_wave_phase_hud()
 	
 	if boss:
 		boss.visible = true
@@ -449,6 +464,13 @@ func update_ui() -> void:
 		return
 		
 	ui.update_player_hp(player.current_hp, player.max_hp)
+	
+	if current_state == State.WAVE:
+		if ui.has_method("update_wave_phase_hud"):
+			ui.update_wave_phase_hud(current_wave_level, wave_phase_timer, total_wave_kills)
+	else:
+		if ui.has_method("hide_wave_phase_hud"):
+			ui.hide_wave_phase_hud()
 	
 	if (current_state == State.BOSS or current_state == State.VICTORY_TRANSITION) and is_instance_valid(boss):
 		var current_boss_hp = boss.get_current_hp() if boss.has_method("get_current_hp") else 0
