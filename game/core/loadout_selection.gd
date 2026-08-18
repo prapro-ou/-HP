@@ -67,19 +67,19 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func init_data() -> void:
-	# 1. Primary Weapons
+	# 1. Primary Weapons (DESIGN.md 基本武装 5種)
 	var w1 = LoadoutItem.new()
 	w1.id = "machine_gun"
 	w1.name = "マシンガン"
-	w1.description = "標準的な物理連射弾。安定した射撃が可能。"
+	w1.description = "物理実弾を高速連射する標準兵装。安定したDPSと高い制圧力を誇る。"
 	w1.stats = "連射:★★★ | 威力:★★☆ | 弾速:★★☆"
 	w1.is_unlocked = Global.unlocked_weapons.has("machine_gun")
 	primary_weapons.append(w1)
 	
 	var w2 = LoadoutItem.new()
 	w2.id = "burst_rifle"
-	w2.name = "3点バースト"
-	w2.description = "高威力の3連射ライフル。高い貫通力を誇る。"
+	w2.name = "ライフル"
+	w2.description = "単発火力と弾速に優れる3点バースト徹甲ライフル。硬い敵を貫通粉砕する。"
 	w2.stats = "連射:★★☆ | 威力:★★★ | 弾速:★★★"
 	w2.is_unlocked = Global.unlocked_weapons.has("burst_rifle")
 	primary_weapons.append(w2)
@@ -87,34 +87,26 @@ func init_data() -> void:
 	var w3 = LoadoutItem.new()
 	w3.id = "pulse_gun"
 	w3.name = "パルスガン"
-	w3.description = "広範囲プラズマ弾。敵群の掃討に最適。"
+	w3.description = "扇状に広がるプラズマ波動弾。広角に展開し多数の敵を巻き込む。"
 	w3.stats = "連射:★★★ | 威力:★★☆ | 弾速:★☆☆"
 	w3.is_unlocked = Global.unlocked_weapons.has("pulse_gun")
 	primary_weapons.append(w3)
 	
 	var w4 = LoadoutItem.new()
-	w4.id = "charge_rifle"
-	w4.name = "チャージライフル"
-	w4.description = "強力な一撃を放つチャージ式レールガン。"
-	w4.stats = "連射:★☆☆ | 威力:★★★ | 弾速:★★★"
-	w4.is_unlocked = Global.unlocked_weapons.has("charge_rifle")
+	w4.id = "plasma_emitter"
+	w4.name = "プラズマ放射器"
+	w4.description = "高熱プラズマ球を前方へ投射。着弾時に持続放電フィールドで大ダメージを与える。"
+	w4.stats = "連射:★★☆ | 威力:★★★ | 弾速:★☆☆"
+	w4.is_unlocked = Global.unlocked_weapons.has("plasma_emitter")
 	primary_weapons.append(w4)
 	
 	var w5 = LoadoutItem.new()
-	w5.id = "plasma_emitter"
-	w5.name = "プラズマ放射器"
-	w5.description = "持続ダメージを与える熱プラズマを放射。"
-	w5.stats = "連射:★★☆ | 威力:★★★ | 弾速:★★☆"
-	w5.is_unlocked = Global.unlocked_weapons.has("plasma_emitter")
+	w5.id = "kinetic_tackle"
+	w5.name = "タックル"
+	w5.description = "機体前方に強力な衝撃破砕波を放つ超近接直接攻撃兵装。密着時に超絶威力。"
+	w5.stats = "連射:★☆☆ | 威力:★★★ | 弾速:★★☆"
+	w5.is_unlocked = Global.unlocked_weapons.has("kinetic_tackle")
 	primary_weapons.append(w5)
-	
-	var w6 = LoadoutItem.new()
-	w6.id = "kinetic_tackle"
-	w6.name = "タックル"
-	w6.description = "機体体当たり攻撃。近距離超威力。"
-	w6.stats = "連射:★☆☆ | 威力:★★★ | 弾速:★☆☆"
-	w6.is_unlocked = Global.unlocked_weapons.has("kinetic_tackle")
-	primary_weapons.append(w6)
 
 	# 2. Shields (技研で各30 TPで開発可能)
 	var s1 = LoadoutItem.new()

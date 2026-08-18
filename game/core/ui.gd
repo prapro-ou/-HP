@@ -65,6 +65,99 @@ func _ready() -> void:
 	
 	create_shield_heat_bar()
 	create_analysis_matrix_ui()
+	create_wave_phase_ui()
+
+
+var wave_timer_panel: PanelContainer
+var wave_level_label: Label
+var wave_countdown_label: Label
+var wave_kills_label: Label
+
+func create_wave_phase_ui() -> void:
+	wave_timer_panel = PanelContainer.new()
+	wave_timer_panel.name = "WaveTimerPanel"
+	wave_timer_panel.position = Vector2(250, 10)
+	wave_timer_panel.custom_minimum_size = Vector2(250, 88)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
+	sb.border_color = Color(0.2, 0.5, 0.8, 0.9)
+	wave_timer_panel.add_theme_stylebox_override("panel", sb)
+	add_child(wave_timer_panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+	wave_timer_panel.add_child(vbox)
+	
+	var hdr = HBoxContainer.new()
+	hdr.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(hdr)
+	
+	wave_level_label = Label.new()
+	wave_level_label.text = "⚡ WAVE 1"
+	var w_set = LabelSettings.new()
+	if PIXEL_FONT:
+		w_set.font = PIXEL_FONT
+	w_set.font_size = 14
+	w_set.font_color = Color.GOLD
+	w_set.outline_size = 4
+	w_set.outline_color = Color.BLACK
+	wave_level_label.label_settings = w_set
+	hdr.add_child(wave_level_label)
+	
+	wave_countdown_label = Label.new()
+	wave_countdown_label.text = "⏱️ 01:30"
+	wave_countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var c_set = LabelSettings.new()
+	if PIXEL_FONT:
+		c_set.font = PIXEL_FONT
+	c_set.font_size = 20
+	c_set.font_color = Color.CYAN
+	c_set.outline_size = 6
+	c_set.outline_color = Color.BLACK
+	wave_countdown_label.label_settings = c_set
+	vbox.add_child(wave_countdown_label)
+	
+	wave_kills_label = Label.new()
+	wave_kills_label.text = "💀 撃破数: 0 体"
+	wave_kills_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var k_set = LabelSettings.new()
+	if PIXEL_FONT:
+		k_set.font = PIXEL_FONT
+	k_set.font_size = 13
+	k_set.font_color = Color(0.9, 0.9, 0.9)
+	k_set.outline_size = 4
+	k_set.outline_color = Color.BLACK
+	wave_kills_label.label_settings = k_set
+	vbox.add_child(wave_kills_label)
+
+
+func update_wave_phase_hud(wave_num: int, remaining_time: float, kills: int) -> void:
+	if is_instance_valid(wave_timer_panel):
+		wave_timer_panel.visible = true
+		wave_level_label.text = "⚡ WAVE %d" % wave_num
+		
+		var total_sec = max(0, int(ceil(remaining_time)))
+		var mins = total_sec / 60
+		var secs = total_sec % 60
+		wave_countdown_label.text = "⏱️ %02d:%02d" % [mins, secs]
+		
+		if remaining_time <= 10.0:
+			var flash = int(remaining_time * 6.0) % 2 == 0
+			wave_countdown_label.label_settings.font_color = Color.RED if flash else Color.YELLOW
+		else:
+			wave_countdown_label.label_settings.font_color = Color.CYAN
+			
+		wave_kills_label.text = "💀 撃破数: %d 体" % kills
+
+
+func hide_wave_phase_hud() -> void:
+	if is_instance_valid(wave_timer_panel):
+		wave_timer_panel.visible = false
 
 
 func create_shield_heat_bar() -> void:
@@ -283,6 +376,7 @@ func update_player_hp(current: int, max_hp_val: int) -> void:
 
 
 func update_boss_hp(current: int, max_hp_val: int) -> void:
+	hide_wave_phase_hud()
 	boss_hp_bar.visible = true
 	boss_hp_label.visible = true
 	boss_hp_bar.max_value = max_hp_val

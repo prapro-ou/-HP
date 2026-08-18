@@ -20,71 +20,76 @@ func _ready() -> void:
 
 func update_visual() -> void:
 	match bullet_type:
-		"analysis":
-			scale = Vector2(0.5, 0.5)
-			modulate = Color.GREEN
-			damage = 1
-			speed = 900.0
-		"beam":
-			scale = Vector2(0.4, 2.2)
-			modulate = Color.CYAN
-			damage = 7
-			speed = 1500.0
-		"giga_laser":
-			scale = Vector2(1.2, 4.5)
-			modulate = Color.GOLD
-			damage = 18
-			speed = 2000.0
-		"missile":
-			scale = Vector2(0.8, 0.8)
-			modulate = Color(0.9, 0.4, 1.0) # 明るい紫
-			damage = 12
-			speed = 450.0
-		"hyper_missile":
-			scale = Vector2(1.3, 1.3)
-			modulate = Color.ORANGE
-			damage = 25
-			speed = 550.0
 		"machine_gun":
-			scale = Vector2(0.5, 0.9)
-			modulate = Color(1.0, 0.8, 0.3)
-			damage = 4
-			speed = 1100.0
+			scale = Vector2(0.6, 1.2)
+			modulate = Color(1.0, 0.85, 0.3) # 鮮烈な物理イエローゴールド
+			damage = 14
+			speed = 1200.0
 		"burst_rifle":
-			scale = Vector2(0.35, 1.4)
-			modulate = Color(1.0, 0.45, 0.1)
-			damage = 8
-			speed = 1300.0
-		"charge_bolt":
-			scale = Vector2(1.1, 2.5)
-			modulate = Color(0.3, 0.8, 1.0)
-			damage = 38
-			speed = 1800.0
+			scale = Vector2(0.5, 2.0)
+			modulate = Color(1.0, 0.5, 0.1) # 灼熱の徹甲オレンジ
+			damage = 26
+			speed = 1500.0
 		"pulse":
-			scale = Vector2(0.8, 0.6)
-			modulate = Color(0.2, 1.0, 0.6)
-			damage = 7
+			scale = Vector2(1.3, 0.8)
+			modulate = Color(0.2, 1.0, 0.6) # エメラルドプラズマ波
+			damage = 18
 			speed = 950.0
 		"plasma":
-			scale = Vector2(1.5, 1.5)
-			modulate = Color(0.6, 0.9, 0.2) # Yellow-Green
-			damage = 6
-			speed = 500.0
-		"cyclone":
-			scale = Vector2(1.1, 1.1)
-			modulate = Color(1.0, 0.85, 0.2) # イエロー
-			damage = 14
-			speed = 750.0
-		"photon_laser":
-			scale = Vector2(1.6, 5.0)
-			modulate = Color(0.4, 0.9, 1.0) # シアンレーザー
-			damage = 22
-			speed = 2200.0
-		"player_meteor":
 			scale = Vector2(1.8, 1.8)
-			modulate = Color(1.0, 0.35, 0.2) # 隕石オレンジレッド
-			damage = 35
+			modulate = Color(0.3, 1.0, 0.4) # 高熱グリーンプラズマ球
+			damage = 22
 			speed = 600.0
+		"tackle":
+			scale = Vector2(2.8, 1.6)
+			modulate = Color(0.3, 0.75, 1.0) # 強力キネティック衝撃波
+			damage = 50
+			speed = 850.0
+		"analysis":
+			scale = Vector2(0.6, 0.6)
+			modulate = Color.GREEN
+			damage = 10
+			speed = 950.0
+		"beam":
+			scale = Vector2(0.5, 2.5)
+			modulate = Color.CYAN
+			damage = 18
+			speed = 1600.0
+		"giga_laser":
+			scale = Vector2(1.6, 5.5)
+			modulate = Color.GOLD
+			damage = 32
+			speed = 2200.0
+		"missile":
+			scale = Vector2(0.9, 0.9)
+			modulate = Color(0.9, 0.4, 1.0) # 明るい紫
+			damage = 24
+			speed = 500.0
+		"hyper_missile":
+			scale = Vector2(1.4, 1.4)
+			modulate = Color.ORANGE
+			damage = 45
+			speed = 650.0
+		"charge_bolt":
+			scale = Vector2(1.2, 2.8)
+			modulate = Color(0.3, 0.8, 1.0)
+			damage = 45
+			speed = 1800.0
+		"cyclone":
+			scale = Vector2(1.2, 1.2)
+			modulate = Color(1.0, 0.85, 0.2) # イエロー
+			damage = 22
+			speed = 800.0
+		"photon_laser":
+			scale = Vector2(1.8, 5.5)
+			modulate = Color(0.4, 0.9, 1.0) # シアンレーザー
+			damage = 30
+			speed = 2400.0
+		"player_meteor":
+			scale = Vector2(2.0, 2.0)
+			modulate = Color(1.0, 0.35, 0.2) # 隕石オレンジレッド
+			damage = 55
+			speed = 650.0
 			
 	if velocity == Vector2.ZERO:
 		velocity = Vector2.UP * speed
@@ -161,30 +166,36 @@ func _on_area_entered(area: Area2D) -> void:
 		elif damage_target.has_method("take_damage_on_part"):
 			damage_target.take_damage_on_part("core", damage)
 		
-		# 爆発エフェクト
+		# 爆発・衝撃波エフェクト
 		if bullet_type == "hyper_missile" or bullet_type == "player_meteor":
-			trigger_explosion()
+			trigger_explosion(120.0, 18, Color.ORANGE, 2.2)
+		elif bullet_type == "plasma":
+			trigger_explosion(80.0, 12, Color(0.3, 1.0, 0.4), 1.8)
+		elif bullet_type == "tackle":
+			trigger_explosion(100.0, 25, Color(0.4, 0.8, 1.0), 2.5)
 		elif bullet_type == "missile":
 			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0))
+		else:
+			spawn_bullet_impact_particles(modulate, 0.8)
 			
-		# 貫通弾以外の弾丸は消去 (レーザー、チャージボルト、プラズマ、タクル、サイクロン、フォトンレーザー、隕石は貫通)
+		# 貫通弾以外の弾丸は消去 (レーザー、チャージボルト、プラズマ、タックル、サイクロン、フォトンレーザー、隕石は貫通)
 		var is_piercing = (bullet_type == "giga_laser" or bullet_type == "charge_bolt" or bullet_type == "plasma" or bullet_type == "tackle" or bullet_type == "photon_laser" or bullet_type == "cyclone" or bullet_type == "player_meteor")
 		if not is_piercing:
 			queue_free()
 
 
-func trigger_explosion() -> void:
+func trigger_explosion(radius: float = 100.0, splash_dmg: int = 12, fx_color: Color = Color.ORANGE, fx_scale: float = 2.0) -> void:
 	# 周囲へのスプラッシュダメージ
 	var targets = get_tree().get_nodes_in_group("enemy")
 	for t in targets:
 		if is_instance_valid(t) and t != self:
 			var dist = global_position.distance_to(t.global_position)
-			if dist < 120.0:
+			if dist < radius:
 				if t.has_method("take_damage"):
-					t.take_damage(12)
+					t.take_damage(splash_dmg)
 					
 	# 爆発パーティクル
-	spawn_bullet_impact_particles(Color.ORANGE, 2.0)
+	spawn_bullet_impact_particles(fx_color, fx_scale)
 
 
 func spawn_bullet_impact_particles(color: Color, scale_multiplier: float = 1.0) -> void:

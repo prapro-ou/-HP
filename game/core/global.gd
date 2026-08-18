@@ -15,7 +15,7 @@ var is_first_launch: bool = true
 var tech_points: int = 0
 var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (faster charge/absorb), "power" (buff primary)
 var unlocked_shields: Array = ["counter"] # Available shield frameworks
-var unlocked_weapons: Array = ["machine_gun", "pulse_gun"] # Available primary weapon frameworks
+var unlocked_weapons: Array = ["machine_gun", "burst_rifle", "pulse_gun"] # Available primary weapon frameworks
 var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
 var upgrade_levels: Dictionary = {
 	"hp": 0,
@@ -26,28 +26,34 @@ var upgrade_levels: Dictionary = {
 # Weapon Dictionary Definition
 var available_weapons: Dictionary = {
 	"machine_gun": {
-		"name": "STANDARD MACHINE GUN",
-		"description": "Rapid-fire physical rounds. Offers steady fire rate and reliable coverage.",
-		"stats": "DMG: ★★☆ | RATE: ★★★ | VEL: ★★☆",
+		"name": "マシンガン",
+		"description": "標準的な物理連射弾。高速連射と安定した制圧力を持つ主兵装。",
+		"stats": "連射:★★★ | 威力:★★☆ | 弾速:★★☆",
 		"unlocked": true
 	},
 	"burst_rifle": {
-		"name": "3-ROUND BURST RIFLE",
-		"description": "Fires 3-round bursts of high-impact penetrative bullets with short delay.",
-		"stats": "DMG: ★★★ | RATE: ★★☆ | VEL: ★★★",
-		"unlocked": true
-	},
-	"charge_rifle": {
-		"name": "COIL CHARGE RIFLE",
-		"description": "Charges energy to release a concentrated, high-damage railgun energy bolt.",
-		"stats": "DMG: ★★★ | RATE: ★☆☆ | VEL: ★★★",
+		"name": "ライフル (3点バースト)",
+		"description": "単発火力・射程重視の徹甲3連射ライフル。硬い敵を貫通粉砕する。",
+		"stats": "連射:★★☆ | 威力:★★★ | 弾速:★★★",
 		"unlocked": true
 	},
 	"pulse_gun": {
-		"name": "DUAL PULSE CANNON",
-		"description": "Fires twin spreading plasma pulse waves. Excellent for crowd control.",
-		"stats": "DMG: ★★☆ | RATE: ★★★ | VEL: ★☆☆",
+		"name": "パルスガン",
+		"description": "扇状に広がるプラズマ波動弾。広範囲の雑魚敵を一網打尽にする。",
+		"stats": "連射:★★★ | 威力:★★☆ | 弾速:★☆☆",
 		"unlocked": true
+	},
+	"plasma_emitter": {
+		"name": "プラズマ放射器",
+		"description": "超高熱のプラズマ球を射出。着弾時に持続放電フィールドを形成する。",
+		"stats": "連射:★★☆ | 威力:★★★ | 弾速:★☆☆",
+		"unlocked": false
+	},
+	"kinetic_tackle": {
+		"name": "キネティックタックル",
+		"description": "機体前方に強力な衝撃破砕波を発生させる超近接・突撃用兵装。",
+		"stats": "連射:★☆☆ | 威力:★★★ | 弾速:★★☆",
+		"unlocked": false
 	}
 }
 
@@ -164,7 +170,7 @@ func load_game_data() -> Dictionary:
 		data["unlocked_shields"] = config.get_value("game", "unlocked_shields", ["counter"])
 		unlocked_shields = data["unlocked_shields"]
 		
-		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "pulse_gun"])
+		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "burst_rifle", "pulse_gun"])
 		unlocked_weapons = data["unlocked_weapons"]
 		
 		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", [])
@@ -186,7 +192,7 @@ func delete_save_game() -> void:
 	tech_points = 0
 	equipped_shield = "counter"
 	unlocked_shields = ["counter"]
-	unlocked_weapons = ["machine_gun", "pulse_gun"]
+	unlocked_weapons = ["machine_gun", "burst_rifle", "pulse_gun"]
 	unlocked_counter_weapons = []
 	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
 

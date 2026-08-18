@@ -151,23 +151,21 @@ func apply_equipped_weapon_settings() -> void:
 	var eq_w = Global.equipped_weapon
 	match eq_w:
 		WEAPON_MACHINE_GUN:
-			fire_rate = 0.28
+			fire_rate = 0.16 # 高速マシンガン
 		WEAPON_BURST_RIFLE:
-			fire_rate = 0.55
-		WEAPON_CHARGE_RIFLE:
-			fire_rate = 1.35
+			fire_rate = 0.42 # 3点バーストライフル
 		WEAPON_PULSE_GUN:
-			fire_rate = 0.35
+			fire_rate = 0.28 # パルス波動砲
 		WEAPON_PLASMA_EMITTER:
-			fire_rate = 0.45
+			fire_rate = 0.38 # 高熱プラズマ放射器
 		WEAPON_KINETIC_TACKLE:
-			fire_rate = 0.85
+			fire_rate = 0.55 # キネティック衝撃タックル
 		_:
-			fire_rate = 0.35
+			fire_rate = 0.25
 			
 	if active_traits.has(PATTERN_RAPID):
 		var r_lvl = analysis_patterns[PATTERN_RAPID]["level"]
-		fire_rate *= (0.65 if r_lvl == 1 else 0.45)
+		fire_rate *= (0.70 if r_lvl == 1 else 0.50)
 
 
 func _process(delta: float) -> void:
@@ -318,30 +316,10 @@ func fire() -> void:
 	var player_bullets_container = get_node_or_null("/root/Main/PlayerBullets")
 	var target_parent = player_bullets_container if player_bullets_container else get_parent()
 	
-	var is_pierce_active = active_traits.has(PATTERN_PIERCE)
-	var pierce_lvl = analysis_patterns[PATTERN_PIERCE]["level"] if is_pierce_active else 0
+	# 1. 選択された基本武装（主兵装）の射撃実行
+	fire_equipped_physics_weapon(target_parent)
 	
-	# 1. 拡散射撃 (スロット装備時: Lv.1=3-WAY, Lv.2=5-WAY)
-	var is_spread_active = active_traits.has(PATTERN_SPREAD)
-	var spread_lvl = analysis_patterns[PATTERN_SPREAD]["level"] if is_spread_active else 0
-	var angles = [0.0]
-	if is_spread_active:
-		angles = [-15.0, 0.0, 15.0] if spread_lvl == 1 else [-24.0, -12.0, 0.0, 12.0, 24.0]
-		
-	for deg in angles:
-		var analysis_shot = PLAYER_BULLET_SCENE.instantiate()
-		analysis_shot.bullet_type = "charge_bolt" if is_pierce_active else "analysis"
-		analysis_shot.global_position = global_position + Vector2(deg * 0.4, -20.0)
-		var is_rapid_active = active_traits.has(PATTERN_RAPID)
-		var spd = ANALYSIS_BULLET_SPEED_RAPID if is_rapid_active else ANALYSIS_BULLET_SPEED_NORMAL
-		var dir = Vector2.UP.rotated(deg_to_rad(deg))
-		analysis_shot.velocity = dir * spd
-		analysis_shot.damage += int(power_shield_damage_buff)
-		if is_pierce_active and pierce_lvl >= 2:
-			analysis_shot.damage += 15
-		target_parent.add_child(analysis_shot)
-		
-	# 2. 誘導ミサイル (スロット装備時: Lv.1=2基, Lv.2=4基)
+	# 2. 変異スロット補助兵装：誘導ミサイル (スロット装備時: Lv.1=2基, Lv.2=4基)
 	if active_traits.has(PATTERN_HOMING):
 		var homing_lvl = analysis_patterns[PATTERN_HOMING]["level"]
 		var offsets = [Vector2(-22.0, 5.0), Vector2(22.0, 5.0)]
@@ -357,7 +335,7 @@ func fire() -> void:
 			m_bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(m_bullet)
 
-	# 3. フォトンレーザー (スロット装備時: Lv.1=1本, Lv.2=ツイン)
+	# 3. 変異スロット補助兵装：フォトンレーザー (スロット装備時: Lv.1=1本, Lv.2=ツイン)
 	if active_traits.has(PATTERN_LASER):
 		var laser_lvl = analysis_patterns[PATTERN_LASER]["level"]
 		var x_offsets = [0.0] if laser_lvl == 1 else [-16.0, 16.0]
@@ -368,7 +346,7 @@ func fire() -> void:
 			l_bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(l_bullet)
 
-	# 4. サイクロンスピン弾 (スロット装備時: Lv.1=2発, Lv.2=4発)
+	# 4. 変異スロット補助兵装：サイクロンスピン弾 (スロット装備時: Lv.1=2発, Lv.2=4発)
 	if active_traits.has(PATTERN_CYCLONE):
 		var cyc_lvl = analysis_patterns[PATTERN_CYCLONE]["level"]
 		var dirs = [-1.0, 1.0] if cyc_lvl == 1 else [-1.5, -0.6, 0.6, 1.5]
@@ -380,10 +358,10 @@ func fire() -> void:
 			c_bullet.damage += int(power_shield_damage_buff)
 			target_parent.add_child(c_bullet)
 
-	# 5. ギガメテオ (スロット装備時: 確率で射出)
+	# 5. 変異スロット補助兵装：ギガメテオ (スロット装備時: 確率で射出)
 	if active_traits.has(PATTERN_METEOR):
 		var met_lvl = analysis_patterns[PATTERN_METEOR]["level"]
-		var chance = 0.22 if met_lvl == 1 else 0.35
+		var chance = 0.25 if met_lvl == 1 else 0.40
 		if randf() < chance:
 			var meteor = PLAYER_BULLET_SCENE.instantiate()
 			meteor.bullet_type = "player_meteor"
@@ -391,72 +369,102 @@ func fire() -> void:
 			meteor.velocity = Vector2(randf_range(-180, 180), -550.0)
 			meteor.damage += int(power_shield_damage_buff)
 			target_parent.add_child(meteor)
-			
-	fire_equipped_physics_weapon(target_parent)
 
 
 func fire_equipped_physics_weapon(target_parent: Node) -> void:
-	if current_hp <= 0:
+	if current_hp <= 0 or not is_instance_valid(target_parent):
 		return
+		
+	var is_spread_active = active_traits.has(PATTERN_SPREAD)
+	var spread_lvl = analysis_patterns[PATTERN_SPREAD]["level"] if is_spread_active else 0
+	
+	var is_pierce_active = active_traits.has(PATTERN_PIERCE)
+	var pierce_lvl = analysis_patterns[PATTERN_PIERCE]["level"] if is_pierce_active else 0
+	
 	var eq_w = Global.equipped_weapon
 	match eq_w:
 		WEAPON_MACHINE_GUN:
-			var offsets = [Vector2(-12.0, -10.0), Vector2(12.0, -10.0)]
-			for offset in offsets:
-				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "machine_gun"
-				bullet.global_position = global_position + offset
-				bullet.velocity = Vector2.UP * 1100.0
-				bullet.damage += int(power_shield_damage_buff)
-				target_parent.add_child(bullet)
+			# マシンガン: 高速物理弾連射（拡散変異で2連装➔4連装➔扇状連射へ進化）
+			var angles = [0.0]
+			var offsets = [Vector2(-10.0, -15.0), Vector2(10.0, -15.0)]
+			if is_spread_active:
+				if spread_lvl == 1:
+					offsets = [Vector2(-16.0, -15.0), Vector2(-6.0, -15.0), Vector2(6.0, -15.0), Vector2(16.0, -15.0)]
+				else:
+					angles = [-12.0, 0.0, 12.0]
+			
+			for deg in angles:
+				for offset in offsets:
+					var bullet = PLAYER_BULLET_SCENE.instantiate()
+					bullet.bullet_type = "charge_bolt" if (is_pierce_active and pierce_lvl >= 2) else "machine_gun"
+					bullet.global_position = global_position + offset
+					var dir = Vector2.UP.rotated(deg_to_rad(deg))
+					bullet.velocity = dir * 1200.0
+					bullet.damage += int(power_shield_damage_buff)
+					if is_pierce_active:
+						bullet.damage += 6
+					target_parent.add_child(bullet)
 				
 		WEAPON_BURST_RIFLE:
-			for i in range(3):
-				get_tree().create_timer(i * 0.07).timeout.connect(func():
+			# ライフル: 3点徹甲バースト射撃（貫通変異や拡散変異で重粒子ビームボルト化）
+			var burst_count = 3 if not is_spread_active else (4 if spread_lvl == 1 else 5)
+			for i in range(burst_count):
+				get_tree().create_timer(i * 0.06).timeout.connect(func():
 					if is_instance_valid(self) and current_hp > 0 and is_instance_valid(target_parent):
 						var bullet = PLAYER_BULLET_SCENE.instantiate()
-						bullet.bullet_type = "burst_rifle"
-						bullet.global_position = global_position + Vector2(0, -20.0)
-						bullet.velocity = Vector2.UP * 1300.0
+						bullet.bullet_type = "charge_bolt" if is_pierce_active else "burst_rifle"
+						bullet.global_position = global_position + Vector2(0, -22.0)
+						bullet.velocity = Vector2.UP * (1600.0 if is_pierce_active else 1400.0)
 						bullet.damage += int(power_shield_damage_buff)
+						if is_pierce_active and pierce_lvl >= 2:
+							bullet.damage += 15
 						target_parent.add_child(bullet)
 				)
 				
-		WEAPON_CHARGE_RIFLE:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = "charge_bolt"
-			bullet.global_position = global_position + Vector2(0, -25.0)
-			bullet.velocity = Vector2.UP * 1800.0
-			bullet.damage += int(power_shield_damage_buff)
-			target_parent.add_child(bullet)
-			trigger_screen_flash(Color(0.8, 0.9, 1.0, 0.15))
-			
 		WEAPON_PULSE_GUN:
-			var angles = [-12.0, 12.0]
+			# パルスガン: 広角プラズマ波動（拡散変異で広角5WAY〜7WAYへ拡張）
+			var angles = [-14.0, 14.0]
+			if is_spread_active:
+				angles = [-22.0, -11.0, 11.0, 22.0] if spread_lvl == 1 else [-30.0, -18.0, -6.0, 6.0, 18.0, 30.0]
 			for angle_deg in angles:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "pulse"
-				bullet.global_position = global_position + Vector2(angle_deg * 0.8, -15.0)
+				bullet.global_position = global_position + Vector2(angle_deg * 0.6, -15.0)
 				var dir = Vector2.UP.rotated(deg_to_rad(angle_deg))
-				bullet.velocity = dir * 950.0
+				bullet.velocity = dir * 1000.0
 				bullet.damage += int(power_shield_damage_buff)
+				if is_pierce_active:
+					bullet.damage += 8
 				target_parent.add_child(bullet)
 				
 		WEAPON_PLASMA_EMITTER:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = "plasma"
-			bullet.global_position = global_position + Vector2(0, -20.0)
-			bullet.velocity = Vector2.UP * 550.0
-			bullet.damage += int(power_shield_damage_buff)
-			target_parent.add_child(bullet)
+			# プラズマ放射器: 高熱持続プラズマ球（拡散変異でツイン〜トリプルプラズマへ進化）
+			var offsets = [Vector2(0, -20.0)]
+			if is_spread_active:
+				offsets = [Vector2(-18.0, -18.0), Vector2(18.0, -18.0)] if spread_lvl == 1 else [Vector2(-24.0, -15.0), Vector2(0, -22.0), Vector2(24.0, -15.0)]
+			for offset in offsets:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "plasma"
+				bullet.global_position = global_position + offset
+				bullet.velocity = Vector2.UP * 600.0
+				bullet.damage += int(power_shield_damage_buff)
+				if is_pierce_active and pierce_lvl >= 2:
+					bullet.damage += 16
+				target_parent.add_child(bullet)
 			
 		WEAPON_KINETIC_TACKLE:
-			var bullet = PLAYER_BULLET_SCENE.instantiate()
-			bullet.bullet_type = "tackle"
-			bullet.global_position = global_position + Vector2(0, -30.0)
-			bullet.velocity = Vector2.UP * 750.0
-			bullet.damage += int(power_shield_damage_buff)
-			target_parent.add_child(bullet)
+			# タックル: キネティック衝撃破砕波（拡散変異で超巨大ショックウェーブ化）
+			var count = 1 if not is_spread_active else (2 if spread_lvl == 1 else 3)
+			for i in range(count):
+				var offset_x = (i - (count - 1) * 0.5) * 28.0
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "tackle"
+				bullet.global_position = global_position + Vector2(offset_x, -30.0)
+				bullet.velocity = Vector2.UP * 850.0
+				bullet.damage += int(power_shield_damage_buff)
+				if is_pierce_active:
+					bullet.damage += 20
+				target_parent.add_child(bullet)
 
 
 func update_visual_state() -> void:
