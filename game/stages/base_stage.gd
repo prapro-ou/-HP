@@ -55,7 +55,9 @@ class BossConfig:
 class RewardConfig:
 	var counter_weapon_unlock: String = ""
 	var tech_points: int = 30
+	var unlocked_stage: int = 0
 	var unlock_message: String = ""
+
 
 @export var stage_name: String = "STAGE"
 @export var stage_number: int = 1
