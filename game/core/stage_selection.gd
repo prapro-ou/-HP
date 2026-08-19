@@ -30,7 +30,9 @@ var prev_btn: Button
 var next_btn: Button
 var select_btn: Button
 var tech_lab_btn: Button
+var archive_btn: Button
 var menu_btn: Button
+var archive_panel: PanelContainer
 
 # Starfield for sci-fi atmosphere
 class BackgroundStar:
@@ -330,7 +332,7 @@ func setup_ui() -> void:
 	# Action buttons at the absolute bottom
 	var action_hbox = HBoxContainer.new()
 	action_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	action_hbox.add_theme_constant_override("separation", 25)
+	action_hbox.add_theme_constant_override("separation", 16)
 	action_hbox.anchor_left = 0.0
 	action_hbox.anchor_right = 1.0
 	action_hbox.anchor_top = 0.90
@@ -341,27 +343,37 @@ func setup_ui() -> void:
 	
 	menu_btn = Button.new()
 	menu_btn.text = "戻る"
-	menu_btn.custom_minimum_size = Vector2(160, 52)
-	menu_btn.add_theme_font_size_override("font_size", 22)
+	menu_btn.custom_minimum_size = Vector2(130, 52)
+	menu_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(menu_btn)
 	style_btn(menu_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	menu_btn.pressed.connect(_on_menu_pressed)
 	
+	archive_btn = Button.new()
+	archive_btn.text = "解析図鑑"
+	archive_btn.custom_minimum_size = Vector2(150, 52)
+	archive_btn.add_theme_font_size_override("font_size", 20)
+	action_hbox.add_child(archive_btn)
+	style_btn(archive_btn, Color(0.85, 0.45, 1.0), Color(1.0, 0.6, 1.0))
+	archive_btn.pressed.connect(_on_archive_pressed)
+	
 	tech_lab_btn = Button.new()
 	tech_lab_btn.text = "機体強化"
-	tech_lab_btn.custom_minimum_size = Vector2(180, 52)
-	tech_lab_btn.add_theme_font_size_override("font_size", 22)
+	tech_lab_btn.custom_minimum_size = Vector2(150, 52)
+	tech_lab_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(tech_lab_btn)
 	style_btn(tech_lab_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
 	tech_lab_btn.pressed.connect(_on_tech_lab_pressed)
 	
 	select_btn = Button.new()
 	select_btn.text = "出撃準備"
-	select_btn.custom_minimum_size = Vector2(200, 52)
-	select_btn.add_theme_font_size_override("font_size", 22)
+	select_btn.custom_minimum_size = Vector2(180, 52)
+	select_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(select_btn)
 	style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	select_btn.pressed.connect(_on_select_pressed)
+	
+	setup_archive_panel()
 
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 
@@ -542,6 +554,202 @@ func _on_menu_pressed() -> void:
 func _on_tech_lab_pressed() -> void:
 	get_tree().change_scene_to_file("res://game/core/tech_lab.tscn")
 
+var archive_cards_container: VBoxContainer
+var archive_summary_label: Label
+
+func setup_archive_panel() -> void:
+	archive_panel = PanelContainer.new()
+	archive_panel.name = "ArchivePanel"
+	archive_panel.anchor_left = 0.05
+	archive_panel.anchor_top = 0.05
+	archive_panel.anchor_right = 0.95
+	archive_panel.anchor_bottom = 0.95
+	archive_panel.hide()
+	add_child(archive_panel)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.05, 0.08, 0.98)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(0.85, 0.45, 1.0)
+	sb.corner_radius_top_left = 0
+	sb.corner_radius_top_right = 0
+	sb.corner_radius_bottom_left = 0
+	sb.corner_radius_bottom_right = 0
+	sb.shadow_color = Color(0.85, 0.45, 1.0, 0.25)
+	sb.shadow_size = 20
+	archive_panel.add_theme_stylebox_override("panel", sb)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 25)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_right", 25)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	archive_panel.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 14)
+	margin.add_child(vbox)
+	
+	# Header
+	var title = Label.new()
+	title.text = "【解析兵装アーカイブ / WEAPON ARCHIVE】"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var t_set = LabelSettings.new()
+	if PIXEL_FONT:
+		t_set.font = PIXEL_FONT
+	t_set.font_size = 26
+	t_set.font_color = Color(0.9, 0.6, 1.0)
+	t_set.outline_size = 6
+	t_set.outline_color = Color.BLACK
+	title.label_settings = t_set
+	vbox.add_child(title)
+	
+	archive_summary_label = Label.new()
+	archive_summary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var s_set = LabelSettings.new()
+	if PIXEL_FONT:
+		s_set.font = PIXEL_FONT
+	s_set.font_size = 15
+	s_set.font_color = Color.GOLD
+	archive_summary_label.label_settings = s_set
+	vbox.add_child(archive_summary_label)
+	
+	# Scroll area for 7 weapons
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(scroll)
+	
+	archive_cards_container = VBoxContainer.new()
+	archive_cards_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	archive_cards_container.add_theme_constant_override("separation", 14)
+	scroll.add_child(archive_cards_container)
+	
+	# Footer Close Button
+	var close_btn = Button.new()
+	close_btn.text = "アーカイブを閉じる"
+	close_btn.custom_minimum_size = Vector2(260, 48)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	if PIXEL_FONT:
+		close_btn.add_theme_font_override("font", PIXEL_FONT)
+	close_btn.add_theme_font_size_override("font_size", 20)
+	style_btn(close_btn, Color(0.85, 0.45, 1.0), Color(1.0, 0.7, 1.0))
+	vbox.add_child(close_btn)
+	close_btn.pressed.connect(func():
+		var tween = create_tween().set_parallel(true)
+		tween.tween_property(archive_panel, "scale", Vector2(0.9, 0.9), 0.15)
+		tween.tween_property(archive_panel, "modulate:a", 0.0, 0.15)
+		tween.chain().tween_callback(archive_panel.hide)
+	)
+
+func _on_archive_pressed() -> void:
+	update_archive_content()
+	archive_panel.show()
+	archive_panel.modulate.a = 0.0
+	archive_panel.scale = Vector2(0.9, 0.9)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(archive_panel, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(archive_panel, "modulate:a", 1.0, 0.2)
+
+func update_archive_content() -> void:
+	for child in archive_cards_container.get_children():
+		child.queue_free()
+		
+	var discovered = Global.discovered_analysis_weapons
+	var total_count = Global.analysis_catalog.size()
+	var unlocked_count = 0
+	for k in Global.analysis_catalog.keys():
+		if discovered.has(k):
+			unlocked_count += 1
+			
+	archive_summary_label.text = "解析解放状況: %d / %d 系統完了 （敵弾をジャストガード/パリィして解析）" % [unlocked_count, total_count]
+	
+	for key in Global.analysis_catalog.keys():
+		var data = Global.analysis_catalog[key]
+		var is_disc = discovered.has(key)
+		
+		var card = PanelContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		
+		var card_sb = StyleBoxFlat.new()
+		card_sb.bg_color = Color(0.06, 0.07, 0.12, 0.95) if is_disc else Color(0.03, 0.03, 0.05, 0.9)
+		card_sb.border_width_left = 2
+		card_sb.border_width_top = 2
+		card_sb.border_width_right = 2
+		card_sb.border_width_bottom = 2
+		card_sb.border_color = data["color"] if is_disc else Color(0.25, 0.25, 0.35)
+		card.add_theme_stylebox_override("panel", card_sb)
+		
+		var cm = MarginContainer.new()
+		cm.add_theme_constant_override("margin_left", 14)
+		cm.add_theme_constant_override("margin_top", 12)
+		cm.add_theme_constant_override("margin_right", 14)
+		cm.add_theme_constant_override("margin_bottom", 12)
+		card.add_child(cm)
+		
+		var cv = VBoxContainer.new()
+		cv.add_theme_constant_override("separation", 5)
+		cm.add_child(cv)
+		
+		var hdr_lbl = Label.new()
+		var l_set = LabelSettings.new()
+		if PIXEL_FONT:
+			l_set.font = PIXEL_FONT
+		l_set.outline_size = 4
+		l_set.outline_color = Color.BLACK
+		
+		if is_disc:
+			hdr_lbl.text = "%s 【%s】 [解析解放済み]" % [data["icon"], data["name"]]
+			l_set.font_size = 20
+			l_set.font_color = data["color"]
+		else:
+			hdr_lbl.text = "🔒 【未解析アーカイブ】"
+			l_set.font_size = 18
+			l_set.font_color = Color(0.5, 0.5, 0.6)
+		hdr_lbl.label_settings = l_set
+		cv.add_child(hdr_lbl)
+		
+		var src_lbl = Label.new()
+		var src_set = LabelSettings.new()
+		if PIXEL_FONT:
+			src_set.font = PIXEL_FONT
+		src_set.font_size = 15
+		
+		if is_disc:
+			src_lbl.text = "【出現敵】 %s （%s）" % [data["enemy_color"], data["enemy_type"]]
+			src_set.font_color = Color(0.85, 0.95, 1.0)
+		else:
+			src_lbl.text = "【入手条件】 %sの敵弾（%s）をパリィして解析ゲージを100%%にすると解放" % [data["enemy_color"], data["enemy_type"]]
+			src_set.font_color = Color.GOLD
+		src_lbl.label_settings = src_set
+		cv.add_child(src_lbl)
+		
+		var stat_lbl = Label.new()
+		var st_set = LabelSettings.new()
+		if PIXEL_FONT:
+			st_set.font = PIXEL_FONT
+		st_set.font_size = 14
+		st_set.font_color = Color.CYAN if is_disc else Color.DARK_GRAY
+		stat_lbl.text = "【性能】 " + (data["stats"] if is_disc else "[未解析パラメータ]")
+		stat_lbl.label_settings = st_set
+		cv.add_child(stat_lbl)
+		
+		var desc_lbl = Label.new()
+		var d_set = LabelSettings.new()
+		if PIXEL_FONT:
+			d_set.font = PIXEL_FONT
+		d_set.font_size = 14
+		d_set.font_color = Color(0.8, 0.85, 0.9) if is_disc else Color(0.4, 0.45, 0.5)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.text = data["description"] if is_disc else "「戦闘宙域で当該敵機の弾丸をジャストガードすることで解析が進行します。」"
+		desc_lbl.label_settings = d_set
+		cv.add_child(desc_lbl)
+		
+		archive_cards_container.add_child(card)
+
 func _on_select_pressed() -> void:
 	var active_stage = stages[current_index]
 	if not Global.is_stage_unlocked(active_stage.id):
@@ -552,7 +760,7 @@ func _on_select_pressed() -> void:
 	# Pass the selected stage number
 	# We transition to the Loadout Selection Screen
 	# Save stage num to global settings momentarily
-	var save_data = Global.load_game_data()
+	var save_data = Global.load_game_data(false)
 	save_data["stage_num"] = active_stage.id
 	Global.save_game(active_stage.id, save_data.get("score", 0), save_data.get("weapons", {}))
 	
