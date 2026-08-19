@@ -11,6 +11,9 @@ extends CharacterBody2D
 @export var parry_cooldown: float = 1.5      # クールダウン時間
 @export var invincible_duration: float = 1.4  # 被弾後無敵時間（1.4秒）
 
+# 定数：フォント定義
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+
 # 定数：武器タイプ定義
 const WEAPON_MACHINE_GUN = "machine_gun"
 const WEAPON_BURST_RIFLE = "burst_rifle"
