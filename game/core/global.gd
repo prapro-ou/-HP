@@ -366,14 +366,27 @@ func _set_bus_volume(bus_name: String, val: float) -> void:
 		AudioServer.set_bus_volume_db(idx, db)
 
 func apply_display() -> void:
+	var win: Window = null
+	var tree = get_tree()
+	if tree and tree.root:
+		win = tree.root.get_window()
+
 	# Window mode settings
 	match window_mode:
 		0: # Windowed
+			if win:
+				win.mode = Window.MODE_WINDOWED
+				win.borderless = false
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		1: # Fullscreen
+			if win:
+				win.mode = Window.MODE_EXCLUSIVE_FULLSCREEN
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
 		2: # Borderless Windowed
+			if win:
+				win.mode = Window.MODE_WINDOWED
+				win.borderless = true
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 	
@@ -388,7 +401,13 @@ func apply_display() -> void:
 				target_w = int(900 * window_scale)
 			2: # 9:16
 				target_w = int(675 * window_scale)
-		DisplayServer.window_set_size(Vector2i(target_w, target_h))
+		
+		var target_size = Vector2i(target_w, target_h)
+		if win:
+			if not win.is_embedded():
+				win.size = target_size
+		elif DisplayServer.has_feature(DisplayServer.FEATURE_WINDOW_SIZE):
+			DisplayServer.window_set_size(target_size)
 		
 	# V-Sync
 	DisplayServer.window_set_vsync_mode(
@@ -405,11 +424,24 @@ func auto_scale_display() -> void:
 	target_height = clamp(target_height, 600, 1200)
 	
 	var target_width = int(target_height * (2.0 / 3.0))
+	var target_size = Vector2i(target_width, target_height)
 	
+	var win: Window = null
+	var tree = get_tree()
+	if tree and tree.root:
+		win = tree.root.get_window()
+		
 	# Set window mode to normal windowed
+	if win:
+		win.mode = Window.MODE_WINDOWED
+		win.borderless = false
+		if not win.is_embedded():
+			win.size = target_size
+	
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
-	DisplayServer.window_set_size(Vector2i(target_width, target_height))
+	if DisplayServer.has_feature(DisplayServer.FEATURE_WINDOW_SIZE):
+		DisplayServer.window_set_size(target_size)
 	
 	# Recalculate and update current scale setting
 	window_scale = snapped(float(target_height) / 1200.0, 0.05)
@@ -417,8 +449,10 @@ func auto_scale_display() -> void:
 	
 	# Center the window
 	var screen_pos = DisplayServer.screen_get_position()
-	var window_pos = screen_pos + (screen_size - Vector2i(target_width, target_height)) / 2
+	var window_pos = screen_pos + (screen_size - target_size) / 2
 	window_pos.y = max(window_pos.y, 40)
+	if win and not win.is_embedded():
+		win.position = window_pos
 	DisplayServer.window_set_position(window_pos)
 	
 	save_settings()
