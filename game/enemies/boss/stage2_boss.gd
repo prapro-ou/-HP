@@ -43,6 +43,7 @@ func execute_fortress_attack() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
 		
+	var mult = get_stage_difficulty_mult()
 	var vp_w = get_viewport_rect().size.x
 	var num_patterns = 5 if is_enraged else 3
 	attack_pattern_index = (attack_pattern_index + 1) % num_patterns
@@ -63,7 +64,7 @@ func execute_fortress_attack() -> void:
 					var bullet = bullet_pool.get_bullet("wave" if i % 2 == 0 else "laser")
 					if bullet:
 						bullet.global_position = Vector2(drop_x, 15.0)
-						bullet.damage = 12
+						bullet.damage = int(12 * mult)
 						var dir = center_dir.rotated(deg_to_rad(angle_deg))
 						bullet.set_direction(dir, 340.0)
 		1:
@@ -76,7 +77,7 @@ func execute_fortress_attack() -> void:
 						var bullet = bullet_pool.get_bullet("missile")
 						if bullet:
 							bullet.global_position = Vector2(spawn_x, 15.0)
-							bullet.damage = 12
+							bullet.damage = int(12 * mult)
 							var target_dir = Vector2.DOWN
 							if is_instance_valid(player):
 								target_dir = (player.global_position - bullet.global_position).normalized()
@@ -96,7 +97,7 @@ func execute_fortress_attack() -> void:
 							var bullet = bullet_pool.get_bullet("charge")
 							if bullet:
 								bullet.global_position = core_pos + Vector2(0.0, 30.0)
-								bullet.damage = 18
+								bullet.damage = int(18 * mult)
 								var dir = Vector2.DOWN
 								if is_instance_valid(player):
 									dir = (player.global_position - bullet.global_position).normalized()
@@ -114,7 +115,7 @@ func execute_fortress_attack() -> void:
 							var bullet = bullet_pool.get_bullet("irregular")
 							if bullet:
 								bullet.global_position = Vector2(strike_x, 20.0)
-								bullet.damage = 14
+								bullet.damage = int(14 * mult)
 								var dir = Vector2.DOWN.rotated(deg_to_rad(side))
 								if is_instance_valid(player):
 									dir = (player.global_position - bullet.global_position).normalized().rotated(deg_to_rad(side * 0.5))

@@ -110,6 +110,12 @@ func unlock_stage(stage_num: int) -> bool:
 		return true
 	return false
 
+func get_stage_difficulty_multiplier(stage_num: int) -> float:
+	# ステージが進むごとに1.2倍ずつ敵の強さ（HP・攻撃力）が段階的に強くなる
+	# Stage 1: 1.000x, Stage 2: 1.200x, Stage 3: 1.440x, Stage 4: 1.728x, Stage 5: 2.074x
+	var exp_step = max(0, stage_num - 1)
+	return pow(1.2, float(exp_step))
+
 # Weapon Dictionary Definition
 var available_weapons: Dictionary = {
 	"machine_gun": {

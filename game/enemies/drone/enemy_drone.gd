@@ -55,23 +55,23 @@ func _ready_enemy() -> void:
 		if gm and "current_stage_num" in gm:
 			stage_num = gm.current_stage_num
 			if "current_wave_level" in gm:
-				base_hp += (gm.current_wave_level - 1) * 25
+				base_hp += (gm.current_wave_level - 1) * 20
 				
-	base_hp += (stage_num - 1) * 50
-	
 	# 2. プレイヤーの強化内容に応じた耐久力スケーリング
 	if is_instance_valid(player):
 		var player_analysis_lvls = 0
 		if "analysis_patterns" in player:
 			for p_data in player.analysis_patterns.values():
 				player_analysis_lvls += p_data.get("level", 0)
-		base_hp += player_analysis_lvls * 20
+		base_hp += player_analysis_lvls * 15
 		
 	if Global and "upgrade_levels" in Global:
 		var total_tech_lvls = Global.upgrade_levels.get("hp", 0) + Global.upgrade_levels.get("parry_window", 0) + Global.upgrade_levels.get("cooldown", 0)
-		base_hp += total_tech_lvls * 15
+		base_hp += total_tech_lvls * 10
 		
-	max_hp = base_hp
+	# ステージ進行による1.2倍指数スケーリング (Stage 1: 1.0x, Stage 2: 1.2x, Stage 3: 1.44x...)
+	var stage_mult = Global.get_stage_difficulty_multiplier(stage_num)
+	max_hp = int(base_hp * stage_mult)
 	current_hp = max_hp
 	
 	# タイプ別に攻撃スパンをゆったり長く設定（2.8〜3.8秒）
@@ -135,10 +135,21 @@ func _process(delta: float) -> void:
 		time_since_last_shot = 0.0
 
 
+func get_stage_mult() -> float:
+	var stage_num = 1
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var gm = main.get_node_or_null("GameManager")
+		if gm and "current_stage_num" in gm:
+			stage_num = gm.current_stage_num
+	return Global.get_stage_difficulty_multiplier(stage_num)
+
+
 func shoot() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
 		
+	var mult = get_stage_mult()
 	match drone_type:
 		TYPE_CHARGE:
 			is_charging = true
@@ -153,6 +164,7 @@ func shoot() -> void:
 						var bullet = bullet_pool.get_bullet("straight")
 						if bullet:
 							bullet.global_position = global_position + Vector2(0.0, 20.0)
+							bullet.damage = int(8 * mult)
 							bullet.set_direction(dir, 320.0)
 				)
 		TYPE_BEAM, TYPE_LASER:
@@ -164,6 +176,7 @@ func shoot() -> void:
 				var bullet = bullet_pool.get_bullet("laser")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 20.0)
+					bullet.damage = int(10 * mult)
 					bullet.set_direction(center_dir.rotated(a), 340.0)
 		TYPE_IRREGULAR:
 			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
@@ -175,6 +188,7 @@ func shoot() -> void:
 						var bullet = bullet_pool.get_bullet("irregular")
 						if bullet:
 							bullet.global_position = global_position + Vector2(0.0, 20.0)
+							bullet.damage = int(8 * mult)
 							bullet.set_direction(dir, 280.0)
 				)
 		TYPE_WAVE:
@@ -183,6 +197,7 @@ func shoot() -> void:
 				var bullet = bullet_pool.get_bullet("wave")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 20.0)
+					bullet.damage = int(8 * mult)
 					bullet.set_direction(Vector2.DOWN.rotated(a), 260.0)
 		TYPE_MISSILE, _:
 			var dir = Vector2.DOWN
@@ -195,6 +210,7 @@ func shoot() -> void:
 						if bullet:
 							var offset_x = -15.0 if i == 0 else 15.0
 							bullet.global_position = global_position + Vector2(offset_x, 20.0)
+							bullet.damage = int(10 * mult)
 							var shoot_dir = dir.rotated(randf_range(-0.1, 0.1))
 							bullet.set_direction(shoot_dir, 240.0)
 				)
@@ -206,13 +222,14 @@ func fire_charged_shot() -> void:
 	var dir = Vector2.DOWN
 	if is_instance_valid(player):
 		dir = (player.global_position - global_position).normalized()
+	var mult = get_stage_mult()
 	for i in range(2):
 		get_tree().create_timer(i * 0.15).timeout.connect(func():
 			if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 				var bullet = bullet_pool.get_bullet("charge")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 25.0)
-					bullet.damage = 16
+					bullet.damage = int(16 * mult)
 					bullet.set_direction(dir, 480.0)
 		)
 

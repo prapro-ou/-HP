@@ -460,9 +460,10 @@ func start_boss_battle() -> void:
 		# ボスパラメータ適用
 		var cfg = current_stage.boss_config if current_stage else null
 		if cfg:
-			boss.max_hp = cfg.max_hp
+			var mult = Global.get_stage_difficulty_multiplier(current_stage_num)
+			boss.max_hp = int(cfg.max_hp * mult)
 			if "current_hp" in boss:
-				boss.current_hp = cfg.max_hp
+				boss.current_hp = boss.max_hp
 		
 		if boss.has_method("start_intro_sequence"):
 			boss.start_intro_sequence(5.0)

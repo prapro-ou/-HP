@@ -41,11 +41,23 @@ var shield_pulse: float = 0.0
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
+func get_stage_difficulty_mult() -> float:
+	var stage_num = 1
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var gm = main.get_node_or_null("GameManager")
+		if gm and "current_stage_num" in gm:
+			stage_num = gm.current_stage_num
+	return Global.get_stage_difficulty_multiplier(stage_num)
+
+
 func _ready() -> void:
 	add_to_group("boss_turrets")
 	add_to_group("boss")
 	add_to_group("enemy")
 	
+	var mult = get_stage_difficulty_mult()
+	max_hp = int(max_hp * mult)
 	current_hp = max_hp
 	is_alive = true
 	is_active = false
@@ -184,6 +196,7 @@ func execute_attack() -> void:
 	var main = get_node_or_null("/root/Main")
 	var pool = main.get_node_or_null("BulletPool") if main else null
 	var player = main.get_node_or_null("Player") if main else null
+	var mult = get_stage_difficulty_mult()
 	
 	match turret_type:
 		TurretType.BEAM_MACHINEGUN:
@@ -195,7 +208,7 @@ func execute_attack() -> void:
 							var bullet = pool.get_bullet("boss_laser")
 							if bullet:
 								bullet.global_position = global_position + Vector2(randf_range(-12, 12), 25)
-								bullet.damage = 10
+								bullet.damage = int(10 * mult)
 								# プレイヤー方向へわずかに角度をブレさせながら直進
 								var dir = Vector2.DOWN
 								if is_instance_valid(player):
@@ -212,7 +225,7 @@ func execute_attack() -> void:
 					var bullet = pool.get_bullet("decel_missile")
 					if bullet:
 						bullet.global_position = global_position + Vector2(0.0, 20.0)
-						bullet.damage = 8
+						bullet.damage = int(8 * mult)
 						var launch_dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
 						bullet.set_direction(launch_dir, 320.0)
 						
@@ -222,6 +235,7 @@ func execute_attack() -> void:
 			if current_meteors.size() < 4 and METEOR_SCENE:
 				var meteor = METEOR_SCENE.instantiate()
 				meteor.global_position = global_position + Vector2(0.0, 30.0)
+				meteor.damage = int(30 * mult)
 				
 				# プレイヤー方向を基準に拡散角度で射出
 				var shoot_dir = Vector2.DOWN.rotated(randf_range(-0.6, 0.6))
@@ -237,7 +251,7 @@ func execute_attack() -> void:
 					var bullet = pool.get_bullet("wave")
 					if bullet:
 						bullet.global_position = global_position + Vector2(0.0, 20.0)
-						bullet.damage = 9
+						bullet.damage = int(9 * mult)
 						var dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
 						bullet.set_direction(dir, 300.0)
 

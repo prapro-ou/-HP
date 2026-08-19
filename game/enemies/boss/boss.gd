@@ -142,10 +142,21 @@ func _process(delta: float) -> void:
 		execute_fortress_attack()
 
 
+func get_stage_difficulty_mult() -> float:
+	var stage_num = 1
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var gm = main.get_node_or_null("GameManager")
+		if gm and "current_stage_num" in gm:
+			stage_num = gm.current_stage_num
+	return Global.get_stage_difficulty_multiplier(stage_num)
+
+
 func execute_fortress_attack() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
 		
+	var mult = get_stage_difficulty_mult()
 	var vp_w = get_viewport_rect().size.x
 	var num_patterns = 5 if is_enraged else 3
 	attack_pattern_index = (attack_pattern_index + 1) % num_patterns
@@ -166,7 +177,7 @@ func execute_fortress_attack() -> void:
 					var bullet = bullet_pool.get_bullet("laser")
 					if bullet:
 						bullet.global_position = Vector2(drop_x, 15.0)
-						bullet.damage = 10
+						bullet.damage = int(10 * mult)
 						var dir = center_dir.rotated(deg_to_rad(angle_deg))
 						bullet.set_direction(dir, 320.0)
 		1:
@@ -179,7 +190,7 @@ func execute_fortress_attack() -> void:
 						var bullet = bullet_pool.get_bullet("missile")
 						if bullet:
 							bullet.global_position = Vector2(spawn_x, 15.0)
-							bullet.damage = 10
+							bullet.damage = int(10 * mult)
 							var target_dir = Vector2.DOWN
 							if is_instance_valid(player):
 								target_dir = (player.global_position - bullet.global_position).normalized()
@@ -199,7 +210,7 @@ func execute_fortress_attack() -> void:
 							var bullet = bullet_pool.get_bullet("charge")
 							if bullet:
 								bullet.global_position = core_pos + Vector2(0.0, 30.0)
-								bullet.damage = 16
+								bullet.damage = int(16 * mult)
 								var dir = Vector2.DOWN
 								if is_instance_valid(player):
 									dir = (player.global_position - bullet.global_position).normalized()
@@ -210,6 +221,7 @@ func execute_fortress_attack() -> void:
 					var c_bullet = bullet_pool.get_bullet("irregular")
 					if c_bullet:
 						c_bullet.global_position = core_pos + Vector2(side * 80.0, 20.0)
+						c_bullet.damage = int(8 * mult)
 						c_bullet.set_direction(Vector2(side * 0.6, 1.0).normalized(), 300.0)
 		4:
 			# パターン5 (暴走時): 要塞緊急防衛ギガメテオ投下
@@ -222,6 +234,7 @@ func execute_fortress_attack() -> void:
 							var shoot_dir = Vector2.DOWN.rotated(randf_range(-0.4, 0.4))
 							if is_instance_valid(player):
 								shoot_dir = (player.global_position - meteor.global_position).normalized()
+							meteor.damage = int(25 * mult)
 							meteor.set_direction(shoot_dir, 300.0)
 							get_parent().add_child(meteor)
 					)
@@ -240,6 +253,7 @@ func execute_unparryable_cannon_attack() -> void:
 		core_glow.color = Color(1.0, 0.05, 0.05, 0.95)
 		
 	# 1.6秒のチャージ予兆後に真紅の断絶レーザーを射出
+	var mult = get_stage_difficulty_mult()
 	get_tree().create_timer(1.6).timeout.connect(func():
 		if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
 			var vp_w = get_viewport_rect().size.x
@@ -250,7 +264,7 @@ func execute_unparryable_cannon_attack() -> void:
 				var bullet = bullet_pool.get_bullet("unparryable_laser")
 				if bullet:
 					bullet.is_unparryable = true
-					bullet.damage = 22
+					bullet.damage = int(22 * mult)
 					bullet.global_position = core_pos + Vector2(a_deg * 2.5, 30.0)
 					var center_dir = Vector2.DOWN
 					if is_instance_valid(player):
