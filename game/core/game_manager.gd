@@ -536,6 +536,14 @@ func on_boss_destroyed() -> void:
 		Global.tech_points += reward.tech_points
 		spawn_popup("強化ポイント +%d 獲得！" % reward.tech_points)
 		
+	# 次ステージの開放（アンロック）処理
+	var next_stage_num = current_stage_num + 1
+	var next_stage_path = DEFAULT_STAGE_PATH_FMT % next_stage_num
+	if ResourceLoader.exists(next_stage_path):
+		var is_new_unlock = Global.unlock_stage(next_stage_num)
+		if is_new_unlock:
+			spawn_popup("🔓 次の作戦エリア【STAGE %d】が解放されました！" % next_stage_num)
+		
 	if is_instance_valid(player):
 		Global.save_game(current_stage_num, total_damage_score, {})
 		
