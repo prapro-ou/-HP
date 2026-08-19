@@ -105,14 +105,14 @@ func setup_layout() -> void:
 	
 	# 4. Sci-Fi Title
 	title_label = Label.new()
-	title_label.text = "カウンターコア"
+	title_label.text = "PARRY SHOOTER"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
 	if PIXEL_FONT:
 		title_set.font = PIXEL_FONT
-	title_set.font_size = 56
+	title_set.font_size = 64
 	title_set.font_color = Color.CYAN
-	title_set.outline_size = 8
+	title_set.outline_size = 10
 	title_set.outline_color = Color(0.05, 0.05, 0.1)
 	title_label.label_settings = title_set
 	title_label.pivot_offset = Vector2(350, 60)
@@ -125,16 +125,16 @@ func setup_layout() -> void:
 	var sub_set = LabelSettings.new()
 	if PIXEL_FONT:
 		sub_set.font = PIXEL_FONT
-	sub_set.font_size = 20
+	sub_set.font_size = 26
 	sub_set.font_color = Color.GOLD
-	sub_set.outline_size = 4
+	sub_set.outline_size = 5
 	sub_set.outline_color = Color.BLACK
 	subtitle_label.label_settings = sub_set
 	main_vbox.add_child(subtitle_label)
 	
 	# Spacer
 	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 80)
+	spacer.custom_minimum_size = Vector2(0, 70)
 	main_vbox.add_child(spacer)
 	
 	# 5. Main Menu Container
@@ -154,15 +154,15 @@ func setup_menu_container() -> void:
 	menu_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	menu_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	menu_container.theme_type_variation = "VBoxContainer"
-	menu_container.add_theme_constant_override("separation", 24)
+	menu_container.add_theme_constant_override("separation", 28)
 	main_vbox.add_child(menu_container)
 	
 	# Play Start Button
 	play_start_btn = Button.new()
 	play_start_btn.text = "出撃開始"
-	play_start_btn.custom_minimum_size = Vector2(340, 70)
+	play_start_btn.custom_minimum_size = Vector2(400, 82)
 	play_start_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	play_start_btn.add_theme_font_size_override("font_size", 24)
+	play_start_btn.add_theme_font_size_override("font_size", 30)
 	if PIXEL_FONT:
 		play_start_btn.add_theme_font_override("font", PIXEL_FONT)
 	menu_container.add_child(play_start_btn)
@@ -172,9 +172,9 @@ func setup_menu_container() -> void:
 	# Settings Button
 	settings_btn = Button.new()
 	settings_btn.text = "設定"
-	settings_btn.custom_minimum_size = Vector2(340, 70)
+	settings_btn.custom_minimum_size = Vector2(400, 82)
 	settings_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_btn.add_theme_font_size_override("font_size", 24)
+	settings_btn.add_theme_font_size_override("font_size", 30)
 	if PIXEL_FONT:
 		settings_btn.add_theme_font_override("font", PIXEL_FONT)
 	menu_container.add_child(settings_btn)
@@ -188,7 +188,7 @@ func setup_menu_container() -> void:
 func setup_settings_container() -> void:
 	settings_container = PanelContainer.new()
 	settings_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_container.custom_minimum_size = Vector2(500, 720)
+	settings_container.custom_minimum_size = Vector2(620, 860)
 	settings_container.hide()
 	main_vbox.add_child(settings_container)
 	
@@ -207,14 +207,14 @@ func setup_settings_container() -> void:
 	settings_container.add_theme_stylebox_override("panel", sb)
 	
 	var margin_inner = MarginContainer.new()
-	margin_inner.add_theme_constant_override("margin_left", 25)
-	margin_inner.add_theme_constant_override("margin_top", 25)
-	margin_inner.add_theme_constant_override("margin_right", 25)
-	margin_inner.add_theme_constant_override("margin_bottom", 25)
+	margin_inner.add_theme_constant_override("margin_left", 28)
+	margin_inner.add_theme_constant_override("margin_top", 28)
+	margin_inner.add_theme_constant_override("margin_right", 28)
+	margin_inner.add_theme_constant_override("margin_bottom", 28)
 	settings_container.add_child(margin_inner)
 	
 	var content = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 22)
+	content.add_theme_constant_override("separation", 24)
 	margin_inner.add_child(content)
 	
 	# Title
@@ -222,7 +222,9 @@ func setup_settings_container() -> void:
 	settings_title.text = "設定"
 	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 28
+	if PIXEL_FONT:
+		title_set.font = PIXEL_FONT
+	title_set.font_size = 36
 	title_set.font_color = Color(0.9, 0.6, 1.0)
 	title_set.outline_size = 6
 	title_set.outline_color = Color.BLACK
@@ -237,15 +239,19 @@ func setup_settings_container() -> void:
 	
 	var scroll_content = VBoxContainer.new()
 	scroll_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll_content.add_theme_constant_override("separation", 18)
+	scroll_content.add_theme_constant_override("separation", 22)
 	scroll.add_child(scroll_content)
 	
 	# --- SECTION 1: DISPLAY ---
 	var d_title = Label.new()
 	d_title.text = "画面設定"
 	var sec_set = LabelSettings.new()
-	sec_set.font_size = 20
+	if PIXEL_FONT:
+		sec_set.font = PIXEL_FONT
+	sec_set.font_size = 26
 	sec_set.font_color = Color.CYAN
+	sec_set.outline_size = 4
+	sec_set.outline_color = Color.BLACK
 	d_title.label_settings = sec_set
 	scroll_content.add_child(d_title)
 	
@@ -261,8 +267,10 @@ func setup_settings_container() -> void:
 	mode_option.add_item("ウィンドウ", 0)
 	mode_option.add_item("フルスクリーン", 1)
 	mode_option.add_item("ボーダレス", 2)
-	mode_option.custom_minimum_size = Vector2(200, 36)
-	mode_option.add_theme_font_size_override("font_size", 16)
+	mode_option.custom_minimum_size = Vector2(240, 44)
+	mode_option.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		mode_option.add_theme_font_override("font", PIXEL_FONT)
 	grid_display.add_child(mode_option)
 	
 	# Resolution / Scale (Vertical formats only)
@@ -272,8 +280,10 @@ func setup_settings_container() -> void:
 	scale_option.add_item("600x900 (0.75x)", 1)
 	scale_option.add_item("800x1200 (1.00x)", 2)
 	scale_option.add_item("1000x1500 (1.25x)", 3)
-	scale_option.custom_minimum_size = Vector2(200, 36)
-	scale_option.add_theme_font_size_override("font_size", 16)
+	scale_option.custom_minimum_size = Vector2(240, 44)
+	scale_option.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		scale_option.add_theme_font_override("font", PIXEL_FONT)
 	grid_display.add_child(scale_option)
 	
 	# Aspect Ratio
@@ -282,8 +292,10 @@ func setup_settings_container() -> void:
 	aspect_option.add_item("縦長 2:3 (標準)", 0)
 	aspect_option.add_item("縦長 3:4", 1)
 	aspect_option.add_item("縦長 9:16 (極細)", 2)
-	aspect_option.custom_minimum_size = Vector2(200, 36)
-	aspect_option.add_theme_font_size_override("font_size", 16)
+	aspect_option.custom_minimum_size = Vector2(240, 44)
+	aspect_option.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		aspect_option.add_theme_font_override("font", PIXEL_FONT)
 	grid_display.add_child(aspect_option)
 	
 	# VSync
@@ -320,26 +332,26 @@ func setup_settings_container() -> void:
 	scroll_content.add_child(ship_card)
 	
 	var ship_margin = MarginContainer.new()
-	ship_margin.add_theme_constant_override("margin_left", 15)
-	ship_margin.add_theme_constant_override("margin_top", 12)
-	ship_margin.add_theme_constant_override("margin_right", 15)
-	ship_margin.add_theme_constant_override("margin_bottom", 12)
+	ship_margin.add_theme_constant_override("margin_left", 18)
+	ship_margin.add_theme_constant_override("margin_top", 16)
+	ship_margin.add_theme_constant_override("margin_right", 18)
+	ship_margin.add_theme_constant_override("margin_bottom", 16)
 	ship_card.add_child(ship_margin)
 	
 	var ship_box = HBoxContainer.new()
-	ship_box.add_theme_constant_override("separation", 20)
+	ship_box.add_theme_constant_override("separation", 24)
 	ship_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	ship_margin.add_child(ship_box)
 	
 	# Preview Box
 	var preview_panel = PanelContainer.new()
-	preview_panel.custom_minimum_size = Vector2(80, 80)
+	preview_panel.custom_minimum_size = Vector2(90, 90)
 	var pp_sb = StyleBoxFlat.new()
 	pp_sb.bg_color = Color(0.02, 0.03, 0.06, 0.9)
-	pp_sb.border_width_left = 1
-	pp_sb.border_width_top = 1
-	pp_sb.border_width_right = 1
-	pp_sb.border_width_bottom = 1
+	pp_sb.border_width_left = 2
+	pp_sb.border_width_top = 2
+	pp_sb.border_width_right = 2
+	pp_sb.border_width_bottom = 2
 	pp_sb.border_color = Color(0.3, 0.7, 1.0, 0.5)
 	pp_sb.corner_radius_top_left = 6
 	pp_sb.corner_radius_top_right = 6
@@ -351,27 +363,33 @@ func setup_settings_container() -> void:
 	player_ship_preview = TextureRect.new()
 	player_ship_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	player_ship_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	player_ship_preview.custom_minimum_size = Vector2(64, 64)
+	player_ship_preview.custom_minimum_size = Vector2(72, 72)
 	preview_panel.add_child(player_ship_preview)
 	
 	# Color controls
 	var controls_vbox = VBoxContainer.new()
 	controls_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	controls_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	controls_vbox.add_theme_constant_override("separation", 8)
+	controls_vbox.add_theme_constant_override("separation", 10)
 	ship_box.add_child(controls_vbox)
 	
 	player_ship_color_name_lbl = Label.new()
 	player_ship_color_name_lbl.text = "コバルトブルー (標準)"
 	var cn_set = LabelSettings.new()
-	cn_set.font_size = 17
+	if PIXEL_FONT:
+		cn_set.font = PIXEL_FONT
+	cn_set.font_size = 20
 	cn_set.font_color = Color.CYAN
+	cn_set.outline_size = 4
+	cn_set.outline_color = Color.BLACK
 	player_ship_color_name_lbl.label_settings = cn_set
 	controls_vbox.add_child(player_ship_color_name_lbl)
 	
 	player_color_option = OptionButton.new()
-	player_color_option.custom_minimum_size = Vector2(210, 36)
-	player_color_option.add_theme_font_size_override("font_size", 15)
+	player_color_option.custom_minimum_size = Vector2(240, 44)
+	player_color_option.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		player_color_option.add_theme_font_override("font", PIXEL_FONT)
 	for i in range(player_color_keys.size()):
 		var key = player_color_keys[i]
 		var col_info = Global.available_player_colors.get(key, {"name": key})
@@ -386,8 +404,8 @@ func setup_settings_container() -> void:
 	
 	var grid_audio = GridContainer.new()
 	grid_audio.columns = 2
-	grid_audio.add_theme_constant_override("h_separation", 15)
-	grid_audio.add_theme_constant_override("v_separation", 12)
+	grid_audio.add_theme_constant_override("h_separation", 16)
+	grid_audio.add_theme_constant_override("v_separation", 14)
 	scroll_content.add_child(grid_audio)
 	
 	# Master
@@ -397,13 +415,15 @@ func setup_settings_container() -> void:
 	master_slider.min_value = 0
 	master_slider.max_value = 100
 	master_slider.value = 80
-	master_slider.custom_minimum_size = Vector2(140, 24)
+	master_slider.custom_minimum_size = Vector2(170, 30)
 	master_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	master_lbl = Label.new()
 	master_lbl.text = "80%"
-	master_lbl.custom_minimum_size = Vector2(40, 0)
+	master_lbl.custom_minimum_size = Vector2(50, 0)
 	var master_lset = LabelSettings.new()
-	master_lset.font_size = 16
+	if PIXEL_FONT:
+		master_lset.font = PIXEL_FONT
+	master_lset.font_size = 20
 	master_lset.font_color = Color.WHITE
 	master_lbl.label_settings = master_lset
 	master_box.add_child(master_slider)
@@ -417,11 +437,11 @@ func setup_settings_container() -> void:
 	bgm_slider.min_value = 0
 	bgm_slider.max_value = 100
 	bgm_slider.value = 80
-	bgm_slider.custom_minimum_size = Vector2(140, 24)
+	bgm_slider.custom_minimum_size = Vector2(170, 30)
 	bgm_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bgm_lbl = Label.new()
 	bgm_lbl.text = "80%"
-	bgm_lbl.custom_minimum_size = Vector2(40, 0)
+	bgm_lbl.custom_minimum_size = Vector2(50, 0)
 	bgm_lbl.label_settings = master_lset
 	bgm_box.add_child(bgm_slider)
 	bgm_box.add_child(bgm_lbl)
@@ -434,25 +454,26 @@ func setup_settings_container() -> void:
 	sfx_slider.min_value = 0
 	sfx_slider.max_value = 100
 	sfx_slider.value = 80
-	sfx_slider.custom_minimum_size = Vector2(140, 24)
+	sfx_slider.custom_minimum_size = Vector2(170, 30)
 	sfx_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sfx_lbl = Label.new()
 	sfx_lbl.text = "80%"
-	sfx_lbl.custom_minimum_size = Vector2(40, 0)
+	sfx_lbl.custom_minimum_size = Vector2(50, 0)
 	sfx_lbl.label_settings = master_lset
 	sfx_box.add_child(sfx_slider)
 	sfx_box.add_child(sfx_lbl)
 	grid_audio.add_child(sfx_box)
 	
-	# --- SECTION 3: SYSTEM/DATA ---
 	# --- SECTION 4: DEBUG / DATA RESET ---
 	var s_title = Label.new()
 	s_title.text = "【デバッグ用】個別データリセット"
 	var dbg_sec_set = LabelSettings.new()
-	dbg_sec_set.font_size = 20
-	dbg_sec_set.font_color = Color(1.0, 0.45, 0.45)
 	if PIXEL_FONT:
 		dbg_sec_set.font = PIXEL_FONT
+	dbg_sec_set.font_size = 24
+	dbg_sec_set.font_color = Color(1.0, 0.45, 0.45)
+	dbg_sec_set.outline_size = 4
+	dbg_sec_set.outline_color = Color.BLACK
 	s_title.label_settings = dbg_sec_set
 	scroll_content.add_child(s_title)
 	
@@ -472,21 +493,21 @@ func setup_settings_container() -> void:
 	scroll_content.add_child(dbg_card)
 	
 	var dbg_margin = MarginContainer.new()
-	dbg_margin.add_theme_constant_override("margin_left", 14)
-	dbg_margin.add_theme_constant_override("margin_top", 14)
-	dbg_margin.add_theme_constant_override("margin_right", 14)
-	dbg_margin.add_theme_constant_override("margin_bottom", 14)
+	dbg_margin.add_theme_constant_override("margin_left", 16)
+	dbg_margin.add_theme_constant_override("margin_top", 16)
+	dbg_margin.add_theme_constant_override("margin_right", 16)
+	dbg_margin.add_theme_constant_override("margin_bottom", 16)
 	dbg_card.add_child(dbg_margin)
 	
 	var dbg_vbox = VBoxContainer.new()
-	dbg_vbox.add_theme_constant_override("separation", 10)
+	dbg_vbox.add_theme_constant_override("separation", 12)
 	dbg_margin.add_child(dbg_vbox)
 	
 	# 1. 強化内容のみリセット
 	var reset_upgrades_btn = Button.new()
 	reset_upgrades_btn.text = "🔧 強化内容のみリセット (HP/パリィ/CD ➔ 0)"
-	reset_upgrades_btn.custom_minimum_size = Vector2(0, 42)
-	reset_upgrades_btn.add_theme_font_size_override("font_size", 16)
+	reset_upgrades_btn.custom_minimum_size = Vector2(0, 48)
+	reset_upgrades_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
 		reset_upgrades_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(reset_upgrades_btn, Color(0.9, 0.45, 0.2), Color(1.0, 0.6, 0.3))
@@ -499,8 +520,8 @@ func setup_settings_container() -> void:
 	# 2. 開発ポイント(TP)のみリセット
 	var reset_tp_btn = Button.new()
 	reset_tp_btn.text = "💎 獲得開発ポイント(TP)のみリセット (➔ 0)"
-	reset_tp_btn.custom_minimum_size = Vector2(0, 42)
-	reset_tp_btn.add_theme_font_size_override("font_size", 16)
+	reset_tp_btn.custom_minimum_size = Vector2(0, 48)
+	reset_tp_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
 		reset_tp_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(reset_tp_btn, Color(0.85, 0.3, 0.55), Color(1.0, 0.45, 0.7))
@@ -513,8 +534,8 @@ func setup_settings_container() -> void:
 	# 3. 兵装開発・解析図鑑・ステージ解放リセット
 	var reset_dev_btn = Button.new()
 	reset_dev_btn.text = "📜 兵装開発・解析図鑑・ステージ解放リセット"
-	reset_dev_btn.custom_minimum_size = Vector2(0, 42)
-	reset_dev_btn.add_theme_font_size_override("font_size", 16)
+	reset_dev_btn.custom_minimum_size = Vector2(0, 48)
+	reset_dev_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
 		reset_dev_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(reset_dev_btn, Color(0.75, 0.3, 0.8), Color(0.9, 0.45, 0.95))
@@ -527,8 +548,8 @@ func setup_settings_container() -> void:
 	# 4. 全データ初期化
 	reset_btn = Button.new()
 	reset_btn.text = "⚠️ 全セーブデータ一括初期化 (完全消去)"
-	reset_btn.custom_minimum_size = Vector2(0, 44)
-	reset_btn.add_theme_font_size_override("font_size", 16)
+	reset_btn.custom_minimum_size = Vector2(0, 50)
+	reset_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
 		reset_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(reset_btn, Color(0.95, 0.15, 0.15), Color(1.0, 0.3, 0.3))
@@ -537,9 +558,9 @@ func setup_settings_container() -> void:
 	# Save & Back
 	back_btn = Button.new()
 	back_btn.text = "保存して戻る"
-	back_btn.custom_minimum_size = Vector2(250, 52)
+	back_btn.custom_minimum_size = Vector2(300, 62)
 	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	back_btn.add_theme_font_size_override("font_size", 22)
+	back_btn.add_theme_font_size_override("font_size", 26)
 	content.add_child(back_btn)
 	style_button(back_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
 	add_button_animations(back_btn)
@@ -575,7 +596,7 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog = PanelContainer.new()
 	confirm_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	confirm_dialog.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	confirm_dialog.custom_minimum_size = Vector2(420, 240)
+	confirm_dialog.custom_minimum_size = Vector2(520, 290)
 	confirm_dialog.hide()
 	add_child(confirm_dialog)
 	
@@ -585,8 +606,8 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.anchor_bottom = 0.5
 	confirm_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	confirm_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
-	confirm_dialog.offset_left = -210
-	confirm_dialog.offset_top = -120
+	confirm_dialog.offset_left = -260
+	confirm_dialog.offset_top = -145
 	
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.1, 0.03, 0.03, 0.98) # Dark Red pixel theme
@@ -602,15 +623,15 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.add_theme_stylebox_override("panel", sb)
 	
 	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 24)
 	confirm_dialog.add_child(margin)
 	
 	var box = VBoxContainer.new()
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 20)
+	box.add_theme_constant_override("separation", 22)
 	margin.add_child(box)
 	
 	var warn_title = Label.new()
@@ -619,7 +640,7 @@ func setup_confirm_dialog() -> void:
 	var w_lbl_set = LabelSettings.new()
 	if PIXEL_FONT:
 		w_lbl_set.font = PIXEL_FONT
-	w_lbl_set.font_size = 24
+	w_lbl_set.font_size = 28
 	w_lbl_set.font_color = Color.RED
 	w_lbl_set.outline_size = 4
 	w_lbl_set.outline_color = Color.BLACK
@@ -632,7 +653,7 @@ func setup_confirm_dialog() -> void:
 	var d_lbl_set = LabelSettings.new()
 	if PIXEL_FONT:
 		d_lbl_set.font = PIXEL_FONT
-	d_lbl_set.font_size = 17
+	d_lbl_set.font_size = 22
 	d_lbl_set.font_color = Color.WHITE
 	d_lbl_set.outline_size = 3
 	d_lbl_set.outline_color = Color.BLACK
@@ -646,8 +667,8 @@ func setup_confirm_dialog() -> void:
 	
 	var delete_confirm_btn = Button.new()
 	delete_confirm_btn.text = "削除"
-	delete_confirm_btn.custom_minimum_size = Vector2(150, 48)
-	delete_confirm_btn.add_theme_font_size_override("font_size", 18)
+	delete_confirm_btn.custom_minimum_size = Vector2(170, 52)
+	delete_confirm_btn.add_theme_font_size_override("font_size", 22)
 	if PIXEL_FONT:
 		delete_confirm_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(delete_confirm_btn, Color.RED, Color(1.0, 0.4, 0.4))
@@ -655,8 +676,8 @@ func setup_confirm_dialog() -> void:
 	
 	var cancel_confirm_btn = Button.new()
 	cancel_confirm_btn.text = "キャンセル"
-	cancel_confirm_btn.custom_minimum_size = Vector2(150, 48)
-	cancel_confirm_btn.add_theme_font_size_override("font_size", 18)
+	cancel_confirm_btn.custom_minimum_size = Vector2(170, 52)
+	cancel_confirm_btn.add_theme_font_size_override("font_size", 22)
 	if PIXEL_FONT:
 		cancel_confirm_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(cancel_confirm_btn, Color.LIGHT_GRAY, Color.WHITE)
@@ -675,7 +696,7 @@ func setup_tutorial_confirm_dialog() -> void:
 	tutorial_dialog = PanelContainer.new()
 	tutorial_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	tutorial_dialog.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	tutorial_dialog.custom_minimum_size = Vector2(440, 250)
+	tutorial_dialog.custom_minimum_size = Vector2(540, 300)
 	tutorial_dialog.hide()
 	add_child(tutorial_dialog)
 	
@@ -685,8 +706,8 @@ func setup_tutorial_confirm_dialog() -> void:
 	tutorial_dialog.anchor_bottom = 0.5
 	tutorial_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	tutorial_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
-	tutorial_dialog.offset_left = -220
-	tutorial_dialog.offset_top = -125
+	tutorial_dialog.offset_left = -270
+	tutorial_dialog.offset_top = -150
 	
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.04, 0.06, 0.1, 0.98) # Dark blue pixel theme
@@ -702,15 +723,15 @@ func setup_tutorial_confirm_dialog() -> void:
 	tutorial_dialog.add_theme_stylebox_override("panel", sb)
 	
 	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 24)
 	tutorial_dialog.add_child(margin)
 	
 	var box = VBoxContainer.new()
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 20)
+	box.add_theme_constant_override("separation", 22)
 	margin.add_child(box)
 	
 	var t_title = Label.new()
@@ -719,7 +740,7 @@ func setup_tutorial_confirm_dialog() -> void:
 	var t_lbl_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_lbl_set.font = PIXEL_FONT
-	t_lbl_set.font_size = 24
+	t_lbl_set.font_size = 28
 	t_lbl_set.font_color = Color.CYAN
 	t_lbl_set.outline_size = 4
 	t_lbl_set.outline_color = Color.BLACK
@@ -727,12 +748,12 @@ func setup_tutorial_confirm_dialog() -> void:
 	box.add_child(t_title)
 	
 	var t_desc = Label.new()
-	t_desc.text = "操作説明（スロー機能）の\nチュートリアルをプレイしますか？"
+	t_desc.text = "操作説明と実践チュートリアルを\nプレイしますか？"
 	t_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var d_lbl_set = LabelSettings.new()
 	if PIXEL_FONT:
 		d_lbl_set.font = PIXEL_FONT
-	d_lbl_set.font_size = 17
+	d_lbl_set.font_size = 22
 	d_lbl_set.font_color = Color.WHITE
 	d_lbl_set.outline_size = 3
 	d_lbl_set.outline_color = Color.BLACK
@@ -746,8 +767,8 @@ func setup_tutorial_confirm_dialog() -> void:
 	
 	var play_btn = Button.new()
 	play_btn.text = "プレイ"
-	play_btn.custom_minimum_size = Vector2(150, 48)
-	play_btn.add_theme_font_size_override("font_size", 18)
+	play_btn.custom_minimum_size = Vector2(170, 52)
+	play_btn.add_theme_font_size_override("font_size", 22)
 	if PIXEL_FONT:
 		play_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(play_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
@@ -755,8 +776,8 @@ func setup_tutorial_confirm_dialog() -> void:
 	
 	var skip_btn = Button.new()
 	skip_btn.text = "スキップ"
-	skip_btn.custom_minimum_size = Vector2(150, 48)
-	skip_btn.add_theme_font_size_override("font_size", 18)
+	skip_btn.custom_minimum_size = Vector2(170, 52)
+	skip_btn.add_theme_font_size_override("font_size", 22)
 	if PIXEL_FONT:
 		skip_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(skip_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
@@ -781,7 +802,7 @@ func create_label(text: String) -> Label:
 	var l_set = LabelSettings.new()
 	if PIXEL_FONT:
 		l_set.font = PIXEL_FONT
-	l_set.font_size = 17
+	l_set.font_size = 22
 	l_set.font_color = Color.WHITE
 	l_set.outline_size = 3
 	l_set.outline_color = Color.BLACK
