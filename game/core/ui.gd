@@ -40,31 +40,31 @@ func _ready() -> void:
 	style_hp_bar(player_hp_bar, COLOR_PLAYER_HP)
 	style_hp_bar(boss_hp_bar, COLOR_BOSS_HP)
 	
-	# 左上プレイヤー情報配置
-	player_hp_label.position = Vector2(20, 14)
+	# 左上プレイヤー情報配置 (大きめのフォント・バーで視認性向上)
+	player_hp_label.position = Vector2(20, 10)
 	player_hp_bar.position = Vector2(20, 32)
-	player_hp_bar.custom_minimum_size = Vector2(220, 14)
-	player_hp_bar.size = Vector2(220, 14)
+	player_hp_bar.custom_minimum_size = Vector2(240, 16)
+	player_hp_bar.size = Vector2(240, 16)
 	
-	setup_label_style(player_hp_label, 12, Color.WHITE, 4)
-	setup_label_style(boss_hp_label, 12, Color.GOLD, 4)
-	setup_label_style(parry_count_label, 11, Color.CYAN, 4)
-	setup_label_style(guard_status_label, 11, Color.GREEN, 4)
+	setup_label_style(player_hp_label, 18, Color.WHITE, 4)
+	setup_label_style(boss_hp_label, 18, Color.GOLD, 4)
+	setup_label_style(parry_count_label, 16, Color.CYAN, 4)
+	setup_label_style(guard_status_label, 16, Color.GREEN, 4)
 	setup_label_style(warning_title, FONT_SIZE_WARNING_TITLE, Color.RED, 10)
 	setup_label_style(warning_subtitle, FONT_SIZE_WARNING_SUBTITLE, Color.GOLD, 6)
 	
-	parry_count_label.position = Vector2(20, 64)
-	guard_status_label.position = Vector2(20, 80)
+	parry_count_label.position = Vector2(20, 68)
+	guard_status_label.position = Vector2(20, 88)
 	
 	# 主兵装HUD表示
 	create_equipped_weapon_hud()
 	
 	# 中央ボス情報配置
-	boss_hp_label.position = Vector2(260, 14)
+	boss_hp_label.position = Vector2(250, 10)
 	boss_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	boss_hp_bar.position = Vector2(260, 32)
-	boss_hp_bar.custom_minimum_size = Vector2(240, 14)
-	boss_hp_bar.size = Vector2(240, 14)
+	boss_hp_bar.position = Vector2(250, 32)
+	boss_hp_bar.custom_minimum_size = Vector2(240, 16)
+	boss_hp_bar.size = Vector2(240, 16)
 	
 	create_shield_heat_bar()
 	create_analysis_matrix_ui()
@@ -77,8 +77,8 @@ var equipped_weapon_label: Label
 func create_equipped_weapon_hud() -> void:
 	equipped_weapon_label = Label.new()
 	equipped_weapon_label.name = "EquippedWeaponLabel"
-	equipped_weapon_label.position = Vector2(20, 96)
-	setup_label_style(equipped_weapon_label, 11, Color(1.0, 0.85, 0.3), 4)
+	equipped_weapon_label.position = Vector2(20, 108)
+	setup_label_style(equipped_weapon_label, 16, Color(1.0, 0.85, 0.3), 4)
 	add_child(equipped_weapon_label)
 	update_equipped_weapon_hud(Global.equipped_weapon)
 
@@ -266,8 +266,8 @@ var active_analysis_bar: ProgressBar
 func create_analysis_matrix_ui() -> void:
 	var trait_panel = PanelContainer.new()
 	trait_panel.name = "TraitSlotsPanel"
-	trait_panel.position = Vector2(510, 14)
-	trait_panel.custom_minimum_size = Vector2(265, 86)
+	trait_panel.position = Vector2(490, 10)
+	trait_panel.custom_minimum_size = Vector2(290, 105)
 	
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
@@ -289,7 +289,7 @@ func create_analysis_matrix_ui() -> void:
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_set.font = PIXEL_FONT
-	t_set.font_size = 13
+	t_set.font_size = 15
 	t_set.font_color = Color.CYAN
 	title.label_settings = t_set
 	vbox.add_child(title)
@@ -302,7 +302,7 @@ func create_analysis_matrix_ui() -> void:
 	slot_cards.clear()
 	for i in range(3):
 		var card = PanelContainer.new()
-		card.custom_minimum_size = Vector2(80, 32)
+		card.custom_minimum_size = Vector2(88, 42)
 		var c_sb = StyleBoxFlat.new()
 		c_sb.bg_color = Color(0.08, 0.1, 0.14, 0.9)
 		c_sb.border_width_left = 1
@@ -319,7 +319,7 @@ func create_analysis_matrix_ui() -> void:
 		var l_set = LabelSettings.new()
 		if PIXEL_FONT:
 			l_set.font = PIXEL_FONT
-		l_set.font_size = 11
+		l_set.font_size = 14
 		l_set.font_color = Color(0.4, 0.45, 0.55)
 		lbl.label_settings = l_set
 		card.add_child(lbl)
@@ -334,20 +334,22 @@ func create_analysis_matrix_ui() -> void:
 	
 	active_analysis_label = Label.new()
 	active_analysis_label.text = "解析待機中"
-	active_analysis_label.custom_minimum_size = Vector2(100, 14)
+	active_analysis_label.custom_minimum_size = Vector2(110, 18)
 	var a_set = LabelSettings.new()
 	if PIXEL_FONT:
 		a_set.font = PIXEL_FONT
-	a_set.font_size = 11
+	a_set.font_size = 13
 	a_set.font_color = Color.LIGHT_GRAY
 	active_analysis_label.label_settings = a_set
 	prog_row.add_child(active_analysis_label)
 	
 	active_analysis_bar = ProgressBar.new()
 	active_analysis_bar.show_percentage = false
-	active_analysis_bar.custom_minimum_size = Vector2(150, 8)
+	active_analysis_bar.custom_minimum_size = Vector2(160, 10)
 	active_analysis_bar.max_value = 100
 	active_analysis_bar.value = 0
+	style_analysis_bar(active_analysis_bar, Color.CYAN)
+	prog_row.add_child(active_analysis_bar)
 	style_analysis_bar(active_analysis_bar, Color.CYAN)
 	prog_row.add_child(active_analysis_bar)
 
