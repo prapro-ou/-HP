@@ -213,6 +213,13 @@ func check_save_game() -> void:
 	else:
 		has_save = false
 
+var tutorial_flags: Dictionary = {
+	"controls": false,
+	"weapon_analysis": false,
+	"time_limit": false,
+	"boss_info": false
+}
+
 func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -> void:
 	var config = ConfigFile.new()
 	var prev_stage = 1
@@ -237,6 +244,7 @@ func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -
 	config.set_value("game", "unlocked_stages", unlocked_stages)
 	config.set_value("game", "discovered_analysis_weapons", discovered_analysis_weapons)
 	config.set_value("game", "upgrade_levels", upgrade_levels)
+	config.set_value("game", "tutorial_flags", tutorial_flags)
 	config.save(SAVE_PATH)
 	has_save = true
 
@@ -255,7 +263,8 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"unlocked_counter_weapons": unlocked_counter_weapons,
 		"unlocked_stages": unlocked_stages,
 		"discovered_analysis_weapons": discovered_analysis_weapons,
-		"upgrade_levels": upgrade_levels
+		"upgrade_levels": upgrade_levels,
+		"tutorial_flags": tutorial_flags
 	}
 	if config.load(SAVE_PATH) == OK:
 		data["stage_num"] = config.get_value("game", "stage_num", 1)
@@ -271,6 +280,12 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["unlocked_stages"] = config.get_value("game", "unlocked_stages", [1])
 		data["discovered_analysis_weapons"] = config.get_value("game", "discovered_analysis_weapons", [])
 		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0})
+		data["tutorial_flags"] = config.get_value("game", "tutorial_flags", {
+			"controls": false,
+			"weapon_analysis": false,
+			"time_limit": false,
+			"boss_info": false
+		})
 		
 		if sync_globals:
 			equipped_weapon = data["equipped_weapon"]
@@ -286,6 +301,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 				unlocked_stages.sort()
 			discovered_analysis_weapons = data["discovered_analysis_weapons"]
 			upgrade_levels = data["upgrade_levels"]
+			tutorial_flags = data["tutorial_flags"]
 	return data
 
 func reset_upgrade_levels() -> void:
@@ -304,6 +320,12 @@ func reset_development_progress() -> void:
 	equipped_shield = "counter"
 	equipped_weapon = "machine_gun"
 	unlocked_stages = [1]
+	tutorial_flags = {
+		"controls": false,
+		"weapon_analysis": false,
+		"time_limit": false,
+		"boss_info": false
+	}
 	save_game()
 
 func delete_save_game() -> void:
@@ -323,6 +345,12 @@ func delete_save_game() -> void:
 	unlocked_stages = [1]
 	discovered_analysis_weapons = []
 	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
+	tutorial_flags = {
+		"controls": false,
+		"weapon_analysis": false,
+		"time_limit": false,
+		"boss_info": false
+	}
 
 func save_settings() -> void:
 	var config = ConfigFile.new()

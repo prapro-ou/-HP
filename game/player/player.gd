@@ -708,8 +708,12 @@ func add_pattern_analysis(pattern_key: String, amount: float, is_sub_resonance: 
 			var main = get_node_or_null("/root/Main")
 			if main:
 				var ui_node = main.get_node_or_null("UI")
-				if ui_node and ui_node.has_method("show_analysis_unlock_modal"):
-					ui_node.show_analysis_unlock_modal(pattern_key, data)
+				if ui_node:
+					# 2. チュートリアル: 武器種（解放時・どのように解放されるかなどの概要）
+					if not Global.tutorial_flags.get("weapon_analysis", false) and ui_node.has_method("show_tutorial_guide_modal"):
+						ui_node.show_tutorial_guide_modal("weapon_analysis")
+					elif ui_node.has_method("show_analysis_unlock_modal"):
+						ui_node.show_analysis_unlock_modal(pattern_key, data)
 					
 	# 全属性共鳴解析: 1つの属性をパリィすると、他の全属性にも25%の共鳴EXPが波及！
 	if not is_sub_resonance:

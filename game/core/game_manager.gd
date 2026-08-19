@@ -179,6 +179,13 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	if ui and ui.has_method("show_stage_intro_banner"):
 		ui.show_stage_intro_banner(current_stage_num, st_name, codename, goal)
 	
+	# 1. チュートリアル: 機体操作・射撃・パリィの説明（初回出撃時）
+	if not Global.tutorial_flags.get("controls", false):
+		get_tree().create_timer(0.6).timeout.connect(func():
+			if ui and ui.has_method("show_tutorial_guide_modal"):
+				ui.show_tutorial_guide_modal("controls")
+		)
+	
 	var first_wave = current_stage.get_wave(0)
 	if first_wave:
 		get_tree().create_timer(3.8).timeout.connect(func():
@@ -275,6 +282,11 @@ func process_wave_state(delta: float) -> void:
 			ui.show_wave_announcement("⏱️ 90秒防衛達成！", "強大な敵反応を検知！ボス迎撃態勢に移行せよ！", 3.8)
 		trigger_interlude()
 		return
+		
+	# 3. チュートリアル: 制限時間（1分経過・残り30秒時）
+	if wave_phase_timer <= 30.0 and not Global.tutorial_flags.get("time_limit", false):
+		if ui and ui.has_method("show_tutorial_guide_modal"):
+			ui.show_tutorial_guide_modal("time_limit")
 		
 	# 90秒間の時間経過に合わせて、ステージのWave段階を自動ステップアップ！
 	if current_stage and current_stage.waves.size() > 0:
@@ -471,6 +483,13 @@ func start_boss_battle() -> void:
 		var b_name = cfg.name if cfg else "古代防衛要塞"
 		if ui and ui.has_method("show_wave_announcement"):
 			ui.show_wave_announcement("⚠️ BOSS WARNING ⚠️", "要塞ボス接近: 【" + b_name + "】", 4.0)
+			
+		# 4. チュートリアル: ボスについて（ボス戦移行時・砲台の防御特性・パリィ不可攻撃の警告）
+		if not Global.tutorial_flags.get("boss_info", false):
+			get_tree().create_timer(1.2).timeout.connect(func():
+				if ui and ui.has_method("show_tutorial_guide_modal"):
+					ui.show_tutorial_guide_modal("boss_info")
+			)
 
 
 func check_win_lose() -> void:

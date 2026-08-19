@@ -629,8 +629,22 @@ func show_wave_announcement(title: String, message: String = "", duration: float
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if has_node("TutorialGuideModal"):
+		if event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_Z)):
+			get_node("TutorialGuideModal").queue_free()
+			get_tree().paused = false
+			get_viewport().set_input_as_handled()
+			return
+
+	if has_node("AnalysisUnlockModal"):
+		if event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_Z)):
+			get_node("AnalysisUnlockModal").queue_free()
+			get_tree().paused = false
+			get_viewport().set_input_as_handled()
+			return
+
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and (event.keycode == KEY_ESCAPE or event.keycode == KEY_P)):
-		if not has_node("GameOverPanel") and not has_node("AnalysisUnlockModal"):
+		if not has_node("GameOverPanel") and not has_node("AnalysisUnlockModal") and not has_node("TutorialGuideModal"):
 			toggle_pause_menu()
 
 
@@ -743,6 +757,212 @@ func show_analysis_unlock_modal(pattern_key: String, data: Dictionary) -> void:
 		resume_btn.add_theme_font_override("font", PIXEL_FONT)
 	resume_btn.add_theme_font_size_override("font_size", 20)
 	style_game_over_button(resume_btn, col)
+	vbox.add_child(resume_btn)
+	
+	var close_fn = func():
+		get_tree().paused = false
+		overlay.queue_free()
+		
+	resume_btn.pressed.connect(close_fn)
+
+
+func show_tutorial_guide_modal(topic: String) -> void:
+	if has_node("TutorialGuideModal"):
+		get_node("TutorialGuideModal").queue_free()
+		
+	get_tree().paused = true
+	Global.tutorial_flags[topic] = true
+	Global.save_game()
+	
+	var overlay = ColorRect.new()
+	overlay.name = "TutorialGuideModal"
+	overlay.anchor_right = 1.0
+	overlay.anchor_bottom = 1.0
+	overlay.color = Color(0.02, 0.03, 0.06, 0.92)
+	overlay.process_mode = PROCESS_MODE_ALWAYS
+	add_child(overlay)
+	
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(580, 560)
+	panel.anchor_left = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_bottom = 0.5
+	panel.offset_left = -290
+	panel.offset_top = -280
+	panel.offset_right = 290
+	panel.offset_bottom = 280
+	overlay.add_child(panel)
+	
+	# トピックごとの設定データ
+	var title_text = "🔰 チュートリアル"
+	var sub_text = ""
+	var border_col = Color.CYAN
+	var items = []
+	
+	match topic:
+		"controls":
+			title_text = "🔰 【機体操作 ＆ パリィ指南】"
+			sub_text = "基本システムを把握し、激戦を生き残れ！"
+			border_col = Color(0.2, 0.8, 1.0)
+			items = [
+				{
+					"title": "🎮 機体移動",
+					"color": Color.CYAN,
+					"desc": "[W][A][S][D] / [方向キー] / [マウス移動]\n自機を360度自在に操り、敵の弾幕をすり抜けろ。"
+				},
+				{
+					"title": "⚔️ 主兵装射撃",
+					"color": Color(0.4, 1.0, 0.5),
+					"desc": "[Zキー] / [左クリック]（押しっぱなしで自動連射）\n通常物理弾で雑魚ドローンを撃破し、侵攻を食い止めろ。"
+				},
+				{
+					"title": "🛡️ シールド ＆ パリィ",
+					"color": Color.GOLD,
+					"desc": "[スペースキー] / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【パリィ】発動！敵弾を赤色反射弾に変換して大ダメージ＆機体修復！"
+				}
+			]
+		"weapon_analysis":
+			title_text = "⚡ 【敵弾解析 ＆ 変異兵装】"
+			sub_text = "敵の攻撃を解析し、自機の武装へと変換せよ！"
+			border_col = Color(1.0, 0.85, 0.2)
+			items = [
+				{
+					"title": "🔬 敵弾の解析",
+					"color": Color.CYAN,
+					"desc": "敵弾をガードまたはパリィすると、画面左下の解析マトリクスに敵の兵装データがスキャン・蓄積されます。"
+				},
+				{
+					"title": "🧬 変異兵装の解放",
+					"color": Color.GOLD,
+					"desc": "解析度100%で【変異兵装】が解放！全属性に共鳴EXPが波及し、機体の全攻撃力・機動性も底上げされます。"
+				},
+				{
+					"title": "💠 変異スロット装備",
+					"color": Color(0.9, 0.45, 1.0),
+					"desc": "解放された変異（拡散射撃・貫通重弾・誘導ミサイル等）は最大3スロットに自動装備され、主兵装が強力に進化！"
+				}
+			]
+		"time_limit":
+			title_text = "⏱️ 【防衛フェーズ残り30秒 ＆ ボス接近】"
+			sub_text = "迫る超巨大要塞ボスとの決戦に備えよ！"
+			border_col = Color(1.0, 0.55, 0.2)
+			items = [
+				{
+					"title": "⏳ 制限時間（90秒）",
+					"color": Color(1.0, 0.6, 0.2),
+					"desc": "各ステージの通常防衛時間は【90秒間】です（現在1分経過、残り30秒！）。"
+				},
+				{
+					"title": "💥 最終防衛態勢",
+					"color": Color(0.3, 0.9, 1.0),
+					"desc": "敵の増援が激化します。敵を撃破してテックポイント（TP）を獲得し、変異兵装を解析強化しましょう！"
+				},
+				{
+					"title": "⚠️ ボス戦移行",
+					"color": Color(1.0, 0.3, 0.3),
+					"desc": "90秒が経過すると画面が暗転し、巨大な「要塞ボス」が出現・戦闘フェーズに移行します！"
+				}
+			]
+		"boss_info":
+			title_text = "⚠️ 【要塞ボス戦 ＆ サブ砲台の防壁】"
+			sub_text = "サブ砲台を破壊し、要塞の装甲を突破せよ！"
+			border_col = Color(1.0, 0.2, 0.2)
+			items = [
+				{
+					"title": "🛡️ サブ砲台の防壁",
+					"color": Color(1.0, 0.35, 0.35),
+					"desc": "左右のサブ砲台が生存中は、ボスの強固な防壁により【ボス本体への被ダメージが80%カット】されます！"
+				},
+				{
+					"title": "🎯 攻略手順",
+					"color": Color(0.3, 0.9, 1.0),
+					"desc": "まずは左右のサブ砲台を集中攻撃して破壊するか、砲台の弾幕をパリィしてボスに反射ダメージを与えましょう！"
+				},
+				{
+					"title": "⚠️ 【パリィ不可】真紅の警告",
+					"color": Color(1.0, 0.1, 0.15),
+					"desc": "画面上部が赤く点灯した際はパリィ不可・断絶レーザーの合図！ガードを貫通するため緊急回避してください！"
+				}
+			]
+			
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.06, 0.11, 0.98)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = border_col
+	sb.shadow_color = Color(border_col.r, border_col.g, border_col.b, 0.35)
+	sb.shadow_size = 20
+	panel.add_theme_stylebox_override("panel", sb)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 26)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 26)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	panel.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 14)
+	margin.add_child(vbox)
+	
+	var h_lbl = Label.new()
+	h_lbl.text = title_text
+	h_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(h_lbl, 26, border_col, 6)
+	vbox.add_child(h_lbl)
+	
+	if sub_text != "":
+		var sub_lbl = Label.new()
+		sub_lbl.text = sub_text
+		sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		setup_label_style(sub_lbl, 18, Color(0.85, 0.9, 1.0), 4)
+		vbox.add_child(sub_lbl)
+		
+	# Cards
+	for it in items:
+		var c_panel = PanelContainer.new()
+		var c_sb = StyleBoxFlat.new()
+		c_sb.bg_color = Color(0.02, 0.03, 0.06, 0.85)
+		c_sb.border_width_left = 2
+		c_sb.border_width_top = 2
+		c_sb.border_width_right = 2
+		c_sb.border_width_bottom = 2
+		c_sb.border_color = Color(it.get("color", Color.CYAN).r, it.get("color", Color.CYAN).g, it.get("color", Color.CYAN).b, 0.6)
+		c_panel.add_theme_stylebox_override("panel", c_sb)
+		vbox.add_child(c_panel)
+		
+		var c_margin = MarginContainer.new()
+		c_margin.add_theme_constant_override("margin_left", 14)
+		c_margin.add_theme_constant_override("margin_top", 10)
+		c_margin.add_theme_constant_override("margin_right", 14)
+		c_margin.add_theme_constant_override("margin_bottom", 10)
+		c_panel.add_child(c_margin)
+		
+		var c_vbox = VBoxContainer.new()
+		c_vbox.add_theme_constant_override("separation", 4)
+		c_margin.add_child(c_vbox)
+		
+		var it_title = Label.new()
+		it_title.text = it.get("title", "")
+		setup_label_style(it_title, 20, it.get("color", Color.CYAN), 4)
+		c_vbox.add_child(it_title)
+		
+		var it_desc = Label.new()
+		it_desc.text = it.get("desc", "")
+		it_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		setup_label_style(it_desc, 17, Color.WHITE, 3)
+		c_vbox.add_child(it_desc)
+		
+	var resume_btn = Button.new()
+	resume_btn.text = "了解・戦闘開始 (SPACE / クリック)"
+	resume_btn.custom_minimum_size = Vector2(0, 56)
+	if PIXEL_FONT:
+		resume_btn.add_theme_font_override("font", PIXEL_FONT)
+	resume_btn.add_theme_font_size_override("font_size", 22)
+	style_game_over_button(resume_btn, border_col)
 	vbox.add_child(resume_btn)
 	
 	var close_fn = func():
