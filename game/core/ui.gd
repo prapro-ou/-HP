@@ -446,6 +446,324 @@ func style_analysis_bar(bar: ProgressBar, color: Color) -> void:
 	bar.add_theme_stylebox_override("fill", sb_fg)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and (event.keycode == KEY_ESCAPE or event.keycode == KEY_P)):
+		if not has_node("GameOverPanel") and not has_node("AnalysisUnlockModal"):
+			toggle_pause_menu()
+
+
+func show_analysis_unlock_modal(pattern_key: String, data: Dictionary) -> void:
+	if has_node("AnalysisUnlockModal"):
+		get_node("AnalysisUnlockModal").queue_free()
+		
+	get_tree().paused = true
+	
+	var overlay = ColorRect.new()
+	overlay.name = "AnalysisUnlockModal"
+	overlay.anchor_right = 1.0
+	overlay.anchor_bottom = 1.0
+	overlay.color = Color(0.02, 0.03, 0.06, 0.90)
+	overlay.process_mode = PROCESS_MODE_ALWAYS
+	add_child(overlay)
+	
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(500, 480)
+	panel.anchor_left = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_bottom = 0.5
+	panel.offset_left = -250
+	panel.offset_top = -240
+	panel.offset_right = 250
+	panel.offset_bottom = 240
+	overlay.add_child(panel)
+	
+	var cat_info = Global.analysis_catalog.get(pattern_key, {})
+	var col = cat_info.get("color", data.get("color", Color.CYAN))
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.07, 0.12, 0.98)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = col
+	sb.shadow_color = Color(col.r, col.g, col.b, 0.35)
+	sb.shadow_size = 18
+	panel.add_theme_stylebox_override("panel", sb)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	panel.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 14)
+	margin.add_child(vbox)
+	
+	var h_lbl = Label.new()
+	h_lbl.text = "⚡ 新変異兵装・解析完了！"
+	h_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(h_lbl, 24, Color.GOLD, 6)
+	vbox.add_child(h_lbl)
+	
+	var name_lbl = Label.new()
+	name_lbl.text = "%s 【%s】" % [cat_info.get("icon", data.get("icon", "◈")), cat_info.get("name", data.get("name", "新変異"))]
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(name_lbl, 32, col, 8)
+	vbox.add_child(name_lbl)
+	
+	var src_lbl = Label.new()
+	src_lbl.text = "【解析元】%s（%s）" % [cat_info.get("enemy_color", "敵弾"), cat_info.get("enemy_type", "通常敵")]
+	src_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(src_lbl, 16, Color(0.8, 0.9, 1.0), 4)
+	vbox.add_child(src_lbl)
+	
+	var desc_box = PanelContainer.new()
+	var desc_sb = StyleBoxFlat.new()
+	desc_sb.bg_color = Color(0.03, 0.04, 0.07, 0.9)
+	desc_sb.border_width_left = 1
+	desc_sb.border_width_top = 1
+	desc_sb.border_width_right = 1
+	desc_sb.border_width_bottom = 1
+	desc_sb.border_color = Color(0.2, 0.3, 0.45)
+	desc_box.add_theme_stylebox_override("panel", desc_sb)
+	vbox.add_child(desc_box)
+	
+	var desc_margin = MarginContainer.new()
+	desc_margin.add_theme_constant_override("margin_left", 14)
+	desc_margin.add_theme_constant_override("margin_top", 12)
+	desc_margin.add_theme_constant_override("margin_right", 14)
+	desc_margin.add_theme_constant_override("margin_bottom", 12)
+	desc_box.add_child(desc_margin)
+	
+	var desc_vbox = VBoxContainer.new()
+	desc_vbox.add_theme_constant_override("separation", 8)
+	desc_margin.add_child(desc_vbox)
+	
+	var stat_lbl = Label.new()
+	stat_lbl.text = cat_info.get("stats", "")
+	setup_label_style(stat_lbl, 16, Color.CYAN, 4)
+	desc_vbox.add_child(stat_lbl)
+	
+	var body_lbl = Label.new()
+	body_lbl.text = cat_info.get("description", "") + "\n\n※変異スロットに自動装備されました（最大3枠）。"
+	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_label_style(body_lbl, 15, Color.WHITE, 4)
+	desc_vbox.add_child(body_lbl)
+	
+	var resume_btn = Button.new()
+	resume_btn.text = "同期完了・戦闘再開 (SPACE / クリック)"
+	resume_btn.custom_minimum_size = Vector2(0, 52)
+	if PIXEL_FONT:
+		resume_btn.add_theme_font_override("font", PIXEL_FONT)
+	resume_btn.add_theme_font_size_override("font_size", 20)
+	style_game_over_button(resume_btn, col)
+	vbox.add_child(resume_btn)
+	
+	var close_fn = func():
+		get_tree().paused = false
+		overlay.queue_free()
+		
+	resume_btn.pressed.connect(close_fn)
+
+
+func toggle_pause_menu() -> void:
+	if has_node("PausePanel"):
+		get_node("PausePanel").queue_free()
+		get_tree().paused = false
+		return
+		
+	get_tree().paused = true
+	
+	var panel = ColorRect.new()
+	panel.name = "PausePanel"
+	panel.color = Color(0.04, 0.05, 0.08, 0.94)
+	panel.anchor_right = 1.0
+	panel.anchor_bottom = 1.0
+	panel.process_mode = PROCESS_MODE_ALWAYS
+	add_child(panel)
+	
+	var margin = MarginContainer.new()
+	margin.anchor_left = 0.08
+	margin.anchor_top = 0.05
+	margin.anchor_right = 0.92
+	margin.anchor_bottom = 0.95
+	panel.add_child(margin)
+	
+	var scroll = ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	margin.add_child(scroll)
+	
+	var vbox = VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 16)
+	scroll.add_child(vbox)
+	
+	var title = Label.new()
+	title.text = "【作戦一時停止 - PAUSE】"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(title, 34, Color.CYAN, 8)
+	vbox.add_child(title)
+	
+	# Current Weapon info
+	var w_name = Global.equipped_weapon
+	if Global.available_weapons.has(w_name):
+		w_name = Global.available_weapons[w_name].get("name", w_name)
+	var status_lbl = Label.new()
+	status_lbl.text = "装備主兵装: %s [Q/E切替可能] | シールド: %s" % [w_name, Global.equipped_shield]
+	status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(status_lbl, 16, Color.GOLD, 4)
+	vbox.add_child(status_lbl)
+	
+	# Section: 解析変異兵装ステータス
+	var sec_lbl = Label.new()
+	sec_lbl.text = "─── 現在の解析変異スロット (MAX 3) ───"
+	sec_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(sec_lbl, 20, Color.WHITE, 6)
+	vbox.add_child(sec_lbl)
+	
+	var player_node = get_node_or_null("../Player")
+	var active_keys = player_node.active_traits if player_node and "active_traits" in player_node else []
+	
+	if active_keys.size() == 0:
+		var empty_lbl = Label.new()
+		empty_lbl.text = "※ 現在装備中の変異兵装はありません。\n（敵弾をジャストガード/パリィして解析ゲージを100%にすると自動装備されます）"
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		setup_label_style(empty_lbl, 15, Color.GRAY, 3)
+		vbox.add_child(empty_lbl)
+	else:
+		for k in active_keys:
+			var card = create_pause_weapon_card(k, player_node.analysis_patterns.get(k, {}))
+			vbox.add_child(card)
+			
+	# Action buttons
+	var btns_vbox = VBoxContainer.new()
+	btns_vbox.add_theme_constant_override("separation", 10)
+	vbox.add_child(btns_vbox)
+	
+	var resume_btn = Button.new()
+	resume_btn.text = "作戦再開 (ESC / クリック)"
+	resume_btn.custom_minimum_size = Vector2(300, 50)
+	resume_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	style_game_over_button(resume_btn, Color.CYAN)
+	btns_vbox.add_child(resume_btn)
+	resume_btn.pressed.connect(func():
+		get_tree().paused = false
+		panel.queue_free()
+	)
+	
+	var retry_btn = Button.new()
+	retry_btn.text = "もう一度プレイ (再挑戦)"
+	retry_btn.custom_minimum_size = Vector2(300, 50)
+	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	style_game_over_button(retry_btn, Color.GOLD)
+	btns_vbox.add_child(retry_btn)
+	retry_btn.pressed.connect(func():
+		get_tree().paused = false
+		var gm = get_node_or_null("../GameManager")
+		if gm and gm.has_method("restart"):
+			gm.restart()
+		panel.queue_free()
+	)
+	
+	var stage_btn = Button.new()
+	stage_btn.text = "作戦エリア選択へ"
+	stage_btn.custom_minimum_size = Vector2(300, 50)
+	stage_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	style_game_over_button(stage_btn, Color(0.3, 0.75, 0.9))
+	btns_vbox.add_child(stage_btn)
+	stage_btn.pressed.connect(func():
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
+	)
+	
+	var menu_btn = Button.new()
+	menu_btn.text = "メインメニューへ"
+	menu_btn.custom_minimum_size = Vector2(300, 50)
+	menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	style_game_over_button(menu_btn, Color.GRAY)
+	btns_vbox.add_child(menu_btn)
+	menu_btn.pressed.connect(func():
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://game/core/main_menu.tscn")
+	)
+
+
+func create_pause_weapon_card(pattern_key: String, p_data: Dictionary) -> PanelContainer:
+	var card = PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var cat_info = Global.analysis_catalog.get(pattern_key, {})
+	var col = cat_info.get("color", p_data.get("color", Color.CYAN))
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.12, 0.9)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
+	sb.border_color = col
+	card.add_theme_stylebox_override("panel", sb)
+	
+	var m = MarginContainer.new()
+	m.add_theme_constant_override("margin_left", 14)
+	m.add_theme_constant_override("margin_top", 10)
+	m.add_theme_constant_override("margin_right", 14)
+	m.add_theme_constant_override("margin_bottom", 10)
+	card.add_child(m)
+	
+	var v = VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	m.add_child(v)
+	
+	var title_lbl = Label.new()
+	var lvl = p_data.get("level", 1)
+	title_lbl.text = "%s 【%s】 Lv.%d  [解析元: %s敵 (%s)]" % [
+		cat_info.get("icon", p_data.get("icon", "◈")),
+		cat_info.get("name", p_data.get("name", pattern_key)),
+		lvl,
+		cat_info.get("enemy_color", "通常"),
+		cat_info.get("enemy_type", "")
+	]
+	setup_label_style(title_lbl, 17, col, 4)
+	v.add_child(title_lbl)
+	
+	var desc_lbl = Label.new()
+	desc_lbl.text = "%s\n%s" % [cat_info.get("stats", ""), cat_info.get("description", "")]
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_label_style(desc_lbl, 14, Color(0.85, 0.9, 0.95), 3)
+	v.add_child(desc_lbl)
+	
+	return card
+
+
+func style_game_over_button(btn: Button, border_color: Color) -> void:
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.06, 0.07, 0.1, 0.95)
+	style_normal.border_width_left = 3
+	style_normal.border_width_top = 3
+	style_normal.border_width_right = 3
+	style_normal.border_width_bottom = 3
+	style_normal.border_color = border_color
+	
+	var style_hover = style_normal.duplicate()
+	style_hover.bg_color = border_color
+	
+	if PIXEL_FONT:
+		btn.add_theme_font_override("font", PIXEL_FONT)
+	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_color_override("font_hover_color", Color.BLACK)
+	btn.add_theme_color_override("font_pressed_color", Color.BLACK)
+	btn.add_theme_stylebox_override("normal", style_normal)
+	btn.add_theme_stylebox_override("hover", style_hover)
+	btn.add_theme_stylebox_override("pressed", style_hover)
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+
 func setup_label_style(label: Label, size: int, color: Color, outline: int = 4) -> void:
 	var settings = LabelSettings.new()
 	if PIXEL_FONT:

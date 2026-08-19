@@ -678,7 +678,22 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 		data["level"] += 1
 		data["analyzed"] = true
 		heal(50) # 解析完了時に機体大幅修復 (+50 HP)
+		
+		# 初めて入手・解放された解析兵装のチェック
+		var is_first_discovery = false
+		if not Global.discovered_analysis_weapons.has(pattern_key):
+			Global.discovered_analysis_weapons.append(pattern_key)
+			Global.save_game()
+			is_first_discovery = true
+			
 		apply_pattern_trait(pattern_key)
+		
+		if is_first_discovery:
+			var main = get_node_or_null("/root/Main")
+			if main:
+				var ui_node = main.get_node_or_null("UI")
+				if ui_node and ui_node.has_method("show_analysis_unlock_modal"):
+					ui_node.show_analysis_unlock_modal(pattern_key, data)
 
 
 func apply_pattern_trait(pattern_key: String) -> void:
