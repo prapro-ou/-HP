@@ -17,11 +17,24 @@ var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (f
 var unlocked_shields: Array = ["counter"] # Available shield frameworks
 var unlocked_weapons: Array = ["machine_gun", "burst_rifle", "pulse_gun"] # Available primary weapon frameworks
 var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
+var unlocked_stages: Array = [1] # Unlocked stages (Stage 1 is unlocked by default)
 var upgrade_levels: Dictionary = {
 	"hp": 0,
 	"parry_window": 0,
 	"cooldown": 0
 }
+
+func is_stage_unlocked(stage_num: int) -> bool:
+	return stage_num == 1 or unlocked_stages.has(stage_num)
+
+func unlock_stage(stage_num: int) -> bool:
+	if not unlocked_stages.has(stage_num):
+		unlocked_stages.append(stage_num)
+		unlocked_stages.sort()
+		var cur_data = load_game_data()
+		save_game(cur_data.get("stage_num", 1), cur_data.get("score", 0), cur_data.get("weapons", {}))
+		return true
+	return false
 
 # Weapon Dictionary Definition
 var available_weapons: Dictionary = {
@@ -132,6 +145,7 @@ func save_game(stage_num: int, score: int, weapons: Dictionary) -> void:
 	config.set_value("game", "unlocked_shields", unlocked_shields)
 	config.set_value("game", "unlocked_weapons", unlocked_weapons)
 	config.set_value("game", "unlocked_counter_weapons", unlocked_counter_weapons)
+	config.set_value("game", "unlocked_stages", unlocked_stages)
 	config.set_value("game", "upgrade_levels", upgrade_levels)
 	config.save(SAVE_PATH)
 	has_save = true
@@ -149,6 +163,7 @@ func load_game_data() -> Dictionary:
 		"unlocked_shields": ["counter"],
 		"unlocked_weapons": ["machine_gun", "pulse_gun"],
 		"unlocked_counter_weapons": [],
+		"unlocked_stages": [1],
 		"upgrade_levels": {"hp": 0, "parry_window": 0, "cooldown": 0}
 	}
 	if config.load(SAVE_PATH) == OK:
@@ -176,6 +191,12 @@ func load_game_data() -> Dictionary:
 		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", [])
 		unlocked_counter_weapons = data["unlocked_counter_weapons"]
 		
+		data["unlocked_stages"] = config.get_value("game", "unlocked_stages", [1])
+		unlocked_stages = data["unlocked_stages"]
+		if not unlocked_stages.has(1):
+			unlocked_stages.append(1)
+			unlocked_stages.sort()
+		
 		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0})
 		upgrade_levels = data["upgrade_levels"]
 	return data
@@ -194,6 +215,7 @@ func delete_save_game() -> void:
 	unlocked_shields = ["counter"]
 	unlocked_weapons = ["machine_gun", "burst_rifle", "pulse_gun"]
 	unlocked_counter_weapons = []
+	unlocked_stages = [1]
 	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
 
 func save_settings() -> void:
