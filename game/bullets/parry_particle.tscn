@@ -12,15 +12,15 @@ func _ready() -> void:
 
 [node name="ParryParticle" type="CPUParticles2D"]
 emitting = false
-amount = 20
+amount = 8
 one_shot = true
 explosiveness = 0.95
-lifetime = 0.4
+lifetime = 0.22
 spread = 180.0
 gravity = Vector2(0, 0)
-initial_velocity_min = 150.0
-initial_velocity_max = 300.0
-scale_amount_min = 4.0
-scale_amount_max = 8.0
-color = Color(0.0, 1.0, 1.0, 1.0)
+initial_velocity_min = 80.0
+initial_velocity_max = 160.0
+scale_amount_min = 1.5
+scale_amount_max = 3.0
+color = Color(0.2, 1.0, 1.0, 0.9)
 script = SubResource("GDScript_particle")

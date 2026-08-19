@@ -13,6 +13,14 @@ var bullet_type: String = "analysis":
 		bullet_type = val
 		update_visual()
 
+# 強化属性・変異パラメータ
+var pierce_limit: int = 0
+var hits_done: int = 0
+var homing_strength: float = 0.0
+var wave_amp: float = 0.0
+var explosion_radius: float = 0.0
+var explosion_dmg: int = 0
+
 
 func _ready() -> void:
 	z_index = 50
@@ -102,13 +110,15 @@ var life_timer: float = 0.0
 
 func _process(delta: float) -> void:
 	life_timer += delta
-	# ミサイルの追尾処理
-	if bullet_type == "missile" or bullet_type == "hyper_missile":
+	
+	# 誘導補正 (ミサイルまたは変異誘導)
+	if bullet_type == "missile" or bullet_type == "hyper_missile" or homing_strength > 0.0:
 		var target = find_closest_target()
+		var steer_rate = 6.5 if (bullet_type == "missile" or bullet_type == "hyper_missile") else homing_strength
 		if is_instance_valid(target):
 			var target_dir = (target.global_position - global_position).normalized()
 			var target_velocity = target_dir * speed
-			velocity = velocity.lerp(target_velocity, delta * 6.5)
+			velocity = velocity.lerp(target_velocity, delta * steer_rate)
 		else:
 			if velocity == Vector2.ZERO:
 				velocity = Vector2.UP * speed
@@ -116,11 +126,13 @@ func _process(delta: float) -> void:
 				velocity = velocity.normalized() * speed
 		rotation = velocity.angle() + PI/2
 		
-	elif bullet_type == "cyclone":
-		# 螺旋スピン軌道
-		var side_wave = sin(life_timer * 14.0) * 280.0
+	# 螺旋波動補正
+	if bullet_type == "cyclone" or wave_amp > 0.0:
+		var amp = 280.0 if bullet_type == "cyclone" else wave_amp
+		var side_wave = sin(life_timer * 14.0) * amp
 		position.x += side_wave * delta
-		rotation += delta * 12.0
+		if bullet_type == "cyclone":
+			rotation += delta * 12.0
 		
 	elif bullet_type == "player_meteor":
 		rotation += delta * 4.0
@@ -170,24 +182,28 @@ func _on_area_entered(area: Area2D) -> void:
 			damage_target.take_damage_on_part("core", damage)
 		
 		# 爆発・衝撃波エフェクト
-		if bullet_type == "hyper_missile" or bullet_type == "player_meteor":
-			trigger_explosion(120.0, 18, Color.ORANGE, 2.2)
+		if explosion_radius > 0.0:
+			trigger_explosion(explosion_radius, explosion_dmg, Color.ORANGE, 0.6)
+		elif bullet_type == "hyper_missile" or bullet_type == "player_meteor":
+			trigger_explosion(80.0, 14, Color.ORANGE, 0.8)
 		elif bullet_type == "plasma":
-			trigger_explosion(80.0, 12, Color(0.3, 1.0, 0.4), 1.8)
+			trigger_explosion(50.0, 10, Color(0.3, 1.0, 0.4), 0.6)
 		elif bullet_type == "tackle":
-			trigger_explosion(100.0, 25, Color(0.4, 0.8, 1.0), 2.5)
+			trigger_explosion(70.0, 18, Color(0.4, 0.8, 1.0), 0.8)
 		elif bullet_type == "missile":
-			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0))
+			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0), 0.4)
 		else:
-			spawn_bullet_impact_particles(modulate, 0.8)
+			spawn_bullet_impact_particles(modulate, 0.35)
 			
-		# 貫通弾以外の弾丸は消去 (レーザー、チャージボルト、プラズマ、タックル、サイクロン、フォトンレーザー、隕石は貫通)
+		hits_done += 1
+		# 貫通弾以外の弾丸は消去 (レーザー、チャージボルト、プラズマ、タックル、サイクロン、フォトンレーザー、隕石、またはpierce_limit残存時は貫通)
 		var is_piercing = (bullet_type == "giga_laser" or bullet_type == "charge_bolt" or bullet_type == "plasma" or bullet_type == "tackle" or bullet_type == "photon_laser" or bullet_type == "cyclone" or bullet_type == "player_meteor")
 		if not is_piercing:
-			queue_free()
+			if hits_done > pierce_limit:
+				queue_free()
 
 
-func trigger_explosion(radius: float = 100.0, splash_dmg: int = 12, fx_color: Color = Color.ORANGE, fx_scale: float = 2.0) -> void:
+func trigger_explosion(radius: float = 80.0, splash_dmg: int = 10, fx_color: Color = Color.ORANGE, fx_scale: float = 0.6) -> void:
 	# 周囲へのスプラッシュダメージ
 	var targets = get_tree().get_nodes_in_group("enemy")
 	for t in targets:
@@ -197,11 +213,11 @@ func trigger_explosion(radius: float = 100.0, splash_dmg: int = 12, fx_color: Co
 				if t.has_method("take_damage"):
 					t.take_damage(splash_dmg)
 					
-	# 爆発パーティクル
+	# 控えめな爆発パーティクル
 	spawn_bullet_impact_particles(fx_color, fx_scale)
 
 
-func spawn_bullet_impact_particles(color: Color, scale_multiplier: float = 1.0) -> void:
+func spawn_bullet_impact_particles(color: Color, scale_multiplier: float = 0.4) -> void:
 	var ParryParticleScene = load("res://game/bullets/parry_particle.tscn")
 	if ParryParticleScene:
 		var particle = ParryParticleScene.instantiate()

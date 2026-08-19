@@ -1540,37 +1540,35 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	if PIXEL_FONT:
 		settings.font = PIXEL_FONT
 	if is_finish:
-		settings.font_size = randi_range(64, 80)
-		settings.font_color = Color(1.0, 0.35, 0.1)
-		settings.outline_size = 8
+		settings.font_size = 22
+		settings.font_color = Color(1.0, 0.6, 0.2)
+		settings.outline_size = 3
 		settings.outline_color = Color.BLACK
 	else:
-		settings.font_size = randi_range(24, 32)
+		settings.font_size = 15
 		if amount > 15:
-			settings.font_color = Color(1.0, 0.9, 0.2)
-			settings.font_size = randi_range(32, 40)
+			settings.font_color = Color(1.0, 0.9, 0.3)
 		else:
-			settings.font_color = Color.WHITE
-		settings.outline_size = 4
+			settings.font_color = Color(0.9, 0.95, 1.0, 0.9)
+		settings.outline_size = 2
 		settings.outline_color = Color.BLACK
 		
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.pivot_offset = Vector2(100, 30)
+	label.pivot_offset = Vector2(40, 15)
 	
-	label.global_position = pos + Vector2(randf_range(-40, 40), randf_range(-30, 10))
+	label.global_position = pos + Vector2(randf_range(-15, 15), randf_range(-15, 5))
 	add_child(label)
 	
-	label.scale = Vector2(0.2, 0.2)
-	var tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.3, 1.3) if is_finish else Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var target_pos = label.global_position + Vector2(randf_range(-40, 40), -120)
-	tween.tween_property(label, "global_position", target_pos, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	label.scale = Vector2(0.5, 0.5)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	var target_pos = label.global_position + Vector2(randf_range(-12, 12), -35)
+	tween.tween_property(label, "global_position", target_pos, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
 	var fade_tween = create_tween()
-	fade_tween.tween_interval(0.5)
-	fade_tween.tween_property(label, "modulate:a", 0.0, 0.4)
+	fade_tween.tween_interval(0.18)
+	fade_tween.tween_property(label, "modulate:a", 0.0, 0.17)
 	
 	tween.chain().tween_callback(label.queue_free)
 
@@ -1580,27 +1578,29 @@ func spawn_kill_popup(pos: Vector2, text: String = "撃破！") -> void:
 	label.text = text
 	
 	var settings = LabelSettings.new()
-	settings.font_size = 88
-	settings.font_color = Color(1.0, 0.85, 0.0)
-	settings.outline_size = 16
-	settings.outline_color = Color(0.1, 0.0, 0.0, 1.0)
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
+	settings.font_size = 24
+	settings.font_color = Color(1.0, 0.85, 0.2)
+	settings.outline_size = 3
+	settings.outline_color = Color(0.1, 0.05, 0.0, 1.0)
 	
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.pivot_offset = Vector2(150, 45)
-	label.global_position = pos + Vector2(-150, -45)
+	label.pivot_offset = Vector2(60, 20)
+	label.global_position = pos + Vector2(-60, -20)
 	
 	add_child(label)
 	
-	label.scale = Vector2(0.1, 0.1)
+	label.scale = Vector2(0.4, 0.4)
 	var tween = create_tween().set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.25, 1.25), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(label, "global_position", pos + Vector2(-150, -110), 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "global_position", pos + Vector2(-60, -50), 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
 	var fade = create_tween()
-	fade.tween_interval(0.35)
-	fade.tween_property(label, "modulate:a", 0.0, 0.4)
+	fade.tween_interval(0.25)
+	fade.tween_property(label, "modulate:a", 0.0, 0.2)
 	
 	tween.chain().tween_callback(label.queue_free)
 
