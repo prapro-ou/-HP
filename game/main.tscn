@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b1fge61rfsjxr"]
 
 [ext_resource type="PackedScene" path="res://game/core/scrolling_background.tscn" id="1_bg"]
 [ext_resource type="PackedScene" uid="uid://dmua6sakwpwly" path="res://game/player/player.tscn" id="2_player"]
@@ -9,7 +9,7 @@
 [node name="Main" type="Node2D" unique_id=1066061339]
 position = Vector2(-1, 0)
 
-[node name="ScrollingBackground" parent="." instance=ExtResource("1_bg")]
+[node name="ScrollingBackground" parent="." unique_id=2021616570 instance=ExtResource("1_bg")]
 
 [node name="Player" parent="." unique_id=1961602926 instance=ExtResource("2_player")]
 position = Vector2(397, 869)
