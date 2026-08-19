@@ -447,17 +447,94 @@ func setup_settings_container() -> void:
 	grid_audio.add_child(sfx_box)
 	
 	# --- SECTION 3: SYSTEM/DATA ---
+	# --- SECTION 4: DEBUG / DATA RESET ---
 	var s_title = Label.new()
-	s_title.text = "データ設定"
-	s_title.label_settings = sec_set
+	s_title.text = "【デバッグ用】個別データリセット"
+	var dbg_sec_set = LabelSettings.new()
+	dbg_sec_set.font_size = 20
+	dbg_sec_set.font_color = Color(1.0, 0.45, 0.45)
+	if PIXEL_FONT:
+		dbg_sec_set.font = PIXEL_FONT
+	s_title.label_settings = dbg_sec_set
 	scroll_content.add_child(s_title)
 	
+	var dbg_card = PanelContainer.new()
+	var dbg_sb = StyleBoxFlat.new()
+	dbg_sb.bg_color = Color(0.08, 0.04, 0.05, 0.9)
+	dbg_sb.border_width_left = 2
+	dbg_sb.border_width_top = 2
+	dbg_sb.border_width_right = 2
+	dbg_sb.border_width_bottom = 2
+	dbg_sb.border_color = Color(0.8, 0.3, 0.3, 0.7)
+	dbg_sb.corner_radius_top_left = 6
+	dbg_sb.corner_radius_top_right = 6
+	dbg_sb.corner_radius_bottom_left = 6
+	dbg_sb.corner_radius_bottom_right = 6
+	dbg_card.add_theme_stylebox_override("panel", dbg_sb)
+	scroll_content.add_child(dbg_card)
+	
+	var dbg_margin = MarginContainer.new()
+	dbg_margin.add_theme_constant_override("margin_left", 14)
+	dbg_margin.add_theme_constant_override("margin_top", 14)
+	dbg_margin.add_theme_constant_override("margin_right", 14)
+	dbg_margin.add_theme_constant_override("margin_bottom", 14)
+	dbg_card.add_child(dbg_margin)
+	
+	var dbg_vbox = VBoxContainer.new()
+	dbg_vbox.add_theme_constant_override("separation", 10)
+	dbg_margin.add_child(dbg_vbox)
+	
+	# 1. 強化内容のみリセット
+	var reset_upgrades_btn = Button.new()
+	reset_upgrades_btn.text = "🔧 強化内容のみリセット (HP/パリィ/CD ➔ 0)"
+	reset_upgrades_btn.custom_minimum_size = Vector2(0, 42)
+	reset_upgrades_btn.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT:
+		reset_upgrades_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(reset_upgrades_btn, Color(0.9, 0.45, 0.2), Color(1.0, 0.6, 0.3))
+	dbg_vbox.add_child(reset_upgrades_btn)
+	reset_upgrades_btn.pressed.connect(func():
+		Global.reset_upgrade_levels()
+		show_debug_toast("✅ 強化内容（HP・パリィ判定・CD）を 0 にリセットしました")
+	)
+	
+	# 2. 開発ポイント(TP)のみリセット
+	var reset_tp_btn = Button.new()
+	reset_tp_btn.text = "💎 獲得開発ポイント(TP)のみリセット (➔ 0)"
+	reset_tp_btn.custom_minimum_size = Vector2(0, 42)
+	reset_tp_btn.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT:
+		reset_tp_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(reset_tp_btn, Color(0.85, 0.3, 0.55), Color(1.0, 0.45, 0.7))
+	dbg_vbox.add_child(reset_tp_btn)
+	reset_tp_btn.pressed.connect(func():
+		Global.reset_tech_points()
+		show_debug_toast("✅ 開発ポイント（TP）を 0 にリセットしました")
+	)
+	
+	# 3. 兵装開発・解析図鑑・ステージ解放リセット
+	var reset_dev_btn = Button.new()
+	reset_dev_btn.text = "📜 兵装開発・解析図鑑・ステージ解放リセット"
+	reset_dev_btn.custom_minimum_size = Vector2(0, 42)
+	reset_dev_btn.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT:
+		reset_dev_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(reset_dev_btn, Color(0.75, 0.3, 0.8), Color(0.9, 0.45, 0.95))
+	dbg_vbox.add_child(reset_dev_btn)
+	reset_dev_btn.pressed.connect(func():
+		Global.reset_development_progress()
+		show_debug_toast("✅ 兵装開発・解析図鑑・ステージ解放を初期化しました")
+	)
+	
+	# 4. 全データ初期化
 	reset_btn = Button.new()
-	reset_btn.text = "データ初期化"
-	reset_btn.custom_minimum_size = Vector2(300, 44)
-	reset_btn.add_theme_font_size_override("font_size", 18)
-	style_button(reset_btn, Color(0.9, 0.2, 0.2), Color(1.0, 0.4, 0.4))
-	scroll_content.add_child(reset_btn)
+	reset_btn.text = "⚠️ 全セーブデータ一括初期化 (完全消去)"
+	reset_btn.custom_minimum_size = Vector2(0, 44)
+	reset_btn.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT:
+		reset_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(reset_btn, Color(0.95, 0.15, 0.15), Color(1.0, 0.3, 0.3))
+	dbg_vbox.add_child(reset_btn)
 	
 	# Save & Back
 	back_btn = Button.new()
@@ -911,6 +988,28 @@ func _on_back_btn_pressed() -> void:
 		settings_container.hide()
 		menu_container.show()
 	)
+
+func show_debug_toast(text: String) -> void:
+	var toast = Label.new()
+	toast.text = text
+	var t_set = LabelSettings.new()
+	if PIXEL_FONT:
+		t_set.font = PIXEL_FONT
+	t_set.font_size = 18
+	t_set.font_color = Color.GREEN_YELLOW
+	t_set.outline_size = 5
+	t_set.outline_color = Color.BLACK
+	toast.label_settings = t_set
+	toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	toast.position = Vector2(50, 600)
+	toast.custom_minimum_size = Vector2(700, 35)
+	toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(toast)
+	
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(toast, "position:y", toast.position.y - 45.0, 2.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(toast, "modulate:a", 0.0, 2.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(toast.queue_free)
 
 # ----------------- Starfield & Title Animation -----------------
 

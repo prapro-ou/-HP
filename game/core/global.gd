@@ -282,6 +282,24 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			upgrade_levels = data["upgrade_levels"]
 	return data
 
+func reset_upgrade_levels() -> void:
+	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
+	save_game()
+
+func reset_tech_points() -> void:
+	tech_points = 0
+	save_game()
+
+func reset_development_progress() -> void:
+	discovered_analysis_weapons = []
+	unlocked_weapons = ["machine_gun", "burst_rifle", "pulse_gun"]
+	unlocked_counter_weapons = []
+	unlocked_shields = ["counter"]
+	equipped_shield = "counter"
+	equipped_weapon = "machine_gun"
+	unlocked_stages = [1]
+	save_game()
+
 func delete_save_game() -> void:
 	var dir = DirAccess.open("user://")
 	if dir:
