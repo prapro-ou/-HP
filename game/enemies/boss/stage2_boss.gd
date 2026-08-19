@@ -3,11 +3,40 @@ class_name Stage2Boss
 
 ## ステージ2ボス「成層圏重爆撃キャリア・ストーム」スクリプト
 ## stage2_boss1.png を使用した巨大空中要塞キャリア
+## - 砲台の1基は「水色・半透明の攻撃軽減シールド」(7秒展開 / 5秒クールダウン)を搭載
+## - メテオ攻撃は廃止され、成層圏超放電ストームに差し替え
 
 func _ready() -> void:
 	max_hp = 8800
 	current_hp = 8800
 	super._ready()
+
+
+func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
+	# ステージ2仕様：必ず片方が水色半透明シールド砲台（SHIELD_GENERATOR = 3）、もう片方が追尾ミサイルまたはビーム
+	var other_type = 1 if is_wave2 else 0 # 0: BEAM, 1: MISSILE
+	var shield_type = 3 # 3: SHIELD_GENERATOR
+	
+	# 配置：ボス背景の上に被る位置 (画面中央上部、左右)
+	var left_x = randf_range(190.0, 300.0)
+	var left_y = randf_range(240.0, 370.0)
+	var right_x = randf_range(500.0, 610.0)
+	var right_y = randf_range(240.0, 370.0)
+	
+	var configs = [
+		{ "type": other_type, "start": Vector2(left_x, -120.0), "target": Vector2(left_x, left_y) },
+		{ "type": shield_type, "start": Vector2(right_x, -120.0), "target": Vector2(right_x, right_y) }
+	]
+	
+	for cfg in configs:
+		if TURRET_SCENE:
+			var turret = TURRET_SCENE.instantiate()
+			turret.turret_type = cfg["type"]
+			turret.max_hp = 1100
+			turret.current_hp = 1100
+			get_parent().add_child(turret)
+			turret.spawn_intro(cfg["start"], cfg["target"], duration)
+			turrets.append(turret)
 
 
 func execute_fortress_attack() -> void:
@@ -74,16 +103,20 @@ func execute_fortress_attack() -> void:
 								bullet.set_direction(dir, 480.0)
 					)
 		4:
-			# パターン5 (暴走時): 成層圏超重力メテオクラッシュ投下
-			if METEOR_BULLET_SCENE:
-				for m_i in range(3):
-					get_tree().create_timer(m_i * 0.22).timeout.connect(func():
-						if is_instance_valid(self) and is_alive:
-							var meteor = METEOR_BULLET_SCENE.instantiate()
-							meteor.global_position = Vector2(vp_w * (0.25 * (m_i + 1)), 20.0)
-							var shoot_dir = Vector2.DOWN.rotated(randf_range(-0.35, 0.35))
-							if is_instance_valid(player):
-								shoot_dir = (player.global_position - meteor.global_position).normalized()
-							meteor.set_direction(shoot_dir, 320.0)
-							get_parent().add_child(meteor)
-					)
+			# パターン5 (暴走時・メテオ廃止): 成層圏超放電エレクトリックストーム
+			var storm_count = 6
+			var step_w = vp_w / float(storm_count + 1)
+			for s_i in range(storm_count):
+				get_tree().create_timer(s_i * 0.14).timeout.connect(func():
+					if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+						var strike_x = step_w * (s_i + 1)
+						for side in [-12.0, 0.0, 12.0]:
+							var bullet = bullet_pool.get_bullet("irregular")
+							if bullet:
+								bullet.global_position = Vector2(strike_x, 20.0)
+								bullet.damage = 14
+								var dir = Vector2.DOWN.rotated(deg_to_rad(side))
+								if is_instance_valid(player):
+									dir = (player.global_position - bullet.global_position).normalized().rotated(deg_to_rad(side * 0.5))
+								bullet.set_direction(dir, 360.0)
+				)

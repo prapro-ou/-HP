@@ -9,7 +9,8 @@ class_name BossTurret
 enum TurretType {
 	BEAM_MACHINEGUN,
 	HOMING_MISSILE,
-	METEOR_LAUNCHER
+	METEOR_LAUNCHER,
+	SHIELD_GENERATOR
 }
 
 const METEOR_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
@@ -31,6 +32,11 @@ var hover_offset: float = 0.0
 var beam_warning_line_alpha: float = 0.0
 var beam_warning_target_x: float = 0.0
 
+# シールド発生装置用 (7秒展開、5秒クールダウン)
+var is_shield_active: bool = false
+var shield_timer: float = 7.0
+var shield_pulse: float = 0.0
+
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
@@ -49,6 +55,10 @@ func _ready() -> void:
 	if sprite:
 		sprite.scale = Vector2(0.65, 0.65)
 		
+	if turret_type == TurretType.SHIELD_GENERATOR:
+		is_shield_active = true
+		shield_timer = 7.0
+		
 	update_type_visuals()
 
 
@@ -60,6 +70,8 @@ func update_type_visuals() -> void:
 			modulate = Color(0.9, 0.45, 1.0) # パープル
 		TurretType.METEOR_LAUNCHER:
 			modulate = Color(1.0, 0.45, 0.2) # オレンジレッド
+		TurretType.SHIELD_GENERATOR:
+			modulate = Color(0.3, 0.95, 1.0) # 水色・発光シアン
 
 
 func spawn_intro(start_pos: Vector2, final_pos: Vector2, duration: float = 5.0) -> void:
@@ -93,6 +105,25 @@ func _process(delta: float) -> void:
 	if not is_active:
 		return
 		
+	# シールド発生装置の制御 (7秒間展開 ➔ 5秒間クールダウン)
+	if turret_type == TurretType.SHIELD_GENERATOR:
+		shield_pulse += delta * 3.5
+		shield_timer -= delta
+		if is_shield_active:
+			if shield_timer <= 0.0:
+				is_shield_active = false
+				shield_timer = 5.0 # 5秒間クールダウン
+				spawn_turret_warning("⚠️ シールド一時解除！(5秒間隙発生)")
+				queue_redraw()
+		else:
+			if shield_timer <= 0.0:
+				is_shield_active = true
+				shield_timer = 7.0 # 7秒間展開
+				spawn_turret_warning("🛡️ 水色防護シールド展開 (7秒間)")
+				queue_redraw()
+		if is_shield_active:
+			queue_redraw()
+		
 	if is_charging:
 		charge_timer -= delta
 		# チャージ中の点滅
@@ -125,6 +156,8 @@ func get_attack_interval() -> float:
 			return 4.0
 		TurretType.METEOR_LAUNCHER:
 			return 5.0
+		TurretType.SHIELD_GENERATOR:
+			return 3.2
 	return 5.0
 
 
@@ -143,6 +176,8 @@ func start_attack_sequence() -> void:
 			is_charging = true
 			charge_timer = 1.3 # 赤く光って1.3秒チャージ
 			spawn_turret_warning("⚠️ METEOR LAUNCH!")
+		TurretType.SHIELD_GENERATOR:
+			execute_attack()
 
 
 func execute_attack() -> void:
@@ -194,6 +229,17 @@ func execute_attack() -> void:
 					shoot_dir = (player.global_position - global_position).normalized().rotated(randf_range(-0.4, 0.4))
 				meteor.set_direction(shoot_dir, 320.0)
 				get_parent().add_child(meteor)
+				
+		TurretType.SHIELD_GENERATOR:
+			# シールド砲台からの水色プラズマ拡散射撃
+			if pool:
+				for angle_deg in [-18.0, 0.0, 18.0]:
+					var bullet = pool.get_bullet("wave")
+					if bullet:
+						bullet.global_position = global_position + Vector2(0.0, 20.0)
+						bullet.damage = 9
+						var dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
+						bullet.set_direction(dir, 300.0)
 
 
 func _draw() -> void:
@@ -204,6 +250,16 @@ func _draw() -> void:
 		draw_line(Vector2(0, 15), Vector2(local_target_x, 800), line_color, 2.5)
 		var glow_color = Color(1.0, 0.3, 0.3, beam_warning_line_alpha * 0.3)
 		draw_line(Vector2(0, 15), Vector2(local_target_x, 800), glow_color, 8.0)
+		
+	# 水色・半透明の攻撃軽減シールド
+	if turret_type == TurretType.SHIELD_GENERATOR and is_shield_active:
+		var pulse_radius = 120.0 + sin(shield_pulse) * 6.0
+		var fill_alpha = 0.22 + sin(shield_pulse * 1.5) * 0.06
+		# 半透明シールド球
+		draw_circle(Vector2.ZERO, pulse_radius, Color(0.18, 0.78, 1.0, fill_alpha))
+		# 外枠グローリング
+		draw_arc(Vector2.ZERO, pulse_radius, 0, TAU, 36, Color(0.35, 0.92, 1.0, 0.88), 3.5)
+		draw_arc(Vector2.ZERO, pulse_radius * 0.85, 0, TAU, 28, Color(0.2, 0.6, 0.95, 0.45), 1.8)
 
 
 func spawn_turret_warning(text: String) -> void:
@@ -211,13 +267,13 @@ func spawn_turret_warning(text: String) -> void:
 	label.text = text
 	var set = LabelSettings.new()
 	set.font_size = 16
-	set.font_color = Color.RED
+	set.font_color = Color(0.3, 0.9, 1.0) if turret_type == TurretType.SHIELD_GENERATOR else Color.RED
 	set.outline_size = 4
 	set.outline_color = Color.BLACK
 	label.label_settings = set
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.global_position = global_position + Vector2(-100, -40)
-	label.custom_minimum_size = Vector2(200, 20)
+	label.global_position = global_position + Vector2(-120, -45)
+	label.custom_minimum_size = Vector2(240, 20)
 	get_parent().add_child(label)
 	
 	var tween = create_tween()
@@ -230,10 +286,15 @@ func take_damage(amount: int) -> void:
 	if not is_alive:
 		return
 		
-	current_hp -= amount
+	var final_damage = amount
+	if turret_type == TurretType.SHIELD_GENERATOR and is_shield_active:
+		# 水色防護シールド展開中はダメージ75%大幅軽減
+		final_damage = max(1, int(amount * 0.25))
+		
+	current_hp -= final_damage
 	
 	# 被弾フラッシュ
-	sprite.modulate = Color(1.0, 0.3, 0.3)
+	sprite.modulate = Color(0.4, 0.8, 1.0) if (turret_type == TurretType.SHIELD_GENERATOR and is_shield_active) else Color(1.0, 0.3, 0.3)
 	var tween = create_tween()
 	tween.tween_property(sprite, "modulate", Color.WHITE, 0.1)
 	
@@ -241,7 +302,7 @@ func take_damage(amount: int) -> void:
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(global_position, amount, false)
+			ui_node.spawn_damage_popup(global_position, final_damage, false)
 			
 	if current_hp <= 0:
 		current_hp = 0
