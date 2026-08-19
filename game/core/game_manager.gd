@@ -155,14 +155,36 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	state = "wave1"
 	current_wave_index = 0
 	
+	# ステージ開始の大判テロップ表示 (4.2秒間、画面中央に大きく表示)
+	var st_name = current_stage.stage_name if current_stage else "STAGE " + str(current_stage_num)
+	var codename = ""
+	var goal = "90秒間防衛＆敵弾解析 ➔ ボス要塞を撃破せよ"
+	match current_stage_num:
+		1:
+			codename = "第1エリア: 惑星到達前・デブリ宙域"
+			goal = "敵部隊の攻撃をパリィ解析し、防衛要塞を突破せよ！"
+		2:
+			codename = "第2エリア: 惑星地上上空・成層圏"
+			goal = "雲海防衛網を突破し、空中要塞キャリアを撃墜せよ！"
+		3:
+			codename = "第3エリア: 惑星内部・軍事工廠"
+			goal = "網の目の電磁網を制圧し、中枢コアを破壊せよ！"
+		4:
+			codename = "第4エリア: 崩壊地底・脱出ルート"
+			goal = "崩壊トラップを回避し、追撃部隊を振り切って脱出せよ！"
+		5:
+			codename = "最終エリア: 終焉の支配者・オメガ"
+			goal = "全兵装を同期解放し、覚醒惑星オメガを殲滅せよ！"
+			
+	if ui and ui.has_method("show_stage_intro_banner"):
+		ui.show_stage_intro_banner(current_stage_num, st_name, codename, goal)
+	
 	var first_wave = current_stage.get_wave(0)
 	if first_wave:
-		get_tree().create_timer(0.2).timeout.connect(func():
-			if current_state == State.WAVE and first_wave.start_message != "":
-				spawn_popup(first_wave.start_message)
-		)
-		get_tree().create_timer(2.2).timeout.connect(func():
+		get_tree().create_timer(3.8).timeout.connect(func():
 			if current_state == State.WAVE:
+				if ui and ui.has_method("show_wave_announcement") and first_wave.start_message != "":
+					ui.show_wave_announcement(first_wave.display_title, first_wave.start_message, 4.0)
 				start_wave(0)
 		)
 	else:
@@ -193,9 +215,6 @@ func start_wave(index: int) -> void:
 	if not wave_data:
 		trigger_interlude()
 		return
-		
-	if wave_data.display_title != "":
-		spawn_popup(wave_data.display_title)
 		
 	var viewport_w = get_viewport_rect().size.x
 	for config in wave_data.initial_spawns:
@@ -252,7 +271,8 @@ func process_wave_state(delta: float) -> void:
 	if wave_phase_timer <= 0.0:
 		wave_phase_timer = 0.0
 		clear_drones()
-		spawn_popup("⏱️ 90秒防衛達成！強大な敵反応を検知！")
+		if ui and ui.has_method("show_wave_announcement"):
+			ui.show_wave_announcement("⏱️ 90秒防衛達成！", "強大な敵反応を検知！ボス迎撃態勢に移行せよ！", 3.8)
 		trigger_interlude()
 		return
 		
@@ -278,7 +298,8 @@ func process_wave_state(delta: float) -> void:
 				var title_str = new_wave_data.display_title
 				if title_str == "":
 					title_str = "⚡ WAVE %d 突入！敵増援！" % current_wave_level
-				spawn_popup(title_str)
+				if ui and ui.has_method("show_wave_announcement"):
+					ui.show_wave_announcement(title_str, new_wave_data.start_message, 3.8)
 				
 	var wave_data = current_stage.get_wave(current_wave_index) if current_stage else null
 	if wave_data:
@@ -447,7 +468,8 @@ func start_boss_battle() -> void:
 			boss.start_intro_sequence(5.0)
 		
 		var b_name = cfg.name if cfg else "古代防衛要塞"
-		spawn_popup("ボス出現: " + b_name)
+		if ui and ui.has_method("show_wave_announcement"):
+			ui.show_wave_announcement("⚠️ BOSS WARNING ⚠️", "要塞ボス接近: 【" + b_name + "】", 4.0)
 
 
 func check_win_lose() -> void:

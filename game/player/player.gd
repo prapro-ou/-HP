@@ -794,31 +794,55 @@ func trigger_screen_flash(color: Color = Color(1.0, 1.0, 1.0, 0.5)) -> void:
 
 
 func spawn_popup_message(text: String) -> void:
+	var container = PanelContainer.new()
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.03, 0.05, 0.09, 0.88)
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.3, 0.75, 1.0, 0.8)
+	sb.corner_radius_top_left = 6
+	sb.corner_radius_top_right = 6
+	sb.corner_radius_bottom_left = 6
+	sb.corner_radius_bottom_right = 6
+	container.add_theme_stylebox_override("panel", sb)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	container.add_child(margin)
+	
 	var label = Label.new()
 	label.text = text
-	
 	var settings = LabelSettings.new()
-	settings.font_size = 20
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
+	settings.font_size = 18
 	settings.font_color = Color.CYAN
-	settings.outline_size = 5
+	settings.outline_size = 4
 	settings.outline_color = Color.BLACK
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	margin.add_child(label)
 	
-	label.global_position = global_position + Vector2(-200.0, -70.0)
-	label.custom_minimum_size = Vector2(400.0, 30.0)
+	container.global_position = global_position + Vector2(-170.0, -85.0)
+	container.custom_minimum_size = Vector2(340.0, 32.0)
 	
 	var main = get_node_or_null("/root/Main")
 	if main:
-		main.add_child(label)
+		main.add_child(container)
 	else:
-		get_parent().add_child(label)
+		get_parent().add_child(container)
 	
-	var tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(label, "global_position", label.global_position + Vector2(0.0, -80.0), 1.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(label, "modulate:a", 0.0, 1.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.chain().tween_callback(label.queue_free)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(container, "global_position", container.global_position + Vector2(0.0, -50.0), 2.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(container, "modulate:a", 0.0, 2.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(container.queue_free)
 
 
 func trigger_parry_feedback() -> void:
