@@ -18,10 +18,85 @@ var unlocked_shields: Array = ["counter"] # Available shield frameworks
 var unlocked_weapons: Array = ["machine_gun", "burst_rifle", "pulse_gun"] # Available primary weapon frameworks
 var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
 var unlocked_stages: Array = [1] # Unlocked stages (Stage 1 is unlocked by default)
+var discovered_analysis_weapons: Array = [] # Discovered analysis mutation patterns
 var upgrade_levels: Dictionary = {
 	"hp": 0,
 	"parry_window": 0,
 	"cooldown": 0
+}
+
+# Catalog of all 7 Enemy Analysis Mutation Patterns
+var analysis_catalog: Dictionary = {
+	"rapid": {
+		"name": "高速連射",
+		"icon": "⚡",
+		"color": Color(0.3, 0.8, 1.0),
+		"enemy_color": "青色",
+		"enemy_type": "直進フォトン弾ドローン",
+		"effect": "主兵装の連射速度を+30%〜+50%大幅加速",
+		"stats": "連射速度: ＋30%〜50% | 弾数密度: 極大",
+		"description": "青色ドローンの高速演算機構を解析。主兵装のエネルギー装填サイクルを極限まで短縮し、圧倒的な弾幕密度を実現する。"
+	},
+	"spread": {
+		"name": "拡散射撃",
+		"icon": "◈",
+		"color": Color(0.2, 1.0, 0.6),
+		"enemy_color": "緑色",
+		"enemy_type": "拡散ウェイブ弾ドローン",
+		"effect": "主兵装の同時発射弾数を増加（2連装➔4連装➔扇状拡散）",
+		"stats": "同時発射数: ＋2〜4発 | 攻撃範囲: 扇状広域",
+		"description": "緑色ドローンの広角プラズマ照射機構を解析。主兵装の射撃ラインを前方扇状に拡張し、複数の敵を一網打尽にする。"
+	},
+	"pierce": {
+		"name": "貫通重弾",
+		"icon": "▲",
+		"color": Color(1.0, 0.6, 0.2),
+		"enemy_color": "赤色",
+		"enemy_type": "重装甲チャージ砲巡洋艦",
+		"effect": "弾丸が敵を貫通し、基礎威力が大幅上昇",
+		"stats": "単発威力: ＋6〜15 | 装甲貫通: 有効",
+		"description": "赤色大型艦の高密度エネルギー充填コアを解析。弾丸に強力な貫通重力を付与し、硬い敵や後方の敵をまとめて貫通粉砕する。"
+	},
+	"homing": {
+		"name": "誘導ミサイル",
+		"icon": "▶",
+		"color": Color(0.85, 0.45, 1.0),
+		"enemy_color": "紫色",
+		"enemy_type": "クラスター追尾ミサイル艦",
+		"effect": "射撃時に最寄りの敵を自動追尾するマイクロミサイルを射出",
+		"stats": "副兵装威力: 24〜45 | 索敵追尾: 100%",
+		"description": "紫色ミサイル艦の生体誘導センサーを解析。主兵装射撃と連動して自動追尾ミサイルを斉射し、死角の敵も逃さず殲滅する。"
+	},
+	"laser": {
+		"name": "フォトン光線",
+		"icon": "━",
+		"color": Color(0.4, 0.9, 1.0),
+		"enemy_color": "シアン色",
+		"enemy_type": "高出力ビーム砲台／要塞光線部",
+		"effect": "超高速の直線フォトンビームを追加照射",
+		"stats": "レーザー威力: 30〜60 | 弾速: 2400 (超高速)",
+		"description": "要塞レーザー砲台の集束照射技術を解析。前方の敵を一瞬で焼き払う高出力フォトンレーザーを自機から連続照射する。"
+	},
+	"cyclone": {
+		"name": "旋回スピン",
+		"icon": "◎",
+		"color": Color(1.0, 0.85, 0.2),
+		"enemy_color": "黄色",
+		"enemy_type": "不規則旋回ドローン／サイクロンポッド",
+		"effect": "螺旋状に旋回しながら飛翔するトルネード弾を射出",
+		"stats": "スピン威力: 22〜44 | 制圧力: 超広角",
+		"description": "黄色不規則ドローンのジャイロ運動機構を解析。渦を巻いて広がるサイクロン弾を放ち、広域の敵弾と敵機を同時に薙ぎ払う。"
+	},
+	"meteor": {
+		"name": "ギガメテオ",
+		"icon": "●",
+		"color": Color(1.0, 0.35, 0.2),
+		"enemy_color": "橙色",
+		"enemy_type": "要塞迎撃ギガメテオランチャー",
+		"effect": "画面を粉砕する超巨大隕石を確率で前方に投下",
+		"stats": "メテオ威力: 55〜110 | 範囲爆破: 超絶大",
+		"description": "要塞メテオ射出砲の重力破砕技術を解析。超高密度のエネルギー質量体を前方へ投下し、画面内の敵に破滅的な破砕ダメージを与える。"
+	}
 }
 
 func is_stage_unlocked(stage_num: int) -> bool:
@@ -133,10 +208,19 @@ func check_save_game() -> void:
 	else:
 		has_save = false
 
-func save_game(stage_num: int, score: int, weapons: Dictionary) -> void:
+func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -> void:
 	var config = ConfigFile.new()
-	config.set_value("game", "stage_num", stage_num)
-	config.set_value("game", "score", score)
+	var prev_stage = 1
+	var prev_score = 0
+	if config.load(SAVE_PATH) == OK:
+		prev_stage = config.get_value("game", "stage_num", 1)
+		prev_score = config.get_value("game", "score", 0)
+		
+	var final_stage = stage_num if stage_num > 0 else prev_stage
+	var final_score = score if score >= 0 else prev_score
+	
+	config.set_value("game", "stage_num", final_stage)
+	config.set_value("game", "score", final_score)
 	config.set_value("game", "weapons", weapons)
 	config.set_value("game", "equipped_weapon", equipped_weapon)
 	config.set_value("game", "is_first_launch", is_first_launch)
@@ -146,6 +230,7 @@ func save_game(stage_num: int, score: int, weapons: Dictionary) -> void:
 	config.set_value("game", "unlocked_weapons", unlocked_weapons)
 	config.set_value("game", "unlocked_counter_weapons", unlocked_counter_weapons)
 	config.set_value("game", "unlocked_stages", unlocked_stages)
+	config.set_value("game", "discovered_analysis_weapons", discovered_analysis_weapons)
 	config.set_value("game", "upgrade_levels", upgrade_levels)
 	config.save(SAVE_PATH)
 	has_save = true
@@ -164,6 +249,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"unlocked_weapons": unlocked_weapons,
 		"unlocked_counter_weapons": unlocked_counter_weapons,
 		"unlocked_stages": unlocked_stages,
+		"discovered_analysis_weapons": discovered_analysis_weapons,
 		"upgrade_levels": upgrade_levels
 	}
 	if config.load(SAVE_PATH) == OK:
@@ -178,6 +264,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "burst_rifle", "pulse_gun"])
 		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", [])
 		data["unlocked_stages"] = config.get_value("game", "unlocked_stages", [1])
+		data["discovered_analysis_weapons"] = config.get_value("game", "discovered_analysis_weapons", [])
 		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0})
 		
 		if sync_globals:
@@ -192,6 +279,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			if not unlocked_stages.has(1):
 				unlocked_stages.append(1)
 				unlocked_stages.sort()
+			discovered_analysis_weapons = data["discovered_analysis_weapons"]
 			upgrade_levels = data["upgrade_levels"]
 	return data
 
@@ -210,6 +298,7 @@ func delete_save_game() -> void:
 	unlocked_weapons = ["machine_gun", "burst_rifle", "pulse_gun"]
 	unlocked_counter_weapons = []
 	unlocked_stages = [1]
+	discovered_analysis_weapons = []
 	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
 
 func save_settings() -> void:
