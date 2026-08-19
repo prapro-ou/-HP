@@ -444,18 +444,33 @@ func navigate_to_index(idx: int) -> void:
 
 func update_stage_selection(instant: bool) -> void:
 	var active_stage = stages[current_index]
+	var is_unlocked = Global.is_stage_unlocked(active_stage.id)
 	
 	# Update active detail card details
-	detail_title.text = active_stage.title
-	detail_codename.text = active_stage.codename
-	detail_desc.text = active_stage.description
-	detail_diff.text = "DIFFICULTY: " + active_stage.difficulty
-	detail_diff.label_settings.font_color = active_stage.color
+	if is_unlocked:
+		detail_title.text = active_stage.title
+		detail_codename.text = active_stage.codename
+		detail_desc.text = active_stage.description
+		detail_diff.text = "DIFFICULTY: " + active_stage.difficulty
+		detail_diff.label_settings.font_color = active_stage.color
+		select_btn.text = "出撃準備"
+		select_btn.disabled = false
+		style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
+	else:
+		detail_title.text = "STAGE %d: 🔒 未解放エリア" % active_stage.id
+		detail_codename.text = "[アクセス権限: 未解除]"
+		var prev_stage_name = stages[active_stage.id - 2].title if active_stage.id > 1 and active_stage.id - 2 < stages.size() else "前ステージ"
+		detail_desc.text = "前ステージ (STAGE %d: %s) をクリアすることで作戦宙域へのアクセス権限が解放されます。" % [active_stage.id - 1, prev_stage_name]
+		detail_diff.text = "DIFFICULTY: 🔒 LOCKED"
+		detail_diff.label_settings.font_color = Color(0.6, 0.3, 0.3)
+		select_btn.text = "🔒 未解放"
+		select_btn.disabled = true
+		style_btn(select_btn, Color(0.3, 0.3, 0.3), Color(0.4, 0.4, 0.4))
 	
 	# Update detail panel borders to match active color
 	var sb = detail_panel.get_theme_stylebox("panel") as StyleBoxFlat
 	if sb:
-		var target_color = active_stage.color
+		var target_color = active_stage.color if is_unlocked else Color(0.35, 0.35, 0.4)
 		if instant:
 			sb.border_color = target_color
 			sb.shadow_color = Color(target_color.r, target_color.g, target_color.b, 0.2)
@@ -467,24 +482,33 @@ func update_stage_selection(instant: bool) -> void:
 	# Animate card scale/color focusing in HBox
 	for i in range(stage_cards.size()):
 		var card = stage_cards[i]
+		var stage_item = stages[i]
+		var item_unlocked = Global.is_stage_unlocked(stage_item.id)
 		var card_sb = card.get_theme_stylebox("panel") as StyleBoxFlat
 		var card_lbl = card.get_child(0) as Label
 		
+		# Update card label text
+		if item_unlocked:
+			card_lbl.text = "STAGE " + str(stage_item.id) + "\n" + stage_item.title
+		else:
+			card_lbl.text = "STAGE " + str(stage_item.id) + "\n🔒 LOCKED"
+		
 		if i == current_index:
 			# Focused Card
-			card_lbl.label_settings.font_color = Color.WHITE
+			card_lbl.label_settings.font_color = Color.WHITE if item_unlocked else Color(0.8, 0.6, 0.6)
+			var border_col = stage_item.color if item_unlocked else Color(0.6, 0.3, 0.3)
 			if instant:
 				card.scale = Vector2(1.15, 1.15)
-				card_sb.border_color = active_stage.color
-				card_sb.bg_color = Color(0.1, 0.1, 0.16)
+				card_sb.border_color = border_col
+				card_sb.bg_color = Color(0.1, 0.1, 0.16) if item_unlocked else Color(0.08, 0.05, 0.05)
 			else:
 				var t = create_tween().set_parallel(true)
 				t.tween_property(card, "scale", Vector2(1.15, 1.15), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-				t.tween_property(card_sb, "border_color", active_stage.color, 0.2)
-				t.tween_property(card_sb, "bg_color", Color(0.1, 0.1, 0.16), 0.2)
+				t.tween_property(card_sb, "border_color", border_col, 0.2)
+				t.tween_property(card_sb, "bg_color", Color(0.1, 0.1, 0.16) if item_unlocked else Color(0.08, 0.05, 0.05), 0.2)
 		else:
 			# Unfocused Cards
-			card_lbl.label_settings.font_color = Color(0.5, 0.5, 0.5)
+			card_lbl.label_settings.font_color = Color(0.5, 0.5, 0.5) if item_unlocked else Color(0.35, 0.3, 0.3)
 			if instant:
 				card.scale = Vector2(0.9, 0.9)
 				card_sb.border_color = Color(0.2, 0.2, 0.2)
@@ -496,16 +520,13 @@ func update_stage_selection(instant: bool) -> void:
 				t.tween_property(card_sb, "bg_color", Color(0.03, 0.03, 0.05), 0.2)
 
 	# Scroll focusing in stage_container
-	# We center the focused card inside the HBox
 	var container_parent = stage_container.get_parent() as ScrollContainer
 	if container_parent:
 		var target_scroll_h = 0
 		if current_index > 0:
-			# Estimate position. Card width = 160, separation = 35. Center is (focusedCardX - scrollWidth/2 + cardWidth/2)
 			var card_width = 160.0
 			var sep = 35.0
 			var offset_x = current_index * (card_width + sep)
-			# Center position
 			target_scroll_h = int(offset_x - (container_parent.size.x - card_width) / 2.0)
 			target_scroll_h = max(0, target_scroll_h)
 			
@@ -522,12 +543,13 @@ func _on_tech_lab_pressed() -> void:
 	get_tree().change_scene_to_file("res://game/core/tech_lab.tscn")
 
 func _on_select_pressed() -> void:
-	# Save selection to Global
 	var active_stage = stages[current_index]
+	if not Global.is_stage_unlocked(active_stage.id):
+		return
+		
 	Global.is_continue = false
 	
 	# Pass the selected stage number
-	# We override equipped weapon and shield during loadout selection
 	# We transition to the Loadout Selection Screen
 	# Save stage num to global settings momentarily
 	var save_data = Global.load_game_data()
