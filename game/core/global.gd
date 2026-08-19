@@ -404,9 +404,8 @@ func apply_display() -> void:
 		
 		var target_size = Vector2i(target_w, target_h)
 		if win:
-			if not win.is_embedded():
-				win.size = target_size
-		elif DisplayServer.has_feature(DisplayServer.FEATURE_WINDOW_SIZE):
+			win.size = target_size
+		else:
 			DisplayServer.window_set_size(target_size)
 		
 	# V-Sync
@@ -435,12 +434,10 @@ func auto_scale_display() -> void:
 	if win:
 		win.mode = Window.MODE_WINDOWED
 		win.borderless = false
-		if not win.is_embedded():
-			win.size = target_size
-	
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
-	if DisplayServer.has_feature(DisplayServer.FEATURE_WINDOW_SIZE):
+		win.size = target_size
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		DisplayServer.window_set_size(target_size)
 	
 	# Recalculate and update current scale setting
@@ -451,8 +448,9 @@ func auto_scale_display() -> void:
 	var screen_pos = DisplayServer.screen_get_position()
 	var window_pos = screen_pos + (screen_size - target_size) / 2
 	window_pos.y = max(window_pos.y, 40)
-	if win and not win.is_embedded():
+	if win:
 		win.position = window_pos
-	DisplayServer.window_set_position(window_pos)
+	else:
+		DisplayServer.window_set_position(window_pos)
 	
 	save_settings()
