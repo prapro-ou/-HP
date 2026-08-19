@@ -426,6 +426,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 	
 	var is_pierce_active = active_traits.has(PATTERN_PIERCE)
 	var pierce_lvl = analysis_patterns[PATTERN_PIERCE]["level"] if is_pierce_active else 0
+	var global_dmg_bonus = get_global_analysis_damage_bonus()
 	
 	var eq_w = Global.equipped_weapon
 	match eq_w:
@@ -446,7 +447,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 					bullet.global_position = global_position + offset
 					var dir = Vector2.UP.rotated(deg_to_rad(deg))
 					bullet.velocity = dir * 1200.0
-					bullet.damage += int(power_shield_damage_buff)
+					bullet.damage += int(power_shield_damage_buff) + global_dmg_bonus
 					if is_pierce_active:
 						bullet.damage += 6
 					target_parent.add_child(bullet)
@@ -461,7 +462,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 						bullet.bullet_type = "charge_bolt" if is_pierce_active else "burst_rifle"
 						bullet.global_position = global_position + Vector2(0, -22.0)
 						bullet.velocity = Vector2.UP * (1600.0 if is_pierce_active else 1400.0)
-						bullet.damage += int(power_shield_damage_buff)
+						bullet.damage += int(power_shield_damage_buff) + global_dmg_bonus
 						if is_pierce_active and pierce_lvl >= 2:
 							bullet.damage += 15
 						target_parent.add_child(bullet)
@@ -478,7 +479,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.global_position = global_position + Vector2(angle_deg * 0.6, -15.0)
 				var dir = Vector2.UP.rotated(deg_to_rad(angle_deg))
 				bullet.velocity = dir * 1000.0
-				bullet.damage += int(power_shield_damage_buff)
+				bullet.damage += int(power_shield_damage_buff) + global_dmg_bonus
 				if is_pierce_active:
 					bullet.damage += 8
 				target_parent.add_child(bullet)
@@ -493,7 +494,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.bullet_type = "plasma"
 				bullet.global_position = global_position + offset
 				bullet.velocity = Vector2.UP * 600.0
-				bullet.damage += int(power_shield_damage_buff)
+				bullet.damage += int(power_shield_damage_buff) + global_dmg_bonus
 				if is_pierce_active and pierce_lvl >= 2:
 					bullet.damage += 16
 				target_parent.add_child(bullet)
@@ -507,7 +508,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.bullet_type = "tackle"
 				bullet.global_position = global_position + Vector2(offset_x, -30.0)
 				bullet.velocity = Vector2.UP * 850.0
-				bullet.damage += int(power_shield_damage_buff)
+				bullet.damage += int(power_shield_damage_buff) + global_dmg_bonus
 				if is_pierce_active:
 					bullet.damage += 20
 				target_parent.add_child(bullet)
@@ -665,7 +666,19 @@ func advance_analysis(bullet_type: String, amount: float = 8.0) -> void:
 	add_pattern_analysis(pattern_key, actual_amount)
 
 
-func add_pattern_analysis(pattern_key: String, amount: float) -> void:
+func get_total_analysis_level() -> int:
+	var total = 0
+	for p in analysis_patterns.values():
+		total += p.get("level", 0)
+	return total
+
+
+func get_global_analysis_damage_bonus() -> int:
+	# 全兵装共鳴強化: 解析レベル1毎に全攻撃力+5
+	return get_total_analysis_level() * 5
+
+
+func add_pattern_analysis(pattern_key: String, amount: float, is_sub_resonance: bool = false) -> void:
 	if not pattern_key in analysis_patterns:
 		return
 		
@@ -697,6 +710,12 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 				var ui_node = main.get_node_or_null("UI")
 				if ui_node and ui_node.has_method("show_analysis_unlock_modal"):
 					ui_node.show_analysis_unlock_modal(pattern_key, data)
+					
+	# 全属性共鳴解析: 1つの属性をパリィすると、他の全属性にも25%の共鳴EXPが波及！
+	if not is_sub_resonance:
+		for other_key in analysis_patterns.keys():
+			if other_key != pattern_key:
+				add_pattern_analysis(other_key, amount * 0.25, true)
 
 
 func apply_pattern_trait(pattern_key: String) -> void:
@@ -710,6 +729,10 @@ func apply_pattern_trait(pattern_key: String) -> void:
 			if analysis_patterns.has(removed_key):
 				spawn_popup_message("【スロット交代】%s ➔ %s" % [analysis_patterns[removed_key]["name"], data["name"]])
 		active_traits.append(pattern_key)
+	
+	# 全属性共鳴バフ適用（機体基本性能底上げ）
+	var tot_lvl = get_total_analysis_level()
+	move_speed = 300.0 + tot_lvl * 12.0
 	
 	trigger_level_up_burst(data, lvl)
 	apply_equipped_weapon_settings()
@@ -852,7 +875,11 @@ func trigger_parry_feedback() -> void:
 	trigger_screen_flash(Color(0.3, 0.8, 1.0, 0.45))
 	trigger_hit_stop(0.12, 0.05)
 	trigger_parry_ring_effect()
-	spawn_parry_popup_message("パリィ！")
+	
+	# パリィ成功時の共鳴修復 (基礎10 HP + 解析レベル1毎に+4 HP)
+	var heal_amt = 10 + get_total_analysis_level() * 4
+	heal(heal_amt)
+	spawn_parry_popup_message("パリィ！ (機体修復 +%d)" % heal_amt)
 
 
 func trigger_hit_stop(duration_sec: float, scale: float) -> void:
