@@ -41,7 +41,37 @@ var charge_timer: float = 0.0
 func _ready_enemy() -> void:
 	add_to_group("drones")
 	
-	max_hp = DEFAULT_DRONE_HP
+	player = get_node_or_null("/root/Main/Player")
+	bullet_pool = get_node_or_null("/root/Main/BulletPool")
+	
+	# 基礎耐久力 (120 HP)
+	var base_hp = 120
+	
+	# 1. ステージ・ウェーブ進行に応じた耐久力補正
+	var stage_num = 1
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var gm = main.get_node_or_null("GameManager")
+		if gm and "current_stage_num" in gm:
+			stage_num = gm.current_stage_num
+			if "current_wave_level" in gm:
+				base_hp += (gm.current_wave_level - 1) * 25
+				
+	base_hp += (stage_num - 1) * 50
+	
+	# 2. プレイヤーの強化内容に応じた耐久力スケーリング
+	if is_instance_valid(player):
+		var player_analysis_lvls = 0
+		if "analysis_patterns" in player:
+			for p_data in player.analysis_patterns.values():
+				player_analysis_lvls += p_data.get("level", 0)
+		base_hp += player_analysis_lvls * 20
+		
+	if Global and "upgrade_levels" in Global:
+		var total_tech_lvls = Global.upgrade_levels.get("hp", 0) + Global.upgrade_levels.get("parry_window", 0) + Global.upgrade_levels.get("cooldown", 0)
+		base_hp += total_tech_lvls * 15
+		
+	max_hp = base_hp
 	current_hp = max_hp
 	
 	# タイプ別に攻撃スパンをゆったり長く設定（2.8〜3.8秒）
