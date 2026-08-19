@@ -106,8 +106,7 @@ func unlock_stage(stage_num: int) -> bool:
 	if not unlocked_stages.has(stage_num):
 		unlocked_stages.append(stage_num)
 		unlocked_stages.sort()
-		var cur_data = load_game_data()
-		save_game(cur_data.get("stage_num", 1), cur_data.get("score", 0), cur_data.get("weapons", {}))
+		save_game()
 		return true
 	return false
 
