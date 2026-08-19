@@ -2,13 +2,12 @@
 
 [ext_resource type="PackedScene" path="res://game/stages/base_stage.tscn" id="1_base"]
 [ext_resource type="Script" path="res://game/stages/stage_2.gd" id="2_script"]
-[ext_resource type="PackedScene" path="res://game/enemies/boss/boss.tscn" id="3_boss"]
+[ext_resource type="PackedScene" path="res://game/enemies/boss/stage2_boss.tscn" id="3_boss"]
 
 [node name="Stage2" instance=ExtResource("1_base")]
 script = ExtResource("2_script")
-stage_name = "OVERLOADED GUARDIAN"
+stage_name = "PLANETARY STRATOSPHERE"
 stage_number = 2
 
 [node name="Boss" parent="." index="0" instance=ExtResource("3_boss")]
 position = Vector2(397, 192)
-modulate = Color(1.0, 0.4, 0.4, 1.0)

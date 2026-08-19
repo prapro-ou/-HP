@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://game/enemies/boss/stage2_boss.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://game/assets/boss/stage2/stage2_boss1.png" id="2_texture"]
+[ext_resource type="Script" path="res://game/enemies/boss/boss_part.gd" id="3_part_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_core"]
+size = Vector2(380, 220)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(780, 260)
+
+[node name="Boss" type="Node2D" groups=["boss", "enemy"]]
+z_index = -10
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.95, 0.98, 1.0, 1.0)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("2_texture")
+
+[node name="Core" type="Area2D" parent="." groups=["boss"]]
+position = Vector2(0, -90)
+script = ExtResource("3_part_script")
+part_name = "core"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Core"]
+shape = SubResource("RectangleShape2D_core")
+debug_color = Color(0.9, 0.2, 0.3, 0.4)
+
+[node name="CoreGlow" type="ColorRect" parent="Core"]
+offset_left = -150.0
+offset_top = -60.0
+offset_right = 150.0
+offset_bottom = 60.0
+color = Color(0.2, 0.9, 0.4, 0.3)
+
+[node name="BodyArea" type="Area2D" parent="." groups=["boss"]]
+position = Vector2(0, -40)
+script = ExtResource("3_part_script")
+part_name = "body"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyArea"]
+shape = SubResource("RectangleShape2D_body")
+debug_color = Color(0.2, 0.4, 0.6, 0.2)
