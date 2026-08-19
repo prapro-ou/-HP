@@ -410,6 +410,9 @@ func start_boss_battle() -> void:
 	current_state = State.BOSS
 	state = "boss"
 	
+	if is_instance_valid(player):
+		player.is_attack_unlocked = true
+	
 	if ui and ui.has_method("hide_wave_phase_hud"):
 		ui.hide_wave_phase_hud()
 	

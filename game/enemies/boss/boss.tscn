@@ -1,14 +1,14 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://game/enemies/boss/boss.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://game/assets/boss/stage1/5.png" id="2_texture"]
+[ext_resource type="Texture2D" path="res://game/assets/boss/stage1/stage1_boss_main.png" id="2_texture"]
 [ext_resource type="Script" path="res://game/enemies/boss/boss_part.gd" id="3_part_script"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_core"]
 size = Vector2(360, 200)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
-size = Vector2(1400, 1000)
+size = Vector2(760, 240)
 
 [node name="Boss" type="Node2D" groups=["boss", "enemy"]]
 z_index = -10
@@ -36,7 +36,7 @@ offset_bottom = 60.0
 color = Color(0.9, 0.2, 0.2, 0.3)
 
 [node name="BodyArea" type="Area2D" parent="." groups=["boss"]]
-position = Vector2(0, 120)
+position = Vector2(0, -60)
 script = ExtResource("3_part_script")
 part_name = "body"
 
