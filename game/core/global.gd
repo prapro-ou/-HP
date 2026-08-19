@@ -399,14 +399,41 @@ func apply_display() -> void:
 	if tree and tree.root:
 		win = tree.root.get_window()
 
+	# Determine base content resolution based on aspect ratio
+	var base_w = 800
+	var base_h = 1200
+	match aspect_ratio:
+		0: # 2:3
+			base_w = 800
+			base_h = 1200
+		1: # 3:4
+			base_w = 900
+			base_h = 1200
+		2: # 9:16
+			base_w = 675
+			base_h = 1200
+
+	# Ensure Godot 4 automatically scales all canvas items, fonts, and UI with the window size
+	if win:
+		win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		win.content_scale_size = Vector2i(base_w, base_h)
+
+	# Target physical window size
+	var target_w = int(base_w * window_scale)
+	var target_h = int(base_h * window_scale)
+	var target_size = Vector2i(target_w, target_h)
+
 	# Window mode settings
 	match window_mode:
 		0: # Windowed
 			if win:
 				win.mode = Window.MODE_WINDOWED
 				win.borderless = false
+				win.size = target_size
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			DisplayServer.window_set_size(target_size)
 		1: # Fullscreen
 			if win:
 				win.mode = Window.MODE_EXCLUSIVE_FULLSCREEN
@@ -415,25 +442,9 @@ func apply_display() -> void:
 			if win:
 				win.mode = Window.MODE_WINDOWED
 				win.borderless = true
+				win.size = target_size
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
-	
-	# Scale settings (only applied when windowed)
-	if window_mode == 0 or window_mode == 2:
-		var target_h = int(1200 * window_scale)
-		var target_w = int(800 * window_scale)
-		match aspect_ratio:
-			0: # 2:3
-				target_w = int(800 * window_scale)
-			1: # 3:4
-				target_w = int(900 * window_scale)
-			2: # 9:16
-				target_w = int(675 * window_scale)
-		
-		var target_size = Vector2i(target_w, target_h)
-		if win:
-			win.size = target_size
-		else:
 			DisplayServer.window_set_size(target_size)
 		
 	# V-Sync
@@ -458,8 +469,10 @@ func auto_scale_display() -> void:
 	if tree and tree.root:
 		win = tree.root.get_window()
 		
-	# Set window mode to normal windowed
 	if win:
+		win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		win.content_scale_size = Vector2i(800, 1200)
 		win.mode = Window.MODE_WINDOWED
 		win.borderless = false
 		win.size = target_size
