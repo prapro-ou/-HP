@@ -6,6 +6,7 @@ class_name Stage3
 func _ready_stage() -> void:
 	stage_name = "CORE FACILITY DEPTHS"
 	stage_number = 3
+	background_texture = preload("res://game/assets/backgrounds/backgrnd_stage3.png")
 	_setup_waves()
 	_setup_interlude()
 	_setup_boss()

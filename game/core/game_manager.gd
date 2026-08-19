@@ -139,6 +139,16 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	else:
 		boss = null
 		
+	# 背景テクスチャの反映
+	var bg_node = get_node_or_null("../ScrollingBackground")
+	if bg_node and bg_node.has_method("set_background_texture"):
+		if current_stage and current_stage.background_texture:
+			bg_node.set_background_texture(current_stage.background_texture)
+		else:
+			var bg_path = "res://game/assets/backgrounds/backgrnd_stage%d.png" % current_stage_num
+			if ResourceLoader.exists(bg_path):
+				bg_node.set_background_texture(load(bg_path))
+		
 	Global.save_game(current_stage_num, total_damage_score, {})
 	
 	current_state = State.WAVE
@@ -415,6 +425,12 @@ func start_boss_battle() -> void:
 	
 	if ui and ui.has_method("hide_wave_phase_hud"):
 		ui.hide_wave_phase_hud()
+		
+	# ボス戦専用背景があれば切り替え
+	if current_stage and current_stage.boss_background_texture:
+		var bg_node = get_node_or_null("../ScrollingBackground")
+		if bg_node and bg_node.has_method("set_background_texture"):
+			bg_node.set_background_texture(current_stage.boss_background_texture)
 	
 	if boss:
 		boss.visible = true

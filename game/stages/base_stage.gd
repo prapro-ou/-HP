@@ -61,6 +61,8 @@ class RewardConfig:
 
 @export var stage_name: String = "STAGE"
 @export var stage_number: int = 1
+@export var background_texture: Texture2D
+@export var boss_background_texture: Texture2D
 
 var waves: Array[WaveData] = []
 var interlude: InterludeData = InterludeData.new()

@@ -6,6 +6,7 @@ class_name Stage1
 func _ready_stage() -> void:
 	stage_name = "DEBRIS BELT INFILTRATION"
 	stage_number = 1
+	background_texture = preload("res://game/assets/backgrounds/backgrnd_stage1.png")
 	_setup_waves()
 	_setup_interlude()
 	_setup_boss()

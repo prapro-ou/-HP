@@ -6,6 +6,7 @@ class_name Stage2
 func _ready_stage() -> void:
 	stage_name = "PLANETARY STRATOSPHERE"
 	stage_number = 2
+	background_texture = preload("res://game/assets/backgrounds/backgrnd_stage2.png")
 	_setup_waves()
 	_setup_interlude()
 	_setup_boss()

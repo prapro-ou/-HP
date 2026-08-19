@@ -4,7 +4,7 @@ class_name ScrollingBackground
 ## 最背面 (z_index = -10) に配置され、下方向にシームレスにスクロールし続けます。
 
 @export var scroll_speed: float = 150.0
-@export var background_texture: Texture2D = preload("res://game/assets/e4.png")
+@export var background_texture: Texture2D = preload("res://game/assets/backgrounds/backgrnd_stage1.png")
 
 var sprite1: Sprite2D
 var sprite2: Sprite2D
@@ -13,29 +13,41 @@ var sprite_height: float = 1200.0
 
 func _ready() -> void:
 	z_index = -30
-	
+	setup_sprites()
+
+
+func set_background_texture(tex: Texture2D) -> void:
+	if not tex:
+		return
+	background_texture = tex
+	setup_sprites()
+
+
+func setup_sprites() -> void:
+	if not background_texture:
+		return
+		
 	var vp_size = get_viewport_rect().size
 	var target_w = vp_size.x
+	var tex_w = background_texture.get_width()
+	var tex_h = background_texture.get_height()
+	var scale_factor = target_w / float(tex_w)
+	sprite_height = tex_h * scale_factor
 	
-	if background_texture:
-		var tex_w = background_texture.get_width()
-		var tex_h = background_texture.get_height()
-		var scale_factor = target_w / float(tex_w)
-		sprite_height = tex_h * scale_factor
-		
-		# 1枚目
+	if not sprite1:
 		sprite1 = Sprite2D.new()
-		sprite1.texture = background_texture
-		sprite1.scale = Vector2(scale_factor, scale_factor)
-		sprite1.position = Vector2(target_w / 2.0, sprite_height / 2.0)
 		add_child(sprite1)
-		
-		# 2枚目 (1枚目の真上に接続)
+	if not sprite2:
 		sprite2 = Sprite2D.new()
-		sprite2.texture = background_texture
-		sprite2.scale = Vector2(scale_factor, scale_factor)
-		sprite2.position = Vector2(target_w / 2.0, -sprite_height / 2.0)
 		add_child(sprite2)
+		
+	sprite1.texture = background_texture
+	sprite1.scale = Vector2(scale_factor, scale_factor)
+	sprite1.position = Vector2(target_w / 2.0, sprite_height / 2.0)
+	
+	sprite2.texture = background_texture
+	sprite2.scale = Vector2(scale_factor, scale_factor)
+	sprite2.position = Vector2(target_w / 2.0, -sprite_height / 2.0)
 
 
 func _process(delta: float) -> void:

@@ -9,6 +9,7 @@ class StageData:
 	var difficulty: String
 	var color: Color
 	var scene_path: String
+	var bg_texture: Texture2D
 
 var stages: Array[StageData] = []
 var current_index: int = 0
@@ -86,6 +87,7 @@ func init_stages() -> void:
 	st1.difficulty = "難易度: ★☆☆☆☆"
 	st1.color = Color(0.2, 0.8, 1.0)
 	st1.scene_path = "res://game/stages/stage_1.tscn"
+	st1.bg_texture = preload("res://game/assets/backgrounds/backgrnd_stage1.png")
 	stages.append(st1)
 	
 	# Stage 2: 惑星の地上上空
@@ -97,6 +99,7 @@ func init_stages() -> void:
 	st2.difficulty = "難易度: ★★☆☆☆"
 	st2.color = Color(0.3, 0.9, 0.4)
 	st2.scene_path = "res://game/stages/stage_2.tscn"
+	st2.bg_texture = preload("res://game/assets/backgrounds/backgrnd_stage2.png")
 	stages.append(st2)
 	
 	# Stage 3: 惑星内部施設
@@ -108,6 +111,7 @@ func init_stages() -> void:
 	st3.difficulty = "難易度: ★★★☆☆"
 	st3.color = Color(1.0, 0.7, 0.2)
 	st3.scene_path = "res://game/stages/stage_3.tscn"
+	st3.bg_texture = preload("res://game/assets/backgrounds/backgrnd_stage3.png")
 	stages.append(st3)
 
 	# Stage 4: 惑星内部からの脱出
@@ -119,6 +123,7 @@ func init_stages() -> void:
 	st4.difficulty = "難易度: ★★★★☆"
 	st4.color = Color(0.9, 0.3, 1.0)
 	st4.scene_path = "res://game/stages/stage_4.tscn"
+	st4.bg_texture = preload("res://game/assets/backgrounds/backgrnd_stage4.png")
 	stages.append(st4)
 
 	# Stage 5: 最終決戦 - 終焉の支配者
@@ -130,6 +135,7 @@ func init_stages() -> void:
 	st5.difficulty = "難易度: ★★★★★ (FINAL BOSS)"
 	st5.color = Color(1.0, 0.25, 0.4)
 	st5.scene_path = "res://game/stages/stage_5.tscn"
+	st5.bg_texture = preload("res://game/assets/backgrounds/backgrnd_stage5.png")
 	stages.append(st5)
 
 func setup_ui() -> void:
