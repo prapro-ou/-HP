@@ -350,8 +350,6 @@ func create_analysis_matrix_ui() -> void:
 	active_analysis_bar.value = 0
 	style_analysis_bar(active_analysis_bar, Color.CYAN)
 	prog_row.add_child(active_analysis_bar)
-	style_analysis_bar(active_analysis_bar, Color.CYAN)
-	prog_row.add_child(active_analysis_bar)
 
 
 func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:

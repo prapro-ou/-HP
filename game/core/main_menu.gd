@@ -57,9 +57,7 @@ func _ready() -> void:
 	# Ensure the global settings are loaded
 	Global.load_settings()
 	Global.check_save_game()
-	
-	# Load save data to sync status
-	var save_data = Global.load_game_data()
+	Global.load_game_data()
 	
 	# Layout design
 	setup_layout()
@@ -925,7 +923,7 @@ func _on_player_color_changed(idx: int) -> void:
 
 func _on_play_start_pressed() -> void:
 	# Check if first launch or not
-	var save_data = Global.load_game_data()
+	Global.load_game_data()
 	
 	if Global.is_first_launch:
 		# Show tutorial confirm dialog

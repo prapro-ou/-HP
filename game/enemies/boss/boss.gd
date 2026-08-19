@@ -274,7 +274,7 @@ func execute_unparryable_cannon_attack() -> void:
 	)
 
 
-func take_damage_on_part(part_name: String, amount: int) -> void:
+func take_damage_on_part(_part_name: String, amount: int) -> void:
 	if not is_alive:
 		return
 		
@@ -318,15 +318,15 @@ func take_damage_on_part(part_name: String, amount: int) -> void:
 func spawn_shield_message(text: String) -> void:
 	var label = Label.new()
 	label.text = text
-	var set = LabelSettings.new()
+	var label_set = LabelSettings.new()
 	var pixel_font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 	if pixel_font:
-		set.font = pixel_font
-	set.font_size = 20
-	set.font_color = Color(1.0, 0.3, 0.3)
-	set.outline_size = 4
-	set.outline_color = Color.BLACK
-	label.label_settings = set
+		label_set.font = pixel_font
+	label_set.font_size = 20
+	label_set.font_color = Color(1.0, 0.3, 0.3)
+	label_set.outline_size = 4
+	label_set.outline_color = Color.BLACK
+	label.label_settings = label_set
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 200, 180)
 	label.custom_minimum_size = Vector2(400, 30)
