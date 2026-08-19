@@ -4,7 +4,7 @@ class_name BossTurret
 ## 3種類のいずれかとして動作：
 ## 1. ビームマシンガン (10秒毎に1秒チャージ後、すり抜け不可能な高速ビーム連射)
 ## 2. 減速追尾ミサイル (斜め2発ずつ ➔ 1秒で減速停止 ➔ 1.2倍速で追尾)
-## 3. 隕石射出 (赤く発光後、10.pngの隕石を最大4個飛ばす)
+## 3. 隕石射出 (赤く発光後、stage1_boss_meteor.pngの隕石を最大4個飛ばす)
 
 enum TurretType {
 	BEAM_MACHINEGUN,
@@ -45,9 +45,9 @@ func _ready() -> void:
 	is_active = false
 	hover_offset = randf_range(0.0, TAU)
 	
-	# スプライト調整 (キャラクターより少し小さい ~65px)
+	# スプライト調整 (プレイヤーと同等の大型サイズ ~152x65px)
 	if sprite:
-		sprite.scale = Vector2(0.28, 0.28)
+		sprite.scale = Vector2(0.65, 0.65)
 		
 	update_type_visuals()
 
