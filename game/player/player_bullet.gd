@@ -8,7 +8,10 @@ extends Area2D
 @export var damage: int = 10
 
 var velocity: Vector2 = Vector2.ZERO
-var bullet_type: String = "analysis"  # "analysis", "beam", "giga_laser", "missile", "hyper_missile"
+var bullet_type: String = "analysis":
+	set(val):
+		bullet_type = val
+		update_visual()
 
 
 func _ready() -> void:

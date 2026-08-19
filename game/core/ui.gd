@@ -56,6 +56,9 @@ func _ready() -> void:
 	parry_count_label.position = Vector2(20, 64)
 	guard_status_label.position = Vector2(20, 80)
 	
+	# 主兵装HUD表示
+	create_equipped_weapon_hud()
+	
 	# 中央ボス情報配置
 	boss_hp_label.position = Vector2(260, 14)
 	boss_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -67,6 +70,25 @@ func _ready() -> void:
 	create_analysis_matrix_ui()
 	create_wave_phase_ui()
 	create_top_warning_ui()
+
+
+var equipped_weapon_label: Label
+
+func create_equipped_weapon_hud() -> void:
+	equipped_weapon_label = Label.new()
+	equipped_weapon_label.name = "EquippedWeaponLabel"
+	equipped_weapon_label.position = Vector2(20, 96)
+	setup_label_style(equipped_weapon_label, 11, Color(1.0, 0.85, 0.3), 4)
+	add_child(equipped_weapon_label)
+	update_equipped_weapon_hud(Global.equipped_weapon)
+
+
+func update_equipped_weapon_hud(weapon_id: String) -> void:
+	if is_instance_valid(equipped_weapon_label):
+		var w_name = weapon_id
+		if Global.available_weapons.has(weapon_id):
+			w_name = Global.available_weapons[weapon_id].get("name", weapon_id)
+		equipped_weapon_label.text = "主兵装: %s [Q/E切替]" % w_name
 
 
 var top_warning_overlay: ColorRect

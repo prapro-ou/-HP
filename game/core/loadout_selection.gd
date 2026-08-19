@@ -545,9 +545,11 @@ func _on_deploy_pressed() -> void:
 	Global.equipped_weapon = selected_primary
 	Global.equipped_shield = selected_shield
 	
-	# Save custom data temporarily inside global config
-	var save_data = Global.load_game_data()
-	Global.save_game(save_data.get("stage_num", 1), save_data.get("score", 0), {})
+	# Load current stage and score without overriding equipped_weapon
+	var cur_data = Global.load_game_data(false)
+	var stage_id = cur_data.get("stage_num", 1)
+	var score_val = cur_data.get("score", 0)
+	Global.save_game(stage_id, score_val, {})
 	
 	# Start Stage
 	get_tree().change_scene_to_file("res://game/main.tscn")

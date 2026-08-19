@@ -63,7 +63,7 @@ func _ready() -> void:
 	if bullet_pool and is_instance_valid(player):
 		player.enemy_bullets = bullet_pool.active_bullets
 		
-	var save_data = Global.load_game_data()
+	var save_data = Global.load_game_data(false)
 	if Global.is_first_launch:
 		current_stage_num = 1
 	else:

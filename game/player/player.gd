@@ -140,6 +140,12 @@ func reset_state() -> void:
 	
 	apply_equipped_weapon_settings()
 	
+	var main_ui_sync = get_node_or_null("/root/Main")
+	if main_ui_sync:
+		var ui_node = main_ui_sync.get_node_or_null("UI")
+		if ui_node and ui_node.has_method("update_equipped_weapon_hud"):
+			ui_node.update_equipped_weapon_hud(Global.equipped_weapon)
+	
 	if Global.is_first_launch:
 		get_tree().create_timer(0.8).timeout.connect(func():
 			if is_instance_valid(self) and not is_attack_unlocked:
@@ -166,6 +172,30 @@ func apply_equipped_weapon_settings() -> void:
 	if active_traits.has(PATTERN_RAPID):
 		var r_lvl = analysis_patterns[PATTERN_RAPID]["level"]
 		fire_rate *= (0.70 if r_lvl == 1 else 0.50)
+
+
+func cycle_equipped_weapon(dir: int) -> void:
+	var unlocked = Global.unlocked_weapons
+	if unlocked.size() <= 1:
+		return
+	var cur_idx = unlocked.find(Global.equipped_weapon)
+	if cur_idx == -1:
+		cur_idx = 0
+	var next_idx = (cur_idx + dir + unlocked.size()) % unlocked.size()
+	var new_weapon = unlocked[next_idx]
+	Global.equipped_weapon = new_weapon
+	apply_equipped_weapon_settings()
+	
+	var w_name = new_weapon
+	if Global.available_weapons.has(new_weapon):
+		w_name = Global.available_weapons[new_weapon].get("name", new_weapon)
+	spawn_popup_message("⚡ 主兵装切替: 【%s】" % w_name)
+	
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var ui_node = main.get_node_or_null("UI")
+		if ui_node and ui_node.has_method("update_equipped_weapon_hud"):
+			ui_node.update_equipped_weapon_hud(new_weapon)
 
 
 func _process(delta: float) -> void:
@@ -242,6 +272,19 @@ func _process(delta: float) -> void:
 	var space_pressed = Input.is_key_pressed(KEY_SPACE)
 	var space_just_pressed = space_pressed and not space_was_pressed
 	space_was_pressed = space_pressed
+	
+	# --- 兵装のリアルタイム切替 (Q / E / C) ---
+	if Input.is_key_pressed(KEY_Q) and not get_meta("q_was_pressed", false):
+		set_meta("q_was_pressed", true)
+		cycle_equipped_weapon(-1)
+	elif not Input.is_key_pressed(KEY_Q):
+		set_meta("q_was_pressed", false)
+		
+	if (Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_C)) and not get_meta("e_was_pressed", false):
+		set_meta("e_was_pressed", true)
+		cycle_equipped_weapon(1)
+	elif not (Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_C)):
+		set_meta("e_was_pressed", false)
 	
 	if space_just_pressed:
 		if is_overheated:
