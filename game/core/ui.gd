@@ -583,10 +583,20 @@ func show_game_over(result: String) -> void:
 	var style_hover = style_normal.duplicate()
 	style_hover.bg_color = theme_color
 	
-	if result == "VICTORY":
+	var current_stage_num = 1
+	if game_manager and "current_stage_num" in game_manager:
+		current_stage_num = game_manager.current_stage_num
+		
+	var next_stage_num = current_stage_num + 1
+	var next_stage_path = "res://game/stages/stage_%d.tscn" % next_stage_num
+	var has_next_stage = ResourceLoader.exists(next_stage_path)
+	var is_next_unlocked = has_next_stage and Global.is_stage_unlocked(next_stage_num)
+	
+	# 1. 次ステージが開放済みの場合のみ「次のステージへ」ボタンを表示
+	if result == "VICTORY" and is_next_unlocked:
 		var next_btn = Button.new()
-		next_btn.text = "次のステージへ"
-		next_btn.custom_minimum_size = Vector2(280, 56)
+		next_btn.text = "次のステージへ (STAGE %d)" % next_stage_num
+		next_btn.custom_minimum_size = Vector2(300, 52)
 		next_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		next_btn.add_theme_font_size_override("font_size", 22)
 		if PIXEL_FONT:
@@ -610,23 +620,30 @@ func show_game_over(result: String) -> void:
 		)
 		
 		var spacer_btn = Control.new()
-		spacer_btn.custom_minimum_size = Vector2(0, 10)
+		spacer_btn.custom_minimum_size = Vector2(0, 8)
 		container.add_child(spacer_btn)
 
+	# 2. もう一度プレイ（同じステージを再挑戦）ボタン
 	var retry_btn = Button.new()
-	retry_btn.text = "再挑戦"
-	retry_btn.custom_minimum_size = Vector2(280, 56)
+	retry_btn.text = "もう一度プレイ (STAGE %d)" % current_stage_num if result == "VICTORY" else "再挑戦"
+	retry_btn.custom_minimum_size = Vector2(300, 52)
 	retry_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	retry_btn.add_theme_font_size_override("font_size", 22)
 	if PIXEL_FONT:
 		retry_btn.add_theme_font_override("font", PIXEL_FONT)
 	
+	var retry_style = style_normal.duplicate()
+	if result == "VICTORY":
+		retry_style.border_color = Color.GOLD
+	var retry_hover = retry_style.duplicate()
+	retry_hover.bg_color = Color.GOLD if result == "VICTORY" else theme_color
+	
 	retry_btn.add_theme_color_override("font_color", Color.WHITE)
 	retry_btn.add_theme_color_override("font_hover_color", Color.BLACK)
 	retry_btn.add_theme_color_override("font_pressed_color", Color.BLACK)
-	retry_btn.add_theme_stylebox_override("normal", style_normal)
-	retry_btn.add_theme_stylebox_override("hover", style_hover)
-	retry_btn.add_theme_stylebox_override("pressed", style_hover)
+	retry_btn.add_theme_stylebox_override("normal", retry_style)
+	retry_btn.add_theme_stylebox_override("hover", retry_hover)
+	retry_btn.add_theme_stylebox_override("pressed", retry_hover)
 	retry_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	
 	container.add_child(retry_btn)
@@ -635,27 +652,68 @@ func show_game_over(result: String) -> void:
 		get_tree().paused = false
 		if game_manager and game_manager.has_method("restart"):
 			game_manager.restart()
+		panel.queue_free()
 	)
 	
+	var spacer_retry = Control.new()
+	spacer_retry.custom_minimum_size = Vector2(0, 8)
+	container.add_child(spacer_retry)
+
+	# 3. ステージ選択へ戻るボタン
+	var stage_select_btn = Button.new()
+	stage_select_btn.text = "作戦エリア選択へ"
+	stage_select_btn.custom_minimum_size = Vector2(300, 52)
+	stage_select_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stage_select_btn.add_theme_font_size_override("font_size", 22)
+	if PIXEL_FONT:
+		stage_select_btn.add_theme_font_override("font", PIXEL_FONT)
+	
+	var select_style = style_normal.duplicate()
+	select_style.border_color = Color(0.3, 0.75, 0.9)
+	var select_hover = select_style.duplicate()
+	select_hover.bg_color = Color(0.3, 0.75, 0.9)
+	
+	stage_select_btn.add_theme_color_override("font_color", Color.WHITE)
+	stage_select_btn.add_theme_color_override("font_hover_color", Color.BLACK)
+	stage_select_btn.add_theme_color_override("font_pressed_color", Color.BLACK)
+	stage_select_btn.add_theme_stylebox_override("normal", select_style)
+	stage_select_btn.add_theme_stylebox_override("hover", select_hover)
+	stage_select_btn.add_theme_stylebox_override("pressed", select_hover)
+	stage_select_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	
+	container.add_child(stage_select_btn)
+	
+	stage_select_btn.pressed.connect(func():
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
+	)
+	
+	var spacer_menu = Control.new()
+	spacer_menu.custom_minimum_size = Vector2(0, 8)
+	container.add_child(spacer_menu)
+
+	# 4. メインメニューへ戻るボタン
 	var menu_btn = Button.new()
-	menu_btn.text = "メニューへ"
-	menu_btn.custom_minimum_size = Vector2(280, 56)
+	menu_btn.text = "メインメニューへ"
+	menu_btn.custom_minimum_size = Vector2(300, 52)
 	menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	menu_btn.add_theme_font_size_override("font_size", 22)
 	if PIXEL_FONT:
 		menu_btn.add_theme_font_override("font", PIXEL_FONT)
 	
+	var menu_style = style_normal.duplicate()
+	menu_style.border_color = Color(0.6, 0.6, 0.6)
+	var menu_hover = menu_style.duplicate()
+	menu_hover.bg_color = Color(0.7, 0.7, 0.7)
+	
 	menu_btn.add_theme_color_override("font_color", Color.WHITE)
 	menu_btn.add_theme_color_override("font_hover_color", Color.BLACK)
 	menu_btn.add_theme_color_override("font_pressed_color", Color.BLACK)
-	menu_btn.add_theme_stylebox_override("normal", style_normal)
-	menu_btn.add_theme_stylebox_override("hover", style_hover)
-	menu_btn.add_theme_stylebox_override("pressed", style_hover)
+	menu_btn.add_theme_stylebox_override("normal", menu_style)
+	menu_btn.add_theme_stylebox_override("hover", menu_hover)
+	menu_btn.add_theme_stylebox_override("pressed", menu_hover)
 	menu_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	
-	var spacer_menu = Control.new()
-	spacer_menu.custom_minimum_size = Vector2(0, 10)
-	container.add_child(spacer_menu)
 	container.add_child(menu_btn)
 	
 	menu_btn.pressed.connect(func():
