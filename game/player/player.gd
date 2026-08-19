@@ -500,6 +500,11 @@ func check_parry() -> void:
 	
 	for bullet in all_targets:
 		if is_instance_valid(bullet) and not bullet.is_friendly:
+			# パリィ不可弾は跳ね返し判定を完全にスキップ
+			var is_unparryable = bullet.get("is_unparryable") == true or (bullet.get("bullet_type") != null and String(bullet.get("bullet_type")).contains("unparryable"))
+			if is_unparryable:
+				continue
+				
 			var dist = global_position.distance_to(bullet.global_position)
 			if dist <= parry_window_radius:
 				if not is_attack_unlocked:

@@ -147,7 +147,7 @@ func execute_fortress_attack() -> void:
 		return
 		
 	var vp_w = get_viewport_rect().size.x
-	var num_patterns = 4 if is_enraged else 2
+	var num_patterns = 5 if is_enraged else 3
 	attack_pattern_index = (attack_pattern_index + 1) % num_patterns
 	
 	match attack_pattern_index:
@@ -186,7 +186,11 @@ func execute_fortress_attack() -> void:
 							bullet.set_direction(target_dir, 260.0)
 				)
 		2:
-			# パターン3 (暴走時): コア直撃チャージボルト＋左右サイクロン弾
+			# パターン3: 【パリィ不可】真紅の要塞主砲・断絶ヴォイドレーザー斉射
+			execute_unparryable_cannon_attack()
+			
+		3:
+			# パターン4 (暴走時): コア直撃チャージボルト＋左右サイクロン弾
 			if is_instance_valid(core_node):
 				var core_pos = core_node.global_position
 				for c_i in range(2):
@@ -207,8 +211,8 @@ func execute_fortress_attack() -> void:
 					if c_bullet:
 						c_bullet.global_position = core_pos + Vector2(side * 80.0, 20.0)
 						c_bullet.set_direction(Vector2(side * 0.6, 1.0).normalized(), 300.0)
-		3:
-			# パターン4 (暴走時): 要塞緊急防衛ギガメテオ投下
+		4:
+			# パターン5 (暴走時): 要塞緊急防衛ギガメテオ投下
 			if METEOR_BULLET_SCENE:
 				for m_i in range(2):
 					get_tree().create_timer(m_i * 0.25).timeout.connect(func():
@@ -221,6 +225,39 @@ func execute_fortress_attack() -> void:
 							meteor.set_direction(shoot_dir, 300.0)
 							get_parent().add_child(meteor)
 					)
+
+
+func execute_unparryable_cannon_attack() -> void:
+	# 1. 画面上部をやんわり赤く点灯させる警告演出
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var ui_node = main.get_node_or_null("UI")
+		if ui_node and ui_node.has_method("show_top_unparryable_warning"):
+			ui_node.show_top_unparryable_warning(1.8, "⚠️ DANGER: パリィ不可・断絶真紅レーザー警告！ ⚠️")
+			
+	# コアが濃赤に激しく明滅
+	if is_instance_valid(core_glow):
+		core_glow.color = Color(1.0, 0.05, 0.05, 0.95)
+		
+	# 1.6秒のチャージ予兆後に真紅の断絶レーザーを射出
+	get_tree().create_timer(1.6).timeout.connect(func():
+		if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+			var vp_w = get_viewport_rect().size.x
+			var core_pos = core_node.global_position if is_instance_valid(core_node) else Vector2(vp_w / 2.0, 250.0)
+			
+			var angles = [-24.0, -12.0, 0.0, 12.0, 24.0] if is_enraged else [-18.0, 0.0, 18.0]
+			for a_deg in angles:
+				var bullet = bullet_pool.get_bullet("unparryable_laser")
+				if bullet:
+					bullet.is_unparryable = true
+					bullet.damage = 22
+					bullet.global_position = core_pos + Vector2(a_deg * 2.5, 30.0)
+					var center_dir = Vector2.DOWN
+					if is_instance_valid(player):
+						center_dir = (player.global_position - bullet.global_position).normalized()
+					var dir = center_dir.rotated(deg_to_rad(a_deg * 0.6))
+					bullet.set_direction(dir, 460.0)
+	)
 
 
 func take_damage_on_part(part_name: String, amount: int) -> void:

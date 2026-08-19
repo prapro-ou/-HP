@@ -32,6 +32,7 @@ func get_bullet(type: String = "beam") -> Node2D:
 	bullet.position = Vector2.ZERO
 	bullet.velocity = Vector2.ZERO
 	bullet.is_friendly = false
+	bullet.is_unparryable = type.contains("unparryable")
 	bullet.bullet_type = type
 	if bullet.has_method("update_bullet_color"):
 		bullet.update_bullet_color()
@@ -55,6 +56,7 @@ func return_bullet(bullet: Node2D) -> void:
 	bullet.position = Vector2.ZERO
 	bullet.velocity = Vector2.ZERO
 	bullet.is_friendly = false
+	bullet.is_unparryable = false
 	bullet.modulate = Color.WHITE
 	
 	# プール内に重複して入るのを防ぐ

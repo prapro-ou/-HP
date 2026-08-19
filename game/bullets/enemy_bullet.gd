@@ -10,6 +10,7 @@ const BULLET_TYPE_MISSILE = "missile"
 const BULLET_TYPE_BOSS_LASER = "boss_laser"
 const BULLET_TYPE_BOSS_MISSILE = "boss_missile"
 const BULLET_TYPE_DECEL_MISSILE = "decel_missile"
+const BULLET_TYPE_UNPARRYABLE = "unparryable_laser"
 
 # カラー定数
 const COLOR_FRIENDLY = Color(1.0, 0.25, 0.25) # パリィ反射時は赤色
@@ -18,6 +19,7 @@ const COLOR_MISSILE = Color(0.8, 0.2, 1.0)
 const COLOR_BOSS_LASER = Color(1.0, 0.1, 0.1)
 const COLOR_BOSS_MISSILE = Color(0.9, 0.6, 0.1)
 const COLOR_DECEL_MISSILE = Color(1.0, 0.4, 0.8)
+const COLOR_UNPARRYABLE = Color(1.0, 0.05, 0.15) # 鮮烈な真紅・パリィ不可
 
 # 速度・反射マルチプライヤー
 const PARRY_SPEED_MULTIPLIER: float = 3.2
@@ -31,6 +33,7 @@ const SCREEN_OFFSCREEN_MARGIN: float = 60.0
 
 var velocity: Vector2 = Vector2.ZERO
 var is_friendly: bool = false
+var is_unparryable: bool = false # パリィ不可フラグ
 var bullet_type: String = BULLET_TYPE_BEAM
 var target_node: Node2D = null
 
@@ -56,6 +59,14 @@ func _ready() -> void:
 
 
 func update_bullet_color() -> void:
+	if is_unparryable or bullet_type.contains("unparryable"):
+		is_unparryable = true
+		modulate = COLOR_UNPARRYABLE
+		var sprite = get_node_or_null("Sprite2D")
+		if sprite:
+			sprite.scale = Vector2(0.9, 2.0)
+		return
+
 	if is_friendly:
 		modulate = COLOR_FRIENDLY
 		var sprite = get_node_or_null("Sprite2D")
@@ -91,9 +102,25 @@ func update_bullet_color() -> void:
 				modulate = COLOR_BEAM
 
 
+func _draw() -> void:
+	# パリィ不可弾の視覚的オーラ（暗黒コア＋真紅の危険ハザード光輪）
+	if is_unparryable and not is_friendly:
+		var pulse = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
+		draw_circle(Vector2.ZERO, 10.0, Color(0.12, 0.0, 0.02, 0.7))
+		draw_arc(Vector2.ZERO, 16.0 + pulse * 4.0, 0, TAU, 28, Color(1.0, 0.05, 0.15, 0.9), 3.0)
+		draw_arc(Vector2.ZERO, 22.0 + pulse * 2.0, 0, TAU, 28, Color(1.0, 0.2, 0.3, 0.4), 1.5)
+
+
 func _on_body_entered(body: Node2D) -> void:
 	if not is_friendly:
 		if body.name == "Player" or body.has_method("take_damage"):
+			if is_unparryable:
+				if "is_guarding" in body and body.is_guarding:
+					body.is_guarding = false
+					if body.has_method("spawn_popup_message"):
+						body.spawn_popup_message("⚠️ ガード貫通！(パリィ不可攻撃)")
+					if body.has_method("trigger_screen_flash"):
+						body.trigger_screen_flash(Color(1.0, 0.05, 0.1, 0.7))
 			body.take_damage(damage)
 			recycle_bullet()
 
@@ -154,6 +181,9 @@ func _process(delta: float) -> void:
 		else:
 			velocity = velocity.normalized() * (speed if speed > MIN_SAFETY_SPEED else DEFAULT_SAFETY_SPEED)
 
+	if is_unparryable:
+		queue_redraw()
+
 	position += velocity * delta
 	
 	var viewport_rect = get_viewport_rect()
@@ -201,7 +231,8 @@ func set_direction(direction: Vector2, speed_override: float = 0.0) -> void:
 
 
 func convert_to_friendly() -> void:
-	if is_friendly:
+	# パリィ不可弾は味方に変換・反射できない
+	if is_friendly or is_unparryable:
 		return
 	is_friendly = true
 	damage = int(damage * 3.5) # パリィ反射ボーナスダメージ
