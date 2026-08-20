@@ -106,7 +106,28 @@ func _process(delta: float) -> void:
 	pattern_timer += delta
 	spiral_angle += delta * (3.5 if phase == 2 else 2.0)
 	
+	process_proximity_counter_attack(delta)
 	process_attacks()
+
+
+var close_proximity_timer: float = 0.0
+const CLOSE_PROXIMITY_COOLDOWN: float = 3.5
+const CLOSE_PROXIMITY_DISTANCE: float = 240.0
+
+func process_proximity_counter_attack(delta: float) -> void:
+	if close_proximity_timer > 0.0:
+		close_proximity_timer -= delta
+		return
+		
+	if is_entering or not core_alive or not is_instance_valid(player) or not is_instance_valid(bullet_pool):
+		return
+		
+	var dist = player.global_position.distance_to(global_position)
+	if dist <= CLOSE_PROXIMITY_DISTANCE:
+		close_proximity_timer = CLOSE_PROXIMITY_COOLDOWN
+		# 全方位迎撃リング弾幕
+		Global.play_laser(1.2)
+		spawn_ring_bullets(16 if phase == 1 else 20, "boss_laser", 300.0)
 
 func process_entrance(delta: float) -> void:
 	var target_y = 150.0
