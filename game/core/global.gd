@@ -205,7 +205,7 @@ func _ready() -> void:
 	load_settings()
 	check_save_game()
 	apply_all_settings()
-	_init_sound_pool()
+	init_sound_pool()
 
 func check_save_game() -> void:
 	var config = ConfigFile.new()
@@ -508,7 +508,7 @@ var _sfx_pool_size: int = 14
 var _sfx_pool_index: int = 0
 var _sfx_last_play_times: Dictionary = {}
 
-func _init_sound_pool() -> void:
+func init_sound_pool() -> void:
 	# サウンドプールの作成
 	for i in range(_sfx_pool_size):
 		var asp = AudioStreamPlayer.new()
@@ -526,7 +526,7 @@ func _init_sound_pool() -> void:
 
 func play_sound(sound_name: String, pitch_scale: float = 1.0, min_interval: float = 0.03) -> void:
 	if _sfx_sounds.is_empty():
-		_init_sound_pool()
+		init_sound_pool()
 		
 	var now = Time.get_ticks_msec() / 1000.0
 	if _sfx_last_play_times.has(sound_name):
