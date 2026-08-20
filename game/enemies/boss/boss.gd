@@ -7,6 +7,8 @@ extends Node2D
 
 const TURRET_SCENE: PackedScene = preload("res://game/enemies/boss/boss_turret.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
+const SoundManager = preload("res://game/core/sound_manager.gd")
+const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var max_hp: int = 7500
 var current_hp: int = 7500
@@ -274,9 +276,13 @@ func execute_unparryable_cannon_attack() -> void:
 	)
 
 
-func take_damage_on_part(_part_name: String, amount: int) -> void:
+func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 	if not is_alive:
 		return
+		
+	var actual_hit_pos = hit_pos
+	if actual_hit_pos == Vector2.ZERO:
+		actual_hit_pos = core_node.global_position if (is_instance_valid(core_node) and part_name == "core") else global_position
 		
 	var has_alive_turrets = false
 	for t in turrets:
@@ -291,20 +297,41 @@ func take_damage_on_part(_part_name: String, amount: int) -> void:
 		if randf() < 0.2:
 			spawn_shield_message("⚠️ サブ砲台が防壁を展開中！")
 			
+		# 防壁ヒット演出 (金属弾きSE & シールドスパーク & 青白フラッシュ)
+		SoundManager.play_guard(randf_range(0.95, 1.05))
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "shield")
+		
+		if is_instance_valid(sprite):
+			sprite.modulate = Color(0.8, 1.5, 2.5, 1.0)
+			var tween = create_tween()
+			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
+	else:
+		# 砲台破壊後: 弱点コア直撃 (重被弾SE & ヘビースパーク & 白熱フラッシュ & 被弾シェイク)
+		SoundManager.play_heavy_hit(randf_range(0.95, 1.08))
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy" if part_name == "core" else "normal")
+		
+		if is_instance_valid(core_glow):
+			core_glow.color = Color(3.0, 1.8, 1.8, 0.95)
+			var c_tween = create_tween()
+			c_tween.tween_property(core_glow, "color", Color(1.0, 0.1, 0.1, 0.6), 0.08)
+			
+		if is_instance_valid(sprite):
+			sprite.modulate = Color(2.4, 1.6, 1.6, 1.0)
+			var tween = create_tween()
+			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
+			
+			# 被弾微小シェイク
+			sprite.position = Vector2(randf_range(-3.5, 3.5), randf_range(-2.0, 2.0))
+			var shake_t = create_tween()
+			shake_t.tween_property(sprite, "position", Vector2.ZERO, 0.05)
+			
 	current_hp -= final_dmg
 	
-	# 被弾フラッシュ
-	if is_instance_valid(sprite):
-		sprite.modulate = Color(1.5, 0.7, 0.7, 1.0)
-		var tween = create_tween()
-		tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.12)
-		
 	var main = get_node_or_null("/root/Main")
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			var pop_pos = core_node.global_position if is_instance_valid(core_node) else global_position
-			ui_node.spawn_damage_popup(pop_pos, final_dmg, not has_alive_turrets)
+			ui_node.spawn_damage_popup(actual_hit_pos, final_dmg, not has_alive_turrets)
 			
 		var mgr = main.get_node_or_null("GameManager")
 		if mgr and mgr.has_method("add_damage_score"):
@@ -341,6 +368,8 @@ func spawn_shield_message(text: String) -> void:
 func destroy_boss() -> void:
 	is_alive = false
 	is_active = false
+	
+	SoundManager.play_explosion(0.85)
 	
 	# ボス撃破ボーナス: +10 TP
 	Global.tech_points += 10

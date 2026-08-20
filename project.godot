@@ -18,14 +18,13 @@ config/icon="res://icon.svg"
 [autoload]
 
 Global="*res://game/core/global.gd"
+SoundManager="*res://game/core/sound_manager.gd"
 
 [display]
 
 window/size/viewport_width=800
 window/size/viewport_height=1200
-window/size/resizable=true
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
 
 [gui]
 

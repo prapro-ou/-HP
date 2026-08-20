@@ -4,6 +4,6 @@ extends Area2D
 @export var part_name: String = "core"  # "core", "laser", "missile"
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 	if get_parent() and get_parent().has_method("take_damage_on_part"):
-		get_parent().take_damage_on_part(part_name, amount)
+		get_parent().take_damage_on_part(part_name, amount, hit_pos)

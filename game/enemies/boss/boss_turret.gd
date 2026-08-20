@@ -15,6 +15,8 @@ enum TurretType {
 
 const METEOR_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
+const SoundManager = preload("res://game/core/sound_manager.gd")
+const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var turret_type: TurretType = TurretType.BEAM_MACHINEGUN
 @export var max_hp: int = 800
@@ -275,6 +277,23 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, pulse_radius, 0, TAU, 36, Color(0.35, 0.92, 1.0, 0.88), 3.5)
 		draw_arc(Vector2.ZERO, pulse_radius * 0.85, 0, TAU, 28, Color(0.2, 0.6, 0.95, 0.45), 1.8)
 
+	# 砲台専用ミニHPバー (頭上に表示: 視覚的な削りフィードバック)
+	if is_alive and max_hp > 0:
+		var bar_w = 70.0
+		var bar_h = 5.0
+		var bar_pos = Vector2(-bar_w / 2.0, -52.0)
+		var hp_ratio = clamp(float(current_hp) / float(max_hp), 0.0, 1.0)
+		
+		# 黒背景枠
+		draw_rect(Rect2(bar_pos - Vector2(1, 1), Vector2(bar_w + 2, bar_h + 2)), Color(0.05, 0.08, 0.12, 0.85))
+		# HPバー本体 (割合に応じて緑➔黄➔赤)
+		var hp_col = Color(0.2, 0.95, 0.4)
+		if hp_ratio < 0.35:
+			hp_col = Color(1.0, 0.25, 0.25)
+		elif hp_ratio < 0.65:
+			hp_col = Color(1.0, 0.85, 0.2)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w * hp_ratio, bar_h)), hp_col)
+
 
 func spawn_turret_warning(text: String) -> void:
 	var label = Label.new()
@@ -296,27 +315,44 @@ func spawn_turret_warning(text: String) -> void:
 	tween.chain().tween_callback(label.queue_free)
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 	if not is_alive:
 		return
 		
+	var actual_hit_pos = hit_pos if hit_pos != Vector2.ZERO else global_position
+	var is_shielded = (turret_type == TurretType.SHIELD_GENERATOR and is_shield_active)
 	var final_damage = amount
-	if turret_type == TurretType.SHIELD_GENERATOR and is_shield_active:
+	
+	if is_shielded:
 		# 水色防護シールド展開中はダメージ75%大幅軽減
 		final_damage = max(1, int(amount * 0.25))
+		SoundManager.play_guard(randf_range(0.95, 1.05))
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "shield")
+	else:
+		SoundManager.play_hit(randf_range(0.95, 1.1))
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "normal", Color(1.0, 0.85, 0.3))
 		
 	current_hp -= final_damage
 	
-	# 被弾フラッシュ
-	sprite.modulate = Color(0.4, 0.8, 1.0) if (turret_type == TurretType.SHIELD_GENERATOR and is_shield_active) else Color(1.0, 0.3, 0.3)
-	var tween = create_tween()
-	tween.tween_property(sprite, "modulate", Color.WHITE, 0.1)
+	# 強烈な白熱被弾フラッシュ
+	if sprite:
+		sprite.modulate = Color(1.2, 2.5, 3.0) if is_shielded else Color(3.0, 3.0, 3.0)
+		var tween = create_tween()
+		tween.tween_property(sprite, "modulate", Color.WHITE, 0.06)
+		
+		# 被弾シェイク（ノックバック振動）
+		sprite.position = Vector2(randf_range(-3.0, 3.0), randf_range(-2.0, 2.0))
+		var shake_t = create_tween()
+		shake_t.tween_property(sprite, "position", Vector2.ZERO, 0.05)
+		
+	# HPバー再描画
+	queue_redraw()
 	
 	var main = get_node_or_null("/root/Main")
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(global_position, final_damage, false)
+			ui_node.spawn_damage_popup(actual_hit_pos, final_damage, false)
 			
 	if current_hp <= 0:
 		current_hp = 0
@@ -328,13 +364,15 @@ func destroy_turret() -> void:
 	is_active = false
 	remove_from_group("boss_turrets")
 	
+	SoundManager.play_explosion(1.1)
+	
 	# 爆発演出
 	if PARRY_PARTICLE_SCENE and get_parent():
-		for i in range(8):
+		for i in range(12):
 			var p = PARRY_PARTICLE_SCENE.instantiate()
-			p.global_position = global_position + Vector2(randf_range(-25, 25), randf_range(-25, 25))
-			p.scale = Vector2(2.5, 2.5)
-			p.modulate = Color(1.0, randf_range(0.3, 0.8), 0.1)
+			p.global_position = global_position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+			p.scale = Vector2(3.0, 3.0)
+			p.modulate = Color(1.0, randf_range(0.3, 0.9), 0.1)
 			get_parent().add_child(p)
 			
 	Global.tech_points += 5
@@ -350,5 +388,5 @@ func destroy_turret() -> void:
 			
 	# フェードアウトして消滅
 	var tween = create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.5)
+	tween.tween_property(self, "modulate:a", 0.0, 0.4)
 	tween.chain().tween_callback(queue_free)

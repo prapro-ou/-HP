@@ -172,14 +172,15 @@ func _on_area_entered(area: Area2D) -> void:
 	var is_enemy = area.is_in_group("enemy") or area.is_in_group("drones")
 	
 	if is_boss_part or is_enemy:
+		var hit_pos = global_position
 		var damage_target = area
-		if not area.has_method("take_damage") and area.get_parent() and area.get_parent().has_method("take_damage"):
+		if not area.has_method("take_damage") and not area.has_method("take_damage_on_part") and area.get_parent() and (area.get_parent().has_method("take_damage") or area.get_parent().has_method("take_damage_on_part")):
 			damage_target = area.get_parent()
 			
 		if damage_target.has_method("take_damage"):
-			damage_target.take_damage(damage)
+			damage_target.take_damage(damage, hit_pos)
 		elif damage_target.has_method("take_damage_on_part"):
-			damage_target.take_damage_on_part("core", damage)
+			damage_target.take_damage_on_part("core", damage, hit_pos)
 		
 		# 爆発・衝撃波エフェクト
 		if explosion_radius > 0.0:
