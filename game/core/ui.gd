@@ -168,12 +168,16 @@ func create_wave_phase_ui() -> void:
 	wave_timer_panel.custom_minimum_size = Vector2(250, 88)
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.border_color = Color(0.2, 0.5, 0.8, 0.9)
+	sb.bg_color = Color(0.03, 0.05, 0.08, 0.70)
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.2, 0.5, 0.8, 0.8)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
 	wave_timer_panel.add_theme_stylebox_override("panel", sb)
 	add_child(wave_timer_panel)
 	
@@ -270,12 +274,16 @@ func create_analysis_matrix_ui() -> void:
 	trait_panel.custom_minimum_size = Vector2(290, 105)
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.border_color = Color(0.25, 0.4, 0.65, 0.9)
+	sb.bg_color = Color(0.03, 0.05, 0.08, 0.70)
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.25, 0.4, 0.65, 0.8)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
 	trait_panel.add_theme_stylebox_override("panel", sb)
 	add_child(trait_panel)
 	
@@ -458,89 +466,88 @@ func show_stage_intro_banner(stage_num: int, stage_title: String, subtitle: Stri
 		
 	stage_intro_banner = Control.new()
 	stage_intro_banner.name = "StageIntroBanner"
-	stage_intro_banner.anchor_left = 0.0
-	stage_intro_banner.anchor_right = 1.0
-	stage_intro_banner.offset_top = 340.0
-	stage_intro_banner.offset_bottom = 540.0
+	stage_intro_banner.anchor_left = 0.05
+	stage_intro_banner.anchor_right = 0.95
+	stage_intro_banner.offset_top = 240.0
+	stage_intro_banner.offset_bottom = 420.0
 	stage_intro_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(stage_intro_banner)
 	
-	# Background strip
+	# Background strip (半透明にして背後の敵や背景が見えるように)
 	var bg_rect = ColorRect.new()
-	bg_rect.color = Color(0.02, 0.03, 0.07, 0.94)
+	bg_rect.color = Color(0.02, 0.04, 0.08, 0.50)
 	bg_rect.anchor_right = 1.0
 	bg_rect.anchor_bottom = 1.0
 	stage_intro_banner.add_child(bg_rect)
 	
 	# Top & Bottom accent lines
 	var line_top = ColorRect.new()
-	line_top.color = Color(0.3, 0.9, 1.0, 0.9)
+	line_top.color = Color(0.3, 0.9, 1.0, 0.8)
 	line_top.anchor_right = 1.0
-	line_top.offset_bottom = 3.0
+	line_top.offset_bottom = 2.0
 	stage_intro_banner.add_child(line_top)
 	
 	var line_bottom = ColorRect.new()
-	line_bottom.color = Color(0.3, 0.9, 1.0, 0.9)
+	line_bottom.color = Color(0.3, 0.9, 1.0, 0.8)
 	line_bottom.anchor_top = 1.0
 	line_bottom.anchor_right = 1.0
 	line_bottom.anchor_bottom = 1.0
-	line_bottom.offset_top = -3.0
+	line_bottom.offset_top = -2.0
 	stage_intro_banner.add_child(line_bottom)
 	
 	var margin = MarginContainer.new()
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
 	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_top", 12)
 	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_bottom", 16)
+	margin.add_theme_constant_override("margin_bottom", 12)
 	stage_intro_banner.add_child(margin)
 	
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 8)
+	vbox.add_theme_constant_override("separation", 6)
 	margin.add_child(vbox)
 	
 	var num_lbl = Label.new()
 	num_lbl.text = "── OPERATION STAGE %d ──" % stage_num
 	num_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(num_lbl, 18, Color(0.3, 0.9, 1.0), 4)
+	setup_label_style(num_lbl, 16, Color(0.3, 0.9, 1.0), 4)
 	vbox.add_child(num_lbl)
 	
 	var title_lbl = Label.new()
 	title_lbl.text = stage_title
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(title_lbl, 32, Color.WHITE, 8)
+	setup_label_style(title_lbl, 28, Color.WHITE, 6)
 	vbox.add_child(title_lbl)
 	
 	if subtitle != "":
 		var sub_lbl = Label.new()
 		sub_lbl.text = subtitle
 		sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		setup_label_style(sub_lbl, 18, Color.GOLD, 4)
+		setup_label_style(sub_lbl, 16, Color.GOLD, 4)
 		vbox.add_child(sub_lbl)
 		
 	if mission_goal != "":
 		var goal_lbl = Label.new()
 		goal_lbl.text = "【作戦目標】%s" % mission_goal
 		goal_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		setup_label_style(goal_lbl, 16, Color(0.9, 0.95, 1.0), 3)
+		setup_label_style(goal_lbl, 14, Color(0.9, 0.95, 1.0), 3)
 		vbox.add_child(goal_lbl)
 		
 	stage_intro_banner.modulate.a = 0.0
-	stage_intro_banner.scale = Vector2(0.95, 0.95)
-	stage_intro_banner.pivot_offset = Vector2(400.0, 100.0)
+	stage_intro_banner.scale = Vector2(0.96, 0.96)
+	stage_intro_banner.pivot_offset = Vector2(360.0, 90.0)
 	
 	stage_intro_tween = create_tween().set_parallel(true)
-	stage_intro_tween.tween_property(stage_intro_banner, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_QUAD)
-	stage_intro_tween.tween_property(stage_intro_banner, "scale", Vector2(1.0, 1.0), 0.35).set_trans(Tween.TRANS_QUAD)
+	stage_intro_tween.tween_property(stage_intro_banner, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_QUAD)
+	stage_intro_tween.tween_property(stage_intro_banner, "scale", Vector2(1.0, 1.0), 0.3).set_trans(Tween.TRANS_QUAD)
 	
-	# 長めに表示 (4.2秒)
-	get_tree().create_timer(4.2).timeout.connect(func():
+	# 3.2秒表示してスムーズにフェードアウト
+	get_tree().create_timer(3.2).timeout.connect(func():
 		if is_instance_valid(stage_intro_banner):
 			var fade_t = create_tween().set_parallel(true)
-			fade_t.tween_property(stage_intro_banner, "modulate:a", 0.0, 0.6).set_trans(Tween.TRANS_QUAD)
-			fade_t.tween_property(stage_intro_banner, "scale", Vector2(1.03, 1.03), 0.6)
+			fade_t.tween_property(stage_intro_banner, "modulate:a", 0.0, 0.5).set_trans(Tween.TRANS_QUAD)
 			fade_t.chain().tween_callback(func():
 				if is_instance_valid(stage_intro_banner):
 					stage_intro_banner.queue_free()
@@ -551,19 +558,22 @@ func show_stage_intro_banner(stage_num: int, stage_title: String, subtitle: Stri
 var wave_telop_banner: Control
 var wave_telop_tween: Tween
 
-func show_wave_announcement(title: String, message: String = "", duration: float = 3.8) -> void:
+func show_wave_announcement(title: String, message: String = "", duration: float = 2.2) -> void:
 	if is_instance_valid(wave_telop_banner):
 		wave_telop_banner.queue_free()
 		
 	if is_instance_valid(wave_telop_tween):
 		wave_telop_tween.kill()
 		
+	var display_time = min(duration, 2.4) if duration > 0 else 2.2
+		
 	wave_telop_banner = Control.new()
 	wave_telop_banner.name = "WaveTelopBanner"
-	wave_telop_banner.anchor_left = 0.05
-	wave_telop_banner.anchor_right = 0.95
-	wave_telop_banner.offset_top = 220.0
-	wave_telop_banner.offset_bottom = 340.0
+	# HUD直下（Y: 120〜175）に配置。主戦場（Y: 200〜）を一切遮らないコンパクトサイズ
+	wave_telop_banner.anchor_left = 0.12
+	wave_telop_banner.anchor_right = 0.88
+	wave_telop_banner.offset_top = 120.0
+	wave_telop_banner.offset_bottom = 175.0 if message != "" else 152.0
 	wave_telop_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(wave_telop_banner)
 	
@@ -572,33 +582,38 @@ func show_wave_announcement(title: String, message: String = "", duration: float
 	panel.anchor_bottom = 1.0
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.03, 0.05, 0.09, 0.92)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.border_color = Color(0.3, 0.7, 1.0, 0.9)
-	sb.shadow_color = Color(0.1, 0.5, 0.9, 0.3)
-	sb.shadow_size = 14
+	# 半透明のサイバーフロスト背景（alpha 0.38）で背後の敵弾がはっきり透けて見える
+	sb.bg_color = Color(0.02, 0.05, 0.10, 0.38)
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.3, 0.75, 1.0, 0.65)
+	sb.corner_radius_top_left = 6
+	sb.corner_radius_top_right = 6
+	sb.corner_radius_bottom_left = 6
+	sb.corner_radius_bottom_right = 6
+	sb.shadow_color = Color(0.1, 0.5, 0.9, 0.15)
+	sb.shadow_size = 6
 	panel.add_theme_stylebox_override("panel", sb)
 	wave_telop_banner.add_child(panel)
 	
 	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_bottom", 4)
 	panel.add_child(margin)
 	
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 2)
 	margin.add_child(vbox)
 	
 	var t_lbl = Label.new()
 	t_lbl.text = title
 	t_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(t_lbl, 24, Color.GOLD, 6)
+	setup_label_style(t_lbl, 16, Color.GOLD, 4)
 	vbox.add_child(t_lbl)
 	
 	if message != "":
@@ -606,21 +621,21 @@ func show_wave_announcement(title: String, message: String = "", duration: float
 		m_lbl.text = message
 		m_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		m_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		setup_label_style(m_lbl, 16, Color.WHITE, 4)
+		setup_label_style(m_lbl, 13, Color(0.9, 0.95, 1.0), 3)
 		vbox.add_child(m_lbl)
 		
 	wave_telop_banner.modulate.a = 0.0
-	wave_telop_banner.scale = Vector2(0.95, 0.95)
-	wave_telop_banner.pivot_offset = Vector2(360.0, 60.0)
+	wave_telop_banner.position.y = 110.0
 	
 	wave_telop_tween = create_tween().set_parallel(true)
-	wave_telop_tween.tween_property(wave_telop_banner, "modulate:a", 1.0, 0.25).set_trans(Tween.TRANS_QUAD)
-	wave_telop_tween.tween_property(wave_telop_banner, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_QUAD)
+	wave_telop_tween.tween_property(wave_telop_banner, "modulate:a", 1.0, 0.2).set_trans(Tween.TRANS_QUAD)
+	wave_telop_tween.tween_property(wave_telop_banner, "position:y", 120.0, 0.2).set_trans(Tween.TRANS_QUAD)
 	
-	get_tree().create_timer(duration).timeout.connect(func():
+	get_tree().create_timer(display_time).timeout.connect(func():
 		if is_instance_valid(wave_telop_banner):
 			var fade_t = create_tween().set_parallel(true)
-			fade_t.tween_property(wave_telop_banner, "modulate:a", 0.0, 0.5).set_trans(Tween.TRANS_QUAD)
+			fade_t.tween_property(wave_telop_banner, "modulate:a", 0.0, 0.3).set_trans(Tween.TRANS_QUAD)
+			fade_t.tween_property(wave_telop_banner, "position:y", 112.0, 0.3).set_trans(Tween.TRANS_QUAD)
 			fade_t.chain().tween_callback(func():
 				if is_instance_valid(wave_telop_banner):
 					wave_telop_banner.queue_free()
