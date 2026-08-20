@@ -114,14 +114,11 @@ func _draw() -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if not is_friendly:
 		if body.name == "Player" or body.has_method("take_damage"):
-			if is_unparryable:
-				if "is_guarding" in body and body.is_guarding:
-					body.is_guarding = false
-					if body.has_method("spawn_popup_message"):
-						body.spawn_popup_message("⚠️ ガード貫通！(パリィ不可攻撃)")
-					if body.has_method("trigger_screen_flash"):
-						body.trigger_screen_flash(Color(1.0, 0.05, 0.1, 0.7))
-			body.take_damage(damage)
+			var is_gb = false
+			if is_unparryable and "is_guarding" in body and body.is_guarding:
+				is_gb = true
+			if body.has_method("take_damage"):
+				body.take_damage(damage, is_gb)
 			recycle_bullet()
 
 

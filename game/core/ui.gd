@@ -1242,7 +1242,7 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 					fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
 
 	if is_overheated:
-		guard_status_label.text = "⚠️ OVERHEAT! 冷却中 (%.1fs)" % overheat_timer
+		guard_status_label.text = "⚠️ OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
 		guard_status_label.label_settings.font_color = Color.RED
 	elif is_guarding:
 		guard_status_label.text = "シールド: 展開中！"

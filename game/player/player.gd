@@ -8,11 +8,11 @@ extends CharacterBody2D
 @export var parry_window_radius: float = 85.0  # パリィ判定範囲 (65 -> 85へ拡大)
 @export var fire_rate: float = 0.2            # 射撃間隔
 @export var parry_active_time: float = 0.28  # ガード持続時間
-@export var parry_cooldown: float = 1.5      # クールダウン時間
 @export var invincible_duration: float = 1.4  # 被弾後無敵時間（1.4秒）
 
 # 定数：フォント定義
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+const SoundManager = preload("res://game/core/sound_manager.gd")
 
 # 定数：武器タイプ定義
 const WEAPON_MACHINE_GUN = "machine_gun"
@@ -57,7 +57,6 @@ var is_invincible: bool = false
 var invincibility_timer: float = 0.0
 
 var active_timer: float = 0.0
-var cooldown_timer: float = 0.0
 var is_guarding: bool = false
 var space_was_pressed: bool = false
 
@@ -67,13 +66,16 @@ var power_shield_damage_buff: float = 0.0
 var parry_ring_radius: float = 0.0
 var parry_ring_alpha: float = 0.0
 var parried_in_current_frame: bool = false
+var parry_succeeded_in_guard: bool = false
+var guard_recovery_timer: float = 0.0 # ガード終了直後の隙（カウンター受付時間）
 var is_full_burst: bool = false
 
-# --- シールド・オーバーヒートシステム (マイルド調整) ---
+# --- シールド・オーバーヒートシステム (リスク＆リターン調整) ---
 @export var max_shield_heat: float = 100.0
-@export var heat_per_use: float = 20.0        # 1回あたり20% (連続5回使用可能)
-@export var heat_recovery_rate: float = 45.0   # 素早く放熱 (1秒で45%冷却)
-@export var overheat_cooldown: float = 2.0     # オーバーヒート2秒で復帰
+@export var heat_per_use: float = 22.0        # 1回あたり22% (連続4回で過熱)
+@export var heat_per_heal: float = 14.0       # パリィ修復による追加発熱負荷
+@export var heat_recovery_rate: float = 40.0   # 1秒で40%放熱
+@export var overheat_cooldown: float = 2.2     # オーバーヒート2.2秒で復帰
 
 var shield_heat: float = 0.0
 var overheat_timer: float = 0.0
@@ -126,9 +128,11 @@ func reset_state() -> void:
 	is_full_burst = false
 	is_guarding = false
 	active_timer = 0.0
-	cooldown_timer = 0.0
+	guard_recovery_timer = 0.0
+	parry_succeeded_in_guard = false
 	parry_ring_radius = 0.0
 	parry_ring_alpha = 0.0
+	consecutive_parries = 0
 	
 	shield_heat = 0.0
 	overheat_timer = 0.0
@@ -234,6 +238,12 @@ func _process(delta: float) -> void:
 		active_timer -= delta
 		if active_timer <= 0.0:
 			is_guarding = false
+			if not parry_succeeded_in_guard:
+				guard_recovery_timer = 0.24 # 空振りによる隙（カウンター被弾リスク）
+				shield_heat = min(max_shield_heat, shield_heat + 6.0) # 空振りペナルティ発熱
+				
+	if guard_recovery_timer > 0.0:
+		guard_recovery_timer -= delta
 			
 	if is_overheated:
 		overheat_timer -= delta
@@ -242,7 +252,7 @@ func _process(delta: float) -> void:
 			overheat_timer = 0.0
 			shield_heat = 0.0
 			is_overheated = false
-			spawn_popup_message("⚡ シールド完全冷却完了！")
+			spawn_popup_message("⚡ シールド完全冷却完了！防御フィールド復旧")
 			trigger_screen_flash(Color.CYAN)
 	else:
 		if not is_guarding and shield_heat > 0.0:
@@ -291,10 +301,12 @@ func _process(delta: float) -> void:
 	
 	if space_just_pressed:
 		if is_overheated:
-			spawn_popup_message("⚠️ シールドオーバーヒート中！冷却待機")
+			spawn_popup_message("⚠️ シールド過熱冷却中！(装甲脆弱・被ダメ1.6倍)")
 		elif shield_heat < max_shield_heat:
 			is_guarding = true
 			active_timer = parry_active_time
+			guard_recovery_timer = 0.0
+			parry_succeeded_in_guard = false
 			shield_heat += heat_per_use
 			parried_in_current_frame = false
 			
@@ -302,8 +314,9 @@ func _process(delta: float) -> void:
 				shield_heat = max_shield_heat
 				is_overheated = true
 				overheat_timer = overheat_cooldown
+				is_guarding = false
 				trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.5))
-				spawn_popup_message("⚠️ シールドオーバーヒート！")
+				spawn_popup_message("⚠️ シールドオーバーヒート！装甲脆弱化 (被ダメ 1.6倍)")
 	
 	if is_guarding:
 		check_parry()
@@ -619,16 +632,61 @@ func check_parry() -> void:
 		trigger_parry_feedback()
 
 
-func take_damage(amount: int) -> void:
-	if is_guarding or is_invincible:
+func take_damage(amount: int, is_guard_break: bool = false) -> void:
+	if is_invincible:
 		return
 		
-	consecutive_parries = 0 # 被弾でコンボリセット
+	# 通常のガード展開中は被弾無効（ただしパリィ不可攻撃やガードブレイクは貫通）
+	if is_guarding and not is_guard_break:
+		return
 		
 	if Global.is_first_launch and Engine.time_scale < 0.5:
 		Engine.time_scale = 1.0
 		
-	current_hp -= amount
+	var dmg_multiplier: float = 1.0
+	var alert_text: String = ""
+	var is_critical_hit: bool = false
+	
+	# ① パリィ不可弾直撃 / ガードブレイク (1.75倍 & 即時過熱)
+	if is_guard_break or (is_guarding and is_guard_break):
+		dmg_multiplier = 1.75
+		is_critical_hit = true
+		alert_text = "⚠️ GUARD BREAK! 致命傷 -%d"
+		is_guarding = false
+		is_overheated = true
+		overheat_timer = overheat_cooldown
+		shield_heat = max_shield_heat
+	# ② オーバーヒート中の被弾 (装甲脆弱化: 1.6倍)
+	elif is_overheated:
+		dmg_multiplier = 1.60
+		is_critical_hit = true
+		alert_text = "⚠️ OVERHEAT HIT! 脆弱被弾 -%d"
+	# ③ ガード隙（リカバリー硬直中）の被弾 (カウンター: 1.5倍)
+	elif guard_recovery_timer > 0.0:
+		dmg_multiplier = 1.50
+		is_critical_hit = true
+		alert_text = "⚡ COUNTER HIT! 隙に直撃 -%d"
+		
+	# ④ コンボ維持中のハイリスク倍率 (1コンボ毎に+3%, 最大+30%)
+	if consecutive_parries > 0:
+		var combo_risk = min(0.30, consecutive_parries * 0.03)
+		dmg_multiplier += combo_risk
+		
+	var final_damage = int(amount * dmg_multiplier)
+	current_hp -= final_damage
+	consecutive_parries = 0 # 被弾でコンボリセット
+	guard_recovery_timer = 0.0
+	
+	if alert_text != "":
+		spawn_popup_message(alert_text % final_damage)
+		
+	if is_critical_hit:
+		SoundManager.play_heavy_hit(0.75)
+		trigger_screen_flash(Color(1.0, 0.05, 0.05, 0.65))
+	else:
+		SoundManager.play_hit(0.85)
+		trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
+		
 	if current_hp <= 0:
 		current_hp = 0
 		is_attack_unlocked = false
@@ -638,8 +696,6 @@ func take_damage(amount: int) -> void:
 		# 被弾無敵時間 (1.4秒) を付与して多段ヒット即死を防止
 		is_invincible = true
 		invincibility_timer = invincible_duration
-		
-	trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
 
 
 func heal(amount: int) -> void:
@@ -885,10 +941,23 @@ func trigger_parry_feedback() -> void:
 	trigger_hit_stop(0.12, 0.05)
 	trigger_parry_ring_effect()
 	
+	parry_succeeded_in_guard = true
+	guard_recovery_timer = 0.0
+	
 	# パリィ成功時の共鳴修復 (基礎10 HP + 解析レベル1毎に+4 HP)
 	var heal_amt = 10 + get_total_analysis_level() * 4
 	heal(heal_amt)
 	spawn_parry_popup_message("パリィ！ (機体修復 +%d)" % heal_amt)
+	
+	# 【リスク＆リターン】回復ナノマシン起動によるシールド発熱負荷
+	shield_heat = min(max_shield_heat, shield_heat + heat_per_heal)
+	if shield_heat >= max_shield_heat:
+		shield_heat = max_shield_heat
+		is_overheated = true
+		overheat_timer = overheat_cooldown
+		is_guarding = false
+		trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.6))
+		spawn_popup_message("⚠️ 修復過負荷によりシールド過熱！(被ダメ1.6倍)")
 
 
 func trigger_hit_stop(duration_sec: float, scale: float) -> void:
