@@ -6,8 +6,13 @@ class_name Stage4
 func _ready_stage() -> void:
 	stage_name = "ESCAPE FROM THE CORE"
 	stage_number = 4
-	background_texture = preload("res://game/assets/backgrounds/backgrnd_stage4.png")
-	boss_background_texture = preload("res://game/assets/backgrounds/backgrnd_stage4_boss.png")
+	var bg_path = "res://game/assets/backgrounds/backgrnd_stage4.png"
+	if ResourceLoader.exists(bg_path):
+		background_texture = load(bg_path)
+	var boss_bg_path = "res://game/assets/backgrounds/backgrnd_stage4_boss.png"
+	if ResourceLoader.exists(boss_bg_path):
+		boss_background_texture = load(boss_bg_path)
+
 	_setup_waves()
 	_setup_interlude()
 	_setup_boss()

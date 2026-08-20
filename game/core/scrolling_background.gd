@@ -5,7 +5,13 @@ class_name ScrollingBackground
 ## 画面の隙間（ブラックアウト）を生じさせずに完全シームレスにスクロールします。
 
 @export var scroll_speed: float = 150.0
-@export var background_texture: Texture2D = preload("res://game/assets/backgrounds/backgrnd_stage1.png")
+@export var background_texture: Texture2D = null
+
+func _init() -> void:
+	var path = "res://game/assets/backgrounds/backgrnd_stage1.png"
+	if ResourceLoader.exists(path):
+		background_texture = load(path)
+
 
 var sprites: Array[Sprite2D] = []
 var sprite_height: float = 1200.0

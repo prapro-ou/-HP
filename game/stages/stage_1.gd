@@ -6,7 +6,10 @@ class_name Stage1
 func _ready_stage() -> void:
 	stage_name = "DEBRIS BELT INFILTRATION"
 	stage_number = 1
-	background_texture = preload("res://game/assets/backgrounds/backgrnd_stage1.png")
+	var bg_path = "res://game/assets/backgrounds/backgrnd_stage1.png"
+	if ResourceLoader.exists(bg_path):
+		background_texture = load(bg_path)
+
 	_setup_waves()
 	_setup_interlude()
 	_setup_boss()
