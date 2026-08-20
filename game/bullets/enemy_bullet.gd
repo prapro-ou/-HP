@@ -42,6 +42,11 @@ var initial_speed: float = 350.0
 var decel_timer: float = 0.0
 var decel_phase: int = 0 # 0: 減速中 (0~1.0s), 1: 急加速追尾 (1.0s~)
 
+# ライフタイム＆自然消滅管理（処理落ち防止）
+var lifetime: float = 0.0
+var max_lifetime: float = 7.5
+var is_dissolving: bool = false
+
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
 
 
@@ -51,6 +56,8 @@ func _ready() -> void:
 	is_friendly = false
 	decel_timer = 0.0
 	decel_phase = 0
+	lifetime = 0.0
+	is_dissolving = false
 	target_node = null
 	update_bullet_color()
 	
@@ -181,12 +188,33 @@ func _process(delta: float) -> void:
 	if is_unparryable:
 		queue_redraw()
 
+	lifetime += delta
+	if lifetime >= max_lifetime and not is_friendly:
+		dissolve_and_recycle(true)
+		return
+
 	position += velocity * delta
 	
 	var viewport_rect = get_viewport_rect()
 	if position.x < -SCREEN_OFFSCREEN_MARGIN or position.x > viewport_rect.size.x + SCREEN_OFFSCREEN_MARGIN or \
 	   position.y < -SCREEN_OFFSCREEN_MARGIN or position.y > viewport_rect.size.y + SCREEN_OFFSCREEN_MARGIN:
 		recycle_bullet()
+
+
+func dissolve_and_recycle(spawn_particles: bool = true) -> void:
+	"""上限超過または寿命による自然消滅"""
+	if is_dissolving:
+		return
+	is_dissolving = true
+	
+	if spawn_particles and PARRY_PARTICLE_SCENE and get_parent():
+		var particle = PARRY_PARTICLE_SCENE.instantiate()
+		particle.global_position = global_position
+		particle.scale = Vector2(1.2, 1.2)
+		particle.modulate = Color(modulate.r, modulate.g, modulate.b, 0.6)
+		get_parent().add_child(particle)
+		
+	recycle_bullet()
 
 
 func find_new_friendly_target() -> void:

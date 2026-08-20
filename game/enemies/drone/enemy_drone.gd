@@ -23,15 +23,24 @@ const COLOR_MISSILE = Color(0.8, 0.4, 1.0)
 # デフォルト数値定数
 const DEFAULT_DRONE_HP: int = 75
 const DEFAULT_DRONE_SPEED: float = 140.0
-const SCREEN_MARGIN_X: float = 60.0
+const SCREEN_MARGIN_X: float = 45.0
+const MIN_ACTIVE_Y: float = 120.0
+const MAX_ACTIVE_Y: float = 720.0
 
 @export var drone_type: String = TYPE_STRAIGHT
 
-var target_y: float = 200.0
+var target_y: float = 250.0
+var base_y: float = 250.0
 var speed: float = DEFAULT_DRONE_SPEED
 var shoot_interval: float = 1.5
 var time_since_last_shot: float = 0.0
-var move_direction: float = 1.0
+var move_direction: Vector2 = Vector2.RIGHT
+var flight_time: float = 0.0
+var wave_offset: float = 0.0
+var y_amplitude: float = 80.0
+var y_frequency: float = 1.5
+var diagonal_velocity: Vector2 = Vector2.ZERO
+
 var bullet_pool: Node2D
 var player: CharacterBody2D
 var is_charging: bool = false
@@ -43,6 +52,8 @@ func _ready_enemy() -> void:
 	
 	player = get_node_or_null("/root/Main/Player")
 	bullet_pool = get_node_or_null("/root/Main/BulletPool")
+	flight_time = randf_range(0.0, 10.0)
+	wave_offset = randf_range(0.0, TAU)
 	
 	# 基礎耐久力 (120 HP)
 	var base_hp = 120
@@ -74,51 +85,157 @@ func _ready_enemy() -> void:
 	max_hp = int(base_hp * stage_mult)
 	current_hp = max_hp
 	
-	# タイプ別に攻撃スパンをゆったり長く設定（2.8〜3.8秒）
+	# タイプ別に攻撃スパンと行動範囲・高度・飛行パターンを設定
+	var dir_x = 1.0 if randf() > 0.5 else -1.0
 	match drone_type:
 		TYPE_CHARGE:
 			shoot_interval = randf_range(3.4, 4.0)
 			modulate = Color(1.0, 0.35, 0.25) # チャージ赤橙
+			base_y = randf_range(350.0, 580.0) # 深く前進・中下段まで接近
+			y_amplitude = 50.0
+			y_frequency = 1.0
+			speed = 120.0
+			move_direction = Vector2(dir_x, 0.0)
 		TYPE_STRAIGHT:
 			shoot_interval = randf_range(2.6, 3.2)
 			modulate = Color(0.3, 0.75, 1.0)  # 直進シアン
+			base_y = randf_range(160.0, 480.0)
+			# 斜め広域バウンド移動（画面全体を高速で駆け巡る）
+			var angle = randf_range(0.5, 0.9) * (1.0 if randf() > 0.5 else -1.0)
+			diagonal_velocity = Vector2(dir_x * 140.0, angle * 110.0)
+			speed = 160.0
 		TYPE_IRREGULAR:
 			shoot_interval = randf_range(2.8, 3.5)
 			modulate = Color(1.0, 0.85, 0.2)  # 不規則イエロー
-		TYPE_LASER:
-			shoot_interval = randf_range(3.2, 3.8)
-			modulate = Color(1.0, 0.55, 0.1)  # レーザーオレンジ
+			base_y = randf_range(250.0, 520.0)
+			# 8の字旋回（広範囲リサージュ曲線）
+			y_amplitude = randf_range(100.0, 160.0)
+			y_frequency = randf_range(1.4, 2.0)
+			speed = 150.0
+			move_direction = Vector2(dir_x, 0.0)
+		TYPE_LASER, TYPE_BEAM:
+			shoot_interval = randf_range(3.0, 3.6)
+			modulate = Color(1.0, 0.55, 0.1) if drone_type == TYPE_LASER else Color(1.0, 0.3, 0.6)
+			base_y = randf_range(180.0, 450.0)
+			y_amplitude = 70.0
+			y_frequency = 1.3
+			speed = 130.0
+			move_direction = Vector2(dir_x, 0.0)
 		TYPE_WAVE:
 			shoot_interval = randf_range(3.0, 3.6)
 			modulate = Color(0.2, 0.9, 0.5)   # 拡散エメラルド
-		TYPE_BEAM:
-			shoot_interval = randf_range(2.8, 3.4)
-			modulate = Color(1.0, 0.3, 0.6)   # ビームマゼンタ
+			base_y = randf_range(220.0, 540.0)
+			# S字大蛇行ウェーブ
+			y_amplitude = randf_range(90.0, 150.0)
+			y_frequency = randf_range(1.6, 2.4)
+			speed = 140.0
+			move_direction = Vector2(dir_x, 0.0)
 		TYPE_MISSILE, _:
 			shoot_interval = randf_range(3.2, 3.8)
 			modulate = Color(0.8, 0.4, 1.0)   # 追尾パープル
+			base_y = randf_range(200.0, 560.0)
+			y_amplitude = 80.0
+			y_frequency = 1.2
+			speed = 135.0
+			move_direction = Vector2(dir_x, 0.0)
 		
-	bullet_pool = get_node_or_null("/root/Main/BulletPool")
-	player = get_node_or_null("/root/Main/Player")
-	
-	target_y = randf_range(100.0, 260.0)
-	# 攻撃タイミングを敵ごとに大きくばらけさせる (0.0 〜 スパンの80%の間でランダム開始)
+	target_y = base_y
 	time_since_last_shot = randf_range(0.0, shoot_interval * 0.75)
-	move_direction = 1.0 if randf() > 0.5 else -1.0
 
 
 func _process(delta: float) -> void:
-	if position.y < target_y:
-		position.y += speed * 1.3 * delta
+	flight_time += delta
+	var viewport_w = get_viewport_rect().size.x
+	
+	# 出現時の初期降下
+	if position.y < target_y and flight_time < 1.5:
+		position.y += speed * 1.6 * delta
 	else:
-		position.x += speed * 0.7 * move_direction * delta
-		var viewport_w = get_viewport_rect().size.x
-		if position.x < SCREEN_MARGIN_X:
-			position.x = SCREEN_MARGIN_X
-			move_direction = 1.0
-		elif position.x > viewport_w - SCREEN_MARGIN_X:
-			position.x = viewport_w - SCREEN_MARGIN_X
-			move_direction = -1.0
+		# タイプ別の広域・ダイナミック移動処理
+		match drone_type:
+			TYPE_STRAIGHT:
+				# 斜め広域バウンド（画面全体を斜めに跳ね返りながら移動）
+				position += diagonal_velocity * delta
+				if position.x < SCREEN_MARGIN_X:
+					position.x = SCREEN_MARGIN_X
+					diagonal_velocity.x = abs(diagonal_velocity.x)
+				elif position.x > viewport_w - SCREEN_MARGIN_X:
+					position.x = viewport_w - SCREEN_MARGIN_X
+					diagonal_velocity.x = -abs(diagonal_velocity.x)
+					
+				if position.y < MIN_ACTIVE_Y:
+					position.y = MIN_ACTIVE_Y
+					diagonal_velocity.y = abs(diagonal_velocity.y)
+				elif position.y > MAX_ACTIVE_Y:
+					position.y = MAX_ACTIVE_Y
+					diagonal_velocity.y = -abs(diagonal_velocity.y)
+					
+			TYPE_IRREGULAR:
+				# 8の字旋回（リサージュ曲線＋左右スライド）
+				position.x += speed * 0.8 * move_direction.x * delta
+				var wave_y = sin(flight_time * y_frequency + wave_offset) * y_amplitude
+				var wave_x = cos(flight_time * (y_frequency * 0.5) + wave_offset) * 40.0
+				position.y = clamp(base_y + wave_y, MIN_ACTIVE_Y, MAX_ACTIVE_Y)
+				position.x += wave_x * delta * 2.0
+				
+				if position.x < SCREEN_MARGIN_X:
+					position.x = SCREEN_MARGIN_X
+					move_direction.x = 1.0
+				elif position.x > viewport_w - SCREEN_MARGIN_X:
+					position.x = viewport_w - SCREEN_MARGIN_X
+					move_direction.x = -1.0
+					
+			TYPE_WAVE:
+				# S字大蛇行ウェーブ
+				position.x += speed * 0.9 * move_direction.x * delta
+				var wave_y = sin(flight_time * y_frequency + wave_offset) * y_amplitude
+				position.y = clamp(base_y + wave_y, MIN_ACTIVE_Y, MAX_ACTIVE_Y)
+				
+				if position.x < SCREEN_MARGIN_X:
+					position.x = SCREEN_MARGIN_X
+					move_direction.x = 1.0
+				elif position.x > viewport_w - SCREEN_MARGIN_X:
+					position.x = viewport_w - SCREEN_MARGIN_X
+					move_direction.x = -1.0
+					
+			TYPE_CHARGE:
+				# 前進接近 ➔ チャージ ➔ 緩やかな上下左右スライド
+				position.x += speed * 0.6 * move_direction.x * delta
+				var subtle_y = sin(flight_time * y_frequency) * y_amplitude
+				position.y = clamp(base_y + subtle_y, MIN_ACTIVE_Y, MAX_ACTIVE_Y)
+				
+				if position.x < SCREEN_MARGIN_X:
+					position.x = SCREEN_MARGIN_X
+					move_direction.x = 1.0
+				elif position.x > viewport_w - SCREEN_MARGIN_X:
+					position.x = viewport_w - SCREEN_MARGIN_X
+					move_direction.x = -1.0
+					
+			TYPE_LASER, TYPE_BEAM:
+				# プレイヤーのX座標を緩やかに追従・捕捉しつつ上下に浮遊
+				if is_instance_valid(player):
+					var target_x = player.global_position.x
+					var diff_x = target_x - position.x
+					position.x += clamp(diff_x * 1.5, -speed * 0.85, speed * 0.85) * delta
+				else:
+					position.x += speed * 0.7 * move_direction.x * delta
+					
+				var wave_y = sin(flight_time * y_frequency + wave_offset) * y_amplitude
+				position.y = clamp(base_y + wave_y, MIN_ACTIVE_Y, MAX_ACTIVE_Y)
+				position.x = clamp(position.x, SCREEN_MARGIN_X, viewport_w - SCREEN_MARGIN_X)
+				
+			TYPE_MISSILE, _:
+				# 左右往復 ＋ 大きな上下サイン波
+				position.x += speed * 0.75 * move_direction.x * delta
+				var wave_y = sin(flight_time * y_frequency + wave_offset) * y_amplitude
+				position.y = clamp(base_y + wave_y, MIN_ACTIVE_Y, MAX_ACTIVE_Y)
+				
+				if position.x < SCREEN_MARGIN_X:
+					position.x = SCREEN_MARGIN_X
+					move_direction.x = 1.0
+				elif position.x > viewport_w - SCREEN_MARGIN_X:
+					position.x = viewport_w - SCREEN_MARGIN_X
+					move_direction.x = -1.0
 			
 	if is_charging:
 		charge_timer -= delta
@@ -241,12 +358,13 @@ func die() -> void:
 	Global.tech_points += 3
 	
 	# 吸収マトリクス（GAUGE SHIELD）装備時のみ解析データオーブを放出して高速吸引！
-	if Global.equipped_shield == "gauge" and DATA_ORB_SCENE and get_parent():
+	var parent_node = get_parent()
+	if Global.equipped_shield == "gauge" and DATA_ORB_SCENE and parent_node:
 		var num_orbs = randi_range(1, 2)
 		for _i in range(num_orbs):
 			var orb = DATA_ORB_SCENE.instantiate()
 			orb.setup_orb(drone_type, global_position, player)
-			get_parent().add_child(orb)
+			parent_node.call_deferred("add_child", orb)
 		
 	var main = get_node_or_null("/root/Main")
 	if main:

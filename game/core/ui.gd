@@ -302,32 +302,36 @@ func create_analysis_matrix_ui() -> void:
 	title.label_settings = t_set
 	vbox.add_child(title)
 	
-	# 3つのスロットボックス（横並び）
+	# 2つの固定変異スロットボックス（横並び）
 	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 6)
+	hbox.add_theme_constant_override("separation", 8)
 	vbox.add_child(hbox)
 	
 	slot_cards.clear()
-	for i in range(3):
+	for i in range(2):
 		var card = PanelContainer.new()
-		card.custom_minimum_size = Vector2(88, 42)
+		card.custom_minimum_size = Vector2(130, 46)
 		var c_sb = StyleBoxFlat.new()
 		c_sb.bg_color = Color(0.08, 0.1, 0.14, 0.9)
-		c_sb.border_width_left = 1
-		c_sb.border_width_top = 1
-		c_sb.border_width_right = 1
-		c_sb.border_width_bottom = 1
+		c_sb.border_width_left = 2
+		c_sb.border_width_top = 2
+		c_sb.border_width_right = 2
+		c_sb.border_width_bottom = 2
 		c_sb.border_color = Color(0.2, 0.25, 0.35, 0.8)
+		c_sb.corner_radius_top_left = 4
+		c_sb.corner_radius_top_right = 4
+		c_sb.corner_radius_bottom_left = 4
+		c_sb.corner_radius_bottom_right = 4
 		card.add_theme_stylebox_override("panel", c_sb)
 		
 		var lbl = Label.new()
-		lbl.text = "SLOT %d\n[空き]" % (i + 1)
+		lbl.text = "SLOT %d\n[解析で固定装備]" % (i + 1)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		var l_set = LabelSettings.new()
 		if PIXEL_FONT:
 			l_set.font = PIXEL_FONT
-		l_set.font_size = 14
+		l_set.font_size = 13
 		l_set.font_color = Color(0.4, 0.45, 0.55)
 		lbl.label_settings = l_set
 		card.add_child(lbl)
@@ -335,14 +339,14 @@ func create_analysis_matrix_ui() -> void:
 		hbox.add_child(card)
 		slot_cards.append({ "panel": card, "style": c_sb, "label": lbl })
 		
-	# 直近の解析進行バー (1行)
+	# 直近の解析・集中強化進行バー (1行)
 	var prog_row = HBoxContainer.new()
 	prog_row.add_theme_constant_override("separation", 6)
 	vbox.add_child(prog_row)
 	
 	active_analysis_label = Label.new()
 	active_analysis_label.text = "解析待機中"
-	active_analysis_label.custom_minimum_size = Vector2(110, 18)
+	active_analysis_label.custom_minimum_size = Vector2(120, 18)
 	var a_set = LabelSettings.new()
 	if PIXEL_FONT:
 		a_set.font = PIXEL_FONT
@@ -353,7 +357,7 @@ func create_analysis_matrix_ui() -> void:
 	
 	active_analysis_bar = ProgressBar.new()
 	active_analysis_bar.show_percentage = false
-	active_analysis_bar.custom_minimum_size = Vector2(160, 10)
+	active_analysis_bar.custom_minimum_size = Vector2(150, 10)
 	active_analysis_bar.max_value = 100
 	active_analysis_bar.value = 0
 	style_analysis_bar(active_analysis_bar, Color.CYAN)
@@ -361,45 +365,58 @@ func create_analysis_matrix_ui() -> void:
 
 
 func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
-	# 1. 3つのスロット表示の更新
-	for i in range(3):
+	# 1. 2つの固定スロット表示の更新
+	for i in range(2):
 		var card = slot_cards[i]
 		if i < active_traits.size():
 			var t_key = active_traits[i]
 			if patterns.has(t_key):
 				var data = patterns[t_key]
 				var lvl = data.get("level", 1)
-				card["label"].text = "%s %s\nLv.%d" % [data.get("icon", "⚡"), data.get("name", "属性"), lvl]
-				card["label"].label_settings.font_color = Color.WHITE if lvl == 1 else Color.GOLD
+				var max_lvl = data.get("max_level", 5)
+				var lvl_str = "Lv.%d" % lvl if lvl < max_lvl else "Lv.MAX"
+				card["label"].text = "🔒 %s %s\n%s" % [data.get("icon", "⚡"), data.get("name", "属性"), lvl_str]
+				card["label"].label_settings.font_color = Color.GOLD if lvl >= 3 else Color.WHITE
 				card["style"].border_color = data.get("color", Color.CYAN)
-				card["style"].bg_color = Color(0.1, 0.15, 0.22, 0.95)
+				card["style"].bg_color = Color(0.1, 0.16, 0.24, 0.95)
 		else:
-			card["label"].text = "SLOT %d\n[空き]" % (i + 1)
+			card["label"].text = "SLOT %d\n[解析で固定装備]" % (i + 1)
 			card["label"].label_settings.font_color = Color(0.4, 0.45, 0.55)
 			card["style"].border_color = Color(0.2, 0.25, 0.35, 0.8)
 			card["style"].bg_color = Color(0.06, 0.08, 0.1, 0.85)
 			
-	# 2. 現在進行中の解析（直近で最も進捗の高い、未MAXパターン）の表示
+	# 2. 現在進行中の解析または集中強化の表示
 	var latest_pattern = null
 	var highest_progress = 0.0
-	for key in patterns.keys():
+	
+	# スロット満杯時はスロット装備中の属性から最も進捗の高いものを探す
+	var target_keys = active_traits if active_traits.size() >= 2 else patterns.keys()
+	
+	for key in target_keys:
+		if not patterns.has(key):
+			continue
 		var data = patterns[key]
 		var prog = data.get("progress", 0.0)
 		var lvl = data.get("level", 0)
-		var max_lvl = data.get("max_level", 2)
+		var max_lvl = data.get("max_level", 5)
 		if lvl < max_lvl and prog > highest_progress:
 			highest_progress = prog
 			latest_pattern = data
 			
 	if latest_pattern and highest_progress > 0:
 		var name_str = latest_pattern.get("name", "未知")
-		active_analysis_label.text = "解析中: %s" % name_str
+		var is_locked_mode = active_traits.size() >= 2
+		active_analysis_label.text = ("集中強化: %s" if is_locked_mode else "解析中: %s") % name_str
 		active_analysis_label.label_settings.font_color = latest_pattern.get("color", Color.CYAN)
 		active_analysis_bar.value = highest_progress
 		style_analysis_bar(active_analysis_bar, latest_pattern.get("color", Color.CYAN))
 	else:
-		active_analysis_label.text = "解析: パリィで吸収"
-		active_analysis_label.label_settings.font_color = Color.GRAY
+		if active_traits.size() >= 2:
+			active_analysis_label.text = "全パリィで集中強化"
+			active_analysis_label.label_settings.font_color = Color.GOLD
+		else:
+			active_analysis_label.text = "解析: パリィで吸収"
+			active_analysis_label.label_settings.font_color = Color.GRAY
 		active_analysis_bar.value = 0
 
 
@@ -760,7 +777,7 @@ func show_analysis_unlock_modal(pattern_key: String, data: Dictionary) -> void:
 	desc_vbox.add_child(stat_lbl)
 	
 	var body_lbl = Label.new()
-	body_lbl.text = cat_info.get("description", "") + "\n\n※変異スロットに自動装備されました（最大3枠）。"
+	body_lbl.text = cat_info.get("description", "") + "\n\n※変異スロットに固定装備されました（最大2枠・上書きなし）。\n以降のパリィ解析でLvアップ集中強化されます！"
 	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_label_style(body_lbl, 15, Color.WHITE, 4)
 	desc_vbox.add_child(body_lbl)
@@ -850,12 +867,12 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "🧬 変異兵装の解放",
 					"color": Color.GOLD,
-					"desc": "解析度100%で【変異兵装】が解放！全属性に共鳴EXPが波及し、機体の全攻撃力・機動性も底上げされます。"
+					"desc": "解析度100%で【変異兵装】が解放！全兵装共鳴により、機体の全攻撃力・機動性も底上げされます。"
 				},
 				{
-					"title": "💠 変異スロット装備",
+					"title": "🔒 変異スロット固定装備（最大2枠）",
 					"color": Color(0.9, 0.45, 1.0),
-					"desc": "解放された変異（拡散射撃・貫通重弾・誘導ミサイル等）は最大3スロットに自動装備され、主兵装が強力に進化！"
+					"desc": "獲得した2つの変異兵装がスロットに固定されます。スロット満杯後は上書きされず、その2つが集中的にLvアップ強化され続けます！"
 				}
 			]
 		"time_limit":
@@ -1037,7 +1054,7 @@ func toggle_pause_menu() -> void:
 	
 	# Section: 解析変異兵装ステータス
 	var sec_lbl = Label.new()
-	sec_lbl.text = "─── 現在の解析変異スロット (MAX 3) ───"
+	sec_lbl.text = "─── 現在の解析変異スロット (MAX 2・固定集中強化) ───"
 	sec_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	setup_label_style(sec_lbl, 20, Color.WHITE, 6)
 	vbox.add_child(sec_lbl)
@@ -1047,7 +1064,7 @@ func toggle_pause_menu() -> void:
 	
 	if active_keys.size() == 0:
 		var empty_lbl = Label.new()
-		empty_lbl.text = "※ 現在装備中の変異兵装はありません。\n（敵弾をジャストガード/パリィして解析ゲージを100%にすると自動装備されます）"
+		empty_lbl.text = "※ 現在装備中の変異兵装はありません。\n（敵弾をジャストガード/パリィして解析ゲージを100%にすると最大2つまで固定装備されます）"
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		setup_label_style(empty_lbl, 15, Color.GRAY, 3)
 		vbox.add_child(empty_lbl)

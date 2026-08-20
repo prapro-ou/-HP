@@ -323,19 +323,19 @@ func get_boosted_replenish_type(wave_data: BaseStage.WaveData = null) -> String:
 			"cyclone": "irregular"
 		}
 		
-		# 1. スロット装備中の属性でLv.2未満のものを最優先
+		# 1. スロット装備中の属性でLv.5未満のものを最優先
 		var active = player.active_traits if "active_traits" in player else []
 		for t_key in active:
 			if player.analysis_patterns.has(t_key):
 				var data = player.analysis_patterns[t_key]
-				if data.get("level", 0) < data.get("max_level", 2):
+				if data.get("level", 0) < data.get("max_level", 5):
 					if trait_to_drone.has(t_key):
 						target_drone_types.append(trait_to_drone[t_key])
 						
 		# 2. 直近でパリィ・解析中の属性も対象に追加
 		for t_key in player.analysis_patterns.keys():
 			var data = player.analysis_patterns[t_key]
-			if data.get("progress", 0.0) > 0.0 and data.get("level", 0) < data.get("max_level", 2):
+			if data.get("progress", 0.0) > 0.0 and data.get("level", 0) < data.get("max_level", 5):
 				if trait_to_drone.has(t_key) and not target_drone_types.has(trait_to_drone[t_key]):
 					target_drone_types.append(trait_to_drone[t_key])
 					
@@ -480,11 +480,9 @@ func check_win_lose() -> void:
 		clear_all_bullets()
 		show_game_over("DEFEAT")
 	elif not is_instance_valid(boss) or (boss.has_method("get_current_hp") and boss.get_current_hp() <= 0):
-		current_state = State.VICTORY_TRANSITION
-		state = "victory_transition"
-		clear_all_bullets()
-		if is_instance_valid(player):
-			player.is_full_burst = true
+		if current_state != State.VICTORY_TRANSITION and current_state != State.VICTORY:
+			current_state = State.VICTORY_TRANSITION
+			state = "victory_transition"
 
 
 func clear_all_bullets() -> void:

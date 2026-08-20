@@ -46,7 +46,8 @@ func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 			ui_node.spawn_damage_popup(actual_pos, amount, is_dead)
 			
 	if is_dead:
-		die()
+		is_alive = false
+		call_deferred("die")
 
 ## 撃破時の処理（子クラスでオーバーライド可能）
 func die() -> void:
@@ -65,8 +66,9 @@ func die() -> void:
 ## 爆発演出（パーティクル生成）
 func explode() -> void:
 	var ParryParticleScene = load("res://game/bullets/parry_particle.tscn")
-	if ParryParticleScene:
+	var parent_node = get_parent()
+	if ParryParticleScene and parent_node:
 		var particle = ParryParticleScene.instantiate()
 		particle.global_position = global_position
 		particle.modulate = modulate
-		get_parent().add_child(particle)
+		parent_node.call_deferred("add_child", particle)

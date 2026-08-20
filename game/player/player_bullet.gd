@@ -13,6 +13,9 @@ var bullet_type: String = "analysis":
 		bullet_type = val
 		update_visual()
 
+const MAX_PLAYER_BULLETS: int = 80
+const MAX_LIFE_TIME: float = 3.5
+
 # 強化属性・変異パラメータ
 var pierce_limit: int = 0
 var hits_done: int = 0
@@ -27,6 +30,15 @@ func _ready() -> void:
 	z_as_relative = false
 	update_visual()
 	area_entered.connect(_on_area_entered)
+	
+	# プレイヤー弾の最大同時存在数の制限（超過時は最古弾を自然消滅）
+	var parent_node = get_parent()
+	if is_instance_valid(parent_node) and parent_node.name.contains("Bullet"):
+		var sibling_count = parent_node.get_child_count()
+		if sibling_count > MAX_PLAYER_BULLETS:
+			var oldest = parent_node.get_child(0)
+			if is_instance_valid(oldest) and oldest != self:
+				oldest.queue_free()
 
 
 func update_visual() -> void:
@@ -146,7 +158,11 @@ func _process(delta: float) -> void:
 
 	position += velocity * delta
 	
-	# 画面外で消去
+	# 寿命切れまたは画面外で消去
+	if life_timer >= MAX_LIFE_TIME:
+		queue_free()
+		return
+		
 	var viewport_rect = get_viewport_rect()
 	if position.y < -120 or position.y > viewport_rect.size.y + 120 or \
 	   position.x < -120 or position.x > viewport_rect.size.x + 120:

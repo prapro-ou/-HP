@@ -338,7 +338,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 			
 	if current_hp <= 0:
 		current_hp = 0
-		destroy_boss()
+		call_deferred("destroy_boss")
 
 
 func spawn_shield_message(text: String) -> void:
@@ -364,43 +364,142 @@ func spawn_shield_message(text: String) -> void:
 	tween.chain().tween_callback(label.queue_free)
 
 
+const DATA_ORB_SCENE: PackedScene = preload("res://game/core/data_orb.tscn")
+const EXPLOSION_EFFECT_SCENE: GDScript = preload("res://game/bullets/explosion_effect.gd")
+
 func destroy_boss() -> void:
+	if not is_alive:
+		return
 	is_alive = false
 	is_active = false
 	
-	Global.play_explosion(0.85)
+	var main_tree = get_tree()
+	var player_node = get_node_or_null("/root/Main/Player")
+	var main_node = get_node_or_null("/root/Main")
+	
+	# プレイヤーの操作を即時ロック（移動・射撃・ガード無効化＆無敵化）
+	if is_instance_valid(player_node) and player_node.has_method("lock_controls"):
+		player_node.lock_controls()
+	
+	# 1. 撃破インパクト音 ＆ 画面フラッシュ ＆ 撃破テロップ
+	Global.play_heavy_hit(0.7)
+	if is_instance_valid(player_node) and player_node.has_method("trigger_screen_flash"):
+		player_node.trigger_screen_flash(Color(1.0, 0.95, 0.5, 0.7))
+		
+	# 2. 画面上の全敵弾をデータオーブに変換 ＆ プレイヤーへ磁力吸引
+	call_deferred("convert_all_bullets_to_data_orbs", player_node)
 	
 	# ボス撃破ボーナス: +10 TP
 	Global.tech_points += 10
-	var player_node = get_node_or_null("/root/Main/Player")
 	if player_node and player_node.has_method("spawn_popup_message"):
 		player_node.spawn_popup_message("🏆 要塞ボス完全撃破！ +10 TP 獲得！")
 		
+	# サブ砲台の破壊
 	for t in turrets:
 		if is_instance_valid(t) and t.is_alive:
 			t.destroy_turret()
 			
-	var main_tree = get_tree()
-	if PARRY_PARTICLE_SCENE and main_tree:
-		for i in range(25):
-			main_tree.create_timer(i * 0.1).timeout.connect(func():
-				if is_instance_valid(self):
-					var p = PARRY_PARTICLE_SCENE.instantiate()
-					p.global_position = global_position + Vector2(randf_range(-400, 400), randf_range(-300, 300))
-					p.scale = Vector2(4.0, 4.0)
-					p.modulate = Color(1.0, randf_range(0.2, 0.9), 0.1)
-					get_parent().add_child(p)
-			)
+	# 3. ボス各部の28連続重誘爆（外郭から徐々に内側コアへ迫る大連鎖爆発）
+	var explosion_offsets = [
+		Vector2(-320, -90), Vector2(320, -90), Vector2(-260, 60), Vector2(260, 60),
+		Vector2(-180, -130), Vector2(180, -130), Vector2(-360, 10), Vector2(360, 10),
+		Vector2(-120, -70), Vector2(120, -70), Vector2(-200, 90), Vector2(200, 90),
+		Vector2(-80, 20), Vector2(80, 20), Vector2(-290, -40), Vector2(290, -40),
+		Vector2(-140, 110), Vector2(140, 110), Vector2(-60, -110), Vector2(60, -110),
+		Vector2(-220, -10), Vector2(220, -10), Vector2(-100, 40), Vector2(100, 40),
+		Vector2(-40, -40), Vector2(40, -40), Vector2(0, 60), Vector2(0, -20)
+	]
+	
+	for i in range(explosion_offsets.size()):
+		main_tree.create_timer(i * 0.095).timeout.connect(func():
+			if is_instance_valid(self):
+				var exp_pos = global_position + explosion_offsets[i]
+				var progress = float(i) / float(explosion_offsets.size()) # 0.0 -> 1.0
+				var exp_rad = randf_range(55.0 + progress * 40.0, 95.0 + progress * 60.0)
+				var exp_col = Color(1.0, randf_range(0.3, 0.9), 0.1) if progress < 0.7 else Color(1.0, randf_range(0.7, 1.0), 0.5)
+				ExplosionEffect.create(get_parent(), exp_pos, exp_rad, exp_col, 0.38)
+				Global.play_explosion(randf_range(1.0, 1.35) - progress * 0.2)
+				
+				# 被弾激震シェイク
+				if is_instance_valid(sprite):
+					var shake_amp = 6.0 + progress * 8.0
+					sprite.position = Vector2(randf_range(-shake_amp, shake_amp), randf_range(-shake_amp * 0.7, shake_amp * 0.7))
+		)
+		
+	# 4. ボス本体の白熱明滅 ＆ スムーズなフェードアウト（2.8秒）
+	if is_instance_valid(sprite):
+		var fade_tween = create_tween().set_parallel(true)
+		fade_tween.tween_property(sprite, "modulate:a", 0.0, 2.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		fade_tween.tween_property(sprite, "position", Vector2(0.0, 50.0), 2.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		
+	if is_instance_valid(core_glow):
+		var core_tween = create_tween()
+		core_tween.tween_property(core_glow, "modulate:a", 0.0, 2.5)
+		
+	# 5. フィニッシュ超巨大白熱大爆散 ＆ フライバイ発動 (2.8秒後)
+	main_tree.create_timer(2.8).timeout.connect(func():
+		if is_instance_valid(self):
+			# 超巨大超新星大爆散（半径 440px）
+			ExplosionEffect.create(get_parent(), global_position, 440.0, Color.WHITE, 0.8)
+			ExplosionEffect.create(get_parent(), global_position + Vector2(-180, 0), 280.0, Color(0.4, 0.9, 1.0), 0.7)
+			ExplosionEffect.create(get_parent(), global_position + Vector2(180, 0), 280.0, Color(1.0, 0.6, 0.1), 0.7)
 			
-	main_tree.create_timer(2.6).timeout.connect(func():
-		var main = get_node_or_null("/root/Main")
-		if main:
-			var mgr = main.get_node_or_null("GameManager")
+			Global.play_explosion(0.6) # 重低音特大爆発
+			
+			if is_instance_valid(player_node) and player_node.has_method("trigger_screen_flash"):
+				player_node.trigger_screen_flash(Color(1.0, 1.0, 1.0, 1.0))
+	)
+	
+	# 6. 自機の勝利フライバイ演出開始 (3.2秒後)
+	main_tree.create_timer(3.2).timeout.connect(func():
+		if is_instance_valid(player_node) and player_node.has_method("play_victory_flyby"):
+			player_node.play_victory_flyby()
+	)
+	
+	# 7. 自機が上空の彼方へ突き抜けた後、作戦完了リザルトへ移行 (5.2秒後)
+	main_tree.create_timer(5.2).timeout.connect(func():
+		if is_instance_valid(main_node):
+			var mgr = main_node.get_node_or_null("GameManager")
 			if mgr and mgr.has_method("on_boss_destroyed"):
 				mgr.on_boss_destroyed()
 		queue_free()
 	)
 
 
+func convert_all_bullets_to_data_orbs(player_node: CharacterBody2D) -> void:
+	if not DATA_ORB_SCENE:
+		return
+		
+	var parent_node = get_parent()
+	if not parent_node:
+		return
+		
+	var all_bullets = []
+	var pool = get_node_or_null("/root/Main/BulletPool")
+	if pool and "active_bullets" in pool:
+		all_bullets.append_array(pool.active_bullets.duplicate())
+		
+	for p in get_tree().get_nodes_in_group("enemy_projectiles"):
+		if is_instance_valid(p) and not all_bullets.has(p):
+			all_bullets.append(p)
+			
+	for b in all_bullets:
+		if is_instance_valid(b) and not b.is_queued_for_deletion():
+			var b_pos = b.global_position
+			var b_type = b.bullet_type if "bullet_type" in b else "straight"
+			
+			# 弾を消去
+			if pool and pool.has_method("return_bullet") and pool.active_bullets.has(b):
+				pool.return_bullet(b)
+			else:
+				b.queue_free()
+				
+			# データオーブを生成して自機へ吸引（物理クエリ外で安全に追加）
+			var orb = DATA_ORB_SCENE.instantiate()
+			orb.setup_orb(b_type, b_pos, player_node)
+			parent_node.call_deferred("add_child", orb)
+
+
 func get_current_hp() -> int:
 	return current_hp
+
