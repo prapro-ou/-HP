@@ -1,11 +1,10 @@
 extends Node
-class_name SoundManager
 ## プロシージャル効果音生成・再生マネージャー (SoundManager)
 ## - 外部音声ファイル不要でGodot 4標準のAudioStreamWAVを動的生成
 ## - 連射時の音割れ・発音飽和を防ぐ同時発音制御
 ## - 敵被弾、シールド弾き、コア直撃、爆発などのSEを提供
 
-static var instance: SoundManager
+static var instance: Node
 
 var sounds: Dictionary = {}
 var player_pool: Array[AudioStreamPlayer] = []
@@ -36,7 +35,7 @@ func _ready() -> void:
 	sounds["turret_destroy"] = _create_explosion_sound(0.18)
 
 
-static func get_instance() -> SoundManager:
+static func get_instance() -> Node:
 	if instance and is_instance_valid(instance):
 		return instance
 	var root = Engine.get_main_loop() as SceneTree

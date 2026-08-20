@@ -7,7 +7,6 @@ extends Node2D
 
 const TURRET_SCENE: PackedScene = preload("res://game/enemies/boss/boss_turret.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
-const SoundManager = preload("res://game/core/sound_manager.gd")
 const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var max_hp: int = 7500

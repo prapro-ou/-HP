@@ -3,7 +3,6 @@ class_name BaseEnemy
 
 ## 敵キャラクターのベースクラス（共通のHP管理、被ダメージ、破壊演出を処理）
 
-const SoundManager = preload("res://game/core/sound_manager.gd")
 const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var max_hp: int = 10

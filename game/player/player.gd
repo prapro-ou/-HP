@@ -12,7 +12,6 @@ extends CharacterBody2D
 
 # 定数：フォント定義
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
-const SoundManager = preload("res://game/core/sound_manager.gd")
 
 # 定数：武器タイプ定義
 const WEAPON_MACHINE_GUN = "machine_gun"
