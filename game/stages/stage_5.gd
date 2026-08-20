@@ -18,11 +18,6 @@ func _setup_waves() -> void:
 	w1.wave_id = "wave1_gaia"
 	w1.display_title = "FINAL PHASE 1: 覚醒惑星外縁・超生体弾幕群"
 	w1.start_message = "【FINAL MISSION: 惑星覚醒・決戦前哨】\n制限時間（90秒）まで星を覆う超生体弾幕群を撃ち返せ！\nフルバーストビルドを完成させて惑星コアを粉砕せよ！"
-	w1.clear_condition_type = "analysis_or_parry"
-	w1.target_drone_count = 18
-	w1.target_parry_count = 30
-	w1.transition_delay = 2.2
-	w1.completion_message = "【PHASE 1 突破】惑星外縁迎撃網を粉砕！"
 	w1.replenish_types = ["straight", "laser", "charge", "missile", "wave", "irregular"]
 	w1.min_active_drones = 5
 	w1.drone_speed_override = 230.0
@@ -42,11 +37,6 @@ func _setup_waves() -> void:
 	w2.wave_id = "wave2_gaia_elite"
 	w2.display_title = "FINAL PHASE 2: 惑星生体中枢・終焉のエリート軍団"
 	w2.start_message = "[ASSIST AI]: 惑星全エネルギーが集中！\n限界突破パリィで全属性Lv.2を完全解放せよ！"
-	w2.clear_condition_type = "analysis_or_parry"
-	w2.target_drone_count = 24
-	w2.target_parry_count = 40
-	w2.transition_delay = 2.5
-	w2.completion_message = "【PHASE 2 突破】惑星エリート軍団を殲滅！"
 	w2.replenish_types = ["charge", "missile", "laser", "irregular", "wave"]
 	w2.min_active_drones = 6
 	w2.drone_speed_override = 250.0
@@ -65,11 +55,6 @@ func _setup_waves() -> void:
 	w3.wave_id = "wave3_gaia_core_guard"
 	w3.display_title = "FINAL PHASE 3: 惑星コア直結・怒涛の最終防衛網"
 	w3.start_message = "[ASSIST AI]: 惑星防衛システムが全開稼働！\n完成したフルバーストビルドで大群を殲滅せよ！"
-	w3.clear_condition_type = "analysis_or_parry"
-	w3.target_drone_count = 28
-	w3.target_parry_count = 50
-	w3.transition_delay = 2.5
-	w3.completion_message = "【PHASE 3 突破】最終防衛網を完全突破！"
 	w3.replenish_types = ["laser", "missile", "charge", "wave", "irregular"]
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 260.0
@@ -89,11 +74,6 @@ func _setup_waves() -> void:
 	w4.wave_id = "wave4_gaia_awakening"
 	w4.display_title = "FINAL PHASE 4: 惑星完全覚醒・終焉の超弾幕ラッシュ"
 	w4.start_message = "[ASSIST AI]: 惑星超生体が臨界点に到達！\nすべての弾丸をパリィで撃ち返し、本体を顕現させよ！"
-	w4.clear_condition_type = "analysis_or_parry"
-	w4.target_drone_count = 32
-	w4.target_parry_count = 60
-	w4.transition_delay = 3.0
-	w4.completion_message = "【最終防壁完全粉砕】惑星コア本体との直結を確認！"
 	w4.replenish_types = ["charge", "missile", "laser", "irregular", "wave", "straight"]
 	w4.min_active_drones = 7
 	w4.drone_speed_override = 280.0

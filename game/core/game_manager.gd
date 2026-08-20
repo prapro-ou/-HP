@@ -28,10 +28,7 @@ var state: String = "start" # 外部互換用文字列プロパティ
 var current_state: State = State.START
 var current_wave_index: int = 0
 var current_wave_level: int = 1
-var swarm_destroyed_count: int = 0
 var total_wave_kills: int = 0
-var wave_parry_count: int = 0
-var wave_upgrade_count: int = 0
 
 # 90秒防衛＆育成タイマー定数
 const WAVE_PHASE_MAX_DURATION: float = 90.0
@@ -103,11 +100,8 @@ func clean_stage_entities() -> void:
 		current_stage = null
 		
 	parry_count = 0
-	wave_parry_count = 0
-	wave_upgrade_count = 0
 	state_timer = 0.0
 	boss_drone_timer = 0.0
-	swarm_destroyed_count = 0
 	total_wave_kills = 0
 	current_wave_index = 0
 	current_wave_level = 1
@@ -214,9 +208,6 @@ func start_wave(index: int) -> void:
 	current_wave_index = index
 	current_state = State.WAVE
 	state = "wave" + str(index + 1)
-	swarm_destroyed_count = 0
-	wave_parry_count = 0
-	wave_upgrade_count = 0
 	
 	var wave_data = current_stage.get_wave(index)
 	if not wave_data:
@@ -318,15 +309,6 @@ func process_wave_state(delta: float) -> void:
 		check_drone_replenish(wave_data)
 
 
-func get_player_analyzed_count() -> int:
-	var count = 0
-	if is_instance_valid(player) and "analysis_patterns" in player:
-		for p in player.analysis_patterns.values():
-			if p.get("analyzed", false):
-				count += 1
-	return count
-
-
 func get_boosted_replenish_type(wave_data: BaseStage.WaveData = null) -> String:
 	# プレイヤーが装備中（Lv.2未満）または解析進行中の属性に対応する敵を優先抽出
 	var target_drone_types: Array[String] = []
@@ -414,7 +396,6 @@ func clear_drones() -> void:
 func on_drone_destroyed(drone) -> void:
 	if spawned_drones.has(drone):
 		spawned_drones.erase(drone)
-		swarm_destroyed_count += 1
 		total_wave_kills += 1
 		
 		if ui and ui.has_method("update_wave_phase_hud"):
@@ -558,11 +539,10 @@ func update_ui() -> void:
 
 func register_parry() -> void:
 	parry_count += 1
-	wave_parry_count += 1
 
 
 func register_analysis_upgrade() -> void:
-	wave_upgrade_count += 1
+	pass
 
 
 func add_damage_score(amount: int) -> void:
