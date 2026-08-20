@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 Global="*res://game/core/global.gd"
-SoundManager="*res://game/core/sound_manager.gd"
 
 [display]
 

@@ -680,10 +680,10 @@ func take_damage(amount: int, is_guard_break: bool = false) -> void:
 		spawn_popup_message(alert_text % final_damage)
 		
 	if is_critical_hit:
-		SoundManager.play_heavy_hit(0.75)
+		Global.play_heavy_hit(0.75)
 		trigger_screen_flash(Color(1.0, 0.05, 0.05, 0.65))
 	else:
-		SoundManager.play_hit(0.85)
+		Global.play_hit(0.85)
 		trigger_screen_flash(Color(1.0, 0.0, 0.0, 0.4))
 		
 	if current_hp <= 0:

@@ -297,7 +297,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 			spawn_shield_message("⚠️ サブ砲台が防壁を展開中！")
 			
 		# 防壁ヒット演出 (金属弾きSE & シールドスパーク & 青白フラッシュ)
-		SoundManager.play_guard(randf_range(0.95, 1.05))
+		Global.play_guard(randf_range(0.95, 1.05))
 		HitSpark.create_spark(get_parent(), actual_hit_pos, "shield")
 		
 		if is_instance_valid(sprite):
@@ -306,7 +306,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
 	else:
 		# 砲台破壊後: 弱点コア直撃 (重被弾SE & ヘビースパーク & 白熱フラッシュ & 被弾シェイク)
-		SoundManager.play_heavy_hit(randf_range(0.95, 1.08))
+		Global.play_heavy_hit(randf_range(0.95, 1.08))
 		HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy" if part_name == "core" else "normal")
 		
 		if is_instance_valid(core_glow):
@@ -368,7 +368,7 @@ func destroy_boss() -> void:
 	is_alive = false
 	is_active = false
 	
-	SoundManager.play_explosion(0.85)
+	Global.play_explosion(0.85)
 	
 	# ボス撃破ボーナス: +10 TP
 	Global.tech_points += 10

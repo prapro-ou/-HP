@@ -27,7 +27,7 @@ func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 	var is_dead = current_hp <= 0
 	var actual_pos = hit_pos if hit_pos != Vector2.ZERO else global_position
 	
-	SoundManager.play_hit(randf_range(0.95, 1.15))
+	Global.play_hit(randf_range(0.95, 1.15))
 	HitSpark.create_spark(get_parent(), actual_pos, "normal", modulate if modulate != Color.WHITE else Color(1.0, 0.85, 0.3))
 	
 	# 被弾フラッシュ
@@ -51,7 +51,7 @@ func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 ## 撃破時の処理（子クラスでオーバーライド可能）
 func die() -> void:
 	is_alive = false
-	SoundManager.play_explosion(1.2)
+	Global.play_explosion(1.2)
 	# 敵撃破時に短く超巨大なテキスト演出（"DESTROY!"）を生成
 	var main = get_node_or_null("/root/Main")
 	if main:

@@ -325,10 +325,10 @@ func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 	if is_shielded:
 		# 水色防護シールド展開中はダメージ75%大幅軽減
 		final_damage = max(1, int(amount * 0.25))
-		SoundManager.play_guard(randf_range(0.95, 1.05))
+		Global.play_guard(randf_range(0.95, 1.05))
 		HitSpark.create_spark(get_parent(), actual_hit_pos, "shield")
 	else:
-		SoundManager.play_hit(randf_range(0.95, 1.1))
+		Global.play_hit(randf_range(0.95, 1.1))
 		HitSpark.create_spark(get_parent(), actual_hit_pos, "normal", Color(1.0, 0.85, 0.3))
 		
 	current_hp -= final_damage
@@ -363,7 +363,7 @@ func destroy_turret() -> void:
 	is_active = false
 	remove_from_group("boss_turrets")
 	
-	SoundManager.play_explosion(1.1)
+	Global.play_explosion(1.1)
 	
 	# 爆発演出
 	if PARRY_PARTICLE_SCENE and get_parent():
