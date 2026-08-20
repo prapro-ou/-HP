@@ -20,7 +20,7 @@ func _ready_enemy() -> void:
 	pass
 
 ## ダメージ処理（スコア加算とポップアップ演出を共通化）
-func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
+func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO, is_critical: bool = false) -> void:
 	if not is_alive:
 		return
 	current_hp -= amount
@@ -28,7 +28,9 @@ func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 	var actual_pos = hit_pos if hit_pos != Vector2.ZERO else global_position
 	
 	Global.play_hit(randf_range(0.95, 1.15))
-	HitSpark.create_spark(get_parent(), actual_pos, "normal", modulate if modulate != Color.WHITE else Color(1.0, 0.85, 0.3))
+	var spark_mode = "heavy" if is_critical else "normal"
+	var spark_col = Color(1.0, 0.9, 0.2) if is_critical else (modulate if modulate != Color.WHITE else Color(1.0, 0.85, 0.3))
+	HitSpark.create_spark(get_parent(), actual_pos, spark_mode, spark_col)
 	
 	# 被弾フラッシュ
 	var orig_mod = modulate
@@ -43,7 +45,7 @@ func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
 			manager.add_damage_score(amount)
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(actual_pos, amount, is_dead)
+			ui_node.spawn_damage_popup(actual_pos, amount, is_dead, is_critical)
 			
 	if is_dead:
 		die()

@@ -177,24 +177,41 @@ func _on_area_entered(area: Area2D) -> void:
 		if not area.has_method("take_damage") and not area.has_method("take_damage_on_part") and area.get_parent() and (area.get_parent().has_method("take_damage") or area.get_parent().has_method("take_damage_on_part")):
 			damage_target = area.get_parent()
 			
+		# --- 至近距離ボーナス（Point Blank Bonus）の算出 ---
+		var dist_to_player = 999.0
+		var player = get_node_or_null("/root/Main/Player")
+		if is_instance_valid(player):
+			dist_to_player = player.global_position.distance_to(hit_pos)
+			
+		var dmg_multiplier: float = 1.0
+		var is_critical: bool = false
+		if dist_to_player <= 140.0:
+			dmg_multiplier = 1.50 # 超至近距離: 1.5倍クリティカル
+			is_critical = true
+		elif dist_to_player <= 260.0:
+			dmg_multiplier = 1.25 # 近距離: 1.25倍
+			
+		var final_damage = max(1, int(damage * dmg_multiplier))
+			
 		if damage_target.has_method("take_damage"):
-			damage_target.take_damage(damage, hit_pos)
+			damage_target.take_damage(final_damage, hit_pos, is_critical)
 		elif damage_target.has_method("take_damage_on_part"):
-			damage_target.take_damage_on_part("core", damage, hit_pos)
+			damage_target.take_damage_on_part("core", final_damage, hit_pos, is_critical)
 		
-		# 爆発・衝撃波エフェクト
+		# 爆発・衝撃波エフェクト (至近距離時は爆発ダメージ・エフェクトも強化)
+		var cur_exp_dmg = max(1, int(explosion_dmg * dmg_multiplier))
 		if explosion_radius > 0.0:
-			trigger_explosion(explosion_radius, explosion_dmg, Color.ORANGE, 0.6)
+			trigger_explosion(explosion_radius, cur_exp_dmg, Color.ORANGE, 0.7 if is_critical else 0.6)
 		elif bullet_type == "hyper_missile" or bullet_type == "player_meteor":
-			trigger_explosion(80.0, 14, Color.ORANGE, 0.8)
+			trigger_explosion(80.0, int(14 * dmg_multiplier), Color.ORANGE, 0.9 if is_critical else 0.8)
 		elif bullet_type == "plasma":
-			trigger_explosion(50.0, 10, Color(0.3, 1.0, 0.4), 0.6)
+			trigger_explosion(50.0, int(10 * dmg_multiplier), Color(0.3, 1.0, 0.4), 0.7 if is_critical else 0.6)
 		elif bullet_type == "tackle":
-			trigger_explosion(70.0, 18, Color(0.4, 0.8, 1.0), 0.8)
+			trigger_explosion(70.0, int(18 * dmg_multiplier), Color(0.4, 0.8, 1.0), 0.9 if is_critical else 0.8)
 		elif bullet_type == "missile":
-			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0), 0.4)
+			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0), 0.5 if is_critical else 0.4)
 		else:
-			spawn_bullet_impact_particles(modulate, 0.35)
+			spawn_bullet_impact_particles(modulate, 0.45 if is_critical else 0.35)
 			
 		hits_done += 1
 		# 貫通弾以外の弾丸は消去 (レーザー、チャージボルト、プラズマ、タックル、サイクロン、フォトンレーザー、隕石、またはpierce_limit残存時は貫通)
