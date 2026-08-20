@@ -1,6 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
 # Windows-specific files
 *.ini
 *.ini.import
@@ -9,5 +10,4 @@
 $RECYCLE.BIN/
 *.lnk
 *.import
-*.png
 *.png.import
