@@ -297,12 +297,12 @@ func _draw() -> void:
 func spawn_turret_warning(text: String) -> void:
 	var label = Label.new()
 	label.text = text
-	var set = LabelSettings.new()
-	set.font_size = 16
-	set.font_color = Color(0.3, 0.9, 1.0) if turret_type == TurretType.SHIELD_GENERATOR else Color.RED
-	set.outline_size = 4
-	set.outline_color = Color.BLACK
-	label.label_settings = set
+	var label_settings = LabelSettings.new()
+	label_settings.font_size = 16
+	label_settings.font_color = Color(0.3, 0.9, 1.0) if turret_type == TurretType.SHIELD_GENERATOR else Color.RED
+	label_settings.outline_size = 4
+	label_settings.outline_color = Color.BLACK
+	label.label_settings = label_settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.global_position = global_position + Vector2(-120, -45)
 	label.custom_minimum_size = Vector2(240, 20)

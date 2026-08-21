@@ -309,10 +309,12 @@ func _process(delta: float) -> void:
 	if parry_sparks.size() > 0:
 		var remaining: Array[Dictionary] = []
 		for p in parry_sparks:
-			p["pos"] += p["vel"] * delta
-			p["life"] -= delta
-			p["alpha"] = clamp(p["life"] / p["max_life"], 0.0, 1.0)
-			if p["life"] > 0.0:
+			p["pos"] = p.get("pos", Vector2.ZERO) + p.get("vel", Vector2.ZERO) * delta
+			var life = p.get("life", 0.0) - delta
+			p["life"] = life
+			var max_l = p.get("max_life", 0.3)
+			p["alpha"] = clamp(life / max_l, 0.0, 1.0)
+			if life > 0.0:
 				remaining.append(p)
 		parry_sparks = remaining
 		queue_redraw()
@@ -953,15 +955,15 @@ func spawn_big_levelup_banner(trait_name: String, lvl: int, icon: String) -> voi
 	label.text = "⚡ LEVEL UP! ⚡\n%s 【%s Lv.%d】 解放！" % [icon, trait_name, lvl]
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	var set = LabelSettings.new()
+	var label_settings = LabelSettings.new()
 	var pixel_font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 	if pixel_font:
-		set.font = pixel_font
-	set.font_size = 24
-	set.font_color = Color.GOLD
-	set.outline_size = 8
-	set.outline_color = Color(0.1, 0.05, 0.0)
-	label.label_settings = set
+		label_settings.font = pixel_font
+	label_settings.font_size = 24
+	label_settings.font_color = Color.GOLD
+	label_settings.outline_size = 8
+	label_settings.outline_color = Color.BLACK
+	label.label_settings = label_settings
 	
 	var vp_w = get_viewport_rect().size.x
 	label.custom_minimum_size = Vector2(500, 70)
@@ -1060,6 +1062,7 @@ func trigger_parry_feedback(hit_pos: Vector2 = Vector2.ZERO) -> void:
 			"color": spark_colors.pick_random(),
 			"life": life,
 			"max_life": life,
+			"alpha": 1.0,
 			"size": randf_range(2.0, 3.5)
 		})
 	
@@ -1200,10 +1203,15 @@ func _draw() -> void:
 
 	# --- パリィ火花スパーク粒子の描画 ---
 	for p in parry_sparks:
-		var c = Color(p["color"].r, p["color"].g, p["color"].b, p["alpha"])
-		var tail = p["pos"] - p["vel"] * 0.035
-		draw_line(p["pos"], tail, c, p["size"])
-		draw_circle(p["pos"], p["size"] * 0.8, Color(1.0, 1.0, 1.0, p["alpha"]))
+		var alpha_val = p.get("alpha", 1.0)
+		var base_col = p.get("color", Color.WHITE)
+		var c = Color(base_col.r, base_col.g, base_col.b, alpha_val)
+		var pos_val = p.get("pos", Vector2.ZERO)
+		var vel_val = p.get("vel", Vector2.ZERO)
+		var sz = p.get("size", 2.5)
+		var tail = pos_val - vel_val * 0.035
+		draw_line(pos_val, tail, c, sz)
+		draw_circle(pos_val, sz * 0.8, Color(1.0, 1.0, 1.0, alpha_val))
 
 	# --- 六角形ヘックスバリアの閃光描画 ---
 	if parry_hex_alpha > 0.0:
