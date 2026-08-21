@@ -27,6 +27,7 @@ const SHIELD_GAUGE = "gauge"
 const SHIELD_POWER = "power"
 
 # 定数：解析パターンキー (敵の全7挙動)
+# 定数：解析パターンキー (全10属性)
 const PATTERN_RAPID = "rapid"
 const PATTERN_SPREAD = "spread"
 const PATTERN_PIERCE = "pierce"
@@ -34,6 +35,9 @@ const PATTERN_HOMING = "homing"
 const PATTERN_LASER = "laser"
 const PATTERN_CYCLONE = "cyclone"
 const PATTERN_METEOR = "meteor"
+const PATTERN_THUNDER = "thunder"
+const PATTERN_VORTEX = "vortex"
+const PATTERN_BLADE = "blade"
 
 # 定数：カラー定義
 const COLOR_SHIELD_COUNTER = Color(0.8, 0.3, 1.0)
@@ -105,7 +109,10 @@ var analysis_patterns: Dictionary = {
 	PATTERN_HOMING:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "誘導ミサイル", "icon": "▶", "color": Color(0.85, 0.45, 1.0) },
 	PATTERN_LASER:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "フォトン光線", "icon": "━", "color": Color(0.4, 0.9, 1.0) },
 	PATTERN_CYCLONE: { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "旋回スピン", "icon": "◎", "color": Color(1.0, 0.85, 0.2) },
-	PATTERN_METEOR:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "ギガメテオ", "icon": "●", "color": Color(1.0, 0.35, 0.2) }
+	PATTERN_METEOR:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "ギガメテオ", "icon": "●", "color": Color(1.0, 0.35, 0.2) },
+	PATTERN_THUNDER: { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "電撃連鎖", "icon": "⚡⚡", "color": Color(0.95, 0.9, 0.2) },
+	PATTERN_VORTEX:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "重力特異点", "icon": "🌀", "color": Color(0.75, 0.3, 1.0) },
+	PATTERN_BLADE:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "真空斬撃", "icon": "✦", "color": Color(0.2, 1.0, 0.85) }
 }
 
 const PLAYER_BULLET_SCENE: PackedScene = preload("res://game/player/player_bullet.tscn")
@@ -460,6 +467,15 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 	var is_meteor_active = active_traits.has(PATTERN_METEOR)
 	var meteor_lvl = analysis_patterns[PATTERN_METEOR]["level"] if is_meteor_active else 0
 	
+	var is_thunder_active = active_traits.has(PATTERN_THUNDER)
+	var thunder_lvl = analysis_patterns[PATTERN_THUNDER]["level"] if is_thunder_active else 0
+	
+	var is_vortex_active = active_traits.has(PATTERN_VORTEX)
+	var vortex_lvl = analysis_patterns[PATTERN_VORTEX]["level"] if is_vortex_active else 0
+	
+	var is_blade_active = active_traits.has(PATTERN_BLADE)
+	var blade_lvl = analysis_patterns[PATTERN_BLADE]["level"] if is_blade_active else 0
+	
 	var global_dmg_bonus = get_global_analysis_damage_bonus()
 	
 	# 融合強化パラメータの算出 (Lv.1〜5 スケーリング)
@@ -483,6 +499,10 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 	var w_amp = cyclone_lvl * 45.0
 	var exp_rad = meteor_lvl * 22.0
 	var exp_dmg = meteor_lvl * 10
+	var c_count = thunder_lvl * 2
+	var c_dmg = thunder_lvl * 12
+	var v_rad = vortex_lvl * 28.0
+	var v_dmg = vortex_lvl * 8
 
 	# 拡散パターンの角度リスト (Lv.1〜5)
 	var spread_angles = [0.0]
@@ -524,6 +544,12 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.wave_amp = w_amp
 				bullet.explosion_radius = exp_rad
 				bullet.explosion_dmg = exp_dmg
+				bullet.chain_count = c_count
+				bullet.chain_damage = c_dmg
+				bullet.vortex_radius = v_rad
+				bullet.vortex_dmg = v_dmg
+				bullet.is_blade = is_blade_active
+				bullet.blade_lvl = blade_lvl
 				if laser_lvl >= 1:
 					bullet.modulate = Color(0.4, 0.9, 1.0)
 				target_parent.add_child(bullet)
@@ -547,6 +573,12 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 						bullet.wave_amp = w_amp * 0.5
 						bullet.explosion_radius = exp_rad
 						bullet.explosion_dmg = exp_dmg
+						bullet.chain_count = c_count
+						bullet.chain_damage = c_dmg
+						bullet.vortex_radius = v_rad
+						bullet.vortex_dmg = v_dmg
+						bullet.is_blade = is_blade_active
+						bullet.blade_lvl = blade_lvl
 						if laser_lvl >= 1:
 							bullet.modulate = Color(1.0, 0.6, 0.2)
 						target_parent.add_child(bullet)
@@ -569,6 +601,12 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.wave_amp = w_amp
 				bullet.explosion_radius = exp_rad
 				bullet.explosion_dmg = exp_dmg
+				bullet.chain_count = c_count
+				bullet.chain_damage = c_dmg
+				bullet.vortex_radius = v_rad
+				bullet.vortex_dmg = v_dmg
+				bullet.is_blade = is_blade_active
+				bullet.blade_lvl = blade_lvl
 				target_parent.add_child(bullet)
 
 		WEAPON_PLASMA_EMITTER:
@@ -587,6 +625,12 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.wave_amp = w_amp * 0.5
 				bullet.explosion_radius = max(exp_rad, 50.0 + spread_lvl * 8.0)
 				bullet.explosion_dmg = exp_dmg
+				bullet.chain_count = c_count
+				bullet.chain_damage = c_dmg
+				bullet.vortex_radius = v_rad
+				bullet.vortex_dmg = v_dmg
+				bullet.is_blade = is_blade_active
+				bullet.blade_lvl = blade_lvl
 				target_parent.add_child(bullet)
 
 		WEAPON_KINETIC_TACKLE:
@@ -606,6 +650,12 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.wave_amp = w_amp
 				bullet.explosion_radius = max(exp_rad, 70.0 + spread_lvl * 10.0)
 				bullet.explosion_dmg = exp_dmg
+				bullet.chain_count = c_count
+				bullet.chain_damage = c_dmg
+				bullet.vortex_radius = v_rad
+				bullet.vortex_dmg = v_dmg
+				bullet.is_blade = is_blade_active
+				bullet.blade_lvl = blade_lvl
 				target_parent.add_child(bullet)
 
 
@@ -814,6 +864,12 @@ func advance_analysis(bullet_type: String, amount: float = 8.0) -> void:
 			pattern_key = PATTERN_PIERCE
 		"wave", "spread", "pulse":
 			pattern_key = PATTERN_SPREAD
+		"thunder", "spark", "electric", "storm":
+			pattern_key = PATTERN_THUNDER
+		"vortex", "blackhole", "gravity":
+			pattern_key = PATTERN_VORTEX
+		"blade", "slash", "cutter":
+			pattern_key = PATTERN_BLADE
 		"straight", "rapid", _:
 			pattern_key = PATTERN_RAPID
 		

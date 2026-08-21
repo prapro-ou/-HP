@@ -102,6 +102,15 @@ func update_bullet_color() -> void:
 			"missile", BULLET_TYPE_BOSS_MISSILE:
 				modulate = Color(0.85, 0.4, 1.0) # 追尾パープル
 				if sprite: sprite.scale = Vector2(0.6, 0.6)
+			"thunder", "spark":
+				modulate = Color(1.0, 0.95, 0.2) # 放電イエロー
+				if sprite: sprite.scale = Vector2(0.65, 0.65)
+			"vortex", "blackhole":
+				modulate = Color(0.75, 0.3, 1.0) # 深紫特異点
+				if sprite: sprite.scale = Vector2(0.7, 0.7)
+			"blade", "slash":
+				modulate = Color(0.2, 1.0, 0.85) # 青緑真空波
+				if sprite: sprite.scale = Vector2(0.8, 0.4)
 			BULLET_TYPE_DECEL_MISSILE:
 				modulate = Color(1.0, 0.3, 0.8) # 減速追尾ピンク
 				if sprite: sprite.scale = Vector2(0.7, 0.7)

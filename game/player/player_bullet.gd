@@ -24,12 +24,24 @@ var wave_amp: float = 0.0
 var explosion_radius: float = 0.0
 var explosion_dmg: int = 0
 
+# 新変異属性パラメータ
+var chain_count: int = 0
+var chain_damage: int = 0
+var vortex_radius: float = 0.0
+var vortex_dmg: int = 0
+var is_blade: bool = false
+var blade_lvl: int = 0
+
 
 func _ready() -> void:
 	z_index = 50
 	z_as_relative = false
 	update_visual()
 	area_entered.connect(_on_area_entered)
+	
+	if is_blade:
+		scale = Vector2(1.8 + blade_lvl * 0.4, 1.2 + blade_lvl * 0.3)
+		modulate = Color(0.2, 1.0, 0.85)
 	
 	# プレイヤー弾の最大同時存在数の制限（超過時は最古弾を自然消滅）
 	var parent_node = get_parent()
@@ -184,6 +196,17 @@ func find_closest_target() -> Node2D:
 
 func _on_area_entered(area: Area2D) -> void:
 	"""他のArea2Dに入った時の処理"""
+	# 真空ブレードの敵弾消滅（斬り払い）処理
+	if is_blade and is_instance_valid(area) and area.is_in_group("enemy_projectiles"):
+		if area.has_method("recycle_bullet"):
+			area.recycle_bullet()
+		elif area.has_method("explode_and_free"):
+			area.explode_and_free()
+		else:
+			area.queue_free()
+		spawn_bullet_impact_particles(Color(0.2, 1.0, 0.85), 0.35)
+		return
+		
 	var is_boss_part = area.is_in_group("boss") or area.is_in_group("boss_turrets") or area.name == "BossDamageShape" or area.name.contains("Cannon") or area.name.contains("Pod") or area.name == "Core"
 	var is_enemy = area.is_in_group("enemy") or area.is_in_group("drones")
 	
@@ -214,7 +237,15 @@ func _on_area_entered(area: Area2D) -> void:
 		elif damage_target.has_method("take_damage_on_part"):
 			damage_target.take_damage_on_part("core", final_damage, hit_pos, is_critical)
 		
-		# 爆発・衝撃波エフェクト (至近距離時は爆発ダメージ・エフェクトも強化)
+		# 1. 電撃チェイン（Thunder Chain）の発動
+		if chain_count > 0 and chain_damage > 0:
+			trigger_chain_lightning(damage_target, chain_count, int(chain_damage * dmg_multiplier))
+			
+		# 2. 重力特異点（Gravity Vortex）の生成
+		if vortex_radius > 0.0 and vortex_dmg > 0:
+			spawn_gravity_vortex(hit_pos, vortex_radius, int(vortex_dmg * dmg_multiplier))
+		
+		# 3. 爆発・衝撃波エフェクト
 		var cur_exp_dmg = max(1, int(explosion_dmg * dmg_multiplier))
 		if explosion_radius > 0.0:
 			trigger_explosion(explosion_radius, cur_exp_dmg, Color.ORANGE, 0.7 if is_critical else 0.6)
@@ -227,14 +258,106 @@ func _on_area_entered(area: Area2D) -> void:
 		elif bullet_type == "missile":
 			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0), 0.5 if is_critical else 0.4)
 		else:
-			spawn_bullet_impact_particles(modulate, 0.45 if is_critical else 0.35)
+			var p_col = Color(0.2, 1.0, 0.85) if is_blade else modulate
+			spawn_bullet_impact_particles(p_col, 0.45 if is_critical else 0.35)
 			
 		hits_done += 1
-		# 貫通弾以外の弾丸は消去 (レーザー、チャージボルト、プラズマ、タックル、サイクロン、フォトンレーザー、隕石、またはpierce_limit残存時は貫通)
-		var is_piercing = (bullet_type == "giga_laser" or bullet_type == "charge_bolt" or bullet_type == "plasma" or bullet_type == "tackle" or bullet_type == "photon_laser" or bullet_type == "cyclone" or bullet_type == "player_meteor")
+		# 貫通判定 (レーザー、プラズマ、タックル、サイクロン、隕石、ブレード、またはpierce_limit残存時は貫通)
+		var is_piercing = (is_blade or bullet_type == "giga_laser" or bullet_type == "charge_bolt" or bullet_type == "plasma" or bullet_type == "tackle" or bullet_type == "photon_laser" or bullet_type == "cyclone" or bullet_type == "player_meteor")
 		if not is_piercing:
 			if hits_done > pierce_limit:
 				queue_free()
+
+
+func trigger_chain_lightning(origin_target: Node, count: int, chain_dmg: int) -> void:
+	var enemies = get_tree().get_nodes_in_group("enemy")
+	var hit_targets = [origin_target]
+	var current_origin_pos = global_position
+	
+	for i in range(count):
+		var next_target: Node2D = null
+		var min_d = 260.0 # 最大連鎖索敵半径
+		for e in enemies:
+			if is_instance_valid(e) and not hit_targets.has(e) and e.visible:
+				var d = current_origin_pos.distance_to(e.global_position)
+				if d < min_d:
+					min_d = d
+					next_target = e
+					
+		if is_instance_valid(next_target):
+			hit_targets.append(next_target)
+			var target_pos = next_target.global_position
+			
+			# 放電電撃ビームラインの描画エフェクト
+			var spark_node = Line2D.new()
+			spark_node.default_color = Color(1.0, 0.95, 0.3, 0.9)
+			spark_node.width = 3.0
+			spark_node.z_index = 60
+			
+			# ギザギザの稲妻ライン
+			var pts = PackedVector2Array([current_origin_pos])
+			var mid = (current_origin_pos + target_pos) * 0.5 + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+			pts.append(mid)
+			pts.append(target_pos)
+			spark_node.points = pts
+			
+			var parent_node = get_parent()
+			if parent_node:
+				parent_node.add_child(spark_node)
+				var tween = create_tween()
+				tween.tween_property(spark_node, "modulate:a", 0.0, 0.18)
+				tween.chain().tween_callback(spark_node.queue_free)
+				
+			if next_target.has_method("take_damage"):
+				next_target.take_damage(chain_dmg, target_pos)
+			elif next_target.has_method("take_damage_on_part"):
+				next_target.take_damage_on_part("core", chain_dmg, target_pos)
+				
+			current_origin_pos = target_pos
+		else:
+			break
+
+
+func spawn_gravity_vortex(vortex_pos: Vector2, radius: float, dmg_per_tick: int) -> void:
+	var parent_node = get_parent()
+	if not parent_node:
+		return
+		
+	var vortex = Node2D.new()
+	vortex.global_position = vortex_pos
+	vortex.z_index = 45
+	parent_node.add_child(vortex)
+	
+	# 重力特異点の渦巻き回転アニメーション
+	var v_tween = vortex.create_tween().set_loops(6)
+	v_tween.tween_property(vortex, "rotation", TAU, 0.25).from(0.0)
+	
+	# 0.2秒ごとの吸引＆持続ダメージタイマー (1.4秒持続)
+	for tick in range(7):
+		get_tree().create_timer(tick * 0.2).timeout.connect(func():
+			if is_instance_valid(vortex):
+				var enemies = get_tree().get_nodes_in_group("enemy")
+				for e in enemies:
+					if is_instance_valid(e) and e != self:
+						var d = vortex.global_position.distance_to(e.global_position)
+						if d <= radius:
+							# 中心へ強力吸引
+							var pull_dir = (vortex.global_position - e.global_position).normalized()
+							if "position" in e:
+								e.position += pull_dir * 18.0
+							if e.has_method("take_damage"):
+								e.take_damage(dmg_per_tick)
+							elif e.has_method("take_damage_on_part"):
+								e.take_damage_on_part("core", dmg_per_tick)
+								
+				# 吸引パーティクル
+				spawn_bullet_impact_particles(Color(0.75, 0.3, 1.0), 0.45)
+		)
+		
+	get_tree().create_timer(1.4).timeout.connect(func():
+		if is_instance_valid(vortex):
+			vortex.queue_free()
+	)
 
 
 func trigger_explosion(radius: float = 80.0, splash_dmg: int = 10, fx_color: Color = Color.ORANGE, fx_scale: float = 0.6) -> void:

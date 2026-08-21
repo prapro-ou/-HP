@@ -96,6 +96,36 @@ var analysis_catalog: Dictionary = {
 		"effect": "主兵装の弾丸に着弾時爆裂衝撃波を付与",
 		"stats": "爆発半径: 45〜80px | 爆風威力: ＋6〜14",
 		"description": "要塞メテオ射出砲の重力破砕技術を解析。主兵装が敵に着弾した瞬間、周囲へ爆発衝撃波が広がり周囲の敵ごと吹き飛ばす。"
+	},
+	"thunder": {
+		"name": "電撃連鎖",
+		"icon": "⚡⚡",
+		"color": Color(0.95, 0.9, 0.2),
+		"enemy_color": "金色・放電色",
+		"enemy_type": "成層圏超放電ストーム／放電ドローン",
+		"effect": "主兵装に着弾時連鎖雷撃を付与。周囲の敵・砲台へ最大3〜5連鎖放電！",
+		"stats": "連鎖数: 3〜5体 | 雷撃威力: ＋8〜18",
+		"description": "成層圏超放電ストームの高圧プラズマアークを解析。弾丸が敵に命中した瞬間、周囲の敵機や砲台へ雷撃が電光石火で連鎖し一網打尽にする。"
+	},
+	"vortex": {
+		"name": "重力特異点",
+		"icon": "🌀",
+		"color": Color(0.75, 0.3, 1.0),
+		"enemy_color": "深紫色",
+		"enemy_type": "特異点重力弾／空間歪曲ユニット",
+		"effect": "着弾地点に敵を引き寄せるブラックホール重力場（1.5秒）を生成",
+		"stats": "引力半径: 80〜160px | 持続ダメージ: ＋10〜25",
+		"description": "深宇宙重力歪曲フィールドを解析。着弾地点に微小ブラックホールを発生させ、周囲の敵やドローンを吸引拘束しながら粉砕する。"
+	},
+	"blade": {
+		"name": "真空斬撃",
+		"icon": "✦",
+		"color": Color(0.2, 1.0, 0.85),
+		"enemy_color": "青緑色",
+		"enemy_type": "超振動カッター／真空スラッシャー",
+		"effect": "主兵装を巨大な三日月斬撃波へ変換。敵弾を切り裂きながら多段貫通！",
+		"stats": "斬撃幅: 80〜140px | 弾消し性能: 有効",
+		"description": "超高周波ブレードの位相切断波を解析。巨大な三日月状の真空カッターを放ち、進行ルート上の敵弾を切り払いながら敵陣を両断する。"
 	}
 }
 
@@ -523,6 +553,7 @@ func init_sound_pool() -> void:
 	_sfx_sounds["heavy_hit"] = _create_heavy_hit_sound(0.08, 420.0)
 	_sfx_sounds["explosion"] = _create_explosion_sound(0.25)
 	_sfx_sounds["turret_destroy"] = _create_explosion_sound(0.18)
+	_sfx_sounds["laser"] = _create_laser_sound(0.12)
 
 
 func play_sound(sound_name: String, pitch_scale: float = 1.0, min_interval: float = 0.03) -> void:
@@ -567,6 +598,10 @@ func play_heavy_hit(pitch: float = 1.0) -> void:
 
 func play_explosion(pitch: float = 1.0) -> void:
 	play_sound("explosion", pitch, 0.08)
+
+
+func play_laser(pitch: float = 1.0) -> void:
+	play_sound("laser", pitch, 0.04)
 
 
 func _exit_tree() -> void:
@@ -694,6 +729,30 @@ func _create_explosion_sound(duration: float) -> AudioStreamWAV:
 		var low_rumble = sin(TAU * (120.0 * (1.0 - progress * 0.8)) * t) * 0.5
 		var noise = (randf() * 2.0 - 1.0) * 0.8
 		var sample = (low_rumble + noise) * env * 0.85
+		var byte_val = int(clamp((sample + 1.0) * 127.5, 0, 255))
+		data[i] = byte_val
+		
+	var wav = AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_8_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav
+
+
+func _create_laser_sound(duration: float = 0.12) -> AudioStreamWAV:
+	var sample_rate = 44100
+	var sample_count = int(sample_rate * duration)
+	var data = PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t = float(i) / float(sample_rate)
+		var progress = t / duration
+		var env = exp(-progress * 8.0)
+		var freq = 2200.0 * (1.0 - progress * 0.75) + 300.0
+		var tone = sin(TAU * freq * t)
+		var sample = tone * env * 0.85
 		var byte_val = int(clamp((sample + 1.0) * 127.5, 0, 255))
 		data[i] = byte_val
 		

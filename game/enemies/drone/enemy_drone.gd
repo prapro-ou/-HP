@@ -10,6 +10,9 @@ const TYPE_LASER = "laser"
 const TYPE_WAVE = "wave"
 const TYPE_BEAM = "beam"
 const TYPE_MISSILE = "missile"
+const TYPE_THUNDER = "thunder"
+const TYPE_VORTEX = "vortex"
+const TYPE_BLADE = "blade"
 
 # タイプ別表示色
 const COLOR_CHARGE = Color(1.0, 0.3, 0.2)
@@ -19,6 +22,9 @@ const COLOR_LASER = Color(1.0, 0.8, 0.2)
 const COLOR_WAVE = Color(0.3, 1.0, 0.5)
 const COLOR_BEAM = Color(1.0, 0.5, 0.5)
 const COLOR_MISSILE = Color(0.8, 0.4, 1.0)
+const COLOR_THUNDER = Color(1.0, 0.95, 0.2)
+const COLOR_VORTEX = Color(0.75, 0.3, 1.0)
+const COLOR_BLADE = Color(0.2, 1.0, 0.85)
 
 # デフォルト数値定数
 const DEFAULT_DRONE_HP: int = 75
@@ -129,6 +135,30 @@ func _ready_enemy() -> void:
 			y_amplitude = randf_range(90.0, 150.0)
 			y_frequency = randf_range(1.6, 2.4)
 			speed = 140.0
+			move_direction = Vector2(dir_x, 0.0)
+		TYPE_THUNDER:
+			shoot_interval = randf_range(2.6, 3.2)
+			modulate = COLOR_THUNDER # 放電イエロー
+			base_y = randf_range(200.0, 480.0)
+			y_amplitude = 60.0
+			y_frequency = 1.8
+			speed = 170.0
+			move_direction = Vector2(dir_x, 0.0)
+		TYPE_VORTEX:
+			shoot_interval = randf_range(3.4, 4.2)
+			modulate = COLOR_VORTEX # 深紫特異点
+			base_y = randf_range(240.0, 450.0)
+			y_amplitude = 40.0
+			y_frequency = 1.0
+			speed = 110.0
+			move_direction = Vector2(dir_x, 0.0)
+		TYPE_BLADE:
+			shoot_interval = randf_range(2.8, 3.4)
+			modulate = COLOR_BLADE # 青緑真空波
+			base_y = randf_range(180.0, 520.0)
+			y_amplitude = 90.0
+			y_frequency = 1.4
+			speed = 160.0
 			move_direction = Vector2(dir_x, 0.0)
 		TYPE_MISSILE, _:
 			shoot_interval = randf_range(3.2, 3.8)
@@ -316,6 +346,32 @@ func shoot() -> void:
 					bullet.global_position = global_position + Vector2(0.0, 20.0)
 					bullet.damage = int(8 * mult)
 					bullet.set_direction(Vector2.DOWN.rotated(a), 260.0)
+		TYPE_THUNDER:
+			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
+			for i in range(3):
+				get_tree().create_timer(i * 0.12).timeout.connect(func():
+					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
+						var bullet = bullet_pool.get_bullet("thunder")
+						if bullet:
+							bullet.global_position = global_position + Vector2(randf_range(-15, 15), 20.0)
+							bullet.damage = int(12 * mult)
+							bullet.set_direction(base_dir.rotated(randf_range(-0.25, 0.25)), 350.0)
+				)
+		TYPE_VORTEX:
+			var dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
+			var bullet = bullet_pool.get_bullet("vortex")
+			if bullet:
+				bullet.global_position = global_position + Vector2(0.0, 20.0)
+				bullet.damage = int(14 * mult)
+				bullet.set_direction(dir, 260.0)
+		TYPE_BLADE:
+			var dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
+			for a in [-0.22, 0.22]:
+				var bullet = bullet_pool.get_bullet("blade")
+				if bullet:
+					bullet.global_position = global_position + Vector2(0.0, 20.0)
+					bullet.damage = int(12 * mult)
+					bullet.set_direction(dir.rotated(a), 320.0)
 		TYPE_MISSILE, _:
 			var dir = Vector2.DOWN
 			if is_instance_valid(player):

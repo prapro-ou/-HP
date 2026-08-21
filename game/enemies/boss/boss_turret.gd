@@ -266,15 +266,63 @@ func _draw() -> void:
 		var glow_color = Color(1.0, 0.3, 0.3, beam_warning_line_alpha * 0.3)
 		draw_line(Vector2(0, 15), Vector2(local_target_x, 800), glow_color, 8.0)
 		
-	# 水色・半透明の攻撃軽減シールド
+	# 水色・半透明のボス下面防護シールド ＆ 砲台防護フィールド
 	if turret_type == TurretType.SHIELD_GENERATOR and is_shield_active:
-		var pulse_radius = 120.0 + sin(shield_pulse) * 6.0
-		var fill_alpha = 0.22 + sin(shield_pulse * 1.5) * 0.06
-		# 半透明シールド球
-		draw_circle(Vector2.ZERO, pulse_radius, Color(0.18, 0.78, 1.0, fill_alpha))
-		# 外枠グローリング
-		draw_arc(Vector2.ZERO, pulse_radius, 0, TAU, 36, Color(0.35, 0.92, 1.0, 0.88), 3.5)
-		draw_arc(Vector2.ZERO, pulse_radius * 0.85, 0, TAU, 28, Color(0.2, 0.6, 0.95, 0.45), 1.8)
+		# 1. 砲台自体の防護サークル
+		var turret_pulse_r = 55.0 + sin(shield_pulse) * 4.0
+		var turret_alpha = 0.20 + sin(shield_pulse * 1.5) * 0.05
+		draw_circle(Vector2.ZERO, turret_pulse_r, Color(0.18, 0.78, 1.0, turret_alpha))
+		draw_arc(Vector2.ZERO, turret_pulse_r, 0, TAU, 28, Color(0.35, 0.92, 1.0, 0.85), 2.5)
+		
+		# 2. ボス下面（下部前面）への展開位置の算出
+		var boss_shield_pos = Vector2(400.0, 240.0) # デフォルト位置
+		var main = get_node_or_null("/root/Main")
+		if main:
+			var boss = main.get_node_or_null("Boss")
+			if is_instance_valid(boss):
+				boss_shield_pos = boss.global_position + Vector2(0.0, 60.0)
+				
+		var local_b_pos = boss_shield_pos - global_position
+		
+		# 3. 砲台からボス下面シールドへのエネルギー供給ビーム
+		var beam_alpha = 0.65 + sin(shield_pulse * 4.0) * 0.25
+		draw_line(Vector2.ZERO, local_b_pos, Color(0.2, 0.85, 1.0, beam_alpha * 0.4), 6.0)
+		draw_line(Vector2.ZERO, local_b_pos, Color(0.8, 0.95, 1.0, beam_alpha * 0.8), 2.0)
+		
+		# 4. ボス下面ワイド防護エネルギーウォール（横幅 460px、湾曲アーク＆ヘックスグリッド）
+		var wall_w = 230.0 # 左右半幅 (全幅 460px)
+		var wall_curve = 25.0
+		var wall_pts = PackedVector2Array()
+		var steps = 24
+		for i in range(steps + 1):
+			var t = float(i) / float(steps)
+			var px = lerp(-wall_w, wall_w, t)
+			var norm_x = (t - 0.5) * 2.0 # -1.0 -> 1.0
+			var py = (1.0 - norm_x * norm_x) * wall_curve
+			wall_pts.append(local_b_pos + Vector2(px, py))
+			
+		# シールドの厚みポリゴン
+		var poly_pts = PackedVector2Array()
+		for pt in wall_pts:
+			poly_pts.append(pt)
+		for i in range(steps, -1, -1):
+			var pt = wall_pts[i]
+			poly_pts.append(pt - Vector2(0.0, 32.0))
+			
+		var fill_col = Color(0.15, 0.75, 1.0, 0.22 + sin(shield_pulse * 2.0) * 0.08)
+		draw_colored_polygon(poly_pts, fill_col)
+		
+		# メインエネルギーアークライン (最下層エッジ)
+		draw_polyline(wall_pts, Color(0.4, 0.95, 1.0, 0.95), 4.0, true)
+		
+		# 上層エッジライン
+		var top_pts = PackedVector2Array()
+		for pt in wall_pts:
+			top_pts.append(pt - Vector2(0.0, 32.0))
+		draw_polyline(top_pts, Color(0.2, 0.65, 1.0, 0.6), 2.0, true)
+		
+		# 中央シールドジェネレータコア発光シンボル
+		draw_circle(local_b_pos, 10.0 + sin(shield_pulse * 3.0) * 2.0, Color(0.8, 0.98, 1.0, 0.85))
 
 	# 砲台専用ミニHPバー (頭上に表示: 視覚的な削りフィードバック)
 	if is_alive and max_hp > 0:

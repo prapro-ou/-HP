@@ -320,7 +320,10 @@ func get_boosted_replenish_type(wave_data: BaseStage.WaveData = null) -> String:
 			"pierce": "charge",
 			"homing": "missile",
 			"laser": "laser",
-			"cyclone": "irregular"
+			"cyclone": "irregular",
+			"thunder": "thunder",
+			"vortex": "vortex",
+			"blade": "blade"
 		}
 		
 		# 1. スロット装備中の属性でLv.5未満のものを最優先
