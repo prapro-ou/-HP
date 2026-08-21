@@ -1591,9 +1591,9 @@ func show_game_over(result: String) -> void:
 	get_tree().paused = true
 
 
-func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> void:
+func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false, is_critical: bool = false) -> void:
 	var label = Label.new()
-	label.text = str(amount)
+	label.text = str(amount) + ("!" if is_critical else "")
 	
 	var settings = LabelSettings.new()
 	if PIXEL_FONT:
@@ -1603,6 +1603,11 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 		settings.font_color = Color(1.0, 0.6, 0.2)
 		settings.outline_size = 3
 		settings.outline_color = Color.BLACK
+	elif is_critical:
+		settings.font_size = 20
+		settings.font_color = Color(1.0, 0.88, 0.15) # 鮮烈なクリティカルゴールド
+		settings.outline_size = 4
+		settings.outline_color = Color(0.35, 0.05, 0.0) # 深紅アウトライン
 	else:
 		settings.font_size = 15
 		if amount > 15:
@@ -1619,15 +1624,17 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	label.global_position = pos + Vector2(randf_range(-15, 15), randf_range(-15, 5))
 	add_child(label)
 	
-	label.scale = Vector2(0.5, 0.5)
+	var start_scale = Vector2(0.8, 0.8) if is_critical else Vector2(0.5, 0.5)
+	var end_scale = Vector2(1.3, 1.3) if is_critical else Vector2(1.0, 1.0)
+	label.scale = start_scale
 	var tween = create_tween().set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	var target_pos = label.global_position + Vector2(randf_range(-12, 12), -35)
-	tween.tween_property(label, "global_position", target_pos, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "scale", end_scale, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var target_pos = label.global_position + Vector2(randf_range(-15, 15), -45 if is_critical else -35)
+	tween.tween_property(label, "global_position", target_pos, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
 	var fade_tween = create_tween()
 	fade_tween.tween_interval(0.18)
-	fade_tween.tween_property(label, "modulate:a", 0.0, 0.17)
+	fade_tween.tween_property(label, "modulate:a", 0.0, 0.20)
 	
 	tween.chain().tween_callback(label.queue_free)
 
