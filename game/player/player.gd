@@ -1096,38 +1096,28 @@ func spawn_popup_message(text: String) -> void:
 	tween.chain().tween_callback(container.queue_free)
 
 
+const PARRY_FX_SCENE: PackedScene = preload("res://game/effects/parry_fx.tscn")
+
 func trigger_parry_feedback(hit_pos: Vector2 = Vector2.ZERO) -> void:
 	Global.play_parry(randf_range(0.96, 1.04))
 	trigger_screen_flash(Color(0.4, 0.95, 1.0, 0.6))
 	trigger_hit_stop(0.10, 0.03) # ビタッと止まる極上ヒットストップ
-	trigger_parry_ring_effect()
 	
 	parry_succeeded_in_guard = true
 	guard_recovery_timer = 0.0
 	
-	# スパーク粒子の生成 (自機とパリィ地点の周囲に放射状に飛散)
-	var base_origin = hit_pos - global_position if hit_pos != Vector2.ZERO else Vector2(0, -15.0)
-	var spark_colors = [Color.WHITE, Color(0.3, 0.9, 1.0), Color.GOLD, Color(0.2, 1.0, 0.6)]
-	for i in range(16):
-		var angle = randf() * TAU
-		var spd = randf_range(160.0, 480.0)
-		var life = randf_range(0.25, 0.45)
-		parry_sparks.append({
-			"pos": base_origin + Vector2.RIGHT.rotated(angle) * randf_range(5.0, 18.0),
-			"vel": Vector2.RIGHT.rotated(angle) * spd,
-			"color": spark_colors.pick_random(),
-			"life": life,
-			"max_life": life,
-			"alpha": 1.0,
-			"size": randf_range(2.0, 3.5)
-		})
-	
-	# 六角形ヘックスバリアの閃光
-	parry_hex_alpha = 1.0
-	parry_hex_scale = 0.6
-	var h_tween = create_tween().set_parallel(true)
-	h_tween.tween_property(self, "parry_hex_scale", 1.35, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	h_tween.tween_property(self, "parry_hex_alpha", 0.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	# 分離シーン（ParryFX）のインスタンス化
+	var actual_origin = hit_pos if hit_pos != Vector2.ZERO else global_position + Vector2(0, -15.0)
+	var parent_node = get_parent()
+	if PARRY_FX_SCENE and parent_node:
+		var pfx = PARRY_FX_SCENE.instantiate()
+		var col = Color(0.3, 0.95, 1.0)
+		if Global.equipped_shield == SHIELD_GAUGE:
+			col = Color(0.2, 1.0, 0.6)
+		elif Global.equipped_shield == SHIELD_POWER:
+			col = Color(1.0, 0.6, 0.2)
+		pfx.setup_parry(actual_origin, parry_window_radius, col)
+		parent_node.add_child(pfx)
 	
 	# パリィ成功時の共鳴修復 (基礎12 HP + 解析レベル1毎に+4 HP)
 	var heal_amt = 12 + get_total_analysis_level() * 4
@@ -1256,56 +1246,6 @@ func _draw() -> void:
 			var r_y = 12.0 + (ring_i + 1) * (flame_len * 0.22)
 			var r_w = flame_w * (1.0 - ring_i * 0.25)
 			draw_arc(Vector2(0, r_y), r_w, 0, TAU, 24, Color(1.0, 1.0, 1.0, flyby_boost_alpha * (0.8 - ring_i * 0.2)), 2.5)
-
-	# --- パリィ火花スパーク粒子の描画 ---
-	for p in parry_sparks:
-		var alpha_val = p.get("alpha", 1.0)
-		var base_col = p.get("color", Color.WHITE)
-		var c = Color(base_col.r, base_col.g, base_col.b, alpha_val)
-		var pos_val = p.get("pos", Vector2.ZERO)
-		var vel_val = p.get("vel", Vector2.ZERO)
-		var sz = p.get("size", 2.5)
-		var tail = pos_val - vel_val * 0.035
-		draw_line(pos_val, tail, c, sz)
-		draw_circle(pos_val, sz * 0.8, Color(1.0, 1.0, 1.0, alpha_val))
-
-	# --- 六角形ヘックスバリアの閃光描画 ---
-	if parry_hex_alpha > 0.0:
-		var hex_r = parry_window_radius * parry_hex_scale
-		var hex_pts = PackedVector2Array()
-		for i in range(6):
-			var a = i * (TAU / 6.0) - PI / 6.0
-			hex_pts.append(Vector2(cos(a), sin(a)) * hex_r)
-		hex_pts.append(hex_pts[0])
-		
-		var hex_col = Color(0.3, 0.95, 1.0, parry_hex_alpha)
-		if Global.equipped_shield == SHIELD_GAUGE:
-			hex_col = Color(0.2, 1.0, 0.6, parry_hex_alpha)
-		elif Global.equipped_shield == SHIELD_POWER:
-			hex_col = Color(1.0, 0.6, 0.2, parry_hex_alpha)
-			
-		var fill_hex = Color(hex_col.r, hex_col.g, hex_col.b, parry_hex_alpha * 0.22)
-		draw_colored_polygon(hex_pts, fill_hex)
-		draw_polyline(hex_pts, hex_col, 3.5, true)
-
-	# --- 多層パリィリング ＆ 高速ショックウェーブ ---
-	if parry_ring_alpha > 0.0:
-		var base_color = Color(0.0, 0.9, 1.0)
-		match Global.equipped_shield:
-			SHIELD_COUNTER:
-				base_color = COLOR_SHIELD_COUNTER
-			SHIELD_GAUGE:
-				base_color = COLOR_SHIELD_GAUGE
-			SHIELD_POWER:
-				base_color = COLOR_SHIELD_POWER
-				
-		var color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha)
-		draw_arc(Vector2.ZERO, parry_ring_radius, 0, TAU, 48, color, 4.5, true)
-		var fill_color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha * 0.2)
-		draw_circle(Vector2.ZERO, parry_ring_radius, fill_color)
-
-	if parry_shockwave_alpha > 0.0:
-		draw_arc(Vector2.ZERO, parry_shockwave_radius, 0, TAU, 36, Color(1.0, 1.0, 1.0, parry_shockwave_alpha * 0.8), 2.5, true)
 
 
 func play_victory_flyby() -> void:

@@ -269,10 +269,14 @@ func _on_area_entered(area: Area2D) -> void:
 				queue_free()
 
 
+const CHAIN_LIGHTNING_SCENE: PackedScene = preload("res://game/effects/chain_lightning.tscn")
+const GRAVITY_VORTEX_SCENE: PackedScene = preload("res://game/effects/gravity_vortex.tscn")
+
 func trigger_chain_lightning(origin_target: Node, count: int, chain_dmg: int) -> void:
 	var enemies = get_tree().get_nodes_in_group("enemy")
 	var hit_targets = [origin_target]
 	var current_origin_pos = global_position
+	var parent_node = get_parent()
 	
 	for i in range(count):
 		var next_target: Node2D = null
@@ -288,25 +292,11 @@ func trigger_chain_lightning(origin_target: Node, count: int, chain_dmg: int) ->
 			hit_targets.append(next_target)
 			var target_pos = next_target.global_position
 			
-			# 放電電撃ビームラインの描画エフェクト
-			var spark_node = Line2D.new()
-			spark_node.default_color = Color(1.0, 0.95, 0.3, 0.9)
-			spark_node.width = 3.0
-			spark_node.z_index = 60
-			
-			# ギザギザの稲妻ライン
-			var pts = PackedVector2Array([current_origin_pos])
-			var mid = (current_origin_pos + target_pos) * 0.5 + Vector2(randf_range(-20, 20), randf_range(-20, 20))
-			pts.append(mid)
-			pts.append(target_pos)
-			spark_node.points = pts
-			
-			var parent_node = get_parent()
-			if parent_node:
-				parent_node.add_child(spark_node)
-				var tween = create_tween()
-				tween.tween_property(spark_node, "modulate:a", 0.0, 0.18)
-				tween.chain().tween_callback(spark_node.queue_free)
+			# 分離シーン（ChainLightningEffect）の呼び出し
+			if CHAIN_LIGHTNING_SCENE and parent_node:
+				var bolt = CHAIN_LIGHTNING_SCENE.instantiate()
+				bolt.setup_lightning(current_origin_pos, target_pos)
+				parent_node.add_child(bolt)
 				
 			if next_target.has_method("take_damage"):
 				next_target.take_damage(chain_dmg, target_pos)
@@ -320,44 +310,13 @@ func trigger_chain_lightning(origin_target: Node, count: int, chain_dmg: int) ->
 
 func spawn_gravity_vortex(vortex_pos: Vector2, radius: float, dmg_per_tick: int) -> void:
 	var parent_node = get_parent()
-	if not parent_node:
+	if not parent_node or not GRAVITY_VORTEX_SCENE:
 		return
 		
-	var vortex = Node2D.new()
-	vortex.global_position = vortex_pos
-	vortex.z_index = 45
+	# 分離シーン（GravityVortexEffect）の呼び出し
+	var vortex = GRAVITY_VORTEX_SCENE.instantiate()
+	vortex.setup_vortex(vortex_pos, radius, dmg_per_tick, 1.4)
 	parent_node.add_child(vortex)
-	
-	# 重力特異点の渦巻き回転アニメーション
-	var v_tween = vortex.create_tween().set_loops(6)
-	v_tween.tween_property(vortex, "rotation", TAU, 0.25).from(0.0)
-	
-	# 0.2秒ごとの吸引＆持続ダメージタイマー (1.4秒持続)
-	for tick in range(7):
-		get_tree().create_timer(tick * 0.2).timeout.connect(func():
-			if is_instance_valid(vortex):
-				var enemies = get_tree().get_nodes_in_group("enemy")
-				for e in enemies:
-					if is_instance_valid(e) and e != self:
-						var d = vortex.global_position.distance_to(e.global_position)
-						if d <= radius:
-							# 中心へ強力吸引
-							var pull_dir = (vortex.global_position - e.global_position).normalized()
-							if "position" in e:
-								e.position += pull_dir * 18.0
-							if e.has_method("take_damage"):
-								e.take_damage(dmg_per_tick)
-							elif e.has_method("take_damage_on_part"):
-								e.take_damage_on_part("core", dmg_per_tick)
-								
-				# 吸引パーティクル
-				spawn_bullet_impact_particles(Color(0.75, 0.3, 1.0), 0.45)
-		)
-		
-	get_tree().create_timer(1.4).timeout.connect(func():
-		if is_instance_valid(vortex):
-			vortex.queue_free()
-	)
 
 
 func trigger_explosion(radius: float = 80.0, splash_dmg: int = 10, fx_color: Color = Color.ORANGE, fx_scale: float = 0.6) -> void:

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmega_beam_effect_01"]
+
+[ext_resource type="Script" path="res://game/effects/mega_beam.gd" id="1_beam"]
+
+[node name="MegaBeamEffect" type="Node2D"]
+z_index = 55
+z_as_relative = false
+script = ExtResource("1_beam")

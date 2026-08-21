@@ -286,6 +286,8 @@ func execute_fortress_attack() -> void:
 					)
 
 
+const MEGA_BEAM_SCENE: PackedScene = preload("res://game/effects/mega_beam.tscn")
+
 func execute_unparryable_cannon_attack() -> void:
 	# 1. 画面上部をやんわり赤く点灯させる警告演出
 	var main = get_node_or_null("/root/Main")
@@ -304,6 +306,14 @@ func execute_unparryable_cannon_attack() -> void:
 		if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
 			var vp_w = get_viewport_rect().size.x
 			var core_pos = core_node.global_position if is_instance_valid(core_node) else Vector2(vp_w / 2.0, 250.0)
+			var p_pos = player.global_position if is_instance_valid(player) else Vector2(vp_w / 2.0, 900.0)
+			
+			# 極太ビームエフェクト（断絶真紅レーザー）の演出呼び出し
+			if MEGA_BEAM_SCENE and get_parent():
+				var beam = MEGA_BEAM_SCENE.instantiate()
+				var target_bottom = core_pos + (p_pos - core_pos).normalized() * 1100.0
+				beam.setup_beam(core_pos, target_bottom, Color(1.0, 0.15, 0.25), 48.0, 0.5)
+				get_parent().add_child(beam)
 			
 			var angles = [-24.0, -12.0, 0.0, 12.0, 24.0] if is_enraged else [-18.0, 0.0, 18.0]
 			for a_deg in angles:
