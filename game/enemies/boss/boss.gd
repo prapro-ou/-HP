@@ -275,7 +275,7 @@ func execute_unparryable_cannon_attack() -> void:
 	)
 
 
-func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vector2.ZERO) -> void:
+func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vector2.ZERO, is_critical: bool = false) -> void:
 	if not is_alive:
 		return
 		
@@ -307,7 +307,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 	else:
 		# 砲台破壊後: 弱点コア直撃 (重被弾SE & ヘビースパーク & 白熱フラッシュ & 被弾シェイク)
 		Global.play_heavy_hit(randf_range(0.95, 1.08))
-		HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy" if part_name == "core" else "normal")
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy" if (part_name == "core" or is_critical) else "normal")
 		
 		if is_instance_valid(core_glow):
 			core_glow.color = Color(3.0, 1.8, 1.8, 0.95)
@@ -330,7 +330,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(actual_hit_pos, final_dmg, not has_alive_turrets)
+			ui_node.spawn_damage_popup(actual_hit_pos, final_dmg, not has_alive_turrets, is_critical)
 			
 		var mgr = main.get_node_or_null("GameManager")
 		if mgr and mgr.has_method("add_damage_score"):
