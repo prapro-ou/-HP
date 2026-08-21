@@ -31,6 +31,12 @@ theme/default_font_antialiasing=0
 theme/default_font_subpixel_positioning=0
 theme/default_font="res://game/assets/fonts/DotGothic16-Regular.ttf"
 
+[audio]
+
+driver/output_latency=30
+driver/mix_rate=44100
+driver/enable_input=false
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
@@ -39,3 +45,4 @@ theme/default_font="res://game/assets/fonts/DotGothic16-Regular.ttf"
 
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
+

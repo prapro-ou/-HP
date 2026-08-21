@@ -569,10 +569,16 @@ func play_explosion(pitch: float = 1.0) -> void:
 	play_sound("explosion", pitch, 0.08)
 
 
-# --- プロシージャル波形生成ヘルパー ---
+func _exit_tree() -> void:
+	for asp in _sfx_player_pool:
+		if is_instance_valid(asp):
+			asp.stop()
+
+
+# --- プロシージャル波形生成ヘルパー (44.1kHz 標準サンプリングレート) ---
 
 func _create_parry_sound(duration: float = 0.18) -> AudioStreamWAV:
-	var sample_rate = 22050
+	var sample_rate = 44100
 	var sample_count = int(sample_rate * duration)
 	var data = PackedByteArray()
 	data.resize(sample_count)
@@ -599,8 +605,9 @@ func _create_parry_sound(duration: float = 0.18) -> AudioStreamWAV:
 	wav.data = data
 	return wav
 
+
 func _create_hit_sound(duration: float, start_freq: float, noise_mix: float, tone_mix: float) -> AudioStreamWAV:
-	var sample_rate = 22050
+	var sample_rate = 44100
 	var sample_count = int(sample_rate * duration)
 	var data = PackedByteArray()
 	data.resize(sample_count)
@@ -625,7 +632,7 @@ func _create_hit_sound(duration: float, start_freq: float, noise_mix: float, ton
 
 
 func _create_guard_sound(duration: float, freq: float) -> AudioStreamWAV:
-	var sample_rate = 22050
+	var sample_rate = 44100
 	var sample_count = int(sample_rate * duration)
 	var data = PackedByteArray()
 	data.resize(sample_count)
@@ -650,7 +657,7 @@ func _create_guard_sound(duration: float, freq: float) -> AudioStreamWAV:
 
 
 func _create_heavy_hit_sound(duration: float, start_freq: float) -> AudioStreamWAV:
-	var sample_rate = 22050
+	var sample_rate = 44100
 	var sample_count = int(sample_rate * duration)
 	var data = PackedByteArray()
 	data.resize(sample_count)
@@ -675,7 +682,7 @@ func _create_heavy_hit_sound(duration: float, start_freq: float) -> AudioStreamW
 
 
 func _create_explosion_sound(duration: float) -> AudioStreamWAV:
-	var sample_rate = 22050
+	var sample_rate = 44100
 	var sample_count = int(sample_rate * duration)
 	var data = PackedByteArray()
 	data.resize(sample_count)
