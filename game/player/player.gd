@@ -64,6 +64,12 @@ var power_shield_damage_buff: float = 0.0
 
 var parry_ring_radius: float = 0.0
 var parry_ring_alpha: float = 0.0
+var parry_shockwave_radius: float = 0.0
+var parry_shockwave_alpha: float = 0.0
+var parry_hex_alpha: float = 0.0
+var parry_hex_scale: float = 1.0
+var parry_sparks: Array[Dictionary] = [] # 放射状火花スパーク粒子
+
 var parried_in_current_frame: bool = false
 var parry_succeeded_in_guard: bool = false
 var guard_recovery_timer: float = 0.0 # ガード終了直後の隙（カウンター受付時間）
@@ -79,6 +85,10 @@ var flyby_boost_alpha: float = 0.0
 @export var heat_per_heal: float = 14.0       # パリィ修復による追加発熱負荷
 @export var heat_recovery_rate: float = 40.0   # 1秒で40%放熱
 @export var overheat_cooldown: float = 2.2     # オーバーヒート2.2秒で復帰
+
+# --- 吸収シールド専用パラメータ (3.0s クールダウン＆超高速解析) ---
+@export var gauge_shield_cooldown: float = 3.0 # 吸収パルス 1回展開で3秒クールダウン
+var gauge_shield_timer: float = 0.0
 
 var shield_heat: float = 0.0
 var overheat_timer: float = 0.0
@@ -135,11 +145,17 @@ func reset_state() -> void:
 	parry_succeeded_in_guard = false
 	parry_ring_radius = 0.0
 	parry_ring_alpha = 0.0
+	parry_shockwave_radius = 0.0
+	parry_shockwave_alpha = 0.0
+	parry_hex_alpha = 0.0
+	parry_hex_scale = 1.0
+	parry_sparks.clear()
 	consecutive_parries = 0
 	
 	shield_heat = 0.0
 	overheat_timer = 0.0
 	is_overheated = false
+	gauge_shield_timer = 0.0
 	is_control_locked = false
 	is_victory_flyby = false
 	flyby_boost_alpha = 0.0
@@ -261,13 +277,21 @@ func _process(delta: float) -> void:
 		active_timer -= delta
 		if active_timer <= 0.0:
 			is_guarding = false
-			if not parry_succeeded_in_guard:
+			if not parry_succeeded_in_guard and Global.equipped_shield != SHIELD_GAUGE:
 				guard_recovery_timer = 0.24 # 空振りによる隙（カウンター被弾リスク）
 				shield_heat = min(max_shield_heat, shield_heat + 6.0) # 空振りペナルティ発熱
 				
 	if guard_recovery_timer > 0.0:
 		guard_recovery_timer -= delta
 			
+	# --- 吸収シールドのクールダウン管理 (3秒CT) ---
+	if gauge_shield_timer > 0.0:
+		var prev_gt = gauge_shield_timer
+		gauge_shield_timer = max(0.0, gauge_shield_timer - delta)
+		if prev_gt > 0.0 and gauge_shield_timer == 0.0:
+			spawn_popup_message("⚡ 吸収パルス充填完了！ READY")
+			trigger_screen_flash(Color(0.1, 1.0, 0.6, 0.25))
+
 	if is_overheated:
 		overheat_timer -= delta
 		shield_heat = (overheat_timer / overheat_cooldown) * max_shield_heat
@@ -280,6 +304,18 @@ func _process(delta: float) -> void:
 	else:
 		if not is_guarding and shield_heat > 0.0:
 			shield_heat = max(0.0, shield_heat - heat_recovery_rate * delta)
+
+	# --- パリィ火花スパーク粒子の更新 ---
+	if parry_sparks.size() > 0:
+		var remaining: Array[Dictionary] = []
+		for p in parry_sparks:
+			p["pos"] += p["vel"] * delta
+			p["life"] -= delta
+			p["alpha"] = clamp(p["life"] / p["max_life"], 0.0, 1.0)
+			if p["life"] > 0.0:
+				remaining.append(p)
+		parry_sparks = remaining
+		queue_redraw()
 
 	var space_pressed = Input.is_key_pressed(KEY_SPACE)
 	var space_just_pressed = space_pressed and not space_was_pressed
@@ -298,31 +334,50 @@ func _process(delta: float) -> void:
 	elif not (Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_C)):
 		set_meta("e_was_pressed", false)
 	
+	# --- シールド展開入力 (Spaceキー) ---
 	if space_just_pressed:
-		if is_overheated:
-			spawn_popup_message("⚠️ シールド過熱冷却中！(装甲脆弱・被ダメ1.6倍)")
-		elif shield_heat < max_shield_heat:
-			is_guarding = true
-			active_timer = parry_active_time
-			guard_recovery_timer = 0.0
-			parry_succeeded_in_guard = false
-			shield_heat += heat_per_use
-			parried_in_current_frame = false
-			
-			if shield_heat >= max_shield_heat:
-				shield_heat = max_shield_heat
-				is_overheated = true
-				overheat_timer = overheat_cooldown
-				is_guarding = false
-				trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.5))
-				spawn_popup_message("⚠️ シールドオーバーヒート！装甲脆弱化 (被ダメ 1.6倍)")
+		if Global.equipped_shield == SHIELD_GAUGE:
+			# 吸収マトリクス: 1回展開で3.0秒クールダウン（超高速解析＆修復のピーキー仕様）
+			if gauge_shield_timer > 0.0:
+				spawn_popup_message("⏳ 吸収パルス充填中... (残り %.1fs)" % gauge_shield_timer)
+			else:
+				is_guarding = true
+				active_timer = 0.35 # 0.35秒の瞬間パルス展開
+				gauge_shield_timer = gauge_shield_cooldown # 3.0秒クールダウン開始
+				guard_recovery_timer = 0.0
+				parry_succeeded_in_guard = false
+				parried_in_current_frame = false
+				Global.play_guard(1.3)
+				trigger_screen_flash(Color(0.1, 1.0, 0.6, 0.35))
+				trigger_parry_ring_effect(Color(0.1, 1.0, 0.6))
+				spawn_popup_message("⚡ 吸収パルスフィールド展開！")
+		else:
+			# 通常 / カウンター / パワーシールド (ヒート制)
+			if is_overheated:
+				spawn_popup_message("⚠️ シールド過熱冷却中！(装甲脆弱・被ダメ1.6倍)")
+			elif shield_heat < max_shield_heat:
+				is_guarding = true
+				active_timer = parry_active_time
+				guard_recovery_timer = 0.0
+				parry_succeeded_in_guard = false
+				shield_heat += heat_per_use
+				parried_in_current_frame = false
+				Global.play_guard(1.0)
+				
+				if shield_heat >= max_shield_heat:
+					shield_heat = max_shield_heat
+					is_overheated = true
+					overheat_timer = overheat_cooldown
+					is_guarding = false
+					trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.5))
+					spawn_popup_message("⚠️ シールドオーバーヒート！装甲脆弱化 (被ダメ 1.6倍)")
 	
 	if is_guarding:
 		check_parry()
 	
 	update_visual_state()
 	
-	if parry_ring_alpha > 0.0:
+	if parry_ring_alpha > 0.0 or parry_shockwave_alpha > 0.0 or parry_hex_alpha > 0.0 or parry_sparks.size() > 0:
 		queue_redraw()
 		
 	if is_full_burst:
@@ -583,6 +638,7 @@ func check_parry() -> void:
 		if is_instance_valid(p) and not all_targets.has(p):
 			all_targets.append(p)
 	
+	var last_parry_pos = global_position
 	for bullet in all_targets:
 		if is_instance_valid(bullet) and not bullet.is_friendly:
 			# パリィ不可弾は跳ね返し判定を完全にスキップ
@@ -592,6 +648,7 @@ func check_parry() -> void:
 				
 			var dist = global_position.distance_to(bullet.global_position)
 			if dist <= parry_window_radius:
+				last_parry_pos = bullet.global_position
 				if not is_attack_unlocked:
 					is_attack_unlocked = true
 					if Global.is_first_launch:
@@ -619,6 +676,7 @@ func check_parry() -> void:
 				advance_analysis(b_type, analysis_pts)
 				
 				if shield_type == SHIELD_POWER:
+					# パワーシールド: 弾を吸収し主兵装ダメージ永続加算
 					if bullet.has_method("recycle_bullet"):
 						bullet.recycle_bullet()
 					elif bullet.has_method("explode_and_free"):
@@ -632,12 +690,28 @@ func check_parry() -> void:
 						var manager = main.get_node_or_null("GameManager")
 						if manager and manager.has_method("register_parry"):
 							manager.register_parry()
+				elif shield_type == SHIELD_GAUGE:
+					# 吸収マトリクス: 弾丸を直接吸収消滅させ、HPを大幅修復！
+					if bullet.has_method("recycle_bullet"):
+						bullet.recycle_bullet()
+					elif bullet.has_method("explode_and_free"):
+						bullet.explode_and_free()
+					else:
+						bullet.queue_free()
+					heal(35)
+					
+					var main = get_node_or_null("/root/Main")
+					if main:
+						var manager = main.get_node_or_null("GameManager")
+						if manager and manager.has_method("register_parry"):
+							manager.register_parry()
 				else:
+					# カウンターシールド: 弾丸を友軍弾に変換して超威力反射
 					if bullet.has_method("convert_to_friendly"):
 						bullet.convert_to_friendly()
 					if shield_type == SHIELD_COUNTER:
 						if "damage" in bullet:
-							bullet.damage = int(bullet.damage * 1.5)
+							bullet.damage = int(bullet.damage * 1.8)
 						
 				parry_triggered_now = true
 				
@@ -646,10 +720,10 @@ func check_parry() -> void:
 		consecutive_parries += 1
 		# 10連続パリィ達成ごとにボーナス回復
 		if consecutive_parries % 10 == 0:
-			heal(25)
-			spawn_popup_message("⚡ %dx PARRY COMBO! 機体修復 +25 HP" % consecutive_parries)
+			heal(30)
+			spawn_popup_message("⚡ %dx PARRY COMBO! 機体修復 +30 HP" % consecutive_parries)
 			
-		trigger_parry_feedback()
+		trigger_parry_feedback(last_parry_pos)
 
 
 func take_damage(amount: int, is_guard_break: bool = false) -> void:
@@ -673,9 +747,10 @@ func take_damage(amount: int, is_guard_break: bool = false) -> void:
 		is_critical_hit = true
 		alert_text = "⚠️ GUARD BREAK! 致命傷 -%d"
 		is_guarding = false
-		is_overheated = true
-		overheat_timer = overheat_cooldown
-		shield_heat = max_shield_heat
+		if Global.equipped_shield != SHIELD_GAUGE:
+			is_overheated = true
+			overheat_timer = overheat_cooldown
+			shield_heat = max_shield_heat
 	# ② オーバーヒート中の被弾 (装甲脆弱化: 1.6倍)
 	elif is_overheated:
 		dmg_multiplier = 1.60
@@ -742,7 +817,7 @@ func advance_analysis(bullet_type: String, amount: float = 8.0) -> void:
 		
 	var actual_amount = amount
 	if Global.equipped_shield == SHIELD_GAUGE:
-		actual_amount *= 1.5
+		actual_amount *= 4.0 # 吸収シールドは通常の4倍の超高速解析！
 		
 	# スロット固定＆集中強化システム：
 	# スロットが満杯（2枠）の場合、スロット装備中の属性のみに集中還元（上書きは絶対に起きない）
@@ -963,28 +1038,57 @@ func spawn_popup_message(text: String) -> void:
 	tween.chain().tween_callback(container.queue_free)
 
 
-func trigger_parry_feedback() -> void:
-	trigger_screen_flash(Color(0.3, 0.8, 1.0, 0.45))
-	trigger_hit_stop(0.12, 0.05)
+func trigger_parry_feedback(hit_pos: Vector2 = Vector2.ZERO) -> void:
+	Global.play_parry(randf_range(0.96, 1.04))
+	trigger_screen_flash(Color(0.4, 0.95, 1.0, 0.6))
+	trigger_hit_stop(0.10, 0.03) # ビタッと止まる極上ヒットストップ
 	trigger_parry_ring_effect()
 	
 	parry_succeeded_in_guard = true
 	guard_recovery_timer = 0.0
 	
-	# パリィ成功時の共鳴修復 (基礎10 HP + 解析レベル1毎に+4 HP)
-	var heal_amt = 10 + get_total_analysis_level() * 4
-	heal(heal_amt)
-	spawn_parry_popup_message("パリィ！ (機体修復 +%d)" % heal_amt)
+	# スパーク粒子の生成 (自機とパリィ地点の周囲に放射状に飛散)
+	var base_origin = hit_pos - global_position if hit_pos != Vector2.ZERO else Vector2(0, -15.0)
+	var spark_colors = [Color.WHITE, Color(0.3, 0.9, 1.0), Color.GOLD, Color(0.2, 1.0, 0.6)]
+	for i in range(16):
+		var angle = randf() * TAU
+		var spd = randf_range(160.0, 480.0)
+		var life = randf_range(0.25, 0.45)
+		parry_sparks.append({
+			"pos": base_origin + Vector2.RIGHT.rotated(angle) * randf_range(5.0, 18.0),
+			"vel": Vector2.RIGHT.rotated(angle) * spd,
+			"color": spark_colors.pick_random(),
+			"life": life,
+			"max_life": life,
+			"size": randf_range(2.0, 3.5)
+		})
 	
-	# 【リスク＆リターン】回復ナノマシン起動によるシールド発熱負荷
-	shield_heat = min(max_shield_heat, shield_heat + heat_per_heal)
-	if shield_heat >= max_shield_heat:
-		shield_heat = max_shield_heat
-		is_overheated = true
-		overheat_timer = overheat_cooldown
-		is_guarding = false
-		trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.6))
-		spawn_popup_message("⚠️ 修復過負荷によりシールド過熱！(被ダメ1.6倍)")
+	# 六角形ヘックスバリアの閃光
+	parry_hex_alpha = 1.0
+	parry_hex_scale = 0.6
+	var h_tween = create_tween().set_parallel(true)
+	h_tween.tween_property(self, "parry_hex_scale", 1.35, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	h_tween.tween_property(self, "parry_hex_alpha", 0.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	
+	# パリィ成功時の共鳴修復 (基礎12 HP + 解析レベル1毎に+4 HP)
+	var heal_amt = 12 + get_total_analysis_level() * 4
+	heal(heal_amt)
+	
+	var popup_text = "⚡ JUST PARRY! ⚡\n機体修復 +%d" % heal_amt
+	if Global.equipped_shield == SHIELD_GAUGE:
+		popup_text = "🔮 ABSORB PARRY! 🔮\n超速解析 +400%% ＆ 修復 +%d" % (heal_amt + 35)
+	spawn_parry_popup_message(popup_text)
+	
+	if Global.equipped_shield != SHIELD_GAUGE:
+		# 【リスク＆リターン】回復ナノマシン起動によるシールド発熱負荷 (ヒート制のみ)
+		shield_heat = min(max_shield_heat, shield_heat + heat_per_heal)
+		if shield_heat >= max_shield_heat:
+			shield_heat = max_shield_heat
+			is_overheated = true
+			overheat_timer = overheat_cooldown
+			is_guarding = false
+			trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.6))
+			spawn_popup_message("⚠️ 修復過負荷によりシールド過熱！(被ダメ1.6倍)")
 
 
 func trigger_hit_stop(duration_sec: float, scale: float) -> void:
@@ -995,15 +1099,18 @@ func trigger_hit_stop(duration_sec: float, scale: float) -> void:
 	)
 
 
-func trigger_parry_ring_effect() -> void:
+func trigger_parry_ring_effect(color_override: Color = Color.TRANSPARENT) -> void:
 	parry_ring_radius = 15.0
-	parry_ring_alpha = 0.9
+	parry_ring_alpha = 0.95
+	parry_shockwave_radius = 20.0
+	parry_shockwave_alpha = 0.90
 	queue_redraw()
 	
-	var tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(self, "parry_ring_radius", parry_window_radius * 1.4, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "parry_ring_alpha", 0.0, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(self, "parry_ring_radius", parry_window_radius * 1.35, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "parry_ring_alpha", 0.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "parry_shockwave_radius", parry_window_radius * 1.85, 0.45).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "parry_shockwave_alpha", 0.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 
 func spawn_parry_popup_message(text: String) -> void:
@@ -1011,14 +1118,16 @@ func spawn_parry_popup_message(text: String) -> void:
 	label.text = text
 	
 	var settings = LabelSettings.new()
-	settings.font_size = 36
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
+	settings.font_size = 28
 	settings.font_color = Color.GOLD
-	settings.outline_size = 8
+	settings.outline_size = 6
 	settings.outline_color = Color.BLACK
 	label.label_settings = settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
-	label.global_position = global_position + Vector2(-200.0, -80.0)
+	label.global_position = global_position + Vector2(-200.0, -85.0)
 	label.custom_minimum_size = Vector2(400.0, 40.0)
 	
 	var main = get_node_or_null("/root/Main")
@@ -1032,7 +1141,7 @@ func spawn_parry_popup_message(text: String) -> void:
 	
 	var tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.2, 1.2), 0.15).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "scale", Vector2(1.25, 1.25), 0.15).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(label, "global_position", label.global_position + Vector2(0.0, -90.0), 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
 	var fade_tween = create_tween()
@@ -1089,6 +1198,33 @@ func _draw() -> void:
 			var r_w = flame_w * (1.0 - ring_i * 0.25)
 			draw_arc(Vector2(0, r_y), r_w, 0, TAU, 24, Color(1.0, 1.0, 1.0, flyby_boost_alpha * (0.8 - ring_i * 0.2)), 2.5)
 
+	# --- パリィ火花スパーク粒子の描画 ---
+	for p in parry_sparks:
+		var c = Color(p["color"].r, p["color"].g, p["color"].b, p["alpha"])
+		var tail = p["pos"] - p["vel"] * 0.035
+		draw_line(p["pos"], tail, c, p["size"])
+		draw_circle(p["pos"], p["size"] * 0.8, Color(1.0, 1.0, 1.0, p["alpha"]))
+
+	# --- 六角形ヘックスバリアの閃光描画 ---
+	if parry_hex_alpha > 0.0:
+		var hex_r = parry_window_radius * parry_hex_scale
+		var hex_pts = PackedVector2Array()
+		for i in range(6):
+			var a = i * (TAU / 6.0) - PI / 6.0
+			hex_pts.append(Vector2(cos(a), sin(a)) * hex_r)
+		hex_pts.append(hex_pts[0])
+		
+		var hex_col = Color(0.3, 0.95, 1.0, parry_hex_alpha)
+		if Global.equipped_shield == SHIELD_GAUGE:
+			hex_col = Color(0.2, 1.0, 0.6, parry_hex_alpha)
+		elif Global.equipped_shield == SHIELD_POWER:
+			hex_col = Color(1.0, 0.6, 0.2, parry_hex_alpha)
+			
+		var fill_hex = Color(hex_col.r, hex_col.g, hex_col.b, parry_hex_alpha * 0.22)
+		draw_colored_polygon(hex_pts, fill_hex)
+		draw_polyline(hex_pts, hex_col, 3.5, true)
+
+	# --- 多層パリィリング ＆ 高速ショックウェーブ ---
 	if parry_ring_alpha > 0.0:
 		var base_color = Color(0.0, 0.9, 1.0)
 		match Global.equipped_shield:
@@ -1100,9 +1236,12 @@ func _draw() -> void:
 				base_color = COLOR_SHIELD_POWER
 				
 		var color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha)
-		draw_arc(Vector2.ZERO, parry_ring_radius, 0, TAU, 48, color, 4.0, true)
-		var fill_color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha * 0.15)
+		draw_arc(Vector2.ZERO, parry_ring_radius, 0, TAU, 48, color, 4.5, true)
+		var fill_color = Color(base_color.r, base_color.g, base_color.b, parry_ring_alpha * 0.2)
 		draw_circle(Vector2.ZERO, parry_ring_radius, fill_color)
+
+	if parry_shockwave_alpha > 0.0:
+		draw_arc(Vector2.ZERO, parry_shockwave_radius, 0, TAU, 36, Color(1.0, 1.0, 1.0, parry_shockwave_alpha * 0.8), 2.5, true)
 
 
 func play_victory_flyby() -> void:

@@ -522,7 +522,9 @@ func update_ui() -> void:
 	ui.update_parry_count(parry_count)
 	
 	if ui.has_method("update_guard_heat"):
-		ui.update_guard_heat(player.shield_heat, player.max_shield_heat, player.is_overheated, player.overheat_timer, player.is_guarding)
+		var gauge_ct = player.gauge_shield_timer if "gauge_shield_timer" in player else 0.0
+		var max_gct = player.gauge_shield_cooldown if "gauge_shield_cooldown" in player else 3.0
+		ui.update_guard_heat(player.shield_heat, player.max_shield_heat, player.is_overheated, player.overheat_timer, player.is_guarding, Global.equipped_shield, gauge_ct, max_gct)
 		
 	if ui.has_method("update_pattern_analysis"):
 		var traits = player.active_traits if "active_traits" in player else []

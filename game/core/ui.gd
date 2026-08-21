@@ -1237,36 +1237,63 @@ func update_guard_status(_cooldown: float, _is_guarding: bool) -> void:
 	pass
 
 
-func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool) -> void:
+func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool, shield_type: String = "counter", gauge_timer: float = 0.0, max_gauge_ct: float = 3.0) -> void:
 	if is_instance_valid(shield_heat_bar):
-		shield_heat_bar.max_value = max_heat
-		shield_heat_bar.value = heat
-		
-		var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
-		if fg_style:
-			if is_overheated:
-				var flash = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
-				fg_style.bg_color = Color(1.0, 0.1, 0.1).lerp(Color(0.4, 0.0, 0.0), flash)
-			elif is_guarding:
-				fg_style.bg_color = Color(0.2, 1.0, 1.0)
-			else:
-				var pct = (heat / max_heat)
-				if pct > 0.7:
-					fg_style.bg_color = Color(1.0, 0.45, 0.1)
-				elif pct > 0.35:
-					fg_style.bg_color = Color(1.0, 0.85, 0.2)
+		if shield_type == "gauge":
+			# 吸収マトリクス (3.0s クールダウン表示)
+			shield_heat_bar.max_value = max_gauge_ct
+			shield_heat_bar.value = gauge_timer
+			
+			var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
+			if fg_style:
+				if is_guarding:
+					fg_style.bg_color = Color(0.2, 1.0, 0.6)
+				elif gauge_timer > 0.0:
+					var pct = (gauge_timer / max_gauge_ct)
+					fg_style.bg_color = Color(1.0, 0.45, 0.1).lerp(Color(1.0, 0.85, 0.2), 1.0 - pct)
 				else:
-					fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
-
-	if is_overheated:
-		guard_status_label.text = "⚠️ OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
-		guard_status_label.label_settings.font_color = Color.RED
-	elif is_guarding:
-		guard_status_label.text = "シールド: 展開中！"
-		guard_status_label.label_settings.font_color = Color.CYAN
-	else:
-		guard_status_label.text = "シールドヒート [Space]"
-		guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
+					var flash = 0.6 + 0.4 * sin(Time.get_ticks_msec() * 0.015)
+					fg_style.bg_color = Color(0.1, 0.9, 0.5, flash)
+					
+			if gauge_timer > 0.0:
+				guard_status_label.text = "⏳ ABSORB CT: 冷却中 %.1fs" % gauge_timer
+				guard_status_label.label_settings.font_color = Color(1.0, 0.7, 0.3)
+			elif is_guarding:
+				guard_status_label.text = "⚡ 吸収パルス展開中！"
+				guard_status_label.label_settings.font_color = Color(0.2, 1.0, 0.6)
+			else:
+				guard_status_label.text = "⚡ 吸収パルス準備完了 [Space]"
+				guard_status_label.label_settings.font_color = Color(0.3, 1.0, 0.6)
+		else:
+			# 通常・カウンター・パワーシールド (ヒート制)
+			shield_heat_bar.max_value = max_heat
+			shield_heat_bar.value = heat
+			
+			var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
+			if fg_style:
+				if is_overheated:
+					var flash = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
+					fg_style.bg_color = Color(1.0, 0.1, 0.1).lerp(Color(0.4, 0.0, 0.0), flash)
+				elif is_guarding:
+					fg_style.bg_color = Color(0.2, 1.0, 1.0)
+				else:
+					var pct = (heat / max_heat)
+					if pct > 0.7:
+						fg_style.bg_color = Color(1.0, 0.45, 0.1)
+					elif pct > 0.35:
+						fg_style.bg_color = Color(1.0, 0.85, 0.2)
+					else:
+						fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
+	
+			if is_overheated:
+				guard_status_label.text = "⚠️ OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
+				guard_status_label.label_settings.font_color = Color.RED
+			elif is_guarding:
+				guard_status_label.text = "シールド: 展開中！"
+				guard_status_label.label_settings.font_color = Color.CYAN
+			else:
+				guard_status_label.text = "シールドヒート [Space]"
+				guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
 

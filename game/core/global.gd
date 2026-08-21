@@ -519,6 +519,7 @@ func init_sound_pool() -> void:
 	# プロシージャルサウンドの生成・キャッシュ (8-bit PCM波形)
 	_sfx_sounds["hit"] = _create_hit_sound(0.045, 950.0, 0.4, 0.5)
 	_sfx_sounds["guard"] = _create_guard_sound(0.06, 1800.0)
+	_sfx_sounds["parry"] = _create_parry_sound(0.18)
 	_sfx_sounds["heavy_hit"] = _create_heavy_hit_sound(0.08, 420.0)
 	_sfx_sounds["explosion"] = _create_explosion_sound(0.25)
 	_sfx_sounds["turret_destroy"] = _create_explosion_sound(0.18)
@@ -556,6 +557,10 @@ func play_guard(pitch: float = 1.0) -> void:
 	play_sound("guard", pitch, 0.04)
 
 
+func play_parry(pitch: float = 1.0) -> void:
+	play_sound("parry", pitch, 0.03)
+
+
 func play_heavy_hit(pitch: float = 1.0) -> void:
 	play_sound("heavy_hit", pitch, 0.04)
 
@@ -565,6 +570,34 @@ func play_explosion(pitch: float = 1.0) -> void:
 
 
 # --- プロシージャル波形生成ヘルパー ---
+
+func _create_parry_sound(duration: float = 0.18) -> AudioStreamWAV:
+	var sample_rate = 22050
+	var sample_count = int(sample_rate * duration)
+	var data = PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t = float(i) / float(sample_rate)
+		var progress = t / duration
+		var env = exp(-progress * 13.0)
+		# 鋭い金属共鳴ベル倍音 (2800Hz, 4200Hz, 5600Hz, 8400Hz)
+		var f1 = sin(TAU * 2800.0 * t) * 0.45
+		var f2 = sin(TAU * 4200.0 * t) * 0.30
+		var f3 = sin(TAU * 5600.0 * t) * 0.20
+		var f4 = sin(TAU * 8400.0 * t) * 0.12
+		var ping = (f1 + f2 + f3 + f4)
+		var click = (randf() * 2.0 - 1.0) * exp(-progress * 90.0) * 0.9
+		var sample = (ping * 0.82 + click * 0.38) * env
+		var byte_val = int(clamp((sample + 1.0) * 127.5, 0, 255))
+		data[i] = byte_val
+		
+	var wav = AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_8_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav
 
 func _create_hit_sound(duration: float, start_freq: float, noise_mix: float, tone_mix: float) -> AudioStreamWAV:
 	var sample_rate = 22050

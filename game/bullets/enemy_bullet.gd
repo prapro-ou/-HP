@@ -13,7 +13,7 @@ const BULLET_TYPE_DECEL_MISSILE = "decel_missile"
 const BULLET_TYPE_UNPARRYABLE = "unparryable_laser"
 
 # カラー定数
-const COLOR_FRIENDLY = Color(1.0, 0.25, 0.25) # パリィ反射時は赤色
+const COLOR_FRIENDLY = Color(0.25, 0.95, 1.0) # パリィ反射時は鮮やかなネオンシアン＆白光
 const COLOR_BEAM = Color(1.0, 0.4, 0.4)
 const COLOR_MISSILE = Color(0.8, 0.2, 1.0)
 const COLOR_BOSS_LASER = Color(1.0, 0.1, 0.1)
@@ -22,10 +22,10 @@ const COLOR_DECEL_MISSILE = Color(1.0, 0.4, 0.8)
 const COLOR_UNPARRYABLE = Color(1.0, 0.05, 0.15) # 鮮烈な真紅・パリィ不可
 
 # 速度・反射マルチプライヤー
-const PARRY_SPEED_MULTIPLIER: float = 3.2
+const PARRY_SPEED_MULTIPLIER: float = 3.8
 const MIN_SAFETY_SPEED: float = 80.0
 const DEFAULT_SAFETY_SPEED: float = 200.0
-const HOMING_LERP_SPEED: float = 14.0
+const HOMING_LERP_SPEED: float = 16.0
 const SCREEN_OFFSCREEN_MARGIN: float = 60.0
 
 @export var speed: float = 200.0
@@ -78,7 +78,7 @@ func update_bullet_color() -> void:
 		modulate = COLOR_FRIENDLY
 		var sprite = get_node_or_null("Sprite2D")
 		if sprite:
-			sprite.scale = Vector2(1.2, 1.2) # 赤く巨大化
+			sprite.scale = Vector2(1.35, 1.35) # ネオンシアンに巨大化
 	else:
 		var sprite = get_node_or_null("Sprite2D")
 		if sprite:
@@ -272,8 +272,8 @@ func convert_to_friendly() -> void:
 	if PARRY_PARTICLE_SCENE and get_parent():
 		var particle = PARRY_PARTICLE_SCENE.instantiate()
 		particle.global_position = global_position
-		particle.scale = Vector2(2.0, 2.0)
-		particle.modulate = Color(1.0, 0.2, 0.2)
+		particle.scale = Vector2(2.4, 2.4)
+		particle.modulate = Color(0.3, 0.95, 1.0)
 		get_parent().add_child(particle)
 	
 	var main = get_node_or_null("/root/Main")
