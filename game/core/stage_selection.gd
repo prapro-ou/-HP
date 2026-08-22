@@ -50,6 +50,11 @@ func _ready() -> void:
 	Global.load_settings()
 	Global.check_save_game()
 	
+	# Play Stage Select BGM
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_bgm"):
+		audio_mgr.play_bgm("stage_select", 0.8)
+	
 	var save_data = Global.load_game_data()
 	var saved_stage_num = save_data.get("stage_num", 1)
 	

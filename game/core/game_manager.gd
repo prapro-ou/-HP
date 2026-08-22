@@ -149,6 +149,11 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	state = "wave1"
 	current_wave_index = 0
 	
+	# ステージBGM再生
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_bgm"):
+		audio_mgr.play_bgm("stage%d" % current_stage_num, 1.0)
+	
 	# ステージ開始の大判テロップ表示 (4.2秒間、画面中央に大きく表示)
 	var st_name = current_stage.stage_name if current_stage else "STAGE " + str(current_stage_num)
 	var codename = ""
@@ -437,6 +442,12 @@ func start_boss_battle() -> void:
 	current_state = State.BOSS
 	state = "boss"
 	
+	# ボスBGM再生 (ステージ5の場合はfinal_boss、それ以外はboss)
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_bgm"):
+		var boss_bgm_key = "final_boss" if current_stage_num == 5 else "boss"
+		audio_mgr.play_bgm(boss_bgm_key, 0.8)
+	
 	if is_instance_valid(player):
 		player.is_attack_unlocked = true
 	
@@ -599,6 +610,13 @@ func spawn_popup(text: String) -> void:
 
 
 func show_game_over(result: String) -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_bgm"):
+		if result == "VICTORY":
+			audio_mgr.play_bgm("victory", 0.5)
+		else:
+			audio_mgr.play_bgm("game_over", 0.5)
+			
 	if ui and ui.has_method("show_game_over"):
 		ui.show_game_over(result)
 

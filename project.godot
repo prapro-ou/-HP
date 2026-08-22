@@ -21,6 +21,7 @@ driver/output_latency=30
 
 [autoload]
 
+AudioManager="*res://game/core/audio_manager.tscn"
 Global="*res://game/core/global.gd"
 
 [display]

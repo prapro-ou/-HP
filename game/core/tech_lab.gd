@@ -43,6 +43,11 @@ func _ready() -> void:
 	Global.load_settings()
 	Global.load_game_data()
 	
+	# Play Tech Lab BGM
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_bgm"):
+		audio_mgr.play_bgm("tech_lab", 0.8)
+	
 	# Give starting points if none exists for a better first-time demo experience
 	if Global.tech_points == 0 and not Global.has_save:
 		Global.tech_points = 30
@@ -581,6 +586,13 @@ func perform_upgrade(type: String) -> void:
 		Global.save_game(1, 0, {})
 		update_lab_hud()
 		play_flash_effect(Color.CYAN)
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+			audio_mgr.play_upgrade_success()
+	else:
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_ui_cancel"):
+			audio_mgr.play_ui_cancel()
 
 func unlock_shield(s_id: String, cost: int) -> void:
 	if Global.tech_points >= cost and not Global.unlocked_shields.has(s_id):
@@ -589,6 +601,13 @@ func unlock_shield(s_id: String, cost: int) -> void:
 		Global.save_game(1, 0, {})
 		update_lab_hud()
 		play_flash_effect(Color.CYAN)
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+			audio_mgr.play_upgrade_success()
+	else:
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_ui_cancel"):
+			audio_mgr.play_ui_cancel()
 
 func unlock_weapon(w_id: String, cost: int) -> void:
 	if Global.tech_points >= cost and not Global.unlocked_weapons.has(w_id):
@@ -597,6 +616,13 @@ func unlock_weapon(w_id: String, cost: int) -> void:
 		Global.save_game(1, 0, {})
 		update_lab_hud()
 		play_flash_effect(Color.GOLD)
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+			audio_mgr.play_upgrade_success()
+	else:
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_ui_cancel"):
+			audio_mgr.play_ui_cancel()
 
 func play_flash_effect(color: Color) -> void:
 	# Subtle HUD border glow pulse tween

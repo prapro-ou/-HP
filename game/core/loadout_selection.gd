@@ -46,6 +46,11 @@ func _ready() -> void:
 	Global.load_settings()
 	var save_data = Global.load_game_data()
 	
+	# Play Stage Select BGM
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_bgm"):
+		audio_mgr.play_bgm("stage_select", 0.8)
+	
 	init_data()
 	setup_ui()
 	init_starfield()

@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://d0n03n6pyyjw7" path="res://game/core/game_manager.gd" id="3_gamemanager"]
 [ext_resource type="PackedScene" path="res://game/core/ui.tscn" id="4_ui"]
 [ext_resource type="Script" uid="uid://b6t1x3undf74f" path="res://game/core/bullet_pool.gd" id="5_bulletpool"]
+[ext_resource type="Script" uid="uid://c062tor6ycsv4" path="res://game/audio_stream_player_2d.gd" id="6_dgpao"]
 
 [node name="Main" type="Node2D" unique_id=1066061339]
 position = Vector2(-1, 0)
@@ -27,3 +28,6 @@ script = ExtResource("5_bulletpool")
 [node name="EnemyBullets" type="Node2D" parent="." unique_id=2046813927]
 
 [node name="StageContainer" type="Node2D" parent="." unique_id=1369982889]
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1462596682]
+script = ExtResource("6_dgpao")

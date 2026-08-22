@@ -417,6 +417,7 @@ func apply_audio() -> void:
 	_set_bus_volume("Master", master_volume)
 	_set_bus_volume("BGM", bgm_volume)
 	_set_bus_volume("SFX", sfx_volume)
+	_set_bus_volume("UI", sfx_volume)
 
 func _set_bus_volume(bus_name: String, val: float) -> void:
 	var idx = AudioServer.get_bus_index(bus_name)
@@ -557,6 +558,11 @@ func init_sound_pool() -> void:
 
 
 func play_sound(sound_name: String, pitch_scale: float = 1.0, min_interval: float = 0.03) -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_sfx"):
+		audio_mgr.play_sfx(sound_name, pitch_scale, min_interval)
+		return
+		
 	if _sfx_sounds.is_empty():
 		init_sound_pool()
 		

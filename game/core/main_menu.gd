@@ -26,10 +26,12 @@ var menu_container: VBoxContainer
 var settings_container: PanelContainer
 var confirm_dialog: PanelContainer
 var tutorial_dialog: PanelContainer
+var credits_dialog: PanelContainer
 
 # Buttons
 var play_start_btn: Button
 var settings_btn: Button
+var credits_btn: Button
 
 # Settings UI inputs
 var mode_option: OptionButton
@@ -58,6 +60,11 @@ func _ready() -> void:
 	Global.load_settings()
 	Global.check_save_game()
 	Global.load_game_data()
+	
+	# Play Main Menu BGM
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_bgm"):
+		audio_mgr.play_bgm("main_menu", 1.0)
 	
 	# Layout design
 	setup_layout()
@@ -149,18 +156,21 @@ func setup_layout() -> void:
 	# 8. Tutorial confirmation dialog (Hidden initially)
 	setup_tutorial_confirm_dialog()
 
+	# 9. Credits dialog (Hidden initially)
+	setup_credits_dialog()
+
 func setup_menu_container() -> void:
 	menu_container = VBoxContainer.new()
 	menu_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	menu_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	menu_container.theme_type_variation = "VBoxContainer"
-	menu_container.add_theme_constant_override("separation", 28)
+	menu_container.add_theme_constant_override("separation", 24)
 	main_vbox.add_child(menu_container)
 	
 	# Play Start Button
 	play_start_btn = Button.new()
 	play_start_btn.text = "出撃開始"
-	play_start_btn.custom_minimum_size = Vector2(400, 82)
+	play_start_btn.custom_minimum_size = Vector2(400, 78)
 	play_start_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	play_start_btn.add_theme_font_size_override("font_size", 30)
 	if PIXEL_FONT:
@@ -172,7 +182,7 @@ func setup_menu_container() -> void:
 	# Settings Button
 	settings_btn = Button.new()
 	settings_btn.text = "設定"
-	settings_btn.custom_minimum_size = Vector2(400, 82)
+	settings_btn.custom_minimum_size = Vector2(400, 78)
 	settings_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	settings_btn.add_theme_font_size_override("font_size", 30)
 	if PIXEL_FONT:
@@ -181,9 +191,22 @@ func setup_menu_container() -> void:
 	style_button(settings_btn, Color(0.8, 0.4, 1.0), Color(0.9, 0.6, 1.0))
 	add_button_animations(settings_btn)
 	
+	# Credits Button
+	credits_btn = Button.new()
+	credits_btn.text = "クレジット"
+	credits_btn.custom_minimum_size = Vector2(400, 72)
+	credits_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	credits_btn.add_theme_font_size_override("font_size", 26)
+	if PIXEL_FONT:
+		credits_btn.add_theme_font_override("font", PIXEL_FONT)
+	menu_container.add_child(credits_btn)
+	style_button(credits_btn, Color(0.3, 0.85, 0.65), Color(0.5, 1.0, 0.8))
+	add_button_animations(credits_btn)
+	
 	# Setup button signals
 	play_start_btn.pressed.connect(_on_play_start_pressed)
 	settings_btn.pressed.connect(_on_settings_pressed)
+	credits_btn.pressed.connect(_on_credits_pressed)
 
 func setup_settings_container() -> void:
 	settings_container = PanelContainer.new()
@@ -464,7 +487,71 @@ func setup_settings_container() -> void:
 	sfx_box.add_child(sfx_lbl)
 	grid_audio.add_child(sfx_box)
 	
-	# --- SECTION 4: DEBUG / DATA RESET ---
+	# --- SECTION 4: CREDITS / クレジット ---
+	var cr_title = Label.new()
+	cr_title.text = "クレジット"
+	cr_title.label_settings = sec_set
+	scroll_content.add_child(cr_title)
+	
+	var credits_card = PanelContainer.new()
+	var cr_sb = StyleBoxFlat.new()
+	cr_sb.bg_color = Color(0.04, 0.07, 0.12, 0.9)
+	cr_sb.border_width_left = 2
+	cr_sb.border_width_top = 2
+	cr_sb.border_width_right = 2
+	cr_sb.border_width_bottom = 2
+	cr_sb.border_color = Color(0.3, 0.85, 0.65, 0.7)
+	cr_sb.corner_radius_top_left = 6
+	cr_sb.corner_radius_top_right = 6
+	cr_sb.corner_radius_bottom_left = 6
+	cr_sb.corner_radius_bottom_right = 6
+	credits_card.add_theme_stylebox_override("panel", cr_sb)
+	scroll_content.add_child(credits_card)
+	
+	var cr_margin = MarginContainer.new()
+	cr_margin.add_theme_constant_override("margin_left", 16)
+	cr_margin.add_theme_constant_override("margin_top", 16)
+	cr_margin.add_theme_constant_override("margin_right", 16)
+	cr_margin.add_theme_constant_override("margin_bottom", 16)
+	credits_card.add_child(cr_margin)
+	
+	var cr_vbox = VBoxContainer.new()
+	cr_vbox.add_theme_constant_override("separation", 10)
+	cr_margin.add_child(cr_vbox)
+	
+	# 魔王魂
+	var maou_btn = Button.new()
+	maou_btn.text = "BGM: 魔王魂 (https://maou.audio/)"
+	maou_btn.custom_minimum_size = Vector2(0, 40)
+	maou_btn.add_theme_font_size_override("font_size", 15)
+	if PIXEL_FONT: maou_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(maou_btn, Color(0.9, 0.75, 0.2), Color(1.0, 0.9, 0.4))
+	add_button_animations(maou_btn)
+	maou_btn.pressed.connect(func(): _open_url("https://maou.audio/"))
+	cr_vbox.add_child(maou_btn)
+	
+	# 効果音ラボ
+	var lab_btn = Button.new()
+	lab_btn.text = "SE: 効果音ラボ (https://soundeffect-lab.info/)"
+	lab_btn.custom_minimum_size = Vector2(0, 40)
+	lab_btn.add_theme_font_size_override("font_size", 15)
+	if PIXEL_FONT: lab_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(lab_btn, Color(0.2, 0.8, 0.9), Color(0.4, 0.95, 1.0))
+	add_button_animations(lab_btn)
+	lab_btn.pressed.connect(func(): _open_url("https://soundeffect-lab.info/"))
+	cr_vbox.add_child(lab_btn)
+	
+	# フォント
+	var font_lbl = Label.new()
+	font_lbl.text = "Font: DotGothic16 (SIL Open Font License 1.1)"
+	var font_lset = LabelSettings.new()
+	if PIXEL_FONT: font_lset.font = PIXEL_FONT
+	font_lset.font_size = 15
+	font_lset.font_color = Color(0.7, 0.75, 0.85)
+	font_lbl.label_settings = font_lset
+	cr_vbox.add_child(font_lbl)
+	
+	# --- SECTION 5: DEBUG / DATA RESET ---
 	var s_title = Label.new()
 	s_title.text = "【デバッグ用】個別データリセット"
 	var dbg_sec_set = LabelSettings.new()
@@ -587,6 +674,9 @@ func setup_settings_container() -> void:
 		Global.sfx_volume = v
 		sfx_lbl.text = str(int(v)) + "%"
 		Global.apply_audio()
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_ui_click"):
+			audio_mgr.play_ui_click()
 	)
 	
 	reset_btn.pressed.connect(_on_reset_btn_pressed)
@@ -796,6 +886,108 @@ func setup_tutorial_confirm_dialog() -> void:
 		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
 	)
 
+
+func setup_credits_dialog() -> void:
+	credits_dialog = PanelContainer.new()
+	credits_dialog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	credits_dialog.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	credits_dialog.custom_minimum_size = Vector2(500, 340)
+	credits_dialog.hide()
+	add_child(credits_dialog)
+	
+	credits_dialog.anchor_left = 0.5
+	credits_dialog.anchor_top = 0.5
+	credits_dialog.anchor_right = 0.5
+	credits_dialog.anchor_bottom = 0.5
+	credits_dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	credits_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
+	credits_dialog.offset_left = -250
+	credits_dialog.offset_top = -170
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.03, 0.05, 0.09, 0.98)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = Color(0.3, 0.85, 0.65, 0.95)
+	credits_dialog.add_theme_stylebox_override("panel", sb)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	credits_dialog.add_child(margin)
+	
+	var box = VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 14)
+	margin.add_child(box)
+	
+	# Title
+	var c_title = Label.new()
+	c_title.text = "クレジット"
+	c_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var t_set = LabelSettings.new()
+	if PIXEL_FONT: t_set.font = PIXEL_FONT
+	t_set.font_size = 26
+	t_set.font_color = Color(0.3, 0.85, 0.65)
+	t_set.outline_size = 4
+	t_set.outline_color = Color.BLACK
+	c_title.label_settings = t_set
+	box.add_child(c_title)
+	
+	# 魔王魂
+	var maou_btn = Button.new()
+	maou_btn.text = "BGM: 魔王魂 (https://maou.audio/)"
+	maou_btn.custom_minimum_size = Vector2(0, 42)
+	maou_btn.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT: maou_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(maou_btn, Color(0.9, 0.75, 0.2), Color(1.0, 0.9, 0.4))
+	add_button_animations(maou_btn)
+	maou_btn.pressed.connect(func(): _open_url("https://maou.audio/"))
+	box.add_child(maou_btn)
+	
+	# 効果音ラボ
+	var lab_btn = Button.new()
+	lab_btn.text = "SE: 効果音ラボ (https://soundeffect-lab.info/)"
+	lab_btn.custom_minimum_size = Vector2(0, 42)
+	lab_btn.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT: lab_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(lab_btn, Color(0.2, 0.8, 0.9), Color(0.4, 0.95, 1.0))
+	add_button_animations(lab_btn)
+	lab_btn.pressed.connect(func(): _open_url("https://soundeffect-lab.info/"))
+	box.add_child(lab_btn)
+	
+	# フォント
+	var font_lbl = Label.new()
+	font_lbl.text = "Font: DotGothic16 (SIL Open Font License 1.1)"
+	font_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var f_set = LabelSettings.new()
+	if PIXEL_FONT: f_set.font = PIXEL_FONT
+	f_set.font_size = 15
+	f_set.font_color = Color(0.7, 0.75, 0.85)
+	font_lbl.label_settings = f_set
+	box.add_child(font_lbl)
+	
+	# Close button
+	var close_btn = Button.new()
+	close_btn.text = "閉じる"
+	close_btn.custom_minimum_size = Vector2(180, 42)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT: close_btn.add_theme_font_override("font", PIXEL_FONT)
+	style_button(close_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
+	add_button_animations(close_btn)
+	close_btn.pressed.connect(func():
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_ui_cancel"):
+			audio_mgr.play_ui_cancel()
+		credits_dialog.hide()
+	)
+	box.add_child(close_btn)
+
 func create_label(text: String) -> Label:
 	var l = Label.new()
 	l.text = text
@@ -967,6 +1159,21 @@ func _on_settings_pressed() -> void:
 	settings_container.modulate.a = 0.0
 	tween.tween_property(settings_container, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(settings_container, "modulate:a", 1.0, 0.2)
+
+func _on_credits_pressed() -> void:
+	# Transition: show credits dialog modal
+	credits_dialog.show()
+	credits_dialog.modulate.a = 0.0
+	credits_dialog.scale = Vector2(0.8, 0.8)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(credits_dialog, "scale", Vector2(1.0, 1.0), 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(credits_dialog, "modulate:a", 1.0, 0.18)
+
+func _open_url(url: String) -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_ui_click"):
+		audio_mgr.play_ui_click()
+	OS.shell_open(url)
 
 func _on_display_mode_changed(idx: int) -> void:
 	Global.window_mode = idx
