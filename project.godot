@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 [audio]
 
 driver/output_latency=50
-driver/enable_input=false
 
 [autoload]
 
