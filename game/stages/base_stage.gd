@@ -8,11 +8,13 @@ class WaveSpawnConfig:
 	var drone_type: String
 	var pos_ratio_x: float
 	var pos_y: float
+	var is_slow: Variant = null
 	
-	func _init(p_type: String, p_ratio_x: float, p_y: float = -50.0) -> void:
+	func _init(p_type: String, p_ratio_x: float, p_y: float = -50.0, p_is_slow: Variant = null) -> void:
 		drone_type = p_type
 		pos_ratio_x = p_ratio_x
 		pos_y = p_y
+		is_slow = p_is_slow
 
 class WaveData:
 	var wave_id: String

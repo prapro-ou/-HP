@@ -22,10 +22,10 @@ func _setup_waves() -> void:
 	w1.min_active_drones = 4
 	
 	w1.initial_spawns = [
-		WaveSpawnConfig.new("straight", 0.15, -50.0),
-		WaveSpawnConfig.new("wave", 0.35, -80.0),
-		WaveSpawnConfig.new("straight", 0.65, -50.0),
-		WaveSpawnConfig.new("irregular", 0.85, -80.0)
+		WaveSpawnConfig.new("straight", 0.15, -50.0, false),
+		WaveSpawnConfig.new("wave", 0.35, -80.0, true),
+		WaveSpawnConfig.new("straight", 0.65, -50.0, false),
+		WaveSpawnConfig.new("irregular", 0.85, -80.0, true)
 	]
 	waves.append(w1)
 	
@@ -39,11 +39,11 @@ func _setup_waves() -> void:
 	w2.drone_speed_override = 160.0
 	
 	w2.initial_spawns = [
-		WaveSpawnConfig.new("charge", 0.12, -60.0),
-		WaveSpawnConfig.new("laser", 0.32, -90.0),
-		WaveSpawnConfig.new("irregular", 0.50, -60.0),
-		WaveSpawnConfig.new("charge", 0.68, -90.0),
-		WaveSpawnConfig.new("wave", 0.88, -60.0)
+		WaveSpawnConfig.new("charge", 0.12, -60.0, false),
+		WaveSpawnConfig.new("laser", 0.32, -90.0, true),
+		WaveSpawnConfig.new("irregular", 0.50, -60.0, false),
+		WaveSpawnConfig.new("charge", 0.68, -90.0, true),
+		WaveSpawnConfig.new("wave", 0.88, -60.0, false)
 	]
 	waves.append(w2)
 
@@ -57,12 +57,12 @@ func _setup_waves() -> void:
 	w3.drone_speed_override = 180.0
 	
 	w3.initial_spawns = [
-		WaveSpawnConfig.new("missile", 0.10, -60.0),
-		WaveSpawnConfig.new("charge", 0.28, -90.0),
-		WaveSpawnConfig.new("laser", 0.46, -60.0),
-		WaveSpawnConfig.new("wave", 0.64, -90.0),
-		WaveSpawnConfig.new("irregular", 0.80, -60.0),
-		WaveSpawnConfig.new("missile", 0.92, -90.0)
+		WaveSpawnConfig.new("missile", 0.10, -60.0, false),
+		WaveSpawnConfig.new("charge", 0.28, -90.0, true),
+		WaveSpawnConfig.new("laser", 0.46, -60.0, false),
+		WaveSpawnConfig.new("wave", 0.64, -90.0, true),
+		WaveSpawnConfig.new("irregular", 0.80, -60.0, false),
+		WaveSpawnConfig.new("missile", 0.92, -90.0, true)
 	]
 	waves.append(w3)
 

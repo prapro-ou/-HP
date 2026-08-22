@@ -34,6 +34,10 @@ const MIN_ACTIVE_Y: float = 120.0
 const MAX_ACTIVE_Y: float = 720.0
 
 @export var drone_type: String = TYPE_STRAIGHT
+@export var is_slow: bool = false
+
+var force_slow_mode: Variant = null
+var speed_multiplier: float = 1.0
 
 var target_y: float = 250.0
 var base_y: float = 250.0
@@ -171,6 +175,25 @@ func _ready_enemy() -> void:
 		
 	target_y = base_y
 	time_since_last_shot = randf_range(0.0, shoot_interval * 0.75)
+	
+	# 移動速度の低速化判定（約半数の敵を通常の半分の移動速度にする）
+	if force_slow_mode != null:
+		is_slow = bool(force_slow_mode)
+	elif not is_slow:
+		is_slow = (randf() < 0.5)
+		
+	if is_slow:
+		speed_multiplier = 0.5
+		speed *= speed_multiplier
+		diagonal_velocity *= speed_multiplier
+		y_frequency *= 0.75
+
+
+## 外部（Wave設定など）からの速度上書き
+func set_override_speed(base_spd: float) -> void:
+	speed = base_spd * speed_multiplier
+	if drone_type == TYPE_STRAIGHT and diagonal_velocity != Vector2.ZERO:
+		diagonal_velocity = diagonal_velocity.normalized() * (base_spd * speed_multiplier)
 
 
 func _process(delta: float) -> void:
