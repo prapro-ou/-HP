@@ -1229,8 +1229,29 @@ func hide_boss_hp() -> void:
 	boss_hp_label.visible = false
 
 
+var current_parry_heal_count: int = 0
+var total_parry_count: int = 0
+
 func update_parry_count(count: int) -> void:
-	parry_count_label.text = "パリィ: %d 回" % count
+	total_parry_count = count
+	_refresh_parry_hud()
+
+
+func update_parry_heal_gauge(current: int, _threshold: int = 5) -> void:
+	current_parry_heal_count = current
+	_refresh_parry_hud()
+
+
+func _refresh_parry_hud() -> void:
+	if not is_instance_valid(parry_count_label):
+		return
+	var gauge_str = ""
+	for i in range(5):
+		if i < current_parry_heal_count:
+			gauge_str += "■"
+		else:
+			gauge_str += "□"
+	parry_count_label.text = "回復ゲージ: [%s] %d/5  (累計:%d)" % [gauge_str, current_parry_heal_count, total_parry_count]
 
 
 func update_guard_status(_cooldown: float, _is_guarding: bool) -> void:

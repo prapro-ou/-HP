@@ -29,7 +29,7 @@ const HOMING_LERP_SPEED: float = 16.0
 const SCREEN_OFFSCREEN_MARGIN: float = 60.0
 
 @export var speed: float = 200.0
-@export var damage: int = 8
+@export var damage: int = 16
 
 var velocity: Vector2 = Vector2.ZERO
 var is_friendly: bool = false

@@ -86,9 +86,13 @@ var flyby_boost_alpha: float = 0.0
 # --- シールド・オーバーヒートシステム (リスク＆リターン調整) ---
 @export var max_shield_heat: float = 100.0
 @export var heat_per_use: float = 22.0        # 1回あたり22% (連続4回で過熱)
-@export var heat_per_heal: float = 14.0       # パリィ修復による追加発熱負荷
 @export var heat_recovery_rate: float = 40.0   # 1秒で40%放熱
 @export var overheat_cooldown: float = 2.2     # オーバーヒート2.2秒で復帰
+
+# --- パリィ回復ゲージシステム (5回パリィでHP回復・シールド共通) ---
+var parry_heal_counter: int = 0
+const PARRY_HEAL_THRESHOLD: int = 5
+const PARRY_HEAL_AMOUNT: int = 60
 
 # --- 吸収シールド専用パラメータ (3.0s クールダウン＆超高速解析) ---
 @export var gauge_shield_cooldown: float = 3.0 # 吸収パルス 1回展開で3秒クールダウン
@@ -743,14 +747,13 @@ func check_parry() -> void:
 						if manager and manager.has_method("register_parry"):
 							manager.register_parry()
 				elif shield_type == SHIELD_GAUGE:
-					# 吸収マトリクス: 弾丸を直接吸収消滅させ、HPを大幅修復！
+					# 吸収マトリクス: 弾丸を直接吸収消滅
 					if bullet.has_method("recycle_bullet"):
 						bullet.recycle_bullet()
 					elif bullet.has_method("explode_and_free"):
 						bullet.explode_and_free()
 					else:
 						bullet.queue_free()
-					heal(35)
 					
 					var main = get_node_or_null("/root/Main")
 					if main:
@@ -770,11 +773,6 @@ func check_parry() -> void:
 	if parry_triggered_now and not parried_in_current_frame:
 		parried_in_current_frame = true
 		consecutive_parries += 1
-		# 10連続パリィ達成ごとにボーナス回復
-		if consecutive_parries % 10 == 0:
-			heal(30)
-			spawn_popup_message("%dx PARRY COMBO! 機体修復 +30 HP" % consecutive_parries)
-			
 		trigger_parry_feedback(last_parry_pos)
 
 
@@ -1119,25 +1117,33 @@ func trigger_parry_feedback(hit_pos: Vector2 = Vector2.ZERO) -> void:
 		pfx.setup_parry(actual_origin, parry_window_radius, col)
 		parent_node.add_child(pfx)
 	
-	# パリィ成功時の共鳴修復 (基礎12 HP + 解析レベル1毎に+4 HP)
-	var heal_amt = 12 + get_total_analysis_level() * 4
-	heal(heal_amt)
+	# パリィ成功時の回復ゲージ加算 (5回パリィでHP回復)
+	add_parry_heal_progress()
 	
-	var popup_text = "JUST PARRY!\n機体修復 +%d" % heal_amt
+	var popup_text = "JUST PARRY! [%d/%d]" % [parry_heal_counter, PARRY_HEAL_THRESHOLD]
 	if Global.equipped_shield == SHIELD_GAUGE:
-		popup_text = "ABSORB PARRY!\n超速解析 +400%% ＆ 修復 +%d" % (heal_amt + 35)
+		popup_text = "ABSORB PARRY! [%d/%d]" % [parry_heal_counter, PARRY_HEAL_THRESHOLD]
 	spawn_parry_popup_message(popup_text)
-	
-	if Global.equipped_shield != SHIELD_GAUGE:
-		# 【リスク＆リターン】回復ナノマシン起動によるシールド発熱負荷 (ヒート制のみ)
-		shield_heat = min(max_shield_heat, shield_heat + heat_per_heal)
-		if shield_heat >= max_shield_heat:
-			shield_heat = max_shield_heat
-			is_overheated = true
-			overheat_timer = overheat_cooldown
-			is_guarding = false
-			trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.6))
-			spawn_popup_message("修復過負荷によりシールド過熱！(被ダメ1.6倍)")
+
+
+func add_parry_heal_progress() -> void:
+	parry_heal_counter += 1
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var ui_node = main.get_node_or_null("UI")
+		if ui_node and ui_node.has_method("update_parry_heal_gauge"):
+			ui_node.update_parry_heal_gauge(parry_heal_counter, PARRY_HEAL_THRESHOLD)
+			
+	if parry_heal_counter >= PARRY_HEAL_THRESHOLD:
+		parry_heal_counter = 0
+		heal(PARRY_HEAL_AMOUNT)
+		trigger_screen_flash(Color(0.2, 1.0, 0.5, 0.45))
+		spawn_popup_message("PARRY HEAL! 機体修復 +%d HP" % PARRY_HEAL_AMOUNT)
+		Global.play_upgrade_success()
+		if main:
+			var ui_node = main.get_node_or_null("UI")
+			if ui_node and ui_node.has_method("update_parry_heal_gauge"):
+				ui_node.update_parry_heal_gauge(0, PARRY_HEAL_THRESHOLD)
 
 
 func trigger_hit_stop(duration_sec: float, scale: float) -> void:
