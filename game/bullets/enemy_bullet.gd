@@ -164,7 +164,7 @@ func _process(delta: float) -> void:
 			velocity = velocity.lerp(target_velocity, delta * HOMING_LERP_SPEED)
 			
 	else:
-		# 減速 ➔ 急加速追尾ミサイル処理
+		# 減速 -> 急加速追尾ミサイル処理
 		if bullet_type == BULLET_TYPE_DECEL_MISSILE:
 			decel_timer += delta
 			if decel_phase == 0:

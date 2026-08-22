@@ -49,7 +49,7 @@ func _draw() -> void:
 	if t < 0.5:
 		draw_arc(Vector2.ZERO, shock_radius * 0.85, 0, TAU, 28, Color(base_color.r, base_color.g, base_color.b, shock_alpha * 0.6), 1.5)
 
-	# 2. 炎球・プラズマ球（急拡大 ➔ 収縮）
+	# 2. 炎球・プラズマ球（急拡大 -> 収縮）
 	if t < 0.65:
 		var fire_t = t / 0.65
 		var fire_radius = max_radius * sin(fire_t * PI * 0.5)

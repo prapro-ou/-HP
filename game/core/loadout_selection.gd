@@ -223,7 +223,7 @@ func setup_ui() -> void:
 		
 		if not w.is_unlocked:
 			btn.disabled = true
-			btn.text = "🔒 未解放"
+			btn.text = "未解放"
 		else:
 			btn.pressed.connect(func(): select_item("primary", w.id))
 			btn.mouse_entered.connect(func(): show_details("primary", w.id))
@@ -266,7 +266,7 @@ func setup_ui() -> void:
 		
 		if not c.is_unlocked:
 			btn.disabled = true
-			btn.text = "🔒 未解放"
+			btn.text = "未解放"
 		else:
 			btn.pressed.connect(func(): select_item("counter", c.id))
 			btn.mouse_entered.connect(func(): show_details("counter", c.id))

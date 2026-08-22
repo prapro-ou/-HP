@@ -157,7 +157,7 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	# ステージ開始の大判テロップ表示 (4.2秒間、画面中央に大きく表示)
 	var st_name = current_stage.stage_name if current_stage else "STAGE " + str(current_stage_num)
 	var codename = ""
-	var goal = "90秒間防衛＆敵弾解析 ➔ ボス要塞を撃破せよ"
+	var goal = "90秒間防衛＆敵弾解析 -> ボス要塞を撃破せよ"
 	match current_stage_num:
 		1:
 			codename = "第1エリア: 惑星到達前・デブリ宙域"
@@ -275,7 +275,7 @@ func process_wave_state(delta: float) -> void:
 		wave_phase_timer = 0.0
 		clear_drones()
 		if ui and ui.has_method("show_wave_announcement"):
-			ui.show_wave_announcement("⏱️ 90秒防衛達成！", "強大な敵反応を検知！ボス迎撃態勢に移行せよ！", 3.8)
+			ui.show_wave_announcement("90秒防衛達成！", "強大な敵反応を検知！ボス迎撃態勢に移行せよ！", 3.8)
 		trigger_interlude()
 		return
 		
@@ -305,7 +305,7 @@ func process_wave_state(delta: float) -> void:
 			if new_wave_data:
 				var title_str = new_wave_data.display_title
 				if title_str == "":
-					title_str = "⚡ WAVE %d 突入！敵増援！" % current_wave_level
+					title_str = "WAVE %d 突入！敵増援！" % current_wave_level
 				if ui and ui.has_method("show_wave_announcement"):
 					ui.show_wave_announcement(title_str, new_wave_data.start_message, 3.8)
 				
@@ -477,7 +477,7 @@ func start_boss_battle() -> void:
 		
 		var b_name = cfg.name if cfg else "古代防衛要塞"
 		if ui and ui.has_method("show_wave_announcement"):
-			ui.show_wave_announcement("⚠️ BOSS WARNING ⚠️", "要塞ボス接近: 【" + b_name + "】", 4.0)
+			ui.show_wave_announcement("BOSS WARNING", "要塞ボス接近: 【" + b_name + "】", 4.0)
 			
 		# 4. チュートリアル: ボスについて（ボス戦移行時・砲台の防御特性・パリィ不可攻撃の警告）
 		if not Global.tutorial_flags.get("boss_info", false):
@@ -596,7 +596,7 @@ func on_boss_destroyed() -> void:
 	if next_stage_num <= 5:
 		var is_new_unlock = Global.unlock_stage(next_stage_num)
 		if is_new_unlock:
-			spawn_popup("🔓 次の作戦エリア【STAGE %d】が解放されました！" % next_stage_num)
+			spawn_popup("次の作戦エリア【STAGE %d】が解放されました！" % next_stage_num)
 		
 	if is_instance_valid(player):
 		Global.save_game(current_stage_num, total_damage_score, {})

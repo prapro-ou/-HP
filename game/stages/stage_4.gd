@@ -68,7 +68,7 @@ func _setup_waves() -> void:
 	waves.append(w3)
 
 func _setup_interlude() -> void:
-	interlude.title = "⚠️ CRITICAL WARNING ⚠️"
+	interlude.title = "CRITICAL WARNING"
 	interlude.subtitle = "追撃自律ドレッドノート・ヘルハウンド出現！"
 	interlude.flash_color = Color(0.9, 0.3, 1.0, 0.5)
 	interlude.secondary_flash_color = Color(1.0, 0.1, 0.2, 0.6)

@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 	# 砲台全滅時の暴走アナウンス
 	if is_enraged and not enraged_notified:
 		enraged_notified = true
-		spawn_shield_message("⚠️ 砲台破壊！要塞コア暴走・攻撃頻度激化！")
+		spawn_shield_message("砲台破壊！要塞コア暴走・攻撃頻度激化！")
 		if is_instance_valid(player) and player.has_method("trigger_screen_flash"):
 			player.trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.3))
 			
@@ -132,7 +132,7 @@ func _process(delta: float) -> void:
 		if turret_respawn_timer >= 18.0:
 			reinforcement_wave_spawned = true
 			enraged_notified = false
-			spawn_shield_message("⚠️ 警告: 予備砲台デッキ展開！")
+			spawn_shield_message("警告: 予備砲台デッキ展開！")
 			spawn_sub_turrets(4.0, true)
 			
 	# プレイヤーの接近感知による全方位迎撃パルス（円形弾）
@@ -174,7 +174,7 @@ func fire_proximity_ring_attack(center_pos: Vector2) -> void:
 		t.tween_property(core_glow, "color", Color(1.0, 0.2, 0.2, 0.6), 0.25)
 		
 	Global.play_laser(randf_range(1.1, 1.3))
-	spawn_shield_message("⚠️ 接近感知！全方位迎撃パルス起動！")
+	spawn_shield_message("接近感知！全方位迎撃パルス起動！")
 	
 	var mult = get_stage_difficulty_mult()
 	var bullet_count = 16
@@ -294,7 +294,7 @@ func execute_unparryable_cannon_attack() -> void:
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("show_top_unparryable_warning"):
-			ui_node.show_top_unparryable_warning(1.8, "⚠️ DANGER: パリィ不可・断絶真紅レーザー警告！ ⚠️")
+			ui_node.show_top_unparryable_warning(1.8, "DANGER: パリィ不可・断絶真紅レーザー警告！")
 			
 	# コアが濃赤に激しく明滅
 	if is_instance_valid(core_glow):
@@ -349,7 +349,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 		# 砲台生存中はバリアでダメージ80%カット
 		final_dmg = max(1, int(amount * 0.2))
 		if randf() < 0.2:
-			spawn_shield_message("⚠️ サブ砲台が防壁を展開中！")
+			spawn_shield_message("サブ砲台が防壁を展開中！")
 			
 		# 防壁ヒット演出 (金属弾きSE & シールドスパーク & 青白フラッシュ)
 		Global.play_guard(randf_range(0.95, 1.05))

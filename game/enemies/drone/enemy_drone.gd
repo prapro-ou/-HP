@@ -229,7 +229,7 @@ func _process(delta: float) -> void:
 					move_direction.x = -1.0
 					
 			TYPE_CHARGE:
-				# 前進接近 ➔ チャージ ➔ 緩やかな上下左右スライド
+				# 前進接近 -> チャージ -> 緩やかな上下左右スライド
 				position.x += speed * 0.6 * move_direction.x * delta
 				var subtle_y = sin(flight_time * y_frequency) * y_amplitude
 				position.y = clamp(base_y + subtle_y, MIN_ACTIVE_Y, MAX_ACTIVE_Y)

@@ -103,16 +103,16 @@ const MAX_TRAIT_SLOTS: int = 2
 var active_traits: Array[String] = [] # 現在固定装備中の最大2つの属性キー
 
 var analysis_patterns: Dictionary = {
-	PATTERN_RAPID:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "高速連射", "icon": "⚡", "color": Color(0.3, 0.8, 1.0) },
+	PATTERN_RAPID:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "高速連射", "icon": "", "color": Color(0.3, 0.8, 1.0) },
 	PATTERN_SPREAD:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "拡散射撃", "icon": "◈", "color": Color(0.2, 1.0, 0.6) },
 	PATTERN_PIERCE:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "貫通重弾", "icon": "▲", "color": Color(1.0, 0.6, 0.2) },
 	PATTERN_HOMING:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "誘導ミサイル", "icon": "▶", "color": Color(0.85, 0.45, 1.0) },
 	PATTERN_LASER:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "フォトン光線", "icon": "━", "color": Color(0.4, 0.9, 1.0) },
 	PATTERN_CYCLONE: { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "旋回スピン", "icon": "◎", "color": Color(1.0, 0.85, 0.2) },
 	PATTERN_METEOR:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "ギガメテオ", "icon": "●", "color": Color(1.0, 0.35, 0.2) },
-	PATTERN_THUNDER: { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "電撃連鎖", "icon": "⚡⚡", "color": Color(0.95, 0.9, 0.2) },
-	PATTERN_VORTEX:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "重力特異点", "icon": "🌀", "color": Color(0.75, 0.3, 1.0) },
-	PATTERN_BLADE:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "真空斬撃", "icon": "✦", "color": Color(0.2, 1.0, 0.85) }
+	PATTERN_THUNDER: { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "電撃連鎖", "icon": "", "color": Color(0.95, 0.9, 0.2) },
+	PATTERN_VORTEX:  { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "重力特異点", "icon": "", "color": Color(0.75, 0.3, 1.0) },
+	PATTERN_BLADE:   { "progress": 0.0, "analyzed": false, "level": 0, "max_level": 5, "name": "真空斬撃", "icon": "", "color": Color(0.2, 1.0, 0.85) }
 }
 
 const PLAYER_BULLET_SCENE: PackedScene = preload("res://game/player/player_bullet.tscn")
@@ -227,7 +227,7 @@ func cycle_equipped_weapon(dir: int) -> void:
 	var w_name = new_weapon
 	if Global.available_weapons.has(new_weapon):
 		w_name = Global.available_weapons[new_weapon].get("name", new_weapon)
-	spawn_popup_message("⚡ 主兵装切替: 【%s】" % w_name)
+	spawn_popup_message("主兵装切替: 【%s】" % w_name)
 	
 	var main = get_node_or_null("/root/Main")
 	if main:
@@ -296,7 +296,7 @@ func _process(delta: float) -> void:
 		var prev_gt = gauge_shield_timer
 		gauge_shield_timer = max(0.0, gauge_shield_timer - delta)
 		if prev_gt > 0.0 and gauge_shield_timer == 0.0:
-			spawn_popup_message("⚡ 吸収パルス充填完了！ READY")
+			spawn_popup_message("吸収パルス充填完了！ READY")
 			trigger_screen_flash(Color(0.1, 1.0, 0.6, 0.25))
 
 	if is_overheated:
@@ -306,7 +306,7 @@ func _process(delta: float) -> void:
 			overheat_timer = 0.0
 			shield_heat = 0.0
 			is_overheated = false
-			spawn_popup_message("⚡ シールド完全冷却完了！防御フィールド復旧")
+			spawn_popup_message("シールド完全冷却完了！防御フィールド復旧")
 			trigger_screen_flash(Color.CYAN)
 	else:
 		if not is_guarding and shield_heat > 0.0:
@@ -359,11 +359,11 @@ func _process(delta: float) -> void:
 				Global.play_guard(1.3)
 				trigger_screen_flash(Color(0.1, 1.0, 0.6, 0.35))
 				trigger_parry_ring_effect(Color(0.1, 1.0, 0.6))
-				spawn_popup_message("⚡ 吸収パルスフィールド展開！")
+				spawn_popup_message("吸収パルスフィールド展開！")
 		else:
 			# 通常 / カウンター / パワーシールド (ヒート制)
 			if is_overheated:
-				spawn_popup_message("⚠️ シールド過熱冷却中！(装甲脆弱・被ダメ1.6倍)")
+				spawn_popup_message("シールド過熱冷却中！(装甲脆弱・被ダメ1.6倍)")
 			elif shield_heat < max_shield_heat:
 				is_guarding = true
 				active_timer = parry_active_time
@@ -379,7 +379,7 @@ func _process(delta: float) -> void:
 					overheat_timer = overheat_cooldown
 					is_guarding = false
 					trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.5))
-					spawn_popup_message("⚠️ シールドオーバーヒート！装甲脆弱化 (被ダメ 1.6倍)")
+					spawn_popup_message("シールドオーバーヒート！装甲脆弱化 (被ダメ 1.6倍)")
 	
 	if is_guarding:
 		check_parry()
@@ -410,7 +410,7 @@ func _process(delta: float) -> void:
 			Engine.time_scale = 0.15
 			if not has_meta("slow_alert_shown"):
 				set_meta("slow_alert_shown", true)
-				spawn_popup_message("⚠️ 危険: SPACEでパリィを実行！")
+				spawn_popup_message("危険: SPACEでパリィを実行！")
 		else:
 			if Engine.time_scale < 0.5 and not is_guarding:
 				Engine.time_scale = 1.0
@@ -423,7 +423,7 @@ func _process(delta: float) -> void:
 				if Input.is_key_pressed(KEY_X):
 					set_meta("is_counter_system_used", true)
 					is_full_burst = true
-					spawn_popup_message("⚠️ COUNTER SYSTEM ACTIVE: FULL BURST!")
+					spawn_popup_message("COUNTER SYSTEM ACTIVE: FULL BURST!")
 					
 					get_tree().create_timer(3.0).timeout.connect(func():
 						is_full_burst = false
@@ -773,7 +773,7 @@ func check_parry() -> void:
 		# 10連続パリィ達成ごとにボーナス回復
 		if consecutive_parries % 10 == 0:
 			heal(30)
-			spawn_popup_message("⚡ %dx PARRY COMBO! 機体修復 +30 HP" % consecutive_parries)
+			spawn_popup_message("%dx PARRY COMBO! 機体修復 +30 HP" % consecutive_parries)
 			
 		trigger_parry_feedback(last_parry_pos)
 
@@ -797,7 +797,7 @@ func take_damage(amount: int, is_guard_break: bool = false) -> void:
 	if is_guard_break or (is_guarding and is_guard_break):
 		dmg_multiplier = 1.75
 		is_critical_hit = true
-		alert_text = "⚠️ GUARD BREAK! 致命傷 -%d"
+		alert_text = "GUARD BREAK! 致命傷 -%d"
 		is_guarding = false
 		if Global.equipped_shield != SHIELD_GAUGE:
 			is_overheated = true
@@ -807,12 +807,12 @@ func take_damage(amount: int, is_guard_break: bool = false) -> void:
 	elif is_overheated:
 		dmg_multiplier = 1.60
 		is_critical_hit = true
-		alert_text = "⚠️ OVERHEAT HIT! 脆弱被弾 -%d"
+		alert_text = "OVERHEAT HIT! 脆弱被弾 -%d"
 	# ③ ガード隙（リカバリー硬直中）の被弾 (カウンター: 1.5倍)
 	elif guard_recovery_timer > 0.0:
 		dmg_multiplier = 1.50
 		is_critical_hit = true
-		alert_text = "⚡ COUNTER HIT! 隙に直撃 -%d"
+		alert_text = "COUNTER HIT! 隙に直撃 -%d"
 		
 	# ④ コンボ維持中のハイリスク倍率 (1コンボ毎に+3%, 最大+30%)
 	if consecutive_parries > 0:
@@ -950,7 +950,7 @@ func apply_pattern_trait(pattern_key: String) -> void:
 	if not active_traits.has(pattern_key):
 		if active_traits.size() < MAX_TRAIT_SLOTS:
 			active_traits.append(pattern_key)
-			spawn_popup_message("🔒【固定スロット%d装備】%s Lv.%d" % [active_traits.size(), data["name"], lvl])
+			spawn_popup_message("【固定スロット%d装備】%s Lv.%d" % [active_traits.size(), data["name"], lvl])
 		else:
 			# スロットが満杯の場合は絶対に上書きしない
 			return
@@ -993,7 +993,7 @@ func trigger_level_up_burst(data: Dictionary, lvl: int) -> void:
 			d.take_damage(100)
 			
 	# 5. ドット調ビッグバナー演出
-	spawn_big_levelup_banner(data["name"], lvl, data.get("icon", "⚡"))
+	spawn_big_levelup_banner(data["name"], lvl, data.get("icon", ""))
 	
 	# 6. パーティクル爆発
 	var p_scene = preload("res://game/bullets/parry_particle.tscn")
@@ -1008,7 +1008,7 @@ func trigger_level_up_burst(data: Dictionary, lvl: int) -> void:
 
 func spawn_big_levelup_banner(trait_name: String, lvl: int, icon: String) -> void:
 	var label = Label.new()
-	label.text = "⚡ LEVEL UP! ⚡\n%s 【%s Lv.%d】 解放！" % [icon, trait_name, lvl]
+	label.text = "LEVEL UP!\n%s 【%s Lv.%d】 解放！" % [icon, trait_name, lvl]
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var label_settings = LabelSettings.new()
@@ -1123,9 +1123,9 @@ func trigger_parry_feedback(hit_pos: Vector2 = Vector2.ZERO) -> void:
 	var heal_amt = 12 + get_total_analysis_level() * 4
 	heal(heal_amt)
 	
-	var popup_text = "⚡ JUST PARRY! ⚡\n機体修復 +%d" % heal_amt
+	var popup_text = "JUST PARRY!\n機体修復 +%d" % heal_amt
 	if Global.equipped_shield == SHIELD_GAUGE:
-		popup_text = "🔮 ABSORB PARRY! 🔮\n超速解析 +400%% ＆ 修復 +%d" % (heal_amt + 35)
+		popup_text = "ABSORB PARRY!\n超速解析 +400%% ＆ 修復 +%d" % (heal_amt + 35)
 	spawn_parry_popup_message(popup_text)
 	
 	if Global.equipped_shield != SHIELD_GAUGE:
@@ -1137,7 +1137,7 @@ func trigger_parry_feedback(hit_pos: Vector2 = Vector2.ZERO) -> void:
 			overheat_timer = overheat_cooldown
 			is_guarding = false
 			trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.6))
-			spawn_popup_message("⚠️ 修復過負荷によりシールド過熱！(被ダメ1.6倍)")
+			spawn_popup_message("修復過負荷によりシールド過熱！(被ダメ1.6倍)")
 
 
 func trigger_hit_stop(duration_sec: float, scale: float) -> void:
@@ -1263,7 +1263,7 @@ func play_victory_flyby() -> void:
 	var prepare_pos = Vector2(center_x, vp_size.y * 0.76)
 	var escape_pos = Vector2(center_x, -320.0)
 	
-	spawn_popup_message("⚡ FULL AFTERBURNER ONLINE: ACCELERATE! ⚡")
+	spawn_popup_message("FULL AFTERBURNER ONLINE: ACCELERATE!")
 	
 	var tween = create_tween()
 	# 1. 画面中央下部へスムーズに位置合わせ (0.5秒)

@@ -113,7 +113,7 @@ func create_top_warning_ui() -> void:
 	top_warning_label.offset_top = 110.0
 	top_warning_label.offset_bottom = 160.0
 	top_warning_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	top_warning_label.text = "⚠️ DANGER: パリィ不可攻撃警告 ⚠️\n【PARRY IMPOSSIBLE - EVADE!】"
+	top_warning_label.text = "DANGER: パリィ不可攻撃警告\n【PARRY IMPOSSIBLE - EVADE!】"
 	var l_set = LabelSettings.new()
 	if PIXEL_FONT:
 		l_set.font = PIXEL_FONT
@@ -132,7 +132,7 @@ func show_top_unparryable_warning(duration: float = 2.0, message: String = "") -
 	if message != "":
 		top_warning_label.text = message
 	else:
-		top_warning_label.text = "⚠️ DANGER: パリィ不可攻撃警告 ⚠️\n【PARRY IMPOSSIBLE - EVADE!】"
+		top_warning_label.text = "DANGER: パリィ不可攻撃警告\n【PARRY IMPOSSIBLE - EVADE!】"
 		
 	if is_instance_valid(top_warning_tween):
 		top_warning_tween.kill()
@@ -190,7 +190,7 @@ func create_wave_phase_ui() -> void:
 	vbox.add_child(hdr)
 	
 	wave_level_label = Label.new()
-	wave_level_label.text = "⚡ WAVE 1"
+	wave_level_label.text = "WAVE 1"
 	var w_set = LabelSettings.new()
 	if PIXEL_FONT:
 		w_set.font = PIXEL_FONT
@@ -202,7 +202,7 @@ func create_wave_phase_ui() -> void:
 	hdr.add_child(wave_level_label)
 	
 	wave_countdown_label = Label.new()
-	wave_countdown_label.text = "⏱️ 01:30"
+	wave_countdown_label.text = "01:30"
 	wave_countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var c_set = LabelSettings.new()
 	if PIXEL_FONT:
@@ -215,7 +215,7 @@ func create_wave_phase_ui() -> void:
 	vbox.add_child(wave_countdown_label)
 	
 	wave_kills_label = Label.new()
-	wave_kills_label.text = "💀 撃破数: 0 体"
+	wave_kills_label.text = "撃破数: 0 体"
 	wave_kills_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var k_set = LabelSettings.new()
 	if PIXEL_FONT:
@@ -231,12 +231,12 @@ func create_wave_phase_ui() -> void:
 func update_wave_phase_hud(wave_num: int, remaining_time: float, kills: int) -> void:
 	if is_instance_valid(wave_timer_panel):
 		wave_timer_panel.visible = true
-		wave_level_label.text = "⚡ WAVE %d" % wave_num
+		wave_level_label.text = "WAVE %d" % wave_num
 		
 		var total_sec = max(0, int(ceil(remaining_time)))
 		var mins = total_sec / 60
 		var secs = total_sec % 60
-		wave_countdown_label.text = "⏱️ %02d:%02d" % [mins, secs]
+		wave_countdown_label.text = "%02d:%02d" % [mins, secs]
 		
 		if remaining_time <= 10.0:
 			var flash = int(remaining_time * 6.0) % 2 == 0
@@ -244,7 +244,7 @@ func update_wave_phase_hud(wave_num: int, remaining_time: float, kills: int) -> 
 		else:
 			wave_countdown_label.label_settings.font_color = Color.CYAN
 			
-		wave_kills_label.text = "💀 撃破数: %d 体" % kills
+		wave_kills_label.text = "撃破数: %d 体" % kills
 
 
 func hide_wave_phase_hud() -> void:
@@ -375,7 +375,7 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 				var lvl = data.get("level", 1)
 				var max_lvl = data.get("max_level", 5)
 				var lvl_str = "Lv.%d" % lvl if lvl < max_lvl else "Lv.MAX"
-				card["label"].text = "🔒 %s %s\n%s" % [data.get("icon", "⚡"), data.get("name", "属性"), lvl_str]
+				card["label"].text = "%s %s\n%s" % [data.get("icon", ""), data.get("name", "属性"), lvl_str]
 				card["label"].label_settings.font_color = Color.GOLD if lvl >= 3 else Color.WHITE
 				card["style"].border_color = data.get("color", Color.CYAN)
 				card["style"].bg_color = Color(0.1, 0.16, 0.24, 0.95)
@@ -732,7 +732,7 @@ func show_analysis_unlock_modal(pattern_key: String, data: Dictionary) -> void:
 	margin.add_child(vbox)
 	
 	var h_lbl = Label.new()
-	h_lbl.text = "⚡ 新変異兵装・解析完了！"
+	h_lbl.text = "新変異兵装・解析完了！"
 	h_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	setup_label_style(h_lbl, 24, Color.GOLD, 6)
 	vbox.add_child(h_lbl)
@@ -839,7 +839,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 			border_col = Color(0.2, 0.8, 1.0)
 			items = [
 				{
-					"title": "🎮 機体移動",
+					"title": "機体移動",
 					"color": Color.CYAN,
 					"desc": "[W][A][S][D] / [方向キー] / [マウス移動]\n自機を360度自在に操り、敵の弾幕をすり抜けろ。"
 				},
@@ -849,13 +849,13 @@ func show_tutorial_guide_modal(topic: String) -> void:
 					"desc": "[Zキー] / [左クリック]（押しっぱなしで自動連射）\n通常物理弾で雑魚ドローンを撃破し、侵攻を食い止めろ。"
 				},
 				{
-					"title": "🛡️ シールド ＆ パリィ",
+					"title": "シールド ＆ パリィ",
 					"color": Color.GOLD,
 					"desc": "[スペースキー] / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【パリィ】発動！敵弾を赤色反射弾に変換して大ダメージ＆機体修復！"
 				}
 			]
 		"weapon_analysis":
-			title_text = "⚡ 【敵弾解析 ＆ 変異兵装】"
+			title_text = "【敵弾解析 ＆ 変異兵装】"
 			sub_text = "敵の攻撃を解析し、自機の武装へと変換せよ！"
 			border_col = Color(1.0, 0.85, 0.2)
 			items = [
@@ -870,13 +870,13 @@ func show_tutorial_guide_modal(topic: String) -> void:
 					"desc": "解析度100%で【変異兵装】が解放！全兵装共鳴により、機体の全攻撃力・機動性も底上げされます。"
 				},
 				{
-					"title": "🔒 変異スロット固定装備（最大2枠）",
+					"title": "変異スロット固定装備（最大2枠）",
 					"color": Color(0.9, 0.45, 1.0),
 					"desc": "獲得した2つの変異兵装がスロットに固定されます。スロット満杯後は上書きされず、その2つが集中的にLvアップ強化され続けます！"
 				}
 			]
 		"time_limit":
-			title_text = "⏱️ 【防衛フェーズ残り30秒 ＆ ボス接近】"
+			title_text = "【防衛フェーズ残り30秒 ＆ ボス接近】"
 			sub_text = "迫る超巨大要塞ボスとの決戦に備えよ！"
 			border_col = Color(1.0, 0.55, 0.2)
 			items = [
@@ -886,23 +886,23 @@ func show_tutorial_guide_modal(topic: String) -> void:
 					"desc": "各ステージの通常防衛時間は【90秒間】です（現在1分経過、残り30秒！）。"
 				},
 				{
-					"title": "💥 最終防衛態勢",
+					"title": "最終防衛態勢",
 					"color": Color(0.3, 0.9, 1.0),
 					"desc": "敵の増援が激化します。敵を撃破してテックポイント（TP）を獲得し、変異兵装を解析強化しましょう！"
 				},
 				{
-					"title": "⚠️ ボス戦移行",
+					"title": "ボス戦移行",
 					"color": Color(1.0, 0.3, 0.3),
 					"desc": "90秒が経過すると画面が暗転し、巨大な「要塞ボス」が出現・戦闘フェーズに移行します！"
 				}
 			]
 		"boss_info":
-			title_text = "⚠️ 【要塞ボス戦 ＆ サブ砲台の防壁】"
+			title_text = "【要塞ボス戦 ＆ サブ砲台の防壁】"
 			sub_text = "サブ砲台を破壊し、要塞の装甲を突破せよ！"
 			border_col = Color(1.0, 0.2, 0.2)
 			items = [
 				{
-					"title": "🛡️ サブ砲台の防壁",
+					"title": "サブ砲台の防壁",
 					"color": Color(1.0, 0.35, 0.35),
 					"desc": "左右のサブ砲台が生存中は、ボスの強固な防壁により【ボス本体への被ダメージが80%カット】されます！"
 				},
@@ -912,7 +912,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 					"desc": "まずは左右のサブ砲台を集中攻撃して破壊するか、砲台の弾幕をパリィしてボスに反射ダメージを与えましょう！"
 				},
 				{
-					"title": "⚠️ 【パリィ不可】真紅の警告",
+					"title": "【パリィ不可】真紅の警告",
 					"color": Color(1.0, 0.1, 0.15),
 					"desc": "画面上部が赤く点灯した際はパリィ不可・断絶レーザーの合図！ガードを貫通するため緊急回避してください！"
 				}
@@ -1259,10 +1259,10 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 				guard_status_label.text = "⏳ ABSORB CT: 冷却中 %.1fs" % gauge_timer
 				guard_status_label.label_settings.font_color = Color(1.0, 0.7, 0.3)
 			elif is_guarding:
-				guard_status_label.text = "⚡ 吸収パルス展開中！"
+				guard_status_label.text = "吸収パルス展開中！"
 				guard_status_label.label_settings.font_color = Color(0.2, 1.0, 0.6)
 			else:
-				guard_status_label.text = "⚡ 吸収パルス準備完了 [Space]"
+				guard_status_label.text = "吸収パルス準備完了 [Space]"
 				guard_status_label.label_settings.font_color = Color(0.3, 1.0, 0.6)
 		else:
 			# 通常・カウンター・パワーシールド (ヒート制)
@@ -1286,7 +1286,7 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 						fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
 	
 			if is_overheated:
-				guard_status_label.text = "⚠️ OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
+				guard_status_label.text = "OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
 				guard_status_label.label_settings.font_color = Color.RED
 			elif is_guarding:
 				guard_status_label.text = "シールド: 展開中！"
