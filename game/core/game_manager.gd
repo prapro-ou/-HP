@@ -611,11 +611,8 @@ func spawn_popup(text: String) -> void:
 
 func show_game_over(result: String) -> void:
 	var audio_mgr = get_node_or_null("/root/AudioManager")
-	if audio_mgr and audio_mgr.has_method("play_bgm"):
-		if result == "VICTORY":
-			audio_mgr.play_bgm("victory", 0.5)
-		else:
-			audio_mgr.play_bgm("game_over", 0.5)
+	if audio_mgr and audio_mgr.has_method("stop_bgm"):
+		audio_mgr.stop_bgm(0.5)
 			
 	if ui and ui.has_method("show_game_over"):
 		ui.show_game_over(result)

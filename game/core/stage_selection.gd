@@ -50,10 +50,10 @@ func _ready() -> void:
 	Global.load_settings()
 	Global.check_save_game()
 	
-	# Play Stage Select BGM
+	# Stage Selection uses SFX only (Stop BGM)
 	var audio_mgr = get_node_or_null("/root/AudioManager")
-	if audio_mgr and audio_mgr.has_method("play_bgm"):
-		audio_mgr.play_bgm("stage_select", 0.8)
+	if audio_mgr and audio_mgr.has_method("stop_bgm"):
+		audio_mgr.stop_bgm(0.3)
 	
 	var save_data = Global.load_game_data()
 	var saved_stage_num = save_data.get("stage_num", 1)
