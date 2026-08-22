@@ -7,6 +7,7 @@ extends Node2D
 
 const TURRET_SCENE: PackedScene = preload("res://game/enemies/boss/boss_turret.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
+const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var max_hp: int = 7500
 var current_hp: int = 7500
@@ -134,12 +135,57 @@ func _process(delta: float) -> void:
 			spawn_shield_message("⚠️ 警告: 予備砲台デッキ展開！")
 			spawn_sub_turrets(4.0, true)
 			
+	# プレイヤーの接近感知による全方位迎撃パルス（円形弾）
+	process_proximity_counter_attack(delta)
+	
 	fire_timer += delta
 	# 砲台生存中は3.5秒、砲台撃破後は1.5秒に手数が倍増！
 	var attack_interval = 1.5 if is_enraged else 3.5
 	if fire_timer >= attack_interval:
 		fire_timer = 0.0
 		execute_fortress_attack()
+
+
+var close_proximity_timer: float = 0.0
+const CLOSE_PROXIMITY_COOLDOWN: float = 3.5
+const CLOSE_PROXIMITY_DISTANCE: float = 250.0
+
+func process_proximity_counter_attack(delta: float) -> void:
+	if close_proximity_timer > 0.0:
+		close_proximity_timer -= delta
+		return
+		
+	if not is_active or not is_alive or not is_instance_valid(player) or not is_instance_valid(bullet_pool):
+		return
+		
+	var core_pos = core_node.global_position if is_instance_valid(core_node) else global_position
+	var dist = player.global_position.distance_to(core_pos)
+	
+	if dist <= CLOSE_PROXIMITY_DISTANCE:
+		close_proximity_timer = CLOSE_PROXIMITY_COOLDOWN
+		fire_proximity_ring_attack(core_pos)
+
+
+func fire_proximity_ring_attack(center_pos: Vector2) -> void:
+	# コアの白熱警告フラッシュ
+	if is_instance_valid(core_glow):
+		core_glow.color = Color(3.0, 3.0, 1.0, 1.0)
+		var t = create_tween()
+		t.tween_property(core_glow, "color", Color(1.0, 0.2, 0.2, 0.6), 0.25)
+		
+	Global.play_laser(randf_range(1.1, 1.3))
+	spawn_shield_message("⚠️ 接近感知！全方位迎撃パルス起動！")
+	
+	var mult = get_stage_difficulty_mult()
+	var bullet_count = 16
+	for i in range(bullet_count):
+		var angle = i * (TAU / float(bullet_count))
+		var dir = Vector2.RIGHT.rotated(angle)
+		var bullet = bullet_pool.get_bullet("wave")
+		if bullet:
+			bullet.global_position = center_pos
+			bullet.damage = int(8 * mult)
+			bullet.set_direction(dir, 280.0)
 
 
 func get_stage_difficulty_mult() -> float:
@@ -240,6 +286,8 @@ func execute_fortress_attack() -> void:
 					)
 
 
+const MEGA_BEAM_SCENE: PackedScene = preload("res://game/effects/mega_beam.tscn")
+
 func execute_unparryable_cannon_attack() -> void:
 	# 1. 画面上部をやんわり赤く点灯させる警告演出
 	var main = get_node_or_null("/root/Main")
@@ -258,6 +306,14 @@ func execute_unparryable_cannon_attack() -> void:
 		if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
 			var vp_w = get_viewport_rect().size.x
 			var core_pos = core_node.global_position if is_instance_valid(core_node) else Vector2(vp_w / 2.0, 250.0)
+			var p_pos = player.global_position if is_instance_valid(player) else Vector2(vp_w / 2.0, 900.0)
+			
+			# 極太ビームエフェクト（断絶真紅レーザー）の演出呼び出し
+			if MEGA_BEAM_SCENE and get_parent():
+				var beam = MEGA_BEAM_SCENE.instantiate()
+				var target_bottom = core_pos + (p_pos - core_pos).normalized() * 1100.0
+				beam.setup_beam(core_pos, target_bottom, Color(1.0, 0.15, 0.25), 48.0, 0.5)
+				get_parent().add_child(beam)
 			
 			var angles = [-24.0, -12.0, 0.0, 12.0, 24.0] if is_enraged else [-18.0, 0.0, 18.0]
 			for a_deg in angles:
@@ -274,9 +330,13 @@ func execute_unparryable_cannon_attack() -> void:
 	)
 
 
-func take_damage_on_part(_part_name: String, amount: int) -> void:
+func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vector2.ZERO, is_critical: bool = false) -> void:
 	if not is_alive:
 		return
+		
+	var actual_hit_pos = hit_pos
+	if actual_hit_pos == Vector2.ZERO:
+		actual_hit_pos = core_node.global_position if (is_instance_valid(core_node) and part_name == "core") else global_position
 		
 	var has_alive_turrets = false
 	for t in turrets:
@@ -291,20 +351,41 @@ func take_damage_on_part(_part_name: String, amount: int) -> void:
 		if randf() < 0.2:
 			spawn_shield_message("⚠️ サブ砲台が防壁を展開中！")
 			
+		# 防壁ヒット演出 (金属弾きSE & シールドスパーク & 青白フラッシュ)
+		Global.play_guard(randf_range(0.95, 1.05))
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "shield")
+		
+		if is_instance_valid(sprite):
+			sprite.modulate = Color(0.8, 1.5, 2.5, 1.0)
+			var tween = create_tween()
+			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
+	else:
+		# 砲台破壊後: 弱点コア直撃 (重被弾SE & ヘビースパーク & 白熱フラッシュ & 被弾シェイク)
+		Global.play_heavy_hit(randf_range(0.95, 1.08))
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy" if (part_name == "core" or is_critical) else "normal")
+		
+		if is_instance_valid(core_glow):
+			core_glow.color = Color(3.0, 1.8, 1.8, 0.95)
+			var c_tween = create_tween()
+			c_tween.tween_property(core_glow, "color", Color(1.0, 0.1, 0.1, 0.6), 0.08)
+			
+		if is_instance_valid(sprite):
+			sprite.modulate = Color(2.4, 1.6, 1.6, 1.0)
+			var tween = create_tween()
+			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
+			
+			# 被弾微小シェイク
+			sprite.position = Vector2(randf_range(-3.5, 3.5), randf_range(-2.0, 2.0))
+			var shake_t = create_tween()
+			shake_t.tween_property(sprite, "position", Vector2.ZERO, 0.05)
+			
 	current_hp -= final_dmg
 	
-	# 被弾フラッシュ
-	if is_instance_valid(sprite):
-		sprite.modulate = Color(1.5, 0.7, 0.7, 1.0)
-		var tween = create_tween()
-		tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.12)
-		
 	var main = get_node_or_null("/root/Main")
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			var pop_pos = core_node.global_position if is_instance_valid(core_node) else global_position
-			ui_node.spawn_damage_popup(pop_pos, final_dmg, not has_alive_turrets)
+			ui_node.spawn_damage_popup(actual_hit_pos, final_dmg, not has_alive_turrets, is_critical)
 			
 		var mgr = main.get_node_or_null("GameManager")
 		if mgr and mgr.has_method("add_damage_score"):
@@ -312,7 +393,7 @@ func take_damage_on_part(_part_name: String, amount: int) -> void:
 			
 	if current_hp <= 0:
 		current_hp = 0
-		destroy_boss()
+		call_deferred("destroy_boss")
 
 
 func spawn_shield_message(text: String) -> void:
@@ -338,41 +419,142 @@ func spawn_shield_message(text: String) -> void:
 	tween.chain().tween_callback(label.queue_free)
 
 
+const DATA_ORB_SCENE: PackedScene = preload("res://game/core/data_orb.tscn")
+const EXPLOSION_EFFECT_SCENE: GDScript = preload("res://game/bullets/explosion_effect.gd")
+
 func destroy_boss() -> void:
+	if not is_alive:
+		return
 	is_alive = false
 	is_active = false
 	
+	var main_tree = get_tree()
+	var player_node = get_node_or_null("/root/Main/Player")
+	var main_node = get_node_or_null("/root/Main")
+	
+	# プレイヤーの操作を即時ロック（移動・射撃・ガード無効化＆無敵化）
+	if is_instance_valid(player_node) and player_node.has_method("lock_controls"):
+		player_node.lock_controls()
+	
+	# 1. 撃破インパクト音 ＆ 画面フラッシュ ＆ 撃破テロップ
+	Global.play_heavy_hit(0.7)
+	if is_instance_valid(player_node) and player_node.has_method("trigger_screen_flash"):
+		player_node.trigger_screen_flash(Color(1.0, 0.95, 0.5, 0.7))
+		
+	# 2. 画面上の全敵弾をデータオーブに変換 ＆ プレイヤーへ磁力吸引
+	call_deferred("convert_all_bullets_to_data_orbs", player_node)
+	
 	# ボス撃破ボーナス: +10 TP
 	Global.tech_points += 10
-	var player_node = get_node_or_null("/root/Main/Player")
 	if player_node and player_node.has_method("spawn_popup_message"):
 		player_node.spawn_popup_message("🏆 要塞ボス完全撃破！ +10 TP 獲得！")
 		
+	# サブ砲台の破壊
 	for t in turrets:
 		if is_instance_valid(t) and t.is_alive:
 			t.destroy_turret()
 			
-	var main_tree = get_tree()
-	if PARRY_PARTICLE_SCENE and main_tree:
-		for i in range(25):
-			main_tree.create_timer(i * 0.1).timeout.connect(func():
-				if is_instance_valid(self):
-					var p = PARRY_PARTICLE_SCENE.instantiate()
-					p.global_position = global_position + Vector2(randf_range(-400, 400), randf_range(-300, 300))
-					p.scale = Vector2(4.0, 4.0)
-					p.modulate = Color(1.0, randf_range(0.2, 0.9), 0.1)
-					get_parent().add_child(p)
-			)
+	# 3. ボス各部の28連続重誘爆（外郭から徐々に内側コアへ迫る大連鎖爆発）
+	var explosion_offsets = [
+		Vector2(-320, -90), Vector2(320, -90), Vector2(-260, 60), Vector2(260, 60),
+		Vector2(-180, -130), Vector2(180, -130), Vector2(-360, 10), Vector2(360, 10),
+		Vector2(-120, -70), Vector2(120, -70), Vector2(-200, 90), Vector2(200, 90),
+		Vector2(-80, 20), Vector2(80, 20), Vector2(-290, -40), Vector2(290, -40),
+		Vector2(-140, 110), Vector2(140, 110), Vector2(-60, -110), Vector2(60, -110),
+		Vector2(-220, -10), Vector2(220, -10), Vector2(-100, 40), Vector2(100, 40),
+		Vector2(-40, -40), Vector2(40, -40), Vector2(0, 60), Vector2(0, -20)
+	]
+	
+	for i in range(explosion_offsets.size()):
+		main_tree.create_timer(i * 0.095).timeout.connect(func():
+			if is_instance_valid(self):
+				var exp_pos = global_position + explosion_offsets[i]
+				var progress = float(i) / float(explosion_offsets.size()) # 0.0 -> 1.0
+				var exp_rad = randf_range(55.0 + progress * 40.0, 95.0 + progress * 60.0)
+				var exp_col = Color(1.0, randf_range(0.3, 0.9), 0.1) if progress < 0.7 else Color(1.0, randf_range(0.7, 1.0), 0.5)
+				ExplosionEffect.create(get_parent(), exp_pos, exp_rad, exp_col, 0.38)
+				Global.play_explosion(randf_range(1.0, 1.35) - progress * 0.2)
+				
+				# 被弾激震シェイク
+				if is_instance_valid(sprite):
+					var shake_amp = 6.0 + progress * 8.0
+					sprite.position = Vector2(randf_range(-shake_amp, shake_amp), randf_range(-shake_amp * 0.7, shake_amp * 0.7))
+		)
+		
+	# 4. ボス本体の白熱明滅 ＆ スムーズなフェードアウト（2.8秒）
+	if is_instance_valid(sprite):
+		var fade_tween = create_tween().set_parallel(true)
+		fade_tween.tween_property(sprite, "modulate:a", 0.0, 2.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		fade_tween.tween_property(sprite, "position", Vector2(0.0, 50.0), 2.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		
+	if is_instance_valid(core_glow):
+		var core_tween = create_tween()
+		core_tween.tween_property(core_glow, "modulate:a", 0.0, 2.5)
+		
+	# 5. フィニッシュ超巨大白熱大爆散 ＆ フライバイ発動 (2.8秒後)
+	main_tree.create_timer(2.8).timeout.connect(func():
+		if is_instance_valid(self):
+			# 超巨大超新星大爆散（半径 440px）
+			ExplosionEffect.create(get_parent(), global_position, 440.0, Color.WHITE, 0.8)
+			ExplosionEffect.create(get_parent(), global_position + Vector2(-180, 0), 280.0, Color(0.4, 0.9, 1.0), 0.7)
+			ExplosionEffect.create(get_parent(), global_position + Vector2(180, 0), 280.0, Color(1.0, 0.6, 0.1), 0.7)
 			
-	main_tree.create_timer(2.6).timeout.connect(func():
-		var main = get_node_or_null("/root/Main")
-		if main:
-			var mgr = main.get_node_or_null("GameManager")
+			Global.play_explosion(0.6) # 重低音特大爆発
+			
+			if is_instance_valid(player_node) and player_node.has_method("trigger_screen_flash"):
+				player_node.trigger_screen_flash(Color(1.0, 1.0, 1.0, 1.0))
+	)
+	
+	# 6. 自機の勝利フライバイ演出開始 (3.2秒後)
+	main_tree.create_timer(3.2).timeout.connect(func():
+		if is_instance_valid(player_node) and player_node.has_method("play_victory_flyby"):
+			player_node.play_victory_flyby()
+	)
+	
+	# 7. 自機が上空の彼方へ突き抜けた後、作戦完了リザルトへ移行 (5.2秒後)
+	main_tree.create_timer(5.2).timeout.connect(func():
+		if is_instance_valid(main_node):
+			var mgr = main_node.get_node_or_null("GameManager")
 			if mgr and mgr.has_method("on_boss_destroyed"):
 				mgr.on_boss_destroyed()
 		queue_free()
 	)
 
 
+func convert_all_bullets_to_data_orbs(player_node: CharacterBody2D) -> void:
+	if not DATA_ORB_SCENE:
+		return
+		
+	var parent_node = get_parent()
+	if not parent_node:
+		return
+		
+	var all_bullets = []
+	var pool = get_node_or_null("/root/Main/BulletPool")
+	if pool and "active_bullets" in pool:
+		all_bullets.append_array(pool.active_bullets.duplicate())
+		
+	for p in get_tree().get_nodes_in_group("enemy_projectiles"):
+		if is_instance_valid(p) and not all_bullets.has(p):
+			all_bullets.append(p)
+			
+	for b in all_bullets:
+		if is_instance_valid(b) and not b.is_queued_for_deletion():
+			var b_pos = b.global_position
+			var b_type = b.bullet_type if "bullet_type" in b else "straight"
+			
+			# 弾を消去
+			if pool and pool.has_method("return_bullet") and pool.active_bullets.has(b):
+				pool.return_bullet(b)
+			else:
+				b.queue_free()
+				
+			# データオーブを生成して自機へ吸引（物理クエリ外で安全に追加）
+			var orb = DATA_ORB_SCENE.instantiate()
+			orb.setup_orb(b_type, b_pos, player_node)
+			parent_node.call_deferred("add_child", orb)
+
+
 func get_current_hp() -> int:
 	return current_hp
+

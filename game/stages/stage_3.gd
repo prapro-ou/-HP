@@ -21,11 +21,6 @@ func _setup_waves() -> void:
 	w1.wave_id = "wave1_facility"
 	w1.display_title = "PHASE 1: 惑星内部・軍事工廠前衛"
 	w1.start_message = "【MISSION 03: 惑星内部工廠・制圧戦】\n制限時間（90秒）まで工廠警備部隊を殲滅せよ！\n電磁プラズマと高出力ビームをパリィで制圧せよ！"
-	w1.clear_condition_type = "analysis_or_parry"
-	w1.target_drone_count = 15
-	w1.target_parry_count = 25
-	w1.transition_delay = 2.2
-	w1.completion_message = "【PHASE 1 突破】第1工廠ライン制圧！"
 	w1.replenish_types = ["laser", "charge", "wave", "irregular"]
 	w1.min_active_drones = 5
 	w1.drone_speed_override = 200.0
@@ -43,11 +38,6 @@ func _setup_waves() -> void:
 	w2.wave_id = "wave2_facility_core"
 	w2.display_title = "PHASE 2: 高度軍事プラント・警備大隊"
 	w2.start_message = "[ASSIST AI]: 惑星中枢防衛セキュリティが最大稼働！\nチャージボルトと誘導弾の嵐をパリィで制圧せよ！"
-	w2.clear_condition_type = "analysis_or_parry"
-	w2.target_drone_count = 20
-	w2.target_parry_count = 35
-	w2.transition_delay = 2.5
-	w2.completion_message = "【PHASE 2 制圧】工廠警備大隊を完全壊滅！"
 	w2.replenish_types = ["charge", "missile", "laser", "irregular", "wave"]
 	w2.min_active_drones = 5
 	w2.drone_speed_override = 220.0
@@ -65,11 +55,6 @@ func _setup_waves() -> void:
 	w3.wave_id = "wave3_facility_overdrive"
 	w3.display_title = "PHASE 3: コア直轄・ヘビーセキュリティ総動員"
 	w3.start_message = "[ASSIST AI]: 最終迎撃セキュリティが限界突破！\n全方位から迫る重弾幕をパリィ反射し、コロッサスコアを解放せよ！"
-	w3.clear_condition_type = "analysis_or_parry"
-	w3.target_drone_count = 25
-	w3.target_parry_count = 45
-	w3.transition_delay = 3.0
-	w3.completion_message = "【PHASE 3 突破】工廠中枢を完全制圧！巨大コア起動！"
 	w3.replenish_types = ["laser", "charge", "missile", "wave", "irregular"]
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 240.0

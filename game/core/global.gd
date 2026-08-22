@@ -96,6 +96,36 @@ var analysis_catalog: Dictionary = {
 		"effect": "主兵装の弾丸に着弾時爆裂衝撃波を付与",
 		"stats": "爆発半径: 45〜80px | 爆風威力: ＋6〜14",
 		"description": "要塞メテオ射出砲の重力破砕技術を解析。主兵装が敵に着弾した瞬間、周囲へ爆発衝撃波が広がり周囲の敵ごと吹き飛ばす。"
+	},
+	"thunder": {
+		"name": "電撃連鎖",
+		"icon": "⚡⚡",
+		"color": Color(0.95, 0.9, 0.2),
+		"enemy_color": "金色・放電色",
+		"enemy_type": "成層圏超放電ストーム／放電ドローン",
+		"effect": "主兵装に着弾時連鎖雷撃を付与。周囲の敵・砲台へ最大3〜5連鎖放電！",
+		"stats": "連鎖数: 3〜5体 | 雷撃威力: ＋8〜18",
+		"description": "成層圏超放電ストームの高圧プラズマアークを解析。弾丸が敵に命中した瞬間、周囲の敵機や砲台へ雷撃が電光石火で連鎖し一網打尽にする。"
+	},
+	"vortex": {
+		"name": "重力特異点",
+		"icon": "🌀",
+		"color": Color(0.75, 0.3, 1.0),
+		"enemy_color": "深紫色",
+		"enemy_type": "特異点重力弾／空間歪曲ユニット",
+		"effect": "着弾地点に敵を引き寄せるブラックホール重力場（1.5秒）を生成",
+		"stats": "引力半径: 80〜160px | 持続ダメージ: ＋10〜25",
+		"description": "深宇宙重力歪曲フィールドを解析。着弾地点に微小ブラックホールを発生させ、周囲の敵やドローンを吸引拘束しながら粉砕する。"
+	},
+	"blade": {
+		"name": "真空斬撃",
+		"icon": "✦",
+		"color": Color(0.2, 1.0, 0.85),
+		"enemy_color": "青緑色",
+		"enemy_type": "超振動カッター／真空スラッシャー",
+		"effect": "主兵装を巨大な三日月斬撃波へ変換。敵弾を切り裂きながら多段貫通！",
+		"stats": "斬撃幅: 80〜140px | 弾消し性能: 有効",
+		"description": "超高周波ブレードの位相切断波を解析。巨大な三日月状の真空カッターを放ち、進行ルート上の敵弾を切り払いながら敵陣を両断する。"
 	}
 }
 
@@ -205,6 +235,7 @@ func _ready() -> void:
 	load_settings()
 	check_save_game()
 	apply_all_settings()
+	init_sound_pool()
 
 func check_save_game() -> void:
 	var config = ConfigFile.new()
@@ -386,6 +417,7 @@ func apply_audio() -> void:
 	_set_bus_volume("Master", master_volume)
 	_set_bus_volume("BGM", bgm_volume)
 	_set_bus_volume("SFX", sfx_volume)
+	_set_bus_volume("UI", sfx_volume)
 
 func _set_bus_volume(bus_name: String, val: float) -> void:
 	var idx = AudioServer.get_bus_index(bus_name)
@@ -495,3 +527,244 @@ func auto_scale_display() -> void:
 		DisplayServer.window_set_position(window_pos)
 	
 	save_settings()
+
+
+# ==========================================
+# プロシージャル効果音生成・再生システム (Global Sound System)
+# ==========================================
+
+var _sfx_sounds: Dictionary = {}
+var _sfx_player_pool: Array[AudioStreamPlayer] = []
+var _sfx_pool_size: int = 14
+var _sfx_pool_index: int = 0
+var _sfx_last_play_times: Dictionary = {}
+
+func init_sound_pool() -> void:
+	# サウンドプールの作成
+	for i in range(_sfx_pool_size):
+		var asp = AudioStreamPlayer.new()
+		asp.bus = "SFX"
+		add_child(asp)
+		_sfx_player_pool.append(asp)
+		
+	# プロシージャルサウンドの生成・キャッシュ (8-bit PCM波形)
+	_sfx_sounds["hit"] = _create_hit_sound(0.045, 950.0, 0.4, 0.5)
+	_sfx_sounds["guard"] = _create_guard_sound(0.06, 1800.0)
+	_sfx_sounds["parry"] = _create_parry_sound(0.18)
+	_sfx_sounds["heavy_hit"] = _create_heavy_hit_sound(0.08, 420.0)
+	_sfx_sounds["explosion"] = _create_explosion_sound(0.25)
+	_sfx_sounds["turret_destroy"] = _create_explosion_sound(0.18)
+	_sfx_sounds["laser"] = _create_laser_sound(0.12)
+
+
+func play_sound(sound_name: String, pitch_scale: float = 1.0, min_interval: float = 0.03) -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_sfx"):
+		audio_mgr.play_sfx(sound_name, pitch_scale, min_interval)
+		return
+		
+	if _sfx_sounds.is_empty():
+		init_sound_pool()
+		
+	var now = Time.get_ticks_msec() / 1000.0
+	if _sfx_last_play_times.has(sound_name):
+		if now - _sfx_last_play_times[sound_name] < min_interval:
+			return
+	_sfx_last_play_times[sound_name] = now
+	
+	if not _sfx_sounds.has(sound_name):
+		return
+		
+	if _sfx_player_pool.is_empty():
+		return
+		
+	var asp = _sfx_player_pool[_sfx_pool_index]
+	_sfx_pool_index = (_sfx_pool_index + 1) % _sfx_player_pool.size()
+	
+	asp.stream = _sfx_sounds[sound_name]
+	asp.pitch_scale = pitch_scale * randf_range(0.95, 1.05)
+	asp.play()
+
+
+func play_hit(pitch: float = 1.0) -> void:
+	play_sound("hit", pitch, 0.035)
+
+
+func play_guard(pitch: float = 1.0) -> void:
+	play_sound("guard", pitch, 0.04)
+
+
+func play_parry(pitch: float = 1.0) -> void:
+	play_sound("parry", pitch, 0.03)
+
+
+func play_heavy_hit(pitch: float = 1.0) -> void:
+	play_sound("heavy_hit", pitch, 0.04)
+
+
+func play_explosion(pitch: float = 1.0) -> void:
+	play_sound("explosion", pitch, 0.08)
+
+
+func play_laser(pitch: float = 1.0) -> void:
+	play_sound("laser", pitch, 0.04)
+
+
+func _exit_tree() -> void:
+	for asp in _sfx_player_pool:
+		if is_instance_valid(asp):
+			asp.stop()
+
+
+# --- プロシージャル波形生成ヘルパー (44.1kHz 標準サンプリングレート) ---
+
+func _create_parry_sound(duration: float = 0.18) -> AudioStreamWAV:
+	var sample_rate = 44100
+	var sample_count = int(sample_rate * duration)
+	var data = PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t = float(i) / float(sample_rate)
+		var progress = t / duration
+		var env = exp(-progress * 13.0)
+		# 鋭い金属共鳴ベル倍音 (2800Hz, 4200Hz, 5600Hz, 8400Hz)
+		var f1 = sin(TAU * 2800.0 * t) * 0.45
+		var f2 = sin(TAU * 4200.0 * t) * 0.30
+		var f3 = sin(TAU * 5600.0 * t) * 0.20
+		var f4 = sin(TAU * 8400.0 * t) * 0.12
+		var ping = (f1 + f2 + f3 + f4)
+		var click = (randf() * 2.0 - 1.0) * exp(-progress * 90.0) * 0.9
+		var sample = (ping * 0.82 + click * 0.38) * env
+		var byte_val = int(clamp((sample + 1.0) * 127.5, 0, 255))
+		data[i] = byte_val
+		
+	var wav = AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_8_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav
+
+
+func _create_hit_sound(duration: float, start_freq: float, noise_mix: float, tone_mix: float) -> AudioStreamWAV:
+	var sample_rate = 44100
+	var sample_count = int(sample_rate * duration)
+	var data = PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t = float(i) / float(sample_rate)
+		var progress = t / duration
+		var env = exp(-progress * 14.0)
+		var freq = start_freq * (1.0 - progress * 0.7)
+		var tone = sin(TAU * freq * t)
+		var noise = randf() * 2.0 - 1.0
+		var sample = (tone * tone_mix + noise * noise_mix) * env
+		var byte_val = int(clamp((sample * 0.85 + 1.0) * 127.5, 0, 255))
+		data[i] = byte_val
+		
+	var wav = AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_8_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav
+
+
+func _create_guard_sound(duration: float, freq: float) -> AudioStreamWAV:
+	var sample_rate = 44100
+	var sample_count = int(sample_rate * duration)
+	var data = PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t = float(i) / float(sample_rate)
+		var progress = t / duration
+		var env = exp(-progress * 18.0)
+		var tone1 = sin(TAU * freq * t)
+		var tone2 = sin(TAU * (freq * 1.48) * t) * 0.5
+		var noise = (randf() * 2.0 - 1.0) * 0.2
+		var sample = (tone1 + tone2 + noise) * env * 0.8
+		var byte_val = int(clamp((sample + 1.0) * 127.5, 0, 255))
+		data[i] = byte_val
+		
+	var wav = AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_8_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav
+
+
+func _create_heavy_hit_sound(duration: float, start_freq: float) -> AudioStreamWAV:
+	var sample_rate = 44100
+	var sample_count = int(sample_rate * duration)
+	var data = PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t = float(i) / float(sample_rate)
+		var progress = t / duration
+		var env = exp(-progress * 9.0)
+		var freq = start_freq * (1.0 - progress * 0.6)
+		var tone = sin(TAU * freq * t) + sin(TAU * (freq * 0.5) * t) * 0.5
+		var noise = (randf() * 2.0 - 1.0) * 0.5
+		var sample = (tone * 0.6 + noise * 0.4) * env * 0.9
+		var byte_val = int(clamp((sample + 1.0) * 127.5, 0, 255))
+		data[i] = byte_val
+		
+	var wav = AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_8_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav
+
+
+func _create_explosion_sound(duration: float) -> AudioStreamWAV:
+	var sample_rate = 44100
+	var sample_count = int(sample_rate * duration)
+	var data = PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t = float(i) / float(sample_rate)
+		var progress = t / duration
+		var env = exp(-progress * 6.0)
+		var low_rumble = sin(TAU * (120.0 * (1.0 - progress * 0.8)) * t) * 0.5
+		var noise = (randf() * 2.0 - 1.0) * 0.8
+		var sample = (low_rumble + noise) * env * 0.85
+		var byte_val = int(clamp((sample + 1.0) * 127.5, 0, 255))
+		data[i] = byte_val
+		
+	var wav = AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_8_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav
+
+
+func _create_laser_sound(duration: float = 0.12) -> AudioStreamWAV:
+	var sample_rate = 44100
+	var sample_count = int(sample_rate * duration)
+	var data = PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t = float(i) / float(sample_rate)
+		var progress = t / duration
+		var env = exp(-progress * 8.0)
+		var freq = 2200.0 * (1.0 - progress * 0.75) + 300.0
+		var tone = sin(TAU * freq * t)
+		var sample = tone * env * 0.85
+		var byte_val = int(clamp((sample + 1.0) * 127.5, 0, 255))
+		data[i] = byte_val
+		
+	var wav = AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_8_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav

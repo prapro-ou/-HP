@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dgravity_vortex_01"]
+
+[ext_resource type="Script" path="res://game/effects/gravity_vortex.gd" id="1_vortex"]
+
+[node name="GravityVortexEffect" type="Node2D"]
+z_index = 45
+z_as_relative = false
+script = ExtResource("1_vortex")

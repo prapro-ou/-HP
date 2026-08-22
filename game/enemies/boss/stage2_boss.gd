@@ -112,7 +112,7 @@ func execute_fortress_attack() -> void:
 					if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
 						var strike_x = step_w * (s_i + 1)
 						for side in [-12.0, 0.0, 12.0]:
-							var bullet = bullet_pool.get_bullet("irregular")
+							var bullet = bullet_pool.get_bullet("thunder")
 							if bullet:
 								bullet.global_position = Vector2(strike_x, 20.0)
 								bullet.damage = int(14 * mult)

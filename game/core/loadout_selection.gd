@@ -46,6 +46,11 @@ func _ready() -> void:
 	Global.load_settings()
 	var save_data = Global.load_game_data()
 	
+	# Play Stage Select BGM
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_bgm"):
+		audio_mgr.play_bgm("stage_select", 0.8)
+	
 	init_data()
 	setup_ui()
 	init_starfield()
@@ -120,8 +125,8 @@ func init_data() -> void:
 	var s2 = LoadoutItem.new()
 	s2.id = "gauge"
 	s2.name = "吸収マトリクス"
-	s2.description = "敵撃破時に解析エナジーオーブを磁力吸引！EXP蓄積＆機体修復。"
-	s2.stats = "反射:★☆☆ | 吸収:★★★ | 修復:★★☆"
+	s2.description = "【ハイリスク・超速解析】1回展開で3秒クールダウン。敵弾を吸収し、通常の4倍の超高速で解析EXPを獲得＆HP修復！"
+	s2.stats = "解析:★★★★★ | CT: 3.0s | ピーキー"
 	s2.is_unlocked = Global.unlocked_shields.has("gauge")
 	shields.append(s2)
 	

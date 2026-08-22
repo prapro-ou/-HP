@@ -21,11 +21,6 @@ func _setup_waves() -> void:
 	w1.wave_id = "wave1_sky"
 	w1.display_title = "PHASE 1: 惑星地上上空・成層圏突入"
 	w1.start_message = "【MISSION 02: 成層圏防衛突破戦】\n制限時間（90秒）まで高速迎撃部隊を撃破＆パリィせよ！\n変異スロットを強化してボス戦に備えてください！"
-	w1.clear_condition_type = "analysis_or_parry"
-	w1.target_drone_count = 14
-	w1.target_parry_count = 24
-	w1.transition_delay = 2.2
-	w1.completion_message = "【PHASE 1 突破】雲海迎撃第1ライン突破！"
 	w1.replenish_types = ["wave", "irregular", "laser", "charge"]
 	w1.min_active_drones = 5
 	w1.drone_speed_override = 180.0
@@ -43,11 +38,6 @@ func _setup_waves() -> void:
 	w2.wave_id = "wave2_sky_ace"
 	w2.display_title = "PHASE 2: 成層圏中部・局地迎撃エース編隊"
 	w2.start_message = "[ASSIST AI]: 地上防衛アレイからの高速ミサイル群接近！\nパリィ反射で敵部隊を殲滅せよ！"
-	w2.clear_condition_type = "analysis_or_parry"
-	w2.target_drone_count = 18
-	w2.target_parry_count = 32
-	w2.transition_delay = 2.5
-	w2.completion_message = "【PHASE 2 制圧】局地迎撃エース編隊の殲滅完了！"
 	w2.replenish_types = ["missile", "charge", "laser", "irregular"]
 	w2.min_active_drones = 5
 	w2.drone_speed_override = 210.0
@@ -65,11 +55,6 @@ func _setup_waves() -> void:
 	w3.wave_id = "wave3_sky_carrier"
 	w3.display_title = "PHASE 3: 雲海深部・制空重爆撃大隊"
 	w3.start_message = "[ASSIST AI]: 敵重爆撃護衛大隊が集結！\n全方位波状攻撃をパリィで制圧し、要塞キャリアを引きずり出せ！"
-	w3.clear_condition_type = "analysis_or_parry"
-	w3.target_drone_count = 22
-	w3.target_parry_count = 40
-	w3.transition_delay = 3.0
-	w3.completion_message = "【PHASE 3 突破】成層圏防空網を完全破壊！ボス接近！"
 	w3.replenish_types = ["charge", "missile", "laser", "wave", "irregular"]
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 230.0

@@ -15,6 +15,8 @@ enum TurretType {
 
 const METEOR_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
+const BOSS_WIDE_SHIELD_SCENE: PackedScene = preload("res://game/effects/boss_wide_shield.tscn")
+const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var turret_type: TurretType = TurretType.BEAM_MACHINEGUN
 @export var max_hp: int = 800
@@ -36,6 +38,7 @@ var beam_warning_target_x: float = 0.0
 var is_shield_active: bool = false
 var shield_timer: float = 7.0
 var shield_pulse: float = 0.0
+var shield_effect_instance: BossWideShield = null
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -70,6 +73,9 @@ func _ready() -> void:
 	if turret_type == TurretType.SHIELD_GENERATOR:
 		is_shield_active = true
 		shield_timer = 7.0
+		if BOSS_WIDE_SHIELD_SCENE:
+			shield_effect_instance = BOSS_WIDE_SHIELD_SCENE.instantiate()
+			get_parent().call_deferred("add_child", shield_effect_instance)
 		
 	update_type_visuals()
 
@@ -133,8 +139,17 @@ func _process(delta: float) -> void:
 				shield_timer = 7.0 # 7秒間展開
 				spawn_turret_warning("🛡️ 水色防護シールド展開 (7秒間)")
 				queue_redraw()
-		if is_shield_active:
-			queue_redraw()
+				
+		if is_instance_valid(shield_effect_instance):
+			shield_effect_instance.is_active = is_shield_active and is_alive
+			shield_effect_instance.generator_pos = global_position
+			var boss_shield_pos = Vector2(400.0, 240.0)
+			var main = get_node_or_null("/root/Main")
+			if main:
+				var boss = main.get_node_or_null("Boss")
+				if is_instance_valid(boss):
+					boss_shield_pos = boss.global_position + Vector2(0.0, 60.0)
+			shield_effect_instance.shield_pos = boss_shield_pos
 		
 	if is_charging:
 		charge_timer -= delta
@@ -265,26 +280,40 @@ func _draw() -> void:
 		var glow_color = Color(1.0, 0.3, 0.3, beam_warning_line_alpha * 0.3)
 		draw_line(Vector2(0, 15), Vector2(local_target_x, 800), glow_color, 8.0)
 		
-	# 水色・半透明の攻撃軽減シールド
+	# 砲台自体の防護フィールドサークル
 	if turret_type == TurretType.SHIELD_GENERATOR and is_shield_active:
-		var pulse_radius = 120.0 + sin(shield_pulse) * 6.0
-		var fill_alpha = 0.22 + sin(shield_pulse * 1.5) * 0.06
-		# 半透明シールド球
-		draw_circle(Vector2.ZERO, pulse_radius, Color(0.18, 0.78, 1.0, fill_alpha))
-		# 外枠グローリング
-		draw_arc(Vector2.ZERO, pulse_radius, 0, TAU, 36, Color(0.35, 0.92, 1.0, 0.88), 3.5)
-		draw_arc(Vector2.ZERO, pulse_radius * 0.85, 0, TAU, 28, Color(0.2, 0.6, 0.95, 0.45), 1.8)
+		var turret_pulse_r = 55.0 + sin(shield_pulse) * 4.0
+		var turret_alpha = 0.20 + sin(shield_pulse * 1.5) * 0.05
+		draw_circle(Vector2.ZERO, turret_pulse_r, Color(0.18, 0.78, 1.0, turret_alpha))
+		draw_arc(Vector2.ZERO, turret_pulse_r, 0, TAU, 28, Color(0.35, 0.92, 1.0, 0.85), 2.5)
+
+	# 砲台専用ミニHPバー (頭上に表示: 視覚的な削りフィードバック)
+	if is_alive and max_hp > 0:
+		var bar_w = 70.0
+		var bar_h = 5.0
+		var bar_pos = Vector2(-bar_w / 2.0, -52.0)
+		var hp_ratio = clamp(float(current_hp) / float(max_hp), 0.0, 1.0)
+		
+		# 黒背景枠
+		draw_rect(Rect2(bar_pos - Vector2(1, 1), Vector2(bar_w + 2, bar_h + 2)), Color(0.05, 0.08, 0.12, 0.85))
+		# HPバー本体 (割合に応じて緑➔黄➔赤)
+		var hp_col = Color(0.2, 0.95, 0.4)
+		if hp_ratio < 0.35:
+			hp_col = Color(1.0, 0.25, 0.25)
+		elif hp_ratio < 0.65:
+			hp_col = Color(1.0, 0.85, 0.2)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w * hp_ratio, bar_h)), hp_col)
 
 
 func spawn_turret_warning(text: String) -> void:
 	var label = Label.new()
 	label.text = text
-	var set = LabelSettings.new()
-	set.font_size = 16
-	set.font_color = Color(0.3, 0.9, 1.0) if turret_type == TurretType.SHIELD_GENERATOR else Color.RED
-	set.outline_size = 4
-	set.outline_color = Color.BLACK
-	label.label_settings = set
+	var label_settings = LabelSettings.new()
+	label_settings.font_size = 16
+	label_settings.font_color = Color(0.3, 0.9, 1.0) if turret_type == TurretType.SHIELD_GENERATOR else Color.RED
+	label_settings.outline_size = 4
+	label_settings.outline_color = Color.BLACK
+	label.label_settings = label_settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.global_position = global_position + Vector2(-120, -45)
 	label.custom_minimum_size = Vector2(240, 20)
@@ -296,27 +325,46 @@ func spawn_turret_warning(text: String) -> void:
 	tween.chain().tween_callback(label.queue_free)
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO, is_critical: bool = false) -> void:
 	if not is_alive:
 		return
 		
+	var actual_hit_pos = hit_pos if hit_pos != Vector2.ZERO else global_position
+	var is_shielded = (turret_type == TurretType.SHIELD_GENERATOR and is_shield_active)
 	var final_damage = amount
-	if turret_type == TurretType.SHIELD_GENERATOR and is_shield_active:
+	
+	if is_shielded:
 		# 水色防護シールド展開中はダメージ75%大幅軽減
 		final_damage = max(1, int(amount * 0.25))
+		Global.play_guard(randf_range(0.95, 1.05))
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "shield")
+	else:
+		Global.play_hit(randf_range(0.95, 1.1))
+		var spark_type_str = "heavy" if is_critical else "normal"
+		var spark_col = Color(1.0, 0.9, 0.2) if is_critical else Color(1.0, 0.85, 0.3)
+		HitSpark.create_spark(get_parent(), actual_hit_pos, spark_type_str, spark_col)
 		
 	current_hp -= final_damage
 	
-	# 被弾フラッシュ
-	sprite.modulate = Color(0.4, 0.8, 1.0) if (turret_type == TurretType.SHIELD_GENERATOR and is_shield_active) else Color(1.0, 0.3, 0.3)
-	var tween = create_tween()
-	tween.tween_property(sprite, "modulate", Color.WHITE, 0.1)
+	# 強烈な白熱被弾フラッシュ
+	if sprite:
+		sprite.modulate = Color(1.2, 2.5, 3.0) if is_shielded else Color(3.0, 3.0, 3.0)
+		var tween = create_tween()
+		tween.tween_property(sprite, "modulate", Color.WHITE, 0.06)
+		
+		# 被弾シェイク（ノックバック振動）
+		sprite.position = Vector2(randf_range(-3.0, 3.0), randf_range(-2.0, 2.0))
+		var shake_t = create_tween()
+		shake_t.tween_property(sprite, "position", Vector2.ZERO, 0.05)
+		
+	# HPバー再描画
+	queue_redraw()
 	
 	var main = get_node_or_null("/root/Main")
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(global_position, final_damage, false)
+			ui_node.spawn_damage_popup(actual_hit_pos, final_damage, false, is_critical)
 			
 	if current_hp <= 0:
 		current_hp = 0
@@ -328,13 +376,20 @@ func destroy_turret() -> void:
 	is_active = false
 	remove_from_group("boss_turrets")
 	
+	if is_instance_valid(shield_effect_instance):
+		shield_effect_instance.is_active = false
+		shield_effect_instance.queue_free()
+		shield_effect_instance = null
+		
+	Global.play_explosion(1.1)
+	
 	# 爆発演出
 	if PARRY_PARTICLE_SCENE and get_parent():
-		for i in range(8):
+		for i in range(12):
 			var p = PARRY_PARTICLE_SCENE.instantiate()
-			p.global_position = global_position + Vector2(randf_range(-25, 25), randf_range(-25, 25))
-			p.scale = Vector2(2.5, 2.5)
-			p.modulate = Color(1.0, randf_range(0.3, 0.8), 0.1)
+			p.global_position = global_position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+			p.scale = Vector2(3.0, 3.0)
+			p.modulate = Color(1.0, randf_range(0.3, 0.9), 0.1)
 			get_parent().add_child(p)
 			
 	Global.tech_points += 5
@@ -350,5 +405,5 @@ func destroy_turret() -> void:
 			
 	# フェードアウトして消滅
 	var tween = create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.5)
+	tween.tween_property(self, "modulate:a", 0.0, 0.4)
 	tween.chain().tween_callback(queue_free)

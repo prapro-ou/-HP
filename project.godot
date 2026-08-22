@@ -15,17 +15,20 @@ run/main_scene="res://game/core/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[audio]
+
+driver/output_latency=30
+
 [autoload]
 
+AudioManager="*res://game/core/audio_manager.tscn"
 Global="*res://game/core/global.gd"
 
 [display]
 
 window/size/viewport_width=800
 window/size/viewport_height=1200
-window/size/resizable=true
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
 
 [gui]
 

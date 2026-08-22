@@ -21,11 +21,6 @@ func _setup_waves() -> void:
 	w1.wave_id = "wave1"
 	w1.display_title = "PHASE 1: 惑星外縁・デブリ帯前哨"
 	w1.start_message = "【MISSION 01: デブリ帯防衛・解析戦】\n制限時間（90秒）まで敵部隊を撃破＆パリィせよ！\n敵弾データを解析・反射して自機兵装を覚醒させてください！"
-	w1.clear_condition_type = "analysis_or_parry"
-	w1.target_drone_count = 12
-	w1.target_parry_count = 20
-	w1.transition_delay = 2.2
-	w1.completion_message = "【PHASE 1 制圧】前哨迎撃網を突破！"
 	w1.replenish_types = ["straight", "wave", "irregular"]
 	w1.min_active_drones = 4
 	
@@ -42,11 +37,6 @@ func _setup_waves() -> void:
 	w2.wave_id = "wave2"
 	w2.display_title = "PHASE 2: デブリ帯深部・重装哨戒編隊"
 	w2.start_message = "[ASSIST AI]: 軌道哨戒編隊が接近！\nチャージ射撃・レーザーをパリィして変異兵装を解放せよ！"
-	w2.clear_condition_type = "analysis_or_parry"
-	w2.target_drone_count = 16
-	w2.target_parry_count = 28
-	w2.transition_delay = 2.5
-	w2.completion_message = "【PHASE 2 制圧】重装哨戒編隊の殲滅完了！"
 	w2.replenish_types = ["charge", "laser", "irregular", "straight", "wave"]
 	w2.min_active_drones = 5
 	w2.drone_speed_override = 160.0
@@ -65,11 +55,6 @@ func _setup_waves() -> void:
 	w3.wave_id = "wave3"
 	w3.display_title = "PHASE 3: 要塞警戒宙域・直衛エリート部隊"
 	w3.start_message = "[ASSIST AI]: 要塞直衛部隊が全方位展開！\n誘導ミサイルと集中弾幕をパリィし、最大変異Lv.2を覚醒せよ！"
-	w3.clear_condition_type = "analysis_or_parry"
-	w3.target_drone_count = 20
-	w3.target_parry_count = 36
-	w3.transition_delay = 3.0
-	w3.completion_message = "【PHASE 3 突破】要塞直衛網を完全突破！ボス接近！"
 	w3.replenish_types = ["missile", "charge", "laser", "irregular", "wave", "straight"]
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 180.0

@@ -13,7 +13,7 @@ const BULLET_TYPE_DECEL_MISSILE = "decel_missile"
 const BULLET_TYPE_UNPARRYABLE = "unparryable_laser"
 
 # カラー定数
-const COLOR_FRIENDLY = Color(1.0, 0.25, 0.25) # パリィ反射時は赤色
+const COLOR_FRIENDLY = Color(0.25, 0.95, 1.0) # パリィ反射時は鮮やかなネオンシアン＆白光
 const COLOR_BEAM = Color(1.0, 0.4, 0.4)
 const COLOR_MISSILE = Color(0.8, 0.2, 1.0)
 const COLOR_BOSS_LASER = Color(1.0, 0.1, 0.1)
@@ -22,10 +22,10 @@ const COLOR_DECEL_MISSILE = Color(1.0, 0.4, 0.8)
 const COLOR_UNPARRYABLE = Color(1.0, 0.05, 0.15) # 鮮烈な真紅・パリィ不可
 
 # 速度・反射マルチプライヤー
-const PARRY_SPEED_MULTIPLIER: float = 3.2
+const PARRY_SPEED_MULTIPLIER: float = 3.8
 const MIN_SAFETY_SPEED: float = 80.0
 const DEFAULT_SAFETY_SPEED: float = 200.0
-const HOMING_LERP_SPEED: float = 14.0
+const HOMING_LERP_SPEED: float = 16.0
 const SCREEN_OFFSCREEN_MARGIN: float = 60.0
 
 @export var speed: float = 200.0
@@ -42,6 +42,11 @@ var initial_speed: float = 350.0
 var decel_timer: float = 0.0
 var decel_phase: int = 0 # 0: 減速中 (0~1.0s), 1: 急加速追尾 (1.0s~)
 
+# ライフタイム＆自然消滅管理（処理落ち防止）
+var lifetime: float = 0.0
+var max_lifetime: float = 7.5
+var is_dissolving: bool = false
+
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
 
 
@@ -51,6 +56,8 @@ func _ready() -> void:
 	is_friendly = false
 	decel_timer = 0.0
 	decel_phase = 0
+	lifetime = 0.0
+	is_dissolving = false
 	target_node = null
 	update_bullet_color()
 	
@@ -71,7 +78,7 @@ func update_bullet_color() -> void:
 		modulate = COLOR_FRIENDLY
 		var sprite = get_node_or_null("Sprite2D")
 		if sprite:
-			sprite.scale = Vector2(1.2, 1.2) # 赤く巨大化
+			sprite.scale = Vector2(1.35, 1.35) # ネオンシアンに巨大化
 	else:
 		var sprite = get_node_or_null("Sprite2D")
 		if sprite:
@@ -95,6 +102,15 @@ func update_bullet_color() -> void:
 			"missile", BULLET_TYPE_BOSS_MISSILE:
 				modulate = Color(0.85, 0.4, 1.0) # 追尾パープル
 				if sprite: sprite.scale = Vector2(0.6, 0.6)
+			"thunder", "spark":
+				modulate = Color(1.0, 0.95, 0.2) # 放電イエロー
+				if sprite: sprite.scale = Vector2(0.65, 0.65)
+			"vortex", "blackhole":
+				modulate = Color(0.75, 0.3, 1.0) # 深紫特異点
+				if sprite: sprite.scale = Vector2(0.7, 0.7)
+			"blade", "slash":
+				modulate = Color(0.2, 1.0, 0.85) # 青緑真空波
+				if sprite: sprite.scale = Vector2(0.8, 0.4)
 			BULLET_TYPE_DECEL_MISSILE:
 				modulate = Color(1.0, 0.3, 0.8) # 減速追尾ピンク
 				if sprite: sprite.scale = Vector2(0.7, 0.7)
@@ -114,14 +130,11 @@ func _draw() -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if not is_friendly:
 		if body.name == "Player" or body.has_method("take_damage"):
-			if is_unparryable:
-				if "is_guarding" in body and body.is_guarding:
-					body.is_guarding = false
-					if body.has_method("spawn_popup_message"):
-						body.spawn_popup_message("⚠️ ガード貫通！(パリィ不可攻撃)")
-					if body.has_method("trigger_screen_flash"):
-						body.trigger_screen_flash(Color(1.0, 0.05, 0.1, 0.7))
-			body.take_damage(damage)
+			var is_gb = false
+			if is_unparryable and "is_guarding" in body and body.is_guarding:
+				is_gb = true
+			if body.has_method("take_damage"):
+				body.take_damage(damage, is_gb)
 			recycle_bullet()
 
 
@@ -184,12 +197,33 @@ func _process(delta: float) -> void:
 	if is_unparryable:
 		queue_redraw()
 
+	lifetime += delta
+	if lifetime >= max_lifetime and not is_friendly:
+		dissolve_and_recycle(true)
+		return
+
 	position += velocity * delta
 	
 	var viewport_rect = get_viewport_rect()
 	if position.x < -SCREEN_OFFSCREEN_MARGIN or position.x > viewport_rect.size.x + SCREEN_OFFSCREEN_MARGIN or \
 	   position.y < -SCREEN_OFFSCREEN_MARGIN or position.y > viewport_rect.size.y + SCREEN_OFFSCREEN_MARGIN:
 		recycle_bullet()
+
+
+func dissolve_and_recycle(spawn_particles: bool = true) -> void:
+	"""上限超過または寿命による自然消滅"""
+	if is_dissolving:
+		return
+	is_dissolving = true
+	
+	if spawn_particles and PARRY_PARTICLE_SCENE and get_parent():
+		var particle = PARRY_PARTICLE_SCENE.instantiate()
+		particle.global_position = global_position
+		particle.scale = Vector2(1.2, 1.2)
+		particle.modulate = Color(modulate.r, modulate.g, modulate.b, 0.6)
+		get_parent().add_child(particle)
+		
+	recycle_bullet()
 
 
 func find_new_friendly_target() -> void:
@@ -247,8 +281,8 @@ func convert_to_friendly() -> void:
 	if PARRY_PARTICLE_SCENE and get_parent():
 		var particle = PARRY_PARTICLE_SCENE.instantiate()
 		particle.global_position = global_position
-		particle.scale = Vector2(2.0, 2.0)
-		particle.modulate = Color(1.0, 0.2, 0.2)
+		particle.scale = Vector2(2.4, 2.4)
+		particle.modulate = Color(0.3, 0.95, 1.0)
 		get_parent().add_child(particle)
 	
 	var main = get_node_or_null("/root/Main")

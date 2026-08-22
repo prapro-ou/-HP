@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dboss_wide_shield_01"]
+
+[ext_resource type="Script" path="res://game/effects/boss_wide_shield.gd" id="1_shield"]
+
+[node name="BossWideShield" type="Node2D"]
+z_index = 48
+z_as_relative = false
+script = ExtResource("1_shield")

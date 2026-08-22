@@ -168,12 +168,16 @@ func create_wave_phase_ui() -> void:
 	wave_timer_panel.custom_minimum_size = Vector2(250, 88)
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.border_color = Color(0.2, 0.5, 0.8, 0.9)
+	sb.bg_color = Color(0.03, 0.05, 0.08, 0.70)
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.2, 0.5, 0.8, 0.8)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
 	wave_timer_panel.add_theme_stylebox_override("panel", sb)
 	add_child(wave_timer_panel)
 	
@@ -270,12 +274,16 @@ func create_analysis_matrix_ui() -> void:
 	trait_panel.custom_minimum_size = Vector2(290, 105)
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.border_color = Color(0.25, 0.4, 0.65, 0.9)
+	sb.bg_color = Color(0.03, 0.05, 0.08, 0.70)
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.25, 0.4, 0.65, 0.8)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
 	trait_panel.add_theme_stylebox_override("panel", sb)
 	add_child(trait_panel)
 	
@@ -294,32 +302,36 @@ func create_analysis_matrix_ui() -> void:
 	title.label_settings = t_set
 	vbox.add_child(title)
 	
-	# 3つのスロットボックス（横並び）
+	# 2つの固定変異スロットボックス（横並び）
 	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 6)
+	hbox.add_theme_constant_override("separation", 8)
 	vbox.add_child(hbox)
 	
 	slot_cards.clear()
-	for i in range(3):
+	for i in range(2):
 		var card = PanelContainer.new()
-		card.custom_minimum_size = Vector2(88, 42)
+		card.custom_minimum_size = Vector2(130, 46)
 		var c_sb = StyleBoxFlat.new()
 		c_sb.bg_color = Color(0.08, 0.1, 0.14, 0.9)
-		c_sb.border_width_left = 1
-		c_sb.border_width_top = 1
-		c_sb.border_width_right = 1
-		c_sb.border_width_bottom = 1
+		c_sb.border_width_left = 2
+		c_sb.border_width_top = 2
+		c_sb.border_width_right = 2
+		c_sb.border_width_bottom = 2
 		c_sb.border_color = Color(0.2, 0.25, 0.35, 0.8)
+		c_sb.corner_radius_top_left = 4
+		c_sb.corner_radius_top_right = 4
+		c_sb.corner_radius_bottom_left = 4
+		c_sb.corner_radius_bottom_right = 4
 		card.add_theme_stylebox_override("panel", c_sb)
 		
 		var lbl = Label.new()
-		lbl.text = "SLOT %d\n[空き]" % (i + 1)
+		lbl.text = "SLOT %d\n[解析で固定装備]" % (i + 1)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		var l_set = LabelSettings.new()
 		if PIXEL_FONT:
 			l_set.font = PIXEL_FONT
-		l_set.font_size = 14
+		l_set.font_size = 13
 		l_set.font_color = Color(0.4, 0.45, 0.55)
 		lbl.label_settings = l_set
 		card.add_child(lbl)
@@ -327,14 +339,14 @@ func create_analysis_matrix_ui() -> void:
 		hbox.add_child(card)
 		slot_cards.append({ "panel": card, "style": c_sb, "label": lbl })
 		
-	# 直近の解析進行バー (1行)
+	# 直近の解析・集中強化進行バー (1行)
 	var prog_row = HBoxContainer.new()
 	prog_row.add_theme_constant_override("separation", 6)
 	vbox.add_child(prog_row)
 	
 	active_analysis_label = Label.new()
 	active_analysis_label.text = "解析待機中"
-	active_analysis_label.custom_minimum_size = Vector2(110, 18)
+	active_analysis_label.custom_minimum_size = Vector2(120, 18)
 	var a_set = LabelSettings.new()
 	if PIXEL_FONT:
 		a_set.font = PIXEL_FONT
@@ -345,7 +357,7 @@ func create_analysis_matrix_ui() -> void:
 	
 	active_analysis_bar = ProgressBar.new()
 	active_analysis_bar.show_percentage = false
-	active_analysis_bar.custom_minimum_size = Vector2(160, 10)
+	active_analysis_bar.custom_minimum_size = Vector2(150, 10)
 	active_analysis_bar.max_value = 100
 	active_analysis_bar.value = 0
 	style_analysis_bar(active_analysis_bar, Color.CYAN)
@@ -353,45 +365,58 @@ func create_analysis_matrix_ui() -> void:
 
 
 func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
-	# 1. 3つのスロット表示の更新
-	for i in range(3):
+	# 1. 2つの固定スロット表示の更新
+	for i in range(2):
 		var card = slot_cards[i]
 		if i < active_traits.size():
 			var t_key = active_traits[i]
 			if patterns.has(t_key):
 				var data = patterns[t_key]
 				var lvl = data.get("level", 1)
-				card["label"].text = "%s %s\nLv.%d" % [data.get("icon", "⚡"), data.get("name", "属性"), lvl]
-				card["label"].label_settings.font_color = Color.WHITE if lvl == 1 else Color.GOLD
+				var max_lvl = data.get("max_level", 5)
+				var lvl_str = "Lv.%d" % lvl if lvl < max_lvl else "Lv.MAX"
+				card["label"].text = "🔒 %s %s\n%s" % [data.get("icon", "⚡"), data.get("name", "属性"), lvl_str]
+				card["label"].label_settings.font_color = Color.GOLD if lvl >= 3 else Color.WHITE
 				card["style"].border_color = data.get("color", Color.CYAN)
-				card["style"].bg_color = Color(0.1, 0.15, 0.22, 0.95)
+				card["style"].bg_color = Color(0.1, 0.16, 0.24, 0.95)
 		else:
-			card["label"].text = "SLOT %d\n[空き]" % (i + 1)
+			card["label"].text = "SLOT %d\n[解析で固定装備]" % (i + 1)
 			card["label"].label_settings.font_color = Color(0.4, 0.45, 0.55)
 			card["style"].border_color = Color(0.2, 0.25, 0.35, 0.8)
 			card["style"].bg_color = Color(0.06, 0.08, 0.1, 0.85)
 			
-	# 2. 現在進行中の解析（直近で最も進捗の高い、未MAXパターン）の表示
+	# 2. 現在進行中の解析または集中強化の表示
 	var latest_pattern = null
 	var highest_progress = 0.0
-	for key in patterns.keys():
+	
+	# スロット満杯時はスロット装備中の属性から最も進捗の高いものを探す
+	var target_keys = active_traits if active_traits.size() >= 2 else patterns.keys()
+	
+	for key in target_keys:
+		if not patterns.has(key):
+			continue
 		var data = patterns[key]
 		var prog = data.get("progress", 0.0)
 		var lvl = data.get("level", 0)
-		var max_lvl = data.get("max_level", 2)
+		var max_lvl = data.get("max_level", 5)
 		if lvl < max_lvl and prog > highest_progress:
 			highest_progress = prog
 			latest_pattern = data
 			
 	if latest_pattern and highest_progress > 0:
 		var name_str = latest_pattern.get("name", "未知")
-		active_analysis_label.text = "解析中: %s" % name_str
+		var is_locked_mode = active_traits.size() >= 2
+		active_analysis_label.text = ("集中強化: %s" if is_locked_mode else "解析中: %s") % name_str
 		active_analysis_label.label_settings.font_color = latest_pattern.get("color", Color.CYAN)
 		active_analysis_bar.value = highest_progress
 		style_analysis_bar(active_analysis_bar, latest_pattern.get("color", Color.CYAN))
 	else:
-		active_analysis_label.text = "解析: パリィで吸収"
-		active_analysis_label.label_settings.font_color = Color.GRAY
+		if active_traits.size() >= 2:
+			active_analysis_label.text = "全パリィで集中強化"
+			active_analysis_label.label_settings.font_color = Color.GOLD
+		else:
+			active_analysis_label.text = "解析: パリィで吸収"
+			active_analysis_label.label_settings.font_color = Color.GRAY
 		active_analysis_bar.value = 0
 
 
@@ -458,89 +483,88 @@ func show_stage_intro_banner(stage_num: int, stage_title: String, subtitle: Stri
 		
 	stage_intro_banner = Control.new()
 	stage_intro_banner.name = "StageIntroBanner"
-	stage_intro_banner.anchor_left = 0.0
-	stage_intro_banner.anchor_right = 1.0
-	stage_intro_banner.offset_top = 340.0
-	stage_intro_banner.offset_bottom = 540.0
+	stage_intro_banner.anchor_left = 0.05
+	stage_intro_banner.anchor_right = 0.95
+	stage_intro_banner.offset_top = 240.0
+	stage_intro_banner.offset_bottom = 420.0
 	stage_intro_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(stage_intro_banner)
 	
-	# Background strip
+	# Background strip (半透明にして背後の敵や背景が見えるように)
 	var bg_rect = ColorRect.new()
-	bg_rect.color = Color(0.02, 0.03, 0.07, 0.94)
+	bg_rect.color = Color(0.02, 0.04, 0.08, 0.50)
 	bg_rect.anchor_right = 1.0
 	bg_rect.anchor_bottom = 1.0
 	stage_intro_banner.add_child(bg_rect)
 	
 	# Top & Bottom accent lines
 	var line_top = ColorRect.new()
-	line_top.color = Color(0.3, 0.9, 1.0, 0.9)
+	line_top.color = Color(0.3, 0.9, 1.0, 0.8)
 	line_top.anchor_right = 1.0
-	line_top.offset_bottom = 3.0
+	line_top.offset_bottom = 2.0
 	stage_intro_banner.add_child(line_top)
 	
 	var line_bottom = ColorRect.new()
-	line_bottom.color = Color(0.3, 0.9, 1.0, 0.9)
+	line_bottom.color = Color(0.3, 0.9, 1.0, 0.8)
 	line_bottom.anchor_top = 1.0
 	line_bottom.anchor_right = 1.0
 	line_bottom.anchor_bottom = 1.0
-	line_bottom.offset_top = -3.0
+	line_bottom.offset_top = -2.0
 	stage_intro_banner.add_child(line_bottom)
 	
 	var margin = MarginContainer.new()
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
 	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_top", 12)
 	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_bottom", 16)
+	margin.add_theme_constant_override("margin_bottom", 12)
 	stage_intro_banner.add_child(margin)
 	
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 8)
+	vbox.add_theme_constant_override("separation", 6)
 	margin.add_child(vbox)
 	
 	var num_lbl = Label.new()
 	num_lbl.text = "── OPERATION STAGE %d ──" % stage_num
 	num_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(num_lbl, 18, Color(0.3, 0.9, 1.0), 4)
+	setup_label_style(num_lbl, 16, Color(0.3, 0.9, 1.0), 4)
 	vbox.add_child(num_lbl)
 	
 	var title_lbl = Label.new()
 	title_lbl.text = stage_title
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(title_lbl, 32, Color.WHITE, 8)
+	setup_label_style(title_lbl, 28, Color.WHITE, 6)
 	vbox.add_child(title_lbl)
 	
 	if subtitle != "":
 		var sub_lbl = Label.new()
 		sub_lbl.text = subtitle
 		sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		setup_label_style(sub_lbl, 18, Color.GOLD, 4)
+		setup_label_style(sub_lbl, 16, Color.GOLD, 4)
 		vbox.add_child(sub_lbl)
 		
 	if mission_goal != "":
 		var goal_lbl = Label.new()
 		goal_lbl.text = "【作戦目標】%s" % mission_goal
 		goal_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		setup_label_style(goal_lbl, 16, Color(0.9, 0.95, 1.0), 3)
+		setup_label_style(goal_lbl, 14, Color(0.9, 0.95, 1.0), 3)
 		vbox.add_child(goal_lbl)
 		
 	stage_intro_banner.modulate.a = 0.0
-	stage_intro_banner.scale = Vector2(0.95, 0.95)
-	stage_intro_banner.pivot_offset = Vector2(400.0, 100.0)
+	stage_intro_banner.scale = Vector2(0.96, 0.96)
+	stage_intro_banner.pivot_offset = Vector2(360.0, 90.0)
 	
 	stage_intro_tween = create_tween().set_parallel(true)
-	stage_intro_tween.tween_property(stage_intro_banner, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_QUAD)
-	stage_intro_tween.tween_property(stage_intro_banner, "scale", Vector2(1.0, 1.0), 0.35).set_trans(Tween.TRANS_QUAD)
+	stage_intro_tween.tween_property(stage_intro_banner, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_QUAD)
+	stage_intro_tween.tween_property(stage_intro_banner, "scale", Vector2(1.0, 1.0), 0.3).set_trans(Tween.TRANS_QUAD)
 	
-	# 長めに表示 (4.2秒)
-	get_tree().create_timer(4.2).timeout.connect(func():
+	# 3.2秒表示してスムーズにフェードアウト
+	get_tree().create_timer(3.2).timeout.connect(func():
 		if is_instance_valid(stage_intro_banner):
 			var fade_t = create_tween().set_parallel(true)
-			fade_t.tween_property(stage_intro_banner, "modulate:a", 0.0, 0.6).set_trans(Tween.TRANS_QUAD)
-			fade_t.tween_property(stage_intro_banner, "scale", Vector2(1.03, 1.03), 0.6)
+			fade_t.tween_property(stage_intro_banner, "modulate:a", 0.0, 0.5).set_trans(Tween.TRANS_QUAD)
 			fade_t.chain().tween_callback(func():
 				if is_instance_valid(stage_intro_banner):
 					stage_intro_banner.queue_free()
@@ -551,19 +575,22 @@ func show_stage_intro_banner(stage_num: int, stage_title: String, subtitle: Stri
 var wave_telop_banner: Control
 var wave_telop_tween: Tween
 
-func show_wave_announcement(title: String, message: String = "", duration: float = 3.8) -> void:
+func show_wave_announcement(title: String, message: String = "", duration: float = 2.2) -> void:
 	if is_instance_valid(wave_telop_banner):
 		wave_telop_banner.queue_free()
 		
 	if is_instance_valid(wave_telop_tween):
 		wave_telop_tween.kill()
 		
+	var display_time = min(duration, 2.4) if duration > 0 else 2.2
+		
 	wave_telop_banner = Control.new()
 	wave_telop_banner.name = "WaveTelopBanner"
-	wave_telop_banner.anchor_left = 0.05
-	wave_telop_banner.anchor_right = 0.95
-	wave_telop_banner.offset_top = 220.0
-	wave_telop_banner.offset_bottom = 340.0
+	# HUD直下（Y: 120〜175）に配置。主戦場（Y: 200〜）を一切遮らないコンパクトサイズ
+	wave_telop_banner.anchor_left = 0.12
+	wave_telop_banner.anchor_right = 0.88
+	wave_telop_banner.offset_top = 120.0
+	wave_telop_banner.offset_bottom = 175.0 if message != "" else 152.0
 	wave_telop_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(wave_telop_banner)
 	
@@ -572,33 +599,38 @@ func show_wave_announcement(title: String, message: String = "", duration: float
 	panel.anchor_bottom = 1.0
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.03, 0.05, 0.09, 0.92)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.border_color = Color(0.3, 0.7, 1.0, 0.9)
-	sb.shadow_color = Color(0.1, 0.5, 0.9, 0.3)
-	sb.shadow_size = 14
+	# 半透明のサイバーフロスト背景（alpha 0.38）で背後の敵弾がはっきり透けて見える
+	sb.bg_color = Color(0.02, 0.05, 0.10, 0.38)
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.3, 0.75, 1.0, 0.65)
+	sb.corner_radius_top_left = 6
+	sb.corner_radius_top_right = 6
+	sb.corner_radius_bottom_left = 6
+	sb.corner_radius_bottom_right = 6
+	sb.shadow_color = Color(0.1, 0.5, 0.9, 0.15)
+	sb.shadow_size = 6
 	panel.add_theme_stylebox_override("panel", sb)
 	wave_telop_banner.add_child(panel)
 	
 	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_bottom", 4)
 	panel.add_child(margin)
 	
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 2)
 	margin.add_child(vbox)
 	
 	var t_lbl = Label.new()
 	t_lbl.text = title
 	t_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(t_lbl, 24, Color.GOLD, 6)
+	setup_label_style(t_lbl, 16, Color.GOLD, 4)
 	vbox.add_child(t_lbl)
 	
 	if message != "":
@@ -606,21 +638,21 @@ func show_wave_announcement(title: String, message: String = "", duration: float
 		m_lbl.text = message
 		m_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		m_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		setup_label_style(m_lbl, 16, Color.WHITE, 4)
+		setup_label_style(m_lbl, 13, Color(0.9, 0.95, 1.0), 3)
 		vbox.add_child(m_lbl)
 		
 	wave_telop_banner.modulate.a = 0.0
-	wave_telop_banner.scale = Vector2(0.95, 0.95)
-	wave_telop_banner.pivot_offset = Vector2(360.0, 60.0)
+	wave_telop_banner.position.y = 110.0
 	
 	wave_telop_tween = create_tween().set_parallel(true)
-	wave_telop_tween.tween_property(wave_telop_banner, "modulate:a", 1.0, 0.25).set_trans(Tween.TRANS_QUAD)
-	wave_telop_tween.tween_property(wave_telop_banner, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_QUAD)
+	wave_telop_tween.tween_property(wave_telop_banner, "modulate:a", 1.0, 0.2).set_trans(Tween.TRANS_QUAD)
+	wave_telop_tween.tween_property(wave_telop_banner, "position:y", 120.0, 0.2).set_trans(Tween.TRANS_QUAD)
 	
-	get_tree().create_timer(duration).timeout.connect(func():
+	get_tree().create_timer(display_time).timeout.connect(func():
 		if is_instance_valid(wave_telop_banner):
 			var fade_t = create_tween().set_parallel(true)
-			fade_t.tween_property(wave_telop_banner, "modulate:a", 0.0, 0.5).set_trans(Tween.TRANS_QUAD)
+			fade_t.tween_property(wave_telop_banner, "modulate:a", 0.0, 0.3).set_trans(Tween.TRANS_QUAD)
+			fade_t.tween_property(wave_telop_banner, "position:y", 112.0, 0.3).set_trans(Tween.TRANS_QUAD)
 			fade_t.chain().tween_callback(func():
 				if is_instance_valid(wave_telop_banner):
 					wave_telop_banner.queue_free()
@@ -745,7 +777,7 @@ func show_analysis_unlock_modal(pattern_key: String, data: Dictionary) -> void:
 	desc_vbox.add_child(stat_lbl)
 	
 	var body_lbl = Label.new()
-	body_lbl.text = cat_info.get("description", "") + "\n\n※変異スロットに自動装備されました（最大3枠）。"
+	body_lbl.text = cat_info.get("description", "") + "\n\n※変異スロットに固定装備されました（最大2枠・上書きなし）。\n以降のパリィ解析でLvアップ集中強化されます！"
 	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_label_style(body_lbl, 15, Color.WHITE, 4)
 	desc_vbox.add_child(body_lbl)
@@ -835,12 +867,12 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "🧬 変異兵装の解放",
 					"color": Color.GOLD,
-					"desc": "解析度100%で【変異兵装】が解放！全属性に共鳴EXPが波及し、機体の全攻撃力・機動性も底上げされます。"
+					"desc": "解析度100%で【変異兵装】が解放！全兵装共鳴により、機体の全攻撃力・機動性も底上げされます。"
 				},
 				{
-					"title": "💠 変異スロット装備",
+					"title": "🔒 変異スロット固定装備（最大2枠）",
 					"color": Color(0.9, 0.45, 1.0),
-					"desc": "解放された変異（拡散射撃・貫通重弾・誘導ミサイル等）は最大3スロットに自動装備され、主兵装が強力に進化！"
+					"desc": "獲得した2つの変異兵装がスロットに固定されます。スロット満杯後は上書きされず、その2つが集中的にLvアップ強化され続けます！"
 				}
 			]
 		"time_limit":
@@ -1022,7 +1054,7 @@ func toggle_pause_menu() -> void:
 	
 	# Section: 解析変異兵装ステータス
 	var sec_lbl = Label.new()
-	sec_lbl.text = "─── 現在の解析変異スロット (MAX 3) ───"
+	sec_lbl.text = "─── 現在の解析変異スロット (MAX 2・固定集中強化) ───"
 	sec_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	setup_label_style(sec_lbl, 20, Color.WHITE, 6)
 	vbox.add_child(sec_lbl)
@@ -1032,7 +1064,7 @@ func toggle_pause_menu() -> void:
 	
 	if active_keys.size() == 0:
 		var empty_lbl = Label.new()
-		empty_lbl.text = "※ 現在装備中の変異兵装はありません。\n（敵弾をジャストガード/パリィして解析ゲージを100%にすると自動装備されます）"
+		empty_lbl.text = "※ 現在装備中の変異兵装はありません。\n（敵弾をジャストガード/パリィして解析ゲージを100%にすると最大2つまで固定装備されます）"
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		setup_label_style(empty_lbl, 15, Color.GRAY, 3)
 		vbox.add_child(empty_lbl)
@@ -1205,36 +1237,63 @@ func update_guard_status(_cooldown: float, _is_guarding: bool) -> void:
 	pass
 
 
-func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool) -> void:
+func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool, shield_type: String = "counter", gauge_timer: float = 0.0, max_gauge_ct: float = 3.0) -> void:
 	if is_instance_valid(shield_heat_bar):
-		shield_heat_bar.max_value = max_heat
-		shield_heat_bar.value = heat
-		
-		var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
-		if fg_style:
-			if is_overheated:
-				var flash = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
-				fg_style.bg_color = Color(1.0, 0.1, 0.1).lerp(Color(0.4, 0.0, 0.0), flash)
-			elif is_guarding:
-				fg_style.bg_color = Color(0.2, 1.0, 1.0)
-			else:
-				var pct = (heat / max_heat)
-				if pct > 0.7:
-					fg_style.bg_color = Color(1.0, 0.45, 0.1)
-				elif pct > 0.35:
-					fg_style.bg_color = Color(1.0, 0.85, 0.2)
+		if shield_type == "gauge":
+			# 吸収マトリクス (3.0s クールダウン表示)
+			shield_heat_bar.max_value = max_gauge_ct
+			shield_heat_bar.value = gauge_timer
+			
+			var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
+			if fg_style:
+				if is_guarding:
+					fg_style.bg_color = Color(0.2, 1.0, 0.6)
+				elif gauge_timer > 0.0:
+					var pct = (gauge_timer / max_gauge_ct)
+					fg_style.bg_color = Color(1.0, 0.45, 0.1).lerp(Color(1.0, 0.85, 0.2), 1.0 - pct)
 				else:
-					fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
-
-	if is_overheated:
-		guard_status_label.text = "⚠️ OVERHEAT! 冷却中 (%.1fs)" % overheat_timer
-		guard_status_label.label_settings.font_color = Color.RED
-	elif is_guarding:
-		guard_status_label.text = "シールド: 展開中！"
-		guard_status_label.label_settings.font_color = Color.CYAN
-	else:
-		guard_status_label.text = "シールドヒート [Space]"
-		guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
+					var flash = 0.6 + 0.4 * sin(Time.get_ticks_msec() * 0.015)
+					fg_style.bg_color = Color(0.1, 0.9, 0.5, flash)
+					
+			if gauge_timer > 0.0:
+				guard_status_label.text = "⏳ ABSORB CT: 冷却中 %.1fs" % gauge_timer
+				guard_status_label.label_settings.font_color = Color(1.0, 0.7, 0.3)
+			elif is_guarding:
+				guard_status_label.text = "⚡ 吸収パルス展開中！"
+				guard_status_label.label_settings.font_color = Color(0.2, 1.0, 0.6)
+			else:
+				guard_status_label.text = "⚡ 吸収パルス準備完了 [Space]"
+				guard_status_label.label_settings.font_color = Color(0.3, 1.0, 0.6)
+		else:
+			# 通常・カウンター・パワーシールド (ヒート制)
+			shield_heat_bar.max_value = max_heat
+			shield_heat_bar.value = heat
+			
+			var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
+			if fg_style:
+				if is_overheated:
+					var flash = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
+					fg_style.bg_color = Color(1.0, 0.1, 0.1).lerp(Color(0.4, 0.0, 0.0), flash)
+				elif is_guarding:
+					fg_style.bg_color = Color(0.2, 1.0, 1.0)
+				else:
+					var pct = (heat / max_heat)
+					if pct > 0.7:
+						fg_style.bg_color = Color(1.0, 0.45, 0.1)
+					elif pct > 0.35:
+						fg_style.bg_color = Color(1.0, 0.85, 0.2)
+					else:
+						fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
+	
+			if is_overheated:
+				guard_status_label.text = "⚠️ OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
+				guard_status_label.label_settings.font_color = Color.RED
+			elif is_guarding:
+				guard_status_label.text = "シールド: 展開中！"
+				guard_status_label.label_settings.font_color = Color.CYAN
+			else:
+				guard_status_label.text = "シールドヒート [Space]"
+				guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
 
@@ -1532,9 +1591,9 @@ func show_game_over(result: String) -> void:
 	get_tree().paused = true
 
 
-func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> void:
+func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false, is_critical: bool = false) -> void:
 	var label = Label.new()
-	label.text = str(amount)
+	label.text = str(amount) + ("!" if is_critical else "")
 	
 	var settings = LabelSettings.new()
 	if PIXEL_FONT:
@@ -1544,6 +1603,11 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 		settings.font_color = Color(1.0, 0.6, 0.2)
 		settings.outline_size = 3
 		settings.outline_color = Color.BLACK
+	elif is_critical:
+		settings.font_size = 20
+		settings.font_color = Color(1.0, 0.88, 0.15) # 鮮烈なクリティカルゴールド
+		settings.outline_size = 4
+		settings.outline_color = Color(0.35, 0.05, 0.0) # 深紅アウトライン
 	else:
 		settings.font_size = 15
 		if amount > 15:
@@ -1560,15 +1624,17 @@ func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false) -> v
 	label.global_position = pos + Vector2(randf_range(-15, 15), randf_range(-15, 5))
 	add_child(label)
 	
-	label.scale = Vector2(0.5, 0.5)
+	var start_scale = Vector2(0.8, 0.8) if is_critical else Vector2(0.5, 0.5)
+	var end_scale = Vector2(1.3, 1.3) if is_critical else Vector2(1.0, 1.0)
+	label.scale = start_scale
 	var tween = create_tween().set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	var target_pos = label.global_position + Vector2(randf_range(-12, 12), -35)
-	tween.tween_property(label, "global_position", target_pos, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "scale", end_scale, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var target_pos = label.global_position + Vector2(randf_range(-15, 15), -45 if is_critical else -35)
+	tween.tween_property(label, "global_position", target_pos, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
 	var fade_tween = create_tween()
 	fade_tween.tween_interval(0.18)
-	fade_tween.tween_property(label, "modulate:a", 0.0, 0.17)
+	fade_tween.tween_property(label, "modulate:a", 0.0, 0.20)
 	
 	tween.chain().tween_callback(label.queue_free)
 

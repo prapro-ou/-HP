@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dchain_lightning_01"]
+
+[ext_resource type="Script" path="res://game/effects/chain_lightning.gd" id="1_lightning"]
+
+[node name="ChainLightningEffect" type="Node2D"]
+z_index = 60
+z_as_relative = false
+script = ExtResource("1_lightning")

@@ -13,6 +13,9 @@ var bullet_type: String = "analysis":
 		bullet_type = val
 		update_visual()
 
+const MAX_PLAYER_BULLETS: int = 80
+const MAX_LIFE_TIME: float = 3.5
+
 # 強化属性・変異パラメータ
 var pierce_limit: int = 0
 var hits_done: int = 0
@@ -21,12 +24,33 @@ var wave_amp: float = 0.0
 var explosion_radius: float = 0.0
 var explosion_dmg: int = 0
 
+# 新変異属性パラメータ
+var chain_count: int = 0
+var chain_damage: int = 0
+var vortex_radius: float = 0.0
+var vortex_dmg: int = 0
+var is_blade: bool = false
+var blade_lvl: int = 0
+
 
 func _ready() -> void:
 	z_index = 50
 	z_as_relative = false
 	update_visual()
 	area_entered.connect(_on_area_entered)
+	
+	if is_blade:
+		scale = Vector2(1.8 + blade_lvl * 0.4, 1.2 + blade_lvl * 0.3)
+		modulate = Color(0.2, 1.0, 0.85)
+	
+	# プレイヤー弾の最大同時存在数の制限（超過時は最古弾を自然消滅）
+	var parent_node = get_parent()
+	if is_instance_valid(parent_node) and parent_node.name.contains("Bullet"):
+		var sibling_count = parent_node.get_child_count()
+		if sibling_count > MAX_PLAYER_BULLETS:
+			var oldest = parent_node.get_child(0)
+			if is_instance_valid(oldest) and oldest != self:
+				oldest.queue_free()
 
 
 func update_visual() -> void:
@@ -146,7 +170,11 @@ func _process(delta: float) -> void:
 
 	position += velocity * delta
 	
-	# 画面外で消去
+	# 寿命切れまたは画面外で消去
+	if life_timer >= MAX_LIFE_TIME:
+		queue_free()
+		return
+		
 	var viewport_rect = get_viewport_rect()
 	if position.y < -120 or position.y > viewport_rect.size.y + 120 or \
 	   position.x < -120 or position.x > viewport_rect.size.x + 120:
@@ -168,39 +196,127 @@ func find_closest_target() -> Node2D:
 
 func _on_area_entered(area: Area2D) -> void:
 	"""他のArea2Dに入った時の処理"""
+	# 真空ブレードの敵弾消滅（斬り払い）処理
+	if is_blade and is_instance_valid(area) and area.is_in_group("enemy_projectiles"):
+		if area.has_method("recycle_bullet"):
+			area.recycle_bullet()
+		elif area.has_method("explode_and_free"):
+			area.explode_and_free()
+		else:
+			area.queue_free()
+		spawn_bullet_impact_particles(Color(0.2, 1.0, 0.85), 0.35)
+		return
+		
 	var is_boss_part = area.is_in_group("boss") or area.is_in_group("boss_turrets") or area.name == "BossDamageShape" or area.name.contains("Cannon") or area.name.contains("Pod") or area.name == "Core"
 	var is_enemy = area.is_in_group("enemy") or area.is_in_group("drones")
 	
 	if is_boss_part or is_enemy:
+		var hit_pos = global_position
 		var damage_target = area
-		if not area.has_method("take_damage") and area.get_parent() and area.get_parent().has_method("take_damage"):
+		if not area.has_method("take_damage") and not area.has_method("take_damage_on_part") and area.get_parent() and (area.get_parent().has_method("take_damage") or area.get_parent().has_method("take_damage_on_part")):
 			damage_target = area.get_parent()
 			
+		# --- 至近距離ボーナス（Point Blank Bonus）の算出 ---
+		var dist_to_player = 999.0
+		var player = get_node_or_null("/root/Main/Player")
+		if is_instance_valid(player):
+			dist_to_player = player.global_position.distance_to(hit_pos)
+			
+		var dmg_multiplier: float = 1.0
+		var is_critical: bool = false
+		if dist_to_player <= 140.0:
+			dmg_multiplier = 1.50 # 超至近距離: 1.5倍クリティカル
+			is_critical = true
+		elif dist_to_player <= 260.0:
+			dmg_multiplier = 1.25 # 近距離: 1.25倍
+			
+		var final_damage = max(1, int(damage * dmg_multiplier))
+			
 		if damage_target.has_method("take_damage"):
-			damage_target.take_damage(damage)
+			damage_target.take_damage(final_damage, hit_pos, is_critical)
 		elif damage_target.has_method("take_damage_on_part"):
-			damage_target.take_damage_on_part("core", damage)
+			damage_target.take_damage_on_part("core", final_damage, hit_pos, is_critical)
 		
-		# 爆発・衝撃波エフェクト
+		# 1. 電撃チェイン（Thunder Chain）の発動
+		if chain_count > 0 and chain_damage > 0:
+			trigger_chain_lightning(damage_target, chain_count, int(chain_damage * dmg_multiplier))
+			
+		# 2. 重力特異点（Gravity Vortex）の生成
+		if vortex_radius > 0.0 and vortex_dmg > 0:
+			spawn_gravity_vortex(hit_pos, vortex_radius, int(vortex_dmg * dmg_multiplier))
+		
+		# 3. 爆発・衝撃波エフェクト
+		var cur_exp_dmg = max(1, int(explosion_dmg * dmg_multiplier))
 		if explosion_radius > 0.0:
-			trigger_explosion(explosion_radius, explosion_dmg, Color.ORANGE, 0.6)
+			trigger_explosion(explosion_radius, cur_exp_dmg, Color.ORANGE, 0.7 if is_critical else 0.6)
 		elif bullet_type == "hyper_missile" or bullet_type == "player_meteor":
-			trigger_explosion(80.0, 14, Color.ORANGE, 0.8)
+			trigger_explosion(80.0, int(14 * dmg_multiplier), Color.ORANGE, 0.9 if is_critical else 0.8)
 		elif bullet_type == "plasma":
-			trigger_explosion(50.0, 10, Color(0.3, 1.0, 0.4), 0.6)
+			trigger_explosion(50.0, int(10 * dmg_multiplier), Color(0.3, 1.0, 0.4), 0.7 if is_critical else 0.6)
 		elif bullet_type == "tackle":
-			trigger_explosion(70.0, 18, Color(0.4, 0.8, 1.0), 0.8)
+			trigger_explosion(70.0, int(18 * dmg_multiplier), Color(0.4, 0.8, 1.0), 0.9 if is_critical else 0.8)
 		elif bullet_type == "missile":
-			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0), 0.4)
+			spawn_bullet_impact_particles(Color(0.8, 0.4, 1.0), 0.5 if is_critical else 0.4)
 		else:
-			spawn_bullet_impact_particles(modulate, 0.35)
+			var p_col = Color(0.2, 1.0, 0.85) if is_blade else modulate
+			spawn_bullet_impact_particles(p_col, 0.45 if is_critical else 0.35)
 			
 		hits_done += 1
-		# 貫通弾以外の弾丸は消去 (レーザー、チャージボルト、プラズマ、タックル、サイクロン、フォトンレーザー、隕石、またはpierce_limit残存時は貫通)
-		var is_piercing = (bullet_type == "giga_laser" or bullet_type == "charge_bolt" or bullet_type == "plasma" or bullet_type == "tackle" or bullet_type == "photon_laser" or bullet_type == "cyclone" or bullet_type == "player_meteor")
+		# 貫通判定 (レーザー、プラズマ、タックル、サイクロン、隕石、ブレード、またはpierce_limit残存時は貫通)
+		var is_piercing = (is_blade or bullet_type == "giga_laser" or bullet_type == "charge_bolt" or bullet_type == "plasma" or bullet_type == "tackle" or bullet_type == "photon_laser" or bullet_type == "cyclone" or bullet_type == "player_meteor")
 		if not is_piercing:
 			if hits_done > pierce_limit:
 				queue_free()
+
+
+const CHAIN_LIGHTNING_SCENE: PackedScene = preload("res://game/effects/chain_lightning.tscn")
+const GRAVITY_VORTEX_SCENE: PackedScene = preload("res://game/effects/gravity_vortex.tscn")
+
+func trigger_chain_lightning(origin_target: Node, count: int, chain_dmg: int) -> void:
+	var enemies = get_tree().get_nodes_in_group("enemy")
+	var hit_targets = [origin_target]
+	var current_origin_pos = global_position
+	var parent_node = get_parent()
+	
+	for i in range(count):
+		var next_target: Node2D = null
+		var min_d = 260.0 # 最大連鎖索敵半径
+		for e in enemies:
+			if is_instance_valid(e) and not hit_targets.has(e) and e.visible:
+				var d = current_origin_pos.distance_to(e.global_position)
+				if d < min_d:
+					min_d = d
+					next_target = e
+					
+		if is_instance_valid(next_target):
+			hit_targets.append(next_target)
+			var target_pos = next_target.global_position
+			
+			# 分離シーン（ChainLightningEffect）の呼び出し
+			if CHAIN_LIGHTNING_SCENE and parent_node:
+				var bolt = CHAIN_LIGHTNING_SCENE.instantiate()
+				bolt.setup_lightning(current_origin_pos, target_pos)
+				parent_node.add_child(bolt)
+				
+			if next_target.has_method("take_damage"):
+				next_target.take_damage(chain_dmg, target_pos)
+			elif next_target.has_method("take_damage_on_part"):
+				next_target.take_damage_on_part("core", chain_dmg, target_pos)
+				
+			current_origin_pos = target_pos
+		else:
+			break
+
+
+func spawn_gravity_vortex(vortex_pos: Vector2, radius: float, dmg_per_tick: int) -> void:
+	var parent_node = get_parent()
+	if not parent_node or not GRAVITY_VORTEX_SCENE:
+		return
+		
+	# 分離シーン（GravityVortexEffect）の呼び出し
+	var vortex = GRAVITY_VORTEX_SCENE.instantiate()
+	vortex.setup_vortex(vortex_pos, radius, dmg_per_tick, 1.4)
+	parent_node.add_child(vortex)
 
 
 func trigger_explosion(radius: float = 80.0, splash_dmg: int = 10, fx_color: Color = Color.ORANGE, fx_scale: float = 0.6) -> void:
