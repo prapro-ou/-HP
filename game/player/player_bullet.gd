@@ -135,6 +135,107 @@ func update_visual() -> void:
 			modulate = Color(1.0, 0.35, 0.2) # 隕石オレンジレッド
 			damage = 55
 			speed = 650.0
+		# --- 固有融合兵装弾 (FUSION WEAPONS) ---
+		"fusion_meteor_cluster":
+			scale = Vector2(2.4, 2.4)
+			modulate = Color(1.0, 0.45, 0.15) # 扇状大爆砕メテオ
+			damage = 48
+			speed = 800.0
+		"fusion_gatling_storm":
+			scale = Vector2(0.7, 1.8)
+			modulate = Color(0.25, 0.95, 0.85) # 超高密度ガトリング
+			damage = 18
+			speed = 1750.0
+		"fusion_swarm":
+			scale = Vector2(1.2, 1.2)
+			modulate = Color(0.75, 0.5, 1.0) # 多目標誘導スウォーム
+			damage = 25
+			speed = 700.0
+		"fusion_cross_penetrator":
+			scale = Vector2(0.9, 3.2)
+			modulate = Color(1.0, 0.68, 0.2) # クロス多重徹甲槍
+			damage = 32
+			speed = 1700.0
+		"fusion_prism_laser":
+			scale = Vector2(1.3, 5.2)
+			modulate = Color(0.35, 0.95, 1.0) # プリズム広角レーザー
+			damage = 28
+			speed = 2300.0
+		"fusion_electric_spread":
+			scale = Vector2(1.4, 1.4)
+			modulate = Color(0.98, 0.95, 0.25) # 連鎖放電ボルト
+			damage = 22
+			speed = 1100.0
+		"fusion_gravity_vortex":
+			scale = Vector2(1.8, 1.8)
+			modulate = Color(0.8, 0.35, 1.0) # 重力特異点弾頭
+			damage = 22
+			speed = 850.0
+		"fusion_tempest_slash":
+			scale = Vector2(3.4, 1.6)
+			modulate = Color(0.2, 1.0, 0.8) # 扇状三日月真空刃
+			damage = 35
+			speed = 1150.0
+		"fusion_spiral_cyclone":
+			scale = Vector2(1.5, 1.5)
+			modulate = Color(1.0, 0.85, 0.25) # 螺旋弾幕チャクラム
+			damage = 26
+			speed = 950.0
+		"fusion_photon_repeater":
+			scale = Vector2(1.4, 4.8)
+			modulate = Color(0.4, 0.95, 1.0) # 超連射フォトン
+			damage = 24
+			speed = 2500.0
+		"fusion_hyper_needler":
+			scale = Vector2(0.6, 3.0)
+			modulate = Color(1.0, 0.72, 0.3) # 高速ニードル徹甲
+			damage = 20
+			speed = 2000.0
+		"fusion_homing_gatling":
+			scale = Vector2(1.0, 1.0)
+			modulate = Color(0.9, 0.45, 1.0) # 高速追尾ロケット
+			damage = 18
+			speed = 900.0
+		"fusion_bomber_vulcan":
+			scale = Vector2(1.4, 1.6)
+			modulate = Color(1.0, 0.45, 0.2) # 連射重爆裂弾
+			damage = 24
+			speed = 1400.0
+		"fusion_megaton_drill":
+			scale = Vector2(2.4, 3.4)
+			modulate = Color(1.0, 0.55, 0.1) # 貫通体内起爆ドリル
+			damage = 60
+			speed = 950.0
+		"fusion_tesla_seeker":
+			scale = Vector2(1.3, 1.3)
+			modulate = Color(0.95, 0.9, 0.3) # 必中放電シーカー
+			damage = 30
+			speed = 750.0
+		"fusion_singularity_missile":
+			scale = Vector2(1.5, 1.5)
+			modulate = Color(0.75, 0.3, 0.95) # 誘導特異点ミサイル
+			damage = 32
+			speed = 700.0
+		"fusion_photon_blade":
+			scale = Vector2(3.6, 4.2)
+			modulate = Color(0.3, 1.0, 0.95) # 光子断絶レーザー刃
+			damage = 52
+			speed = 1700.0
+		"fusion_supernova":
+			scale = Vector2(3.0, 3.0)
+			modulate = Color(1.0, 0.3, 0.65) # 超新星重力爆弾
+			damage = 65
+			speed = 650.0
+		"fusion_twister_slasher":
+			scale = Vector2(3.2, 2.4)
+			modulate = Color(0.35, 1.0, 0.7) # 巨大回転ツイスター刃
+			damage = 42
+			speed = 1000.0
+		"fusion_rail_cannon":
+			scale = Vector2(2.0, 9.0)
+			modulate = Color(0.45, 0.9, 1.0) # 極限貫通レール砲
+			damage = 70
+			speed = 3000.0
 			
 	if velocity == Vector2.ZERO:
 		velocity = Vector2.UP * speed
@@ -272,8 +373,8 @@ func _on_area_entered(area: Area2D) -> void:
 			spawn_bullet_impact_particles(p_col, 0.45 if is_critical else 0.35)
 			
 		hits_done += 1
-		# 貫通判定 (レーザー、プラズマ、タックル、サイクロン、隕石、ブレード、またはpierce_limit残存時は貫通)
-		var is_piercing = (is_blade or bullet_type == "giga_laser" or bullet_type == "charge_bolt" or bullet_type == "plasma" or bullet_type == "tackle" or bullet_type == "photon_laser" or bullet_type == "cyclone" or bullet_type == "player_meteor")
+		# 貫通判定 (レーザー、プラズマ、タックル、サイクロン、隕石、ブレード、融合貫通弾、またはpierce_limit残存時は貫通)
+		var is_piercing = (is_blade or pierce_limit >= 90 or bullet_type.contains("laser") or bullet_type.contains("blade") or bullet_type.contains("penetrator") or bullet_type.contains("drill") or bullet_type.contains("rail") or bullet_type.contains("needler") or bullet_type.contains("plasma") or bullet_type.contains("tackle") or bullet_type.contains("cyclone") or bullet_type.contains("meteor"))
 		if not is_piercing:
 			if hits_done > pierce_limit:
 				queue_free()
