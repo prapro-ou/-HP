@@ -559,33 +559,38 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				target_parent.add_child(bullet)
 
 		WEAPON_BURST_RIFLE:
-			# ライフル: 徹甲精密バースト
-			var burst_count = 3 if not is_spread_active else (3 + spread_lvl)
-			for i in range(burst_count):
-				get_tree().create_timer(i * 0.04).timeout.connect(func():
+			# ライフル: 徹甲精密バースト（拡散時は各バーストで扇状拡散弾幕を3〜5連射！）
+			var burst_waves = 3 if not is_rapid_active else (3 + int(rapid_lvl * 0.6))
+			var angles_to_fire = spread_angles if is_spread_active else [0.0]
+			var offsets_to_fire = spread_offsets if is_spread_active else [Vector2(0, -22.0)]
+			
+			for wave in range(burst_waves):
+				get_tree().create_timer(wave * 0.05).timeout.connect(func():
 					if is_instance_valid(self) and current_hp > 0 and is_instance_valid(target_parent):
-						var bullet = PLAYER_BULLET_SCENE.instantiate()
-						bullet.bullet_type = "burst_rifle"
-						bullet.global_position = global_position + Vector2(0, -22.0)
-						var base_spd = 1500.0 + speed_bonus
-						bullet.speed = base_spd
-						var deg = (i - (burst_count - 1) * 0.5) * 3.5 if is_spread_active else 0.0
-						bullet.velocity = Vector2.UP.rotated(deg_to_rad(deg)) * base_spd
-						bullet.damage += trait_dmg + int(power_shield_damage_buff) + global_dmg_bonus
-						bullet.pierce_limit = max(p_limit, 1) # ライフルは元々1貫通
-						bullet.homing_strength = h_strength
-						bullet.wave_amp = w_amp * 0.5
-						bullet.explosion_radius = exp_rad
-						bullet.explosion_dmg = exp_dmg
-						bullet.chain_count = c_count
-						bullet.chain_damage = c_dmg
-						bullet.vortex_radius = v_rad
-						bullet.vortex_dmg = v_dmg
-						bullet.is_blade = is_blade_active
-						bullet.blade_lvl = blade_lvl
-						if laser_lvl >= 1:
-							bullet.modulate = Color(1.0, 0.6, 0.2)
-						target_parent.add_child(bullet)
+						for idx in range(offsets_to_fire.size()):
+							var deg = angles_to_fire[idx % angles_to_fire.size()]
+							var offset = offsets_to_fire[idx]
+							var bullet = PLAYER_BULLET_SCENE.instantiate()
+							bullet.bullet_type = "burst_rifle"
+							bullet.global_position = global_position + offset
+							var base_spd = 1500.0 + speed_bonus
+							bullet.speed = base_spd
+							bullet.velocity = Vector2.UP.rotated(deg_to_rad(deg)) * base_spd
+							bullet.damage += trait_dmg + int(power_shield_damage_buff) + global_dmg_bonus
+							bullet.pierce_limit = max(p_limit, 1) # ライフルは元々1貫通
+							bullet.homing_strength = h_strength
+							bullet.wave_amp = w_amp * 0.5
+							bullet.explosion_radius = exp_rad
+							bullet.explosion_dmg = exp_dmg
+							bullet.chain_count = c_count
+							bullet.chain_damage = c_dmg
+							bullet.vortex_radius = v_rad
+							bullet.vortex_dmg = v_dmg
+							bullet.is_blade = is_blade_active
+							bullet.blade_lvl = blade_lvl
+							if laser_lvl >= 1:
+								bullet.modulate = Color(1.0, 0.6, 0.2)
+							target_parent.add_child(bullet)
 				)
 
 		WEAPON_PULSE_GUN:
@@ -614,20 +619,24 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				target_parent.add_child(bullet)
 
 		WEAPON_PLASMA_EMITTER:
-			# プラズマ放射器: 高熱エネルギー球
+			# プラズマ放射器: 高熱エネルギー大玉球（拡散時は扇状ワイドに大玉を放射！）
+			var angles = spread_angles if is_spread_active else [0.0]
 			var offsets = spread_offsets if is_spread_active else [Vector2(0, -20.0)]
-			for offset in offsets:
+			for idx in range(offsets.size()):
+				var deg = angles[idx % angles.size()] if is_spread_active else 0.0
+				var offset = offsets[idx]
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "plasma"
 				bullet.global_position = global_position + offset
 				var base_spd = 600.0 + speed_bonus
 				bullet.speed = base_spd
-				bullet.velocity = Vector2.UP * base_spd
+				var dir = Vector2.UP.rotated(deg_to_rad(deg))
+				bullet.velocity = dir * base_spd
 				bullet.damage += trait_dmg + int(power_shield_damage_buff) + global_dmg_bonus
 				bullet.pierce_limit = 99 # プラズマは持続貫通
 				bullet.homing_strength = h_strength
 				bullet.wave_amp = w_amp * 0.5
-				bullet.explosion_radius = max(exp_rad, 50.0 + spread_lvl * 8.0)
+				bullet.explosion_radius = max(exp_rad, 50.0 + spread_lvl * 12.0)
 				bullet.explosion_dmg = exp_dmg
 				bullet.chain_count = c_count
 				bullet.chain_damage = c_dmg
@@ -639,20 +648,22 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 
 		WEAPON_KINETIC_TACKLE:
 			# タックル: キネティック衝撃破砕波
+			var angles = spread_angles if is_spread_active else [0.0]
 			var count = 1 if not is_spread_active else (1 + spread_lvl)
 			for i in range(count):
+				var deg = angles[i % angles.size()] if is_spread_active else 0.0
 				var offset_x = (i - (count - 1) * 0.5) * 24.0
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "tackle"
 				bullet.global_position = global_position + Vector2(offset_x, -30.0)
 				var base_spd = 850.0 + speed_bonus
 				bullet.speed = base_spd
-				bullet.velocity = Vector2.UP * base_spd
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(deg)) * base_spd
 				bullet.damage += trait_dmg + int(power_shield_damage_buff) + global_dmg_bonus
 				bullet.pierce_limit = 99
 				bullet.homing_strength = h_strength * 0.5
 				bullet.wave_amp = w_amp
-				bullet.explosion_radius = max(exp_rad, 70.0 + spread_lvl * 10.0)
+				bullet.explosion_radius = max(exp_rad, 70.0 + spread_lvl * 14.0)
 				bullet.explosion_dmg = exp_dmg
 				bullet.chain_count = c_count
 				bullet.chain_damage = c_dmg
@@ -911,13 +922,21 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 	if current_lvl >= data["max_level"]:
 		return # 最大レベル到達時はこれ以上加算しない
 		
+	var prev_prog = data["progress"]
 	data["progress"] = min(100.0, data["progress"] + amount)
+	
+	# 自機頭上にリアルタイム解析進捗ポップアップを表示（強化してる感を強く演出！）
+	spawn_analysis_progress_popup(data.get("icon", "⚡"), data.get("name", "属性"), amount, data["progress"], data.get("color", Color.CYAN))
 	
 	if data["progress"] >= 100.0:
 		data["progress"] = 0.0
 		data["level"] += 1
 		data["analyzed"] = true
 		heal(50) # 解析完了時に機体大幅修復 (+50 HP)
+		Global.play_upgrade_success()
+		
+		# 画面中央＆頭上に【ANALYSIS COMPLETE!!】特大メッセージ
+		spawn_popup_message("【ANALYSIS COMPLETE!!】%s『%s』Lv.%d 獲得・主兵装融合！" % [data.get("icon", "⚡"), data.get("name", "兵装"), data["level"]])
 		
 		# 初めて入手・解放された解析兵装のチェック
 		var is_first_discovery = false
@@ -938,6 +957,29 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 						ui_node.show_tutorial_guide_modal("weapon_analysis")
 					elif ui_node.has_method("show_analysis_unlock_modal"):
 						ui_node.show_analysis_unlock_modal(pattern_key, data)
+
+
+func spawn_analysis_progress_popup(p_icon: String, p_name: String, added: float, current_prog: float, p_color: Color) -> void:
+	var label = Label.new()
+	label.text = "%s [%s] 解析 +%d%%  ( %d%% )" % [p_icon, p_name, int(added), int(current_prog)]
+	
+	var settings = LabelSettings.new()
+	if PIXEL_FONT:
+		settings.font = PIXEL_FONT
+	settings.font_size = 14
+	settings.font_color = p_color
+	settings.outline_size = 3
+	settings.outline_color = Color(0.05, 0.08, 0.12, 0.95)
+	label.label_settings = settings
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.global_position = global_position + Vector2(-120, -50 + randf_range(-10, 10))
+	label.custom_minimum_size = Vector2(240, 20)
+	get_parent().add_child(label)
+	
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 32.0, 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, 0.75).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(label.queue_free)
 
 
 func apply_pattern_trait(pattern_key: String) -> void:
