@@ -222,21 +222,27 @@ func start_wave(index: int) -> void:
 	var viewport_w = get_viewport_rect().size.x
 	for config in wave_data.initial_spawns:
 		var pos = Vector2(viewport_w * config.pos_ratio_x, config.pos_y)
-		var drone = spawn_drone(config.drone_type, pos)
+		var is_slow_val = config.is_slow if "is_slow" in config else null
+		var drone = spawn_drone(config.drone_type, pos, is_slow_val)
 		if drone and wave_data.drone_speed_override > 0.0:
-			drone.speed = wave_data.drone_speed_override
+			if drone.has_method("set_override_speed"):
+				drone.set_override_speed(wave_data.drone_speed_override)
+			else:
+				drone.speed = wave_data.drone_speed_override
 			if config.drone_type == "beam" and wave_data.drone_shoot_interval_beam > 0.0:
 				drone.shoot_interval = wave_data.drone_shoot_interval_beam
 			elif config.drone_type == "missile" and wave_data.drone_shoot_interval_missile > 0.0:
 				drone.shoot_interval = wave_data.drone_shoot_interval_missile
 
 
-func spawn_drone(type: String, pos: Vector2) -> Node2D:
+func spawn_drone(type: String, pos: Vector2, p_is_slow: Variant = null) -> Node2D:
 	if not DRONE_SCENE:
 		return null
 	var drone = DRONE_SCENE.instantiate()
 	drone.drone_type = type
 	drone.global_position = pos
+	if p_is_slow != null and "force_slow_mode" in drone:
+		drone.force_slow_mode = p_is_slow
 	get_parent().add_child(drone)
 	spawned_drones.append(drone)
 	return drone
@@ -369,7 +375,10 @@ func check_drone_replenish(wave_data: BaseStage.WaveData) -> void:
 		var chosen_type = get_boosted_replenish_type(wave_data)
 		var drone = spawn_drone(chosen_type, Vector2(rx, -50))
 		if drone and wave_data.drone_speed_override > 0.0:
-			drone.speed = wave_data.drone_speed_override
+			if drone.has_method("set_override_speed"):
+				drone.set_override_speed(wave_data.drone_speed_override)
+			else:
+				drone.speed = wave_data.drone_speed_override
 			if chosen_type == "laser" and wave_data.drone_shoot_interval_beam > 0.0:
 				drone.shoot_interval = wave_data.drone_shoot_interval_beam
 			elif chosen_type == "missile" and wave_data.drone_shoot_interval_missile > 0.0:
@@ -390,7 +399,10 @@ func process_boss_support_drones(delta: float) -> void:
 			var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
 			var drone = spawn_drone(type, Vector2(rx, -50))
 			if drone:
-				drone.speed = 160.0
+				if drone.has_method("set_override_speed"):
+					drone.set_override_speed(160.0)
+				else:
+					drone.speed = 160.0
 				drone.shoot_interval = 2.0
 
 
