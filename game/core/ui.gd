@@ -889,8 +889,8 @@ func show_tutorial_guide_modal(topic: String) -> void:
 	
 	match topic:
 		"controls":
-			title_text = "【機体操作 ＆ ジャストガード指南】"
-			sub_text = "基本システムを把握し、激戦を生き残れ！"
+			title_text = "【機体操作 ＆ 戦闘システム指南】"
+			sub_text = "基本操作と必殺システムを把握し、激戦を制圧せよ！"
 			border_col = Color(0.2, 0.8, 1.0)
 			items = [
 				{
@@ -901,12 +901,17 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "主兵装射撃",
 					"color": Color(0.4, 1.0, 0.5),
-					"desc": "[Zキー] / [左クリック]（押しっぱなしで自動連射）\n通常物理弾で雑魚ドローンを撃破し、侵攻を食い止めろ。"
+					"desc": "【常時フルオート自動連射】\n主兵装は常時自動で連射されます。攻撃キーの長押しは不要で、回避とシールド防御に集中できます。"
 				},
 				{
 					"title": "シールド ＆ ジャストガード",
 					"color": Color.GOLD,
 					"desc": "[スペースキー] / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【ジャストガード】発動！敵弾を反射弾に変換して大ダメージ＆機体修復！"
+				},
+				{
+					"title": "COUNTER SYSTEM (必殺支援部隊)",
+					"color": Color(1.0, 0.45, 0.9),
+					"desc": "[Xキー] (または [C] / [E] キー)\nボスタレット支援部隊を一斉召喚！全画面が機体色に染まり、圧倒的な高火力援護射撃で敵陣を殲滅！"
 				}
 			]
 		"weapon_analysis":
