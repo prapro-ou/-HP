@@ -265,11 +265,12 @@ func set_direction(direction: Vector2, speed_override: float = 0.0) -> void:
 
 
 func convert_to_friendly() -> void:
-	# パリィ不可弾は味方に変換・反射できない
+	# ジャストガード不可弾は味方に変換・反射できない
 	if is_friendly or is_unparryable:
 		return
 	is_friendly = true
-	damage = int(damage * 3.5) # パリィ反射ボーナスダメージ
+	var f_mult = Global.get_just_guard_damage_multiplier()
+	damage = int(damage * 3.5 * f_mult) # ジャストガード反射ボーナスダメージ (フォーカス設定でさらに威力激増！)
 	
 	# スピード上昇と方向反転
 	velocity = -velocity * PARRY_SPEED_MULTIPLIER
