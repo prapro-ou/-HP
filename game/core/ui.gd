@@ -892,11 +892,13 @@ func show_tutorial_guide_modal(topic: String) -> void:
 			title_text = "【機体操作 ＆ 戦闘システム指南】"
 			sub_text = "基本操作と必殺システムを把握し、激戦を制圧せよ！"
 			border_col = Color(0.2, 0.8, 1.0)
+			var move_k_str = "[WASD] / [方向キー]" if Global.control_move_type == 0 else ("[WASDキー]" if Global.control_move_type == 1 else "[方向キー (↑↓←→)]")
+			var cs_k_str = "[%sキー]" % Global.get_counter_system_key_name()
 			items = [
 				{
 					"title": "機体移動",
 					"color": Color.CYAN,
-					"desc": "[W][A][S][D] / [方向キー] / [マウス移動]\n自機を360度自在に操り、敵の弾幕をすり抜けろ。"
+					"desc": "%s\n自機を自在に操り、敵の弾幕を掻い潜れ。（設定画面で変更可能）" % move_k_str
 				},
 				{
 					"title": "主兵装射撃",
@@ -911,7 +913,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "COUNTER SYSTEM (必殺支援部隊)",
 					"color": Color(1.0, 0.45, 0.9),
-					"desc": "[Xキー] (または [C] / [E] キー)\nボスタレット支援部隊を一斉召喚！全画面が機体色に染まり、圧倒的な高火力援護射撃で敵陣を殲滅！"
+					"desc": "%s (設定画面で変更可能)\nボスタレット支援部隊を一斉召喚！全画面が機体色に染まり、圧倒的な高火力援護射撃で敵陣を殲滅！" % cs_k_str
 				}
 			]
 		"weapon_analysis":

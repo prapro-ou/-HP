@@ -283,8 +283,28 @@ func _process(delta: float) -> void:
 				sprite.modulate.a = 1.0
 
 	var input_vector = Vector2.ZERO
-	input_vector.x = Input.get_axis("ui_left", "ui_right")
-	input_vector.y = Input.get_axis("ui_up", "ui_down")
+	var move_mode = Global.control_move_type
+	var left_in = false
+	var right_in = false
+	var up_in = false
+	var down_in = false
+	
+	if move_mode == 0 or move_mode == 1: # WASD enabled
+		if Input.is_key_pressed(KEY_A): left_in = true
+		if Input.is_key_pressed(KEY_D): right_in = true
+		if Input.is_key_pressed(KEY_W): up_in = true
+		if Input.is_key_pressed(KEY_S): down_in = true
+		
+	if move_mode == 0 or move_mode == 2: # Arrow keys enabled
+		if Input.is_key_pressed(KEY_LEFT): left_in = true
+		if Input.is_key_pressed(KEY_RIGHT): right_in = true
+		if Input.is_key_pressed(KEY_UP): up_in = true
+		if Input.is_key_pressed(KEY_DOWN): down_in = true
+		
+	if left_in: input_vector.x -= 1.0
+	if right_in: input_vector.x += 1.0
+	if up_in: input_vector.y -= 1.0
+	if down_in: input_vector.y += 1.0
 	
 	velocity = input_vector.normalized() * move_speed
 	move_and_slide()
@@ -350,11 +370,16 @@ func _process(delta: float) -> void:
 	var space_just_pressed = space_pressed and not space_was_pressed
 	space_was_pressed = space_pressed
 	
-	# --- 兵装のリアルタイム切替 (Q / E / C) ---
-	if Input.is_key_pressed(KEY_Q) and not get_meta("q_was_pressed", false):
+	# --- 兵装のリアルタイム切替 (Q / E / C / Tab) ---
+	var cs_key = Global.counter_system_key
+	var q_avail = (cs_key != 3)
+	var e_avail = (cs_key != 2)
+	var c_avail = (cs_key != 1)
+	
+	if (q_avail and Input.is_key_pressed(KEY_Q)) and not get_meta("q_was_pressed", false):
 		set_meta("q_was_pressed", true)
 		cycle_equipped_weapon(-1)
-	elif not Input.is_key_pressed(KEY_Q):
+	elif not (q_avail and Input.is_key_pressed(KEY_Q)):
 		set_meta("q_was_pressed", false)
 		
 	if (Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_C)) and not get_meta("e_was_pressed", false):
@@ -435,9 +460,20 @@ func _process(delta: float) -> void:
 			if Engine.time_scale < 0.5 and not is_guarding:
 				Engine.time_scale = 1.0
 
-	# COUNTER SYSTEM 手動発動 (Xキー)
+	# COUNTER SYSTEM 手動発動 (設定キー)
 	if not is_full_burst and not get_meta("is_counter_system_used", false):
-		if Input.is_key_pressed(KEY_X) or Input.is_action_just_pressed("ui_focus_next"):
+		var is_cs_pressed = false
+		match Global.counter_system_key:
+			0: is_cs_pressed = Input.is_key_pressed(KEY_X)
+			1: is_cs_pressed = Input.is_key_pressed(KEY_C)
+			2: is_cs_pressed = Input.is_key_pressed(KEY_E)
+			3: is_cs_pressed = Input.is_key_pressed(KEY_Q)
+			4: is_cs_pressed = Input.is_key_pressed(KEY_SHIFT)
+			5: is_cs_pressed = Input.is_key_pressed(KEY_F)
+			6: is_cs_pressed = Input.is_key_pressed(KEY_V)
+			_: is_cs_pressed = Input.is_key_pressed(KEY_X)
+			
+		if is_cs_pressed or Input.is_action_just_pressed("ui_focus_next"):
 			set_meta("is_counter_system_used", true)
 			activate_counter_system()
 

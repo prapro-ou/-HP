@@ -43,6 +43,8 @@ var player_color_option: OptionButton
 var player_ship_preview: TextureRect
 var player_ship_color_name_lbl: Label
 var player_color_keys: Array = ["blue", "red", "green", "yellow", "purple", "orange"]
+var move_control_option: OptionButton
+var counter_key_option: OptionButton
 var master_slider: HSlider
 var master_lbl: Label
 var bgm_slider: HSlider
@@ -419,7 +421,47 @@ func setup_settings_container() -> void:
 		player_color_option.add_item(col_info["name"], i)
 	controls_vbox.add_child(player_color_option)
 	
-	# --- SECTION 3: AUDIO ---
+	# --- SECTION 3: CONTROLS / 操作キー設定 ---
+	var ctrl_title = Label.new()
+	ctrl_title.text = "操作キー設定"
+	ctrl_title.label_settings = sec_set
+	scroll_content.add_child(ctrl_title)
+	
+	var grid_ctrl = GridContainer.new()
+	grid_ctrl.columns = 2
+	grid_ctrl.add_theme_constant_override("h_separation", 16)
+	grid_ctrl.add_theme_constant_override("v_separation", 14)
+	scroll_content.add_child(grid_ctrl)
+	
+	# 移動操作キー
+	grid_ctrl.add_child(create_label("自機移動キー:"))
+	move_control_option = OptionButton.new()
+	move_control_option.add_item("WASD ＆ 十字キー (両方有効)", 0)
+	move_control_option.add_item("WASD 専用", 1)
+	move_control_option.add_item("十字キー 専用 (↑↓←→)", 2)
+	move_control_option.custom_minimum_size = Vector2(240, 44)
+	move_control_option.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		move_control_option.add_theme_font_override("font", PIXEL_FONT)
+	grid_ctrl.add_child(move_control_option)
+	
+	# COUNTER SYSTEM 発動キー
+	grid_ctrl.add_child(create_label("COUNTER SYSTEM:"))
+	counter_key_option = OptionButton.new()
+	counter_key_option.add_item("X キー (標準)", 0)
+	counter_key_option.add_item("C キー", 1)
+	counter_key_option.add_item("E キー", 2)
+	counter_key_option.add_item("Q キー", 3)
+	counter_key_option.add_item("Shift キー", 4)
+	counter_key_option.add_item("F キー", 5)
+	counter_key_option.add_item("V キー", 6)
+	counter_key_option.custom_minimum_size = Vector2(240, 44)
+	counter_key_option.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		counter_key_option.add_theme_font_override("font", PIXEL_FONT)
+	grid_ctrl.add_child(counter_key_option)
+	
+	# --- SECTION 4: AUDIO ---
 	var a_title = Label.new()
 	a_title.text = "音量設定"
 	a_title.label_settings = sec_set
@@ -657,6 +699,14 @@ func setup_settings_container() -> void:
 	scale_option.item_selected.connect(_on_display_scale_changed)
 	aspect_option.item_selected.connect(_on_display_aspect_changed)
 	player_color_option.item_selected.connect(_on_player_color_changed)
+	move_control_option.item_selected.connect(func(idx):
+		Global.control_move_type = idx
+		Global.save_settings()
+	)
+	counter_key_option.item_selected.connect(func(idx):
+		Global.counter_system_key = idx
+		Global.save_settings()
+	)
 	vsync_check.toggled.connect(func(t): Global.vsync = t)
 	shake_check.toggled.connect(func(t): Global.screen_shake = t)
 	
@@ -1115,6 +1165,12 @@ func sync_settings_to_ui() -> void:
 		player_color_option.selected = color_idx
 	else:
 		player_color_option.selected = 0
+		
+	if is_instance_valid(move_control_option):
+		move_control_option.selected = Global.control_move_type
+	if is_instance_valid(counter_key_option):
+		counter_key_option.selected = Global.counter_system_key
+		
 	update_ship_preview()
 
 func update_ship_preview() -> void:
