@@ -42,6 +42,16 @@ func _ready() -> void:
 	if is_blade:
 		scale = Vector2(1.8 + blade_lvl * 0.4, 1.2 + blade_lvl * 0.3)
 		modulate = Color(0.2, 1.0, 0.85)
+		
+	# メテオ・大玉属性（explosion_radius）が付与されている場合、弾丸サイズを大幅に巨大化＆灼熱発光
+	if explosion_radius > 0.0:
+		var m_scale_boost = 1.0 + (explosion_radius / 80.0) * 0.9 # 最大約2.2倍の大玉サイズ
+		scale *= m_scale_boost
+		modulate = modulate.lerp(Color(1.0, 0.45, 0.15), 0.65)
+		
+	# 貫通属性（pierce_limit）による白熱青白いコア発光
+	if pierce_limit > 0 and not is_blade:
+		modulate = modulate.lerp(Color(0.5, 0.9, 1.0), 0.35)
 	
 	# プレイヤー弾の最大同時存在数の制限（超過時は最古弾を自然消滅）
 	var parent_node = get_parent()
