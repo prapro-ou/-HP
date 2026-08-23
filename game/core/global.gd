@@ -44,6 +44,127 @@ var stage5_clears_count: int = 0
 var counter_only_mode_unlocked: bool = false
 var counter_only_mode_enabled: bool = false
 
+# TIPS 戦術アーカイブ管理 (出撃ごとに1つずつ解放)
+var unlocked_tips: Array = ["tip_move", "tip_shoot"]
+var unread_tips: Array = ["tip_move", "tip_shoot"]
+
+var tips_categories: Dictionary = {
+	"all": "すべて",
+	"basic": "基本操作",
+	"shield": "シールド",
+	"attack": "攻撃",
+	"boss": "ボス",
+	"upgrade": "強化要素",
+	"other": "その他"
+}
+
+var tips_catalog: Array[Dictionary] = [
+	{
+		"id": "tip_move",
+		"category": "basic",
+		"category_name": "基本操作",
+		"title": "機体の基本移動と回避",
+		"desc": "方向キーまたはWASDキーで機体を360度自在に移動できます。マウス移動にも対応しており、状況に応じた直感的な回避行動が可能です。",
+		"hint": "操作: [WASD] / [方向キー] / [マウス移動]"
+	},
+	{
+		"id": "tip_shoot",
+		"category": "basic",
+		"category_name": "基本操作",
+		"title": "主兵装の連続射撃",
+		"desc": "Zキーまたは左クリックを押し続けることで自動連射が行われます。射撃中も移動速度は低下しないため、常に位置取りを意識して攻撃を継続できます。",
+		"hint": "操作: [Zキー] または [左クリック] (長押し対応)"
+	},
+	{
+		"id": "tip_guard_basic",
+		"category": "shield",
+		"category_name": "シールド",
+		"title": "シールドの展開と熱管理",
+		"desc": "スペースキーまたは右クリックでシールドを展開し、敵弾を完全に遮断します。連続展開を行うとシールド熱量が上昇し、オーバーヒート時に一時的な防御不能と装甲脆弱化が発生します。",
+		"hint": "操作: [SPACE] または [右クリック] (熱ゲージに注意)"
+	},
+	{
+		"id": "tip_just_guard",
+		"category": "shield",
+		"category_name": "シールド",
+		"title": "ジャストガードと反射反撃",
+		"desc": "敵弾が自機周囲の有効範囲に入った瞬間にシールドを展開するとジャストガードが発動します。敵弾を強力な味方反射弾へと変換し、機体耐久値の修復も行われます。",
+		"hint": "判定: 自機周囲のサイバーリング内に敵弾侵入時"
+	},
+	{
+		"id": "tip_focus_tuning",
+		"category": "shield",
+		"category_name": "シールド",
+		"title": "ジャストガードのフォーカス設定",
+		"desc": "技術研究所にて判定範囲を縮小する代わりに反射威力を最大2.2倍まで引き上げることが可能です。リスクは高まりますが、強敵相手に圧倒的なカウンターダメージを与えられます。",
+		"hint": "設定場所: 技術研究所 (STANDARD / FOCUS / PINPOINT)"
+	},
+	{
+		"id": "tip_analysis_slot",
+		"category": "attack",
+		"category_name": "攻撃",
+		"title": "敵弾解析とスロット固定",
+		"desc": "敵弾をジャストガードすることで解析が進み、100%に達すると変異兵装が解放されます。最大2つまでスロットに固定装備され、以降の解析でLvアップ集中強化されます。",
+		"hint": "仕様: 最大2スロット固定 / 上書きなし集中強化"
+	},
+	{
+		"id": "tip_fusion_weapon",
+		"category": "attack",
+		"category_name": "攻撃",
+		"title": "2属性融合兵装の完成",
+		"desc": "2つの変異兵装スロットが埋まると自動的に固有の融合兵装が完成します。拡散×3連射やメテオ×拡散など、2つの兵装特性を兼ね備えた強力な複合効果を発揮します。",
+		"hint": "発動条件: 変異スロット2枠の解放完了"
+	},
+	{
+		"id": "tip_counter_system",
+		"category": "attack",
+		"category_name": "攻撃",
+		"title": "COUNTER SYSTEMの展開",
+		"desc": "Xキーを押すことで自機カラーのボスタレット支援部隊が一定時間出撃します。敵を自動索敵して高火力支援射撃を行い、全画面が機体カラーのサイバーティントで包まれます。",
+		"hint": "操作: [Xキー] (支援タレット部隊の召喚)"
+	},
+	{
+		"id": "tip_boss_turret",
+		"category": "boss",
+		"category_name": "ボス",
+		"title": "要塞ボスのサブ砲台と装甲",
+		"desc": "サブ砲台が稼働している間、ボスの強固な防壁により本体へのダメージが大幅に軽減されます。まず左右のサブ砲台を集中破壊することで本体の装甲を破り大ダメージを与えられます。",
+		"hint": "攻略要点: サブ砲台の破壊でボス装甲を解除"
+	},
+	{
+		"id": "tip_unparryable",
+		"category": "boss",
+		"category_name": "ボス",
+		"title": "ガード不可攻撃の緊急回避",
+		"desc": "画面上部が赤く点灯した際はガード不可能な断絶レーザー攻撃の合図です。シールドを貫通して致命傷を与えるため、照射軸から直ちに機体を横移動させて回避してください。",
+		"hint": "警告: 赤色点灯時はシールド無効・即座に離脱"
+	},
+	{
+		"id": "tip_tech_points",
+		"category": "upgrade",
+		"category_name": "強化要素",
+		"title": "調査ポイント(TP)と機体強化",
+		"desc": "敵ドローンの撃破やサブ砲台の破壊、ステージクリアによりTPを獲得できます。獲得したTPは技術研究所にて最大HP増加、シールド範囲拡大、新兵装開発に使用します。",
+		"hint": "用途: 技術研究所での恒久アップグレード"
+	},
+	{
+		"id": "tip_shield_research",
+		"category": "upgrade",
+		"category_name": "強化要素",
+		"title": "特殊シールドフレームの換装",
+		"desc": "標準のカウンターシールドに加え、エナジーオーブを磁力吸引する吸収マトリクスや攻撃力をスタック強化する増幅ブースターが開発可能です。作戦に合わせて自由に換装できます。",
+		"hint": "開発: 技術研究所にて各30 TPで開発"
+	},
+	{
+		"id": "tip_counter_only",
+		"category": "other",
+		"category_name": "その他",
+		"title": "極秘作戦：COUNTER ONLY出撃",
+		"desc": "ステージ5を5回クリアし150 TPを消費することで解放される特殊作戦です。自機射撃を停止し、常駐する4基の支援砲台部隊が敵を自動殲滅します。",
+		"hint": "解放条件: STAGE 5を5回クリア ＆ 150 TP"
+	}
+]
+
 # Catalog of all 10 Enemy Analysis Mutation Patterns
 var analysis_catalog: Dictionary = {
 	"rapid": {
@@ -464,6 +585,8 @@ func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -
 	config.set_value("game", "stage5_clears_count", stage5_clears_count)
 	config.set_value("game", "counter_only_mode_unlocked", counter_only_mode_unlocked)
 	config.set_value("game", "counter_only_mode_enabled", counter_only_mode_enabled)
+	config.set_value("game", "unlocked_tips", unlocked_tips)
+	config.set_value("game", "unread_tips", unread_tips)
 	config.set_value("game", "tutorial_flags", tutorial_flags)
 	config.save(SAVE_PATH)
 	has_save = true
@@ -491,6 +614,8 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"stage5_clears_count": stage5_clears_count,
 		"counter_only_mode_unlocked": counter_only_mode_unlocked,
 		"counter_only_mode_enabled": counter_only_mode_enabled,
+		"unlocked_tips": ["tip_move", "tip_shoot"],
+		"unread_tips": ["tip_move", "tip_shoot"],
 		"tutorial_flags": tutorial_flags
 	}
 	if config.load(SAVE_PATH) == OK:
@@ -514,6 +639,8 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["stage5_clears_count"] = config.get_value("game", "stage5_clears_count", 0)
 		data["counter_only_mode_unlocked"] = config.get_value("game", "counter_only_mode_unlocked", false)
 		data["counter_only_mode_enabled"] = config.get_value("game", "counter_only_mode_enabled", false)
+		data["unlocked_tips"] = config.get_value("game", "unlocked_tips", ["tip_move", "tip_shoot"])
+		data["unread_tips"] = config.get_value("game", "unread_tips", ["tip_move", "tip_shoot"])
 		data["tutorial_flags"] = config.get_value("game", "tutorial_flags", {
 			"controls": false,
 			"weapon_analysis": false,
@@ -542,6 +669,8 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			stage5_clears_count = data["stage5_clears_count"]
 			counter_only_mode_unlocked = data["counter_only_mode_unlocked"]
 			counter_only_mode_enabled = data["counter_only_mode_enabled"]
+			unlocked_tips = data["unlocked_tips"]
+			unread_tips = data["unread_tips"]
 			tutorial_flags = data["tutorial_flags"]
 	return data
 
@@ -604,12 +733,37 @@ func delete_save_game() -> void:
 	stage5_clears_count = 0
 	counter_only_mode_unlocked = false
 	counter_only_mode_enabled = false
+	unlocked_tips = ["tip_move", "tip_shoot"]
+	unread_tips = ["tip_move", "tip_shoot"]
 	tutorial_flags = {
 		"controls": false,
 		"weapon_analysis": false,
 		"time_limit": false,
 		"boss_info": false
 	}
+
+# --- TIPS 戦術アーカイブ ヘルパー関数 ---
+
+func unlock_next_tip() -> String:
+	for tip in tips_catalog:
+		var tip_id: String = tip["id"]
+		if not unlocked_tips.has(tip_id):
+			unlocked_tips.append(tip_id)
+			unread_tips.append(tip_id)
+			save_game()
+			return tip["title"]
+	return ""
+
+func mark_tip_as_read(tip_id: String) -> void:
+	if unread_tips.has(tip_id):
+		unread_tips.erase(tip_id)
+		save_game()
+
+func is_tip_unread(tip_id: String) -> bool:
+	return unread_tips.has(tip_id)
+
+func get_unread_tips_count() -> int:
+	return unread_tips.size()
 
 # --- COUNTER SYSTEM パラメータ計算 ---
 

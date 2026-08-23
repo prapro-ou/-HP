@@ -615,6 +615,11 @@ func spawn_popup(text: String) -> void:
 
 
 func show_game_over(result: String) -> void:
+	# 出撃完了（クリアまたは撃破）ごとにTIPSアーカイブを1つ解放
+	var unlocked_tip_title = Global.unlock_next_tip()
+	if unlocked_tip_title != "":
+		spawn_popup("【戦術アーカイブ解放】新規TIPS: 『%s』" % unlocked_tip_title)
+
 	var audio_mgr = get_node_or_null("/root/AudioManager")
 	if audio_mgr and audio_mgr.has_method("stop_bgm"):
 		audio_mgr.stop_bgm(0.5)

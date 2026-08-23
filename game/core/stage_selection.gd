@@ -32,8 +32,15 @@ var next_btn: Button
 var select_btn: Button
 var tech_lab_btn: Button
 var archive_btn: Button
+var tips_btn: Button
 var menu_btn: Button
 var archive_panel: PanelContainer
+var tips_panel: PanelContainer
+var tips_list_container: VBoxContainer
+var tips_detail_panel: PanelContainer
+var tips_filter_category: String = "all"
+var selected_tip_id: String = ""
+var tips_category_buttons: Dictionary = {}
 
 # Starfield for sci-fi atmosphere
 class BackgroundStar:
@@ -170,10 +177,10 @@ func setup_ui() -> void:
 	
 	# 3. Main Center Cards container for active details
 	detail_panel = PanelContainer.new()
-	detail_panel.anchor_left = 0.08
-	detail_panel.anchor_top = 0.18
-	detail_panel.anchor_right = 0.92
-	detail_panel.anchor_bottom = 0.56
+	detail_panel.anchor_left = 0.04
+	detail_panel.anchor_top = 0.16
+	detail_panel.anchor_right = 0.96
+	detail_panel.anchor_bottom = 0.58
 	detail_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	detail_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 	detail_panel.offset_left = 0
@@ -198,19 +205,21 @@ func setup_ui() -> void:
 	detail_panel.add_theme_stylebox_override("panel", sb)
 	
 	var margin_inner = MarginContainer.new()
-	margin_inner.add_theme_constant_override("margin_left", 30)
-	margin_inner.add_theme_constant_override("margin_top", 20)
-	margin_inner.add_theme_constant_override("margin_right", 30)
-	margin_inner.add_theme_constant_override("margin_bottom", 20)
+	margin_inner.add_theme_constant_override("margin_left", 24)
+	margin_inner.add_theme_constant_override("margin_top", 16)
+	margin_inner.add_theme_constant_override("margin_right", 24)
+	margin_inner.add_theme_constant_override("margin_bottom", 16)
 	detail_panel.add_child(margin_inner)
 	
 	var info_vbox = VBoxContainer.new()
-	info_vbox.add_theme_constant_override("separation", 12)
+	info_vbox.add_theme_constant_override("separation", 10)
 	margin_inner.add_child(info_vbox)
 	
 	detail_title = Label.new()
 	var t_set = LabelSettings.new()
-	t_set.font_size = 36
+	if PIXEL_FONT:
+		t_set.font = PIXEL_FONT
+	t_set.font_size = 40
 	t_set.font_color = Color.WHITE
 	t_set.outline_size = 6
 	t_set.outline_color = Color.BLACK
@@ -219,7 +228,9 @@ func setup_ui() -> void:
 	
 	detail_codename = Label.new()
 	var code_set = LabelSettings.new()
-	code_set.font_size = 18
+	if PIXEL_FONT:
+		code_set.font = PIXEL_FONT
+	code_set.font_size = 22
 	code_set.font_color = Color.GOLD
 	detail_codename.label_settings = code_set
 	info_vbox.add_child(detail_codename)
@@ -232,16 +243,20 @@ func setup_ui() -> void:
 	
 	detail_desc = Label.new()
 	detail_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail_desc.custom_minimum_size = Vector2(400, 80)
+	detail_desc.custom_minimum_size = Vector2(400, 70)
 	var desc_set = LabelSettings.new()
-	desc_set.font_size = 20
+	if PIXEL_FONT:
+		desc_set.font = PIXEL_FONT
+	desc_set.font_size = 22
 	desc_set.font_color = Color(0.9, 0.95, 1.0, 0.95)
 	detail_desc.label_settings = desc_set
 	info_vbox.add_child(detail_desc)
 	
 	detail_diff = Label.new()
 	var diff_set = LabelSettings.new()
-	diff_set.font_size = 20
+	if PIXEL_FONT:
+		diff_set.font = PIXEL_FONT
+	diff_set.font_size = 22
 	diff_set.font_color = Color.GREEN
 	diff_set.outline_size = 4
 	diff_set.outline_color = Color.BLACK
@@ -343,7 +358,7 @@ func setup_ui() -> void:
 	# Action buttons at the absolute bottom
 	var action_hbox = HBoxContainer.new()
 	action_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	action_hbox.add_theme_constant_override("separation", 16)
+	action_hbox.add_theme_constant_override("separation", 14)
 	action_hbox.anchor_left = 0.0
 	action_hbox.anchor_right = 1.0
 	action_hbox.anchor_top = 0.90
@@ -354,15 +369,24 @@ func setup_ui() -> void:
 	
 	menu_btn = Button.new()
 	menu_btn.text = "戻る"
-	menu_btn.custom_minimum_size = Vector2(130, 52)
+	menu_btn.custom_minimum_size = Vector2(110, 52)
 	menu_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(menu_btn)
 	style_btn(menu_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	menu_btn.pressed.connect(_on_menu_pressed)
 	
+	tips_btn = Button.new()
+	var unread_cnt = Global.get_unread_tips_count()
+	tips_btn.text = "TIPS [NEW]" if unread_cnt > 0 else "TIPS戦術"
+	tips_btn.custom_minimum_size = Vector2(140, 52)
+	tips_btn.add_theme_font_size_override("font_size", 20)
+	action_hbox.add_child(tips_btn)
+	style_btn(tips_btn, Color(0.2, 0.9, 0.5) if unread_cnt == 0 else Color(1.0, 0.35, 0.35), Color(0.4, 1.0, 0.7) if unread_cnt == 0 else Color(1.0, 0.6, 0.6))
+	tips_btn.pressed.connect(_on_tips_pressed)
+	
 	archive_btn = Button.new()
 	archive_btn.text = "解析図鑑"
-	archive_btn.custom_minimum_size = Vector2(150, 52)
+	archive_btn.custom_minimum_size = Vector2(130, 52)
 	archive_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(archive_btn)
 	style_btn(archive_btn, Color(0.85, 0.45, 1.0), Color(1.0, 0.6, 1.0))
@@ -370,7 +394,7 @@ func setup_ui() -> void:
 	
 	tech_lab_btn = Button.new()
 	tech_lab_btn.text = "機体強化"
-	tech_lab_btn.custom_minimum_size = Vector2(150, 52)
+	tech_lab_btn.custom_minimum_size = Vector2(130, 52)
 	tech_lab_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(tech_lab_btn)
 	style_btn(tech_lab_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
@@ -378,13 +402,14 @@ func setup_ui() -> void:
 	
 	select_btn = Button.new()
 	select_btn.text = "出撃準備"
-	select_btn.custom_minimum_size = Vector2(180, 52)
+	select_btn.custom_minimum_size = Vector2(160, 52)
 	select_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(select_btn)
 	style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	select_btn.pressed.connect(_on_select_pressed)
 	
 	setup_archive_panel()
+	setup_tips_panel()
 
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 
@@ -760,6 +785,410 @@ func update_archive_content() -> void:
 		cv.add_child(desc_lbl)
 		
 		archive_cards_container.add_child(card)
+
+func setup_tips_panel() -> void:
+	tips_panel = PanelContainer.new()
+	tips_panel.anchor_left = 0.02
+	tips_panel.anchor_top = 0.03
+	tips_panel.anchor_right = 0.98
+	tips_panel.anchor_bottom = 0.97
+	tips_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	tips_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	tips_panel.z_index = 100
+	tips_panel.hide()
+	add_child(tips_panel)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.05, 0.09, 0.98)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
+	sb.border_color = Color(0.2, 0.9, 0.5)
+	sb.corner_radius_top_left = 8
+	sb.corner_radius_top_right = 8
+	sb.corner_radius_bottom_left = 8
+	sb.corner_radius_bottom_right = 8
+	sb.shadow_color = Color(0.1, 0.9, 0.4, 0.15)
+	sb.shadow_size = 16
+	tips_panel.add_theme_stylebox_override("panel", sb)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 18)
+	margin.add_theme_constant_override("margin_top", 14)
+	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_bottom", 14)
+	tips_panel.add_child(margin)
+	
+	var main_vbox = VBoxContainer.new()
+	main_vbox.add_theme_constant_override("separation", 10)
+	margin.add_child(main_vbox)
+	
+	# 1. Header
+	var header_hb = HBoxContainer.new()
+	main_vbox.add_child(header_hb)
+	
+	var title_lbl = Label.new()
+	title_lbl.text = "TIPS 戦術アーカイブ / TACTICAL ARCHIVE"
+	var t_set = LabelSettings.new()
+	if PIXEL_FONT:
+		t_set.font = PIXEL_FONT
+	t_set.font_size = 26
+	t_set.font_color = Color(0.2, 1.0, 0.6)
+	t_set.outline_size = 6
+	t_set.outline_color = Color.BLACK
+	title_lbl.label_settings = t_set
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_hb.add_child(title_lbl)
+	
+	# 2. Category Filter Buttons Bar
+	var cat_scroll = ScrollContainer.new()
+	cat_scroll.custom_minimum_size = Vector2(0, 42)
+	cat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	cat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	main_vbox.add_child(cat_scroll)
+	
+	var cat_hbox = HBoxContainer.new()
+	cat_hbox.add_theme_constant_override("separation", 8)
+	cat_scroll.add_child(cat_hbox)
+	
+	tips_category_buttons.clear()
+	for cat_key in Global.tips_categories.keys():
+		var cat_name = Global.tips_categories[cat_key]
+		var c_btn = Button.new()
+		c_btn.text = cat_name
+		c_btn.custom_minimum_size = Vector2(100, 36)
+		if PIXEL_FONT:
+			c_btn.add_theme_font_override("font", PIXEL_FONT)
+		c_btn.add_theme_font_size_override("font_size", 16)
+		cat_hbox.add_child(c_btn)
+		tips_category_buttons[cat_key] = c_btn
+		c_btn.pressed.connect(func():
+			tips_filter_category = cat_key
+			update_tips_ui()
+		)
+		
+	# 3. Main Split Body (Left: Scroll List, Right: Details Panel)
+	var body_hb = HBoxContainer.new()
+	body_hb.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body_hb.add_theme_constant_override("separation", 14)
+	main_vbox.add_child(body_hb)
+	
+	# Left: Scroll List Container (Width 380px)
+	var left_scroll = ScrollContainer.new()
+	left_scroll.custom_minimum_size = Vector2(380, 0)
+	left_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	body_hb.add_child(left_scroll)
+	
+	tips_list_container = VBoxContainer.new()
+	tips_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tips_list_container.add_theme_constant_override("separation", 6)
+	left_scroll.add_child(tips_list_container)
+	
+	# Right: Detail Viewer Panel (Width fill)
+	tips_detail_panel = PanelContainer.new()
+	tips_detail_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tips_detail_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var r_sb = StyleBoxFlat.new()
+	r_sb.bg_color = Color(0.06, 0.08, 0.14, 0.95)
+	r_sb.border_width_left = 2
+	r_sb.border_width_top = 2
+	r_sb.border_width_right = 2
+	r_sb.border_width_bottom = 2
+	r_sb.border_color = Color(0.25, 0.35, 0.45)
+	r_sb.corner_radius_top_left = 6
+	r_sb.corner_radius_top_right = 6
+	r_sb.corner_radius_bottom_left = 6
+	r_sb.corner_radius_bottom_right = 6
+	tips_detail_panel.add_theme_stylebox_override("panel", r_sb)
+	body_hb.add_child(tips_detail_panel)
+	
+	# 4. Footer Close Button
+	var close_btn = Button.new()
+	close_btn.text = "TIPSを閉じる"
+	close_btn.custom_minimum_size = Vector2(260, 48)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	if PIXEL_FONT:
+		close_btn.add_theme_font_override("font", PIXEL_FONT)
+	close_btn.add_theme_font_size_override("font_size", 20)
+	style_btn(close_btn, Color(0.2, 0.9, 0.5), Color(0.4, 1.0, 0.7))
+	main_vbox.add_child(close_btn)
+	close_btn.pressed.connect(func():
+		var tween = create_tween().set_parallel(true)
+		tween.tween_property(tips_panel, "scale", Vector2(0.95, 0.95), 0.15)
+		tween.tween_property(tips_panel, "modulate:a", 0.0, 0.15)
+		tween.chain().tween_callback(tips_panel.hide)
+		# TIPSボタンのNEW表記更新
+		if is_instance_valid(tips_btn):
+			var u_cnt = Global.get_unread_tips_count()
+			tips_btn.text = "TIPS [NEW]" if u_cnt > 0 else "TIPS戦術"
+			style_btn(tips_btn, Color(0.2, 0.9, 0.5) if u_cnt == 0 else Color(1.0, 0.35, 0.35), Color(0.4, 1.0, 0.7) if u_cnt == 0 else Color(1.0, 0.6, 0.6))
+	)
+
+func _on_tips_pressed() -> void:
+	update_tips_ui()
+	tips_panel.show()
+	tips_panel.modulate.a = 0.0
+	tips_panel.scale = Vector2(0.95, 0.95)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(tips_panel, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(tips_panel, "modulate:a", 1.0, 0.2)
+
+func update_tips_ui() -> void:
+	# Update category buttons styling
+	for cat_key in tips_category_buttons.keys():
+		var btn: Button = tips_category_buttons[cat_key]
+		if cat_key == tips_filter_category:
+			style_btn(btn, Color(0.2, 0.9, 0.6), Color.CYAN)
+		else:
+			style_btn(btn, Color(0.4, 0.4, 0.5), Color(0.6, 0.6, 0.7))
+			
+	# Clear list
+	for child in tips_list_container.get_children():
+		child.queue_free()
+		
+	var unlocked_items: Array[Dictionary] = []
+	for tip in Global.tips_catalog:
+		var is_unlocked = Global.unlocked_tips.has(tip["id"])
+		if not is_unlocked:
+			continue
+		if tips_filter_category != "all" and tip.get("category", "") != tips_filter_category:
+			continue
+		unlocked_items.append(tip)
+		
+	if unlocked_items.size() == 0:
+		var empty_lbl = Label.new()
+		empty_lbl.text = "当該カテゴリの解放済みTIPSはありません。\n（出撃ごとに1つずつ解析解放されます）"
+		var e_set = LabelSettings.new()
+		if PIXEL_FONT:
+			e_set.font = PIXEL_FONT
+		e_set.font_size = 16
+		e_set.font_color = Color.GRAY
+		empty_lbl.label_settings = e_set
+		tips_list_container.add_child(empty_lbl)
+		render_empty_tip_detail()
+		return
+		
+	# If no selection or invalid selection, pick first
+	if selected_tip_id == "" or not Global.unlocked_tips.has(selected_tip_id):
+		selected_tip_id = unlocked_items[0]["id"]
+		
+	var selected_found = false
+	for tip in unlocked_items:
+		if tip["id"] == selected_tip_id:
+			selected_found = true
+			break
+	if not selected_found and unlocked_items.size() > 0:
+		selected_tip_id = unlocked_items[0]["id"]
+
+	for tip in unlocked_items:
+		var t_id: String = tip["id"]
+		var is_selected = (t_id == selected_tip_id)
+		var is_unread = Global.is_tip_unread(t_id)
+		
+		var card = PanelContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.custom_minimum_size = Vector2(0, 56)
+		
+		var card_sb = StyleBoxFlat.new()
+		if is_selected:
+			card_sb.bg_color = Color(0.1, 0.16, 0.25, 0.95)
+			card_sb.border_color = Color(0.2, 0.9, 1.0)
+			card_sb.border_width_left = 3
+			card_sb.border_width_top = 2
+			card_sb.border_width_right = 2
+			card_sb.border_width_bottom = 2
+		else:
+			card_sb.bg_color = Color(0.05, 0.06, 0.1, 0.9)
+			card_sb.border_color = Color(0.2, 0.25, 0.35)
+			card_sb.border_width_left = 1
+			card_sb.border_width_top = 1
+			card_sb.border_width_right = 1
+			card_sb.border_width_bottom = 1
+		card_sb.corner_radius_top_left = 4
+		card_sb.corner_radius_top_right = 4
+		card_sb.corner_radius_bottom_left = 4
+		card_sb.corner_radius_bottom_right = 4
+		card.add_theme_stylebox_override("panel", card_sb)
+		
+		var cm = MarginContainer.new()
+		cm.add_theme_constant_override("margin_left", 12)
+		cm.add_theme_constant_override("margin_top", 8)
+		cm.add_theme_constant_override("margin_right", 12)
+		cm.add_theme_constant_override("margin_bottom", 8)
+		card.add_child(cm)
+		
+		var hb = HBoxContainer.new()
+		hb.add_theme_constant_override("separation", 8)
+		cm.add_child(hb)
+		
+		var vb = VBoxContainer.new()
+		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vb.add_theme_constant_override("separation", 2)
+		hb.add_child(vb)
+		
+		var tag_lbl = Label.new()
+		tag_lbl.text = "[%s]" % tip.get("category_name", "情報")
+		var tag_set = LabelSettings.new()
+		if PIXEL_FONT:
+			tag_set.font = PIXEL_FONT
+		tag_set.font_size = 12
+		tag_set.font_color = Color.GOLD if not is_selected else Color.CYAN
+		tag_lbl.label_settings = tag_set
+		vb.add_child(tag_lbl)
+		
+		var item_lbl = Label.new()
+		item_lbl.text = tip.get("title", "")
+		var i_set = LabelSettings.new()
+		if PIXEL_FONT:
+			i_set.font = PIXEL_FONT
+		i_set.font_size = 16
+		i_set.font_color = Color.WHITE if is_selected else Color(0.85, 0.9, 0.95)
+		item_lbl.label_settings = i_set
+		vb.add_child(item_lbl)
+		
+		# Right: NEW Badge
+		if is_unread:
+			var new_badge = Label.new()
+			new_badge.text = "[NEW]"
+			var b_set = LabelSettings.new()
+			if PIXEL_FONT:
+				b_set.font = PIXEL_FONT
+			b_set.font_size = 14
+			b_set.font_color = Color(1.0, 0.3, 0.3)
+			b_set.outline_size = 4
+			b_set.outline_color = Color.BLACK
+			new_badge.label_settings = b_set
+			new_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			hb.add_child(new_badge)
+			
+		card.gui_input.connect(func(event: InputEvent):
+			if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+				selected_tip_id = t_id
+				Global.mark_tip_as_read(t_id)
+				update_tips_ui()
+		)
+		
+		tips_list_container.add_child(card)
+		
+	# Render detail
+	var cur_tip = null
+	for tip in Global.tips_catalog:
+		if tip["id"] == selected_tip_id:
+			cur_tip = tip
+			break
+	if cur_tip:
+		Global.mark_tip_as_read(selected_tip_id)
+		render_tip_detail(cur_tip)
+	else:
+		render_empty_tip_detail()
+
+func render_tip_detail(tip: Dictionary) -> void:
+	for child in tips_detail_panel.get_children():
+		child.queue_free()
+		
+	var cm = MarginContainer.new()
+	cm.add_theme_constant_override("margin_left", 22)
+	cm.add_theme_constant_override("margin_top", 20)
+	cm.add_theme_constant_override("margin_right", 22)
+	cm.add_theme_constant_override("margin_bottom", 20)
+	tips_detail_panel.add_child(cm)
+	
+	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 14)
+	cm.add_child(vb)
+	
+	# Header (Category + Title)
+	var cat_badge = Label.new()
+	cat_badge.text = "【分類: %s】" % tip.get("category_name", "情報")
+	var c_set = LabelSettings.new()
+	if PIXEL_FONT:
+		c_set.font = PIXEL_FONT
+	c_set.font_size = 16
+	c_set.font_color = Color.GOLD
+	cat_badge.label_settings = c_set
+	vb.add_child(cat_badge)
+	
+	var title_lbl = Label.new()
+	title_lbl.text = tip.get("title", "")
+	var t_set = LabelSettings.new()
+	if PIXEL_FONT:
+		t_set.font = PIXEL_FONT
+	t_set.font_size = 24
+	t_set.font_color = Color.WHITE
+	t_set.outline_size = 6
+	t_set.outline_color = Color.BLACK
+	title_lbl.label_settings = t_set
+	vb.add_child(title_lbl)
+	
+	var div = ColorRect.new()
+	div.custom_minimum_size = Vector2(0, 2)
+	div.color = Color(0.2, 0.6, 0.8, 0.6)
+	vb.add_child(div)
+	
+	# Body description
+	var desc_lbl = Label.new()
+	desc_lbl.text = tip.get("desc", "")
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var d_set = LabelSettings.new()
+	if PIXEL_FONT:
+		d_set.font = PIXEL_FONT
+	d_set.font_size = 18
+	d_set.font_color = Color(0.9, 0.95, 1.0)
+	desc_lbl.label_settings = d_set
+	vb.add_child(desc_lbl)
+	
+	# Hint / Key operation box
+	if tip.has("hint") and tip["hint"] != "":
+		var hint_panel = PanelContainer.new()
+		var h_sb = StyleBoxFlat.new()
+		h_sb.bg_color = Color(0.08, 0.12, 0.2, 0.9)
+		h_sb.border_width_left = 2
+		h_sb.border_width_top = 1
+		h_sb.border_width_right = 1
+		h_sb.border_width_bottom = 1
+		h_sb.border_color = Color.CYAN
+		h_sb.corner_radius_top_left = 4
+		h_sb.corner_radius_top_right = 4
+		h_sb.corner_radius_bottom_left = 4
+		h_sb.corner_radius_bottom_right = 4
+		hint_panel.add_theme_stylebox_override("panel", h_sb)
+		
+		var hm = MarginContainer.new()
+		hm.add_theme_constant_override("margin_left", 14)
+		hm.add_theme_constant_override("margin_top", 10)
+		hm.add_theme_constant_override("margin_right", 14)
+		hm.add_theme_constant_override("margin_bottom", 10)
+		hint_panel.add_child(hm)
+		
+		var hint_lbl = Label.new()
+		hint_lbl.text = tip["hint"]
+		var hint_set = LabelSettings.new()
+		if PIXEL_FONT:
+			hint_set.font = PIXEL_FONT
+		hint_set.font_size = 16
+		hint_set.font_color = Color.CYAN
+		hint_lbl.label_settings = hint_set
+		hm.add_child(hint_lbl)
+		
+		vb.add_child(hint_panel)
+
+func render_empty_tip_detail() -> void:
+	for child in tips_detail_panel.get_children():
+		child.queue_free()
+	var lbl = Label.new()
+	lbl.text = "左側のリストからTIPSを選択してください。"
+	var l_set = LabelSettings.new()
+	if PIXEL_FONT:
+		l_set.font = PIXEL_FONT
+	l_set.font_size = 18
+	l_set.font_color = Color.GRAY
+	lbl.label_settings = l_set
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	tips_detail_panel.add_child(lbl)
 
 func _on_select_pressed() -> void:
 	var active_stage = stages[current_index]
