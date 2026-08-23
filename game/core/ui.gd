@@ -1342,6 +1342,8 @@ func setup_label_style(label: Label, size: int, color: Color, outline: int = 4) 
 
 
 func update_player_hp(current: int, max_hp_val: int) -> void:
+	if not is_instance_valid(player_hp_bar) or not is_instance_valid(player_hp_label):
+		return
 	player_hp_bar.max_value = max_hp_val
 	player_hp_bar.value = current
 	player_hp_label.text = "自機 HP: %d / %d" % [current, max_hp_val]
@@ -1349,11 +1351,13 @@ func update_player_hp(current: int, max_hp_val: int) -> void:
 
 func update_boss_hp(current: int, max_hp_val: int) -> void:
 	hide_wave_phase_hud()
-	boss_hp_bar.visible = true
-	boss_hp_label.visible = true
-	boss_hp_bar.max_value = max_hp_val
-	boss_hp_bar.value = current
-	boss_hp_label.text = "【BOSS TARGET】 HP: %d / %d" % [current, max_hp_val]
+	if is_instance_valid(boss_hp_bar):
+		boss_hp_bar.visible = true
+		boss_hp_bar.max_value = max_hp_val
+		boss_hp_bar.value = current
+	if is_instance_valid(boss_hp_label):
+		boss_hp_label.visible = true
+		boss_hp_label.text = "【BOSS TARGET】 HP: %d / %d" % [current, max_hp_val]
 
 
 func update_parry_count(count: int) -> void:
@@ -1362,13 +1366,16 @@ func update_parry_count(count: int) -> void:
 
 
 func hide_boss_hp() -> void:
-	boss_hp_bar.visible = false
-	boss_hp_label.visible = false
+	if is_instance_valid(boss_hp_bar):
+		boss_hp_bar.visible = false
+	if is_instance_valid(boss_hp_label):
+		boss_hp_label.visible = false
 
 
 func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool, shield_type: String = "counter", gauge_timer: float = 0.0, max_gauge_ct: float = 3.0) -> void:
-	if is_instance_valid(shield_heat_bar):
-		if shield_type == "gauge":
+	if not is_instance_valid(shield_heat_bar) or not is_instance_valid(guard_status_label):
+		return
+	if shield_type == "gauge":
 			# 吸収マトリクス (3.0s クールダウン表示)
 			shield_heat_bar.max_value = max_gauge_ct
 			shield_heat_bar.value = gauge_timer
