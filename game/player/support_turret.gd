@@ -80,7 +80,7 @@ func get_formation_offset() -> Vector2:
 	# 左右または周囲に配置
 	var spacing = 60.0
 	var offset_x = -spacing if turret_slot_index % 2 == 0 else spacing
-	var offset_y = 10.0 + int(turret_slot_index / 2) * 35.0
+	var offset_y = 10.0 + floor(float(turret_slot_index) / 2.0) * 35.0
 	var hover = sin(active_timer * 6.0 + turret_slot_index * 1.5) * 6.0
 	return Vector2(offset_x, offset_y + hover)
 

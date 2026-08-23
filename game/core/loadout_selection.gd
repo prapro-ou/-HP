@@ -44,7 +44,7 @@ var time_passed: float = 0.0
 
 func _ready() -> void:
 	Global.load_settings()
-	var save_data = Global.load_game_data()
+	var _save_data = Global.load_game_data()
 	
 	# Loadout Selection uses SFX only (Stop BGM)
 	var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -401,7 +401,7 @@ func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 
-func style_config_button(btn: Button, accent_color: Color) -> void:
+func style_config_button(btn: Button, _accent_color: Color) -> void:
 	if PIXEL_FONT:
 		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()

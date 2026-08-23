@@ -1005,7 +1005,7 @@ func auto_scale_display() -> void:
 	
 	# Center the window
 	var screen_pos = DisplayServer.screen_get_position()
-	var window_pos = screen_pos + (screen_size - target_size) / 2
+	var window_pos = screen_pos + Vector2i((Vector2(screen_size - target_size) * 0.5).round())
 	window_pos.y = max(window_pos.y, 40)
 	if win:
 		win.position = window_pos
@@ -1094,6 +1094,26 @@ func play_explosion(pitch: float = 1.0) -> void:
 
 func play_laser(pitch: float = 1.0) -> void:
 	play_sound("laser", pitch, 0.04)
+
+
+func play_upgrade_success(pitch: float = 1.0) -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+		audio_mgr.play_upgrade_success()
+	else:
+		play_sound("upgrade", pitch, 0.05)
+
+
+func play_ui_select() -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_ui_select"):
+		audio_mgr.play_ui_select()
+
+
+func play_ui_cancel() -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_ui_cancel"):
+		audio_mgr.play_ui_cancel()
 
 
 func _exit_tree() -> void:
