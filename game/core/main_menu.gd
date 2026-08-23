@@ -211,7 +211,7 @@ func setup_menu_container() -> void:
 func setup_settings_container() -> void:
 	settings_container = PanelContainer.new()
 	settings_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_container.custom_minimum_size = Vector2(620, 860)
+	settings_container.custom_minimum_size = Vector2(740, 920)
 	settings_container.hide()
 	main_vbox.add_child(settings_container)
 	
@@ -230,10 +230,10 @@ func setup_settings_container() -> void:
 	settings_container.add_theme_stylebox_override("panel", sb)
 	
 	var margin_inner = MarginContainer.new()
-	margin_inner.add_theme_constant_override("margin_left", 28)
-	margin_inner.add_theme_constant_override("margin_top", 28)
-	margin_inner.add_theme_constant_override("margin_right", 28)
-	margin_inner.add_theme_constant_override("margin_bottom", 28)
+	margin_inner.add_theme_constant_override("margin_left", 18)
+	margin_inner.add_theme_constant_override("margin_top", 18)
+	margin_inner.add_theme_constant_override("margin_right", 18)
+	margin_inner.add_theme_constant_override("margin_bottom", 18)
 	settings_container.add_child(margin_inner)
 	
 	var content = VBoxContainer.new()
@@ -522,8 +522,8 @@ func setup_settings_container() -> void:
 	# 魔王魂
 	var maou_btn = Button.new()
 	maou_btn.text = "BGM: 魔王魂 (https://maou.audio/)"
-	maou_btn.custom_minimum_size = Vector2(0, 40)
-	maou_btn.add_theme_font_size_override("font_size", 15)
+	maou_btn.custom_minimum_size = Vector2(0, 48)
+	maou_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT: maou_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(maou_btn, Color(0.9, 0.75, 0.2), Color(1.0, 0.9, 0.4))
 	add_button_animations(maou_btn)
@@ -533,8 +533,8 @@ func setup_settings_container() -> void:
 	# 効果音ラボ
 	var lab_btn = Button.new()
 	lab_btn.text = "SE: 効果音ラボ (https://soundeffect-lab.info/)"
-	lab_btn.custom_minimum_size = Vector2(0, 40)
-	lab_btn.add_theme_font_size_override("font_size", 15)
+	lab_btn.custom_minimum_size = Vector2(0, 48)
+	lab_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT: lab_btn.add_theme_font_override("font", PIXEL_FONT)
 	style_button(lab_btn, Color(0.2, 0.8, 0.9), Color(0.4, 0.95, 1.0))
 	add_button_animations(lab_btn)
@@ -546,8 +546,8 @@ func setup_settings_container() -> void:
 	font_lbl.text = "Font: DotGothic16 (SIL Open Font License 1.1)"
 	var font_lset = LabelSettings.new()
 	if PIXEL_FONT: font_lset.font = PIXEL_FONT
-	font_lset.font_size = 15
-	font_lset.font_color = Color(0.7, 0.75, 0.85)
+	font_lset.font_size = 18
+	font_lset.font_color = Color(0.85, 0.9, 1.0)
 	font_lbl.label_settings = font_lset
 	cr_vbox.add_child(font_lbl)
 	

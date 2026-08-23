@@ -88,17 +88,17 @@ func setup_ui() -> void:
 	
 	# 2. Main lab container
 	var vbox = VBoxContainer.new()
-	vbox.anchor_left = 0.08
-	vbox.anchor_top = 0.06
-	vbox.anchor_right = 0.92
-	vbox.anchor_bottom = 0.94
+	vbox.anchor_left = 0.03
+	vbox.anchor_top = 0.03
+	vbox.anchor_right = 0.97
+	vbox.anchor_bottom = 0.97
 	vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
 	vbox.offset_left = 0
 	vbox.offset_right = 0
 	vbox.offset_top = 0
 	vbox.offset_bottom = 0
-	vbox.add_theme_constant_override("separation", 16)
+	vbox.add_theme_constant_override("separation", 14)
 	add_child(vbox)
 	
 	# Title Section
@@ -106,7 +106,9 @@ func setup_ui() -> void:
 	title_lbl.text = "機体強化ラボ"
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
-	title_set.font_size = 38
+	if PIXEL_FONT:
+		title_set.font = PIXEL_FONT
+	title_set.font_size = 40
 	title_set.font_color = Color.GOLD
 	title_set.outline_size = 8
 	title_set.outline_color = Color.BLACK
@@ -299,7 +301,9 @@ func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 	var lbl = Label.new()
 	lbl.text = title_text
 	var l_set = LabelSettings.new()
-	l_set.font_size = 20
+	if PIXEL_FONT:
+		l_set.font = PIXEL_FONT
+	l_set.font_size = 22
 	l_set.font_color = Color.CYAN
 	lbl.label_settings = l_set
 	vbox.add_child(lbl)
@@ -347,7 +351,9 @@ func create_upgrade_row(title_text: String, desc_text: String, parent: Node) -> 
 	var title = Label.new()
 	title.text = title_text
 	var t_set = LabelSettings.new()
-	t_set.font_size = 18
+	if PIXEL_FONT:
+		t_set.font = PIXEL_FONT
+	t_set.font_size = 20
 	t_set.font_color = Color.WHITE
 	title.label_settings = t_set
 	text_vbox.add_child(title)
@@ -356,7 +362,9 @@ func create_upgrade_row(title_text: String, desc_text: String, parent: Node) -> 
 	desc.text = desc_text
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var d_set = LabelSettings.new()
-	d_set.font_size = 15
+	if PIXEL_FONT:
+		d_set.font = PIXEL_FONT
+	d_set.font_size = 17
 	d_set.font_color = Color(0.7, 0.8, 0.9)
 	desc.label_settings = d_set
 	text_vbox.add_child(desc)
@@ -367,7 +375,9 @@ func create_upgrade_row(title_text: String, desc_text: String, parent: Node) -> 
 	lvl_lbl.custom_minimum_size = Vector2(80, 0)
 	lvl_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var l_set = LabelSettings.new()
-	l_set.font_size = 18
+	if PIXEL_FONT:
+		l_set.font = PIXEL_FONT
+	l_set.font_size = 20
 	l_set.font_color = Color.CYAN
 	l_set.outline_size = 4
 	l_set.outline_color = Color.BLACK
@@ -378,7 +388,7 @@ func create_upgrade_row(title_text: String, desc_text: String, parent: Node) -> 
 	var cost_btn = Button.new()
 	cost_btn.text = "強化\n(10 TP)"
 	cost_btn.custom_minimum_size = Vector2(130, 48)
-	cost_btn.add_theme_font_size_override("font_size", 16)
+	cost_btn.add_theme_font_size_override("font_size", 18)
 	hbox.add_child(cost_btn)
 	style_action_btn(cost_btn, Color.CYAN)
 	
@@ -423,7 +433,9 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	var name_lbl = Label.new()
 	name_lbl.text = w_name
 	var n_set = LabelSettings.new()
-	n_set.font_size = 20
+	if PIXEL_FONT:
+		n_set.font = PIXEL_FONT
+	n_set.font_size = 22
 	n_set.font_color = Color.WHITE
 	name_lbl.label_settings = n_set
 	vbox.add_child(name_lbl)
@@ -434,7 +446,9 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 	desc_lbl.custom_minimum_size = Vector2(0, 36)
 	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var d_set = LabelSettings.new()
-	d_set.font_size = 16
+	if PIXEL_FONT:
+		d_set.font = PIXEL_FONT
+	d_set.font_size = 17
 	d_set.font_color = Color(0.7, 0.8, 0.9)
 	desc_lbl.label_settings = d_set
 	vbox.add_child(desc_lbl)
@@ -577,11 +591,18 @@ func create_focus_tuning_ui(parent: Control) -> void:
 	focus_mode_stat_lbl = Label.new()
 	focus_mode_stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	focus_mode_stat_lbl.text = "現在の設定: STANDARD [標準]"
+	var f_set = LabelSettings.new()
+	if PIXEL_FONT:
+		f_set.font = PIXEL_FONT
+	f_set.font_size = 18
+	f_set.font_color = Color.WHITE
+	focus_mode_stat_lbl.label_settings = f_set
 	top_hb.add_child(focus_mode_stat_lbl)
 	
 	focus_mode_btn = Button.new()
 	focus_mode_btn.text = "設定切替 [CLICK]"
-	focus_mode_btn.custom_minimum_size = Vector2(130, 32)
+	focus_mode_btn.custom_minimum_size = Vector2(150, 36)
+	focus_mode_btn.add_theme_font_size_override("font_size", 16)
 	style_neon_button(focus_mode_btn, Color(0.3, 0.75, 1.0), Color.CYAN)
 	focus_mode_btn.pressed.connect(func():
 		Global.just_guard_focus_mode = (Global.just_guard_focus_mode + 1) % 3
@@ -597,7 +618,12 @@ func create_focus_tuning_ui(parent: Control) -> void:
 	focus_mode_desc_lbl = Label.new()
 	focus_mode_desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	focus_mode_desc_lbl.text = "安定した標準範囲でのジャストガード。"
-	focus_mode_desc_lbl.modulate = Color(0.7, 0.85, 1.0, 0.8)
+	var fd_set = LabelSettings.new()
+	if PIXEL_FONT:
+		fd_set.font = PIXEL_FONT
+	fd_set.font_size = 16
+	fd_set.font_color = Color(0.7, 0.85, 1.0, 0.9)
+	focus_mode_desc_lbl.label_settings = fd_set
 	vb.add_child(focus_mode_desc_lbl)
 
 func create_counter_only_mode_ui(parent: Control) -> void:
@@ -634,11 +660,18 @@ func create_counter_only_mode_ui(parent: Control) -> void:
 	counter_only_status_lbl = Label.new()
 	counter_only_status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	counter_only_status_lbl.text = "COUNTER ONLY 出撃: 【未解放】"
+	var co_set = LabelSettings.new()
+	if PIXEL_FONT:
+		co_set.font = PIXEL_FONT
+	co_set.font_size = 18
+	co_set.font_color = Color.WHITE
+	counter_only_status_lbl.label_settings = co_set
 	top_hb.add_child(counter_only_status_lbl)
 	
 	counter_only_btn = Button.new()
 	counter_only_btn.text = "極秘作戦解放"
-	counter_only_btn.custom_minimum_size = Vector2(140, 32)
+	counter_only_btn.custom_minimum_size = Vector2(160, 36)
+	counter_only_btn.add_theme_font_size_override("font_size", 16)
 	style_neon_button(counter_only_btn, Color(1.0, 0.3, 0.8), Color.MAGENTA)
 	counter_only_btn.pressed.connect(func():
 		if not Global.counter_only_mode_unlocked:
@@ -666,7 +699,12 @@ func create_counter_only_mode_ui(parent: Control) -> void:
 	var desc_lbl = Label.new()
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_lbl.text = "【解放条件: STAGE 5を5回クリア ＆ 150 TP】\n自機の通常射撃を行わず、4基のボスタレット支援部隊が常時・自動で自機を守護・殲滅する超爽快モード！"
-	desc_lbl.modulate = Color(1.0, 0.8, 0.9, 0.8)
+	var cod_set = LabelSettings.new()
+	if PIXEL_FONT:
+		cod_set.font = PIXEL_FONT
+	cod_set.font_size = 16
+	cod_set.font_color = Color(1.0, 0.8, 0.9, 0.9)
+	desc_lbl.label_settings = cod_set
 	vb.add_child(desc_lbl)
 
 func update_lab_hud() -> void:

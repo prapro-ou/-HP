@@ -178,10 +178,12 @@ func setup_ui() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.anchor_left = 0.0
 	title.anchor_right = 1.0
-	title.anchor_top = 0.04
+	title.anchor_top = 0.03
 	title.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	var title_set = LabelSettings.new()
-	title_set.font_size = 38
+	if PIXEL_FONT:
+		title_set.font = PIXEL_FONT
+	title_set.font_size = 40
 	title_set.font_color = Color.CYAN
 	title_set.outline_size = 8
 	title_set.outline_color = Color.BLACK
@@ -190,17 +192,17 @@ func setup_ui() -> void:
 	
 	# 3. Main VBox Container for configuration elements
 	var main_vbox = VBoxContainer.new()
-	main_vbox.anchor_left = 0.08
-	main_vbox.anchor_top = 0.12
-	main_vbox.anchor_right = 0.92
-	main_vbox.anchor_bottom = 0.88
+	main_vbox.anchor_left = 0.04
+	main_vbox.anchor_top = 0.11
+	main_vbox.anchor_right = 0.96
+	main_vbox.anchor_bottom = 0.89
 	main_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	main_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
 	main_vbox.offset_left = 0
 	main_vbox.offset_right = 0
 	main_vbox.offset_top = 0
 	main_vbox.offset_bottom = 0
-	main_vbox.add_theme_constant_override("separation", 18)
+	main_vbox.add_theme_constant_override("separation", 16)
 	add_child(main_vbox)
 	
 	# --- SECTION 1: PRIMARY WEAPON ---
@@ -308,7 +310,9 @@ func setup_ui() -> void:
 	
 	desc_title = Label.new()
 	var d_title_set = LabelSettings.new()
-	d_title_set.font_size = 22
+	if PIXEL_FONT:
+		d_title_set.font = PIXEL_FONT
+	d_title_set.font_size = 26
 	d_title_set.font_color = Color.WHITE
 	d_title_set.outline_size = 4
 	d_title_set.outline_color = Color.BLACK
@@ -317,7 +321,9 @@ func setup_ui() -> void:
 	
 	desc_type = Label.new()
 	var d_type_set = LabelSettings.new()
-	d_type_set.font_size = 16
+	if PIXEL_FONT:
+		d_type_set.font = PIXEL_FONT
+	d_type_set.font_size = 18
 	d_type_set.font_color = Color.GOLD
 	desc_type.label_settings = d_type_set
 	desc_type.size_flags_horizontal = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END
@@ -325,7 +331,9 @@ func setup_ui() -> void:
 	
 	desc_stats = Label.new()
 	var d_stats_set = LabelSettings.new()
-	d_stats_set.font_size = 18
+	if PIXEL_FONT:
+		d_stats_set.font = PIXEL_FONT
+	d_stats_set.font_size = 20
 	d_stats_set.font_color = Color.CYAN
 	desc_stats.label_settings = d_stats_set
 	desc_vbox.add_child(desc_stats)
@@ -339,7 +347,9 @@ func setup_ui() -> void:
 	desc_body = Label.new()
 	desc_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var d_body_set = LabelSettings.new()
-	d_body_set.font_size = 18
+	if PIXEL_FONT:
+		d_body_set.font = PIXEL_FONT
+	d_body_set.font_size = 19
 	d_body_set.font_color = Color(0.9, 0.95, 1.0, 0.95)
 	desc_body.label_settings = d_body_set
 	desc_vbox.add_child(desc_body)
@@ -380,7 +390,9 @@ func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 	var lbl = Label.new()
 	lbl.text = title_text
 	var l_set = LabelSettings.new()
-	l_set.font_size = 18
+	if PIXEL_FONT:
+		l_set.font = PIXEL_FONT
+	l_set.font_size = 22
 	l_set.font_color = Color.CYAN
 	lbl.label_settings = l_set
 	vbox.add_child(lbl)
