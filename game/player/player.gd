@@ -486,8 +486,12 @@ func activate_counter_system() -> void:
 	
 	var duration = Global.get_counter_system_duration()
 	var dmg_mult = Global.get_counter_system_power_multiplier()
+	var c_type = Global.equipped_counter_weapon
 	
-	spawn_popup_message("[COUNTER SYSTEM ONLINE] 支援砲台部隊 展開！ (%.0fs / %.1fx)" % [duration, dmg_mult])
+	if c_type == "funnel":
+		spawn_popup_message("[COUNTER SYSTEM ONLINE] サイバーファンネル部隊 展開！ (%.0fs / %.1fx)" % [duration, dmg_mult])
+	else:
+		spawn_popup_message("[COUNTER SYSTEM ONLINE] 支援砲台部隊 展開！ (%.0fs / %.1fx)" % [duration, dmg_mult])
 	
 	# 全画面プレイヤーカラーフィルター＆専用HUDの起動
 	var main_node = get_node_or_null("/root/Main")
@@ -496,16 +500,27 @@ func activate_counter_system() -> void:
 		if ui_node and ui_node.has_method("activate_counter_system_tint"):
 			ui_node.activate_counter_system_tint(duration)
 			
-	# 支援ボスタレットポッドの召喚
 	var main_parent = get_parent()
-	var num_turrets = 4 if Global.counter_only_mode_enabled else 2
-	for i in range(num_turrets):
-		var turret = PlayerSupportTurret.new()
-		turret.setup_turret(self, i, num_turrets, duration, dmg_mult)
-		turret.global_position = global_position + Vector2((i - 0.5) * 60.0, 30.0)
-		if main_parent:
-			main_parent.add_child(turret)
-			counter_system_turrets.append(turret)
+	if c_type == "funnel":
+		# サイバーファンネル部隊の召喚 (通常4機、COUNTER ONLY時は6機)
+		var num_funnels = 6 if Global.counter_only_mode_enabled else 4
+		for i in range(num_funnels):
+			var funnel = PlayerFunnelUnit.new()
+			funnel.setup_funnel(self, i, num_funnels, duration, dmg_mult)
+			funnel.global_position = global_position
+			if main_parent:
+				main_parent.add_child(funnel)
+				counter_system_turrets.append(funnel)
+	else:
+		# 支援ボスタレットポッドの召喚
+		var num_turrets = 4 if Global.counter_only_mode_enabled else 2
+		for i in range(num_turrets):
+			var turret = PlayerSupportTurret.new()
+			turret.setup_turret(self, i, num_turrets, duration, dmg_mult)
+			turret.global_position = global_position + Vector2((i - 0.5) * 60.0, 30.0)
+			if main_parent:
+				main_parent.add_child(turret)
+				counter_system_turrets.append(turret)
 			
 	Global.play_explosion(1.2)
 	
@@ -513,7 +528,10 @@ func activate_counter_system() -> void:
 		is_full_burst = false
 		counter_system_turrets.clear()
 		if is_instance_valid(self) and current_hp > 0:
-			spawn_popup_message("COUNTER SYSTEM: 支援部隊帰還")
+			if c_type == "funnel":
+				spawn_popup_message("COUNTER SYSTEM: ファンネル部隊帰還")
+			else:
+				spawn_popup_message("COUNTER SYSTEM: 支援部隊帰還")
 			# COUNTER ONLY MODE なら 2.0秒後に自動再展開！
 			if Global.counter_only_mode_enabled:
 				get_tree().create_timer(2.0).timeout.connect(func():

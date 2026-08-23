@@ -59,10 +59,7 @@ func _ready() -> void:
 	# Load pre-selected weapons from Global state
 	selected_primary = Global.equipped_weapon
 	selected_shield = Global.equipped_shield
-	if Global.unlocked_counter_weapons.size() > 0:
-		selected_counter = Global.unlocked_counter_weapons[0]
-	else:
-		selected_counter = "none"
+	selected_counter = Global.equipped_counter_weapon if Global.equipped_counter_weapon != "" else "turret"
 		
 	update_button_states()
 	show_details("primary", selected_primary) # Show details of selected primary initially
@@ -139,28 +136,36 @@ func init_data() -> void:
 	s3.is_unlocked = Global.unlocked_shields.has("power")
 	shields.append(s3)
 
-	# 3. Counter System Weapons (Boss weapons)
+	# 3. Counter System Weapons (支援兵装部隊)
 	var c0 = LoadoutItem.new()
-	c0.id = "none"
-	c0.name = "標準レーザー"
-	c0.description = "標準の反射レーザーを照射する。"
-	c0.stats = "威力:★☆☆ | 範囲:★☆☆"
-	c0.is_unlocked = true
+	c0.id = "turret"
+	c0.name = "支援砲台部隊"
+	c0.description = "自機の側方にボスタレット支援ポッドを展開。高火力ビーム・ミサイル・プラズマの一斉射撃を行う標準支援部隊。"
+	c0.stats = "火力:★★★★☆ | 殲滅:★★★★☆ | 防衛:★★★☆☆"
+	c0.is_unlocked = Global.unlocked_counter_weapons.has("turret") or true
 	counter_weapons.append(c0)
+	
+	var c_funnel = LoadoutItem.new()
+	c_funnel.id = "funnel"
+	c_funnel.name = "サイバーファンネル"
+	c_funnel.description = "自機の周囲をダイナミックにオールレンジ旋回し、敵陣へ高速貫通レーザーの弾幕を叩き込む遠隔自律攻撃端末。"
+	c_funnel.stats = "機動:★★★★★ | 索敵:★★★★★ | 貫通:★★★★☆"
+	c_funnel.is_unlocked = Global.unlocked_counter_weapons.has("funnel") or true
+	counter_weapons.append(c_funnel)
 	
 	var c1 = LoadoutItem.new()
 	c1.id = "boss_beam"
-	c1.name = "ギガレーザー"
-	c1.description = "敵を貫く極太エネルギービーム（ボス兵装）。"
-	c1.stats = "威力:★★★ | 範囲:★★☆"
+	c1.name = "ギガレーザー砲台"
+	c1.description = "敵を貫く極太エネルギービーム支援砲台（ボス兵装モデル）。"
+	c1.stats = "威力:★★★★★ | 範囲:★★☆☆☆"
 	c1.is_unlocked = Global.unlocked_counter_weapons.has("boss_beam")
 	counter_weapons.append(c1)
 	
 	var c2 = LoadoutItem.new()
 	c2.id = "boss_missile"
-	c2.name = "ハイパーミサイル"
-	c2.description = "着弾時に広範囲爆発を起こす誘導ミサイル（ボス兵装）。"
-	c2.stats = "威力:★★☆ | 範囲:★★★"
+	c2.name = "ハイパーミサイル砲台"
+	c2.description = "着弾時に広範囲爆発を起こす誘導ミサイル支援砲台（ボス兵装モデル）。"
+	c2.stats = "威力:★★★★☆ | 範囲:★★★★★"
 	c2.is_unlocked = Global.unlocked_counter_weapons.has("boss_missile")
 	counter_weapons.append(c2)
 
@@ -595,6 +600,7 @@ func _on_deploy_pressed() -> void:
 	# Save changes to Global
 	Global.equipped_weapon = selected_primary
 	Global.equipped_shield = selected_shield
+	Global.equipped_counter_weapon = selected_counter
 	
 	# Load current stage and score without overriding equipped_weapon
 	var cur_data = Global.load_game_data(false)

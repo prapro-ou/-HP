@@ -10,7 +10,9 @@ enum TurretType {
 	BEAM_MACHINEGUN,
 	HOMING_MISSILE,
 	METEOR_LAUNCHER,
-	SHIELD_GENERATOR
+	SHIELD_GENERATOR,
+	CLUSTER_SPLITTER,
+	ELECTROMAGNETIC_FIELD
 }
 
 const METEOR_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
@@ -41,6 +43,13 @@ var is_shield_active: bool = false
 var shield_timer: float = 7.0
 var shield_pulse: float = 0.0
 var shield_effect_instance: BossWideShield = null
+
+# 電磁フィールド発生装置用 (5秒展開、毎秒30ダメージ、8秒クールダウン)
+var is_em_field_active: bool = false
+var em_field_timer: float = 0.0
+var em_field_cooldown: float = 6.0
+var em_field_tick_timer: float = 1.0
+var em_field_pulse: float = 0.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -113,6 +122,10 @@ func update_type_visuals() -> void:
 			modulate = Color(1.0, 0.45, 0.2) # オレンジレッド
 		TurretType.SHIELD_GENERATOR:
 			modulate = Color(0.3, 0.95, 1.0) # 水色・発光シアン
+		TurretType.CLUSTER_SPLITTER:
+			modulate = Color(1.0, 0.65, 0.2) # オレンジゴールド
+		TurretType.ELECTROMAGNETIC_FIELD:
+			modulate = Color(0.75, 0.4, 1.0) # バイオレット放電
 
 
 func spawn_intro(start_pos: Vector2, final_pos: Vector2, duration: float = 5.0) -> void:
@@ -173,6 +186,33 @@ func _process(delta: float) -> void:
 				if is_instance_valid(boss):
 					boss_shield_pos = boss.global_position + Vector2(0.0, 60.0)
 			shield_effect_instance.shield_pos = boss_shield_pos
+
+	# 電磁フィールド発生装置の制御 (5秒間展開 -> 毎秒30ダメージ -> 8秒間クールダウン)
+	if turret_type == TurretType.ELECTROMAGNETIC_FIELD:
+		em_field_pulse += delta * 6.0
+		if is_em_field_active:
+			em_field_timer -= delta
+			em_field_tick_timer -= delta
+			queue_redraw()
+			
+			if em_field_tick_timer <= 0.0:
+				em_field_tick_timer = 1.0
+				execute_em_field_tick()
+				
+			if em_field_timer <= 0.0:
+				is_em_field_active = false
+				em_field_cooldown = 8.0
+				spawn_turret_warning("電磁フィールド停止")
+				queue_redraw()
+		else:
+			em_field_cooldown -= delta
+			if em_field_cooldown <= 0.0:
+				is_em_field_active = true
+				em_field_timer = 5.0
+				em_field_tick_timer = 1.0
+				spawn_turret_warning("⚡ 電磁フィールド展開 (5秒間 毎秒30DMG) ⚡")
+				Global.play_laser(1.1)
+				queue_redraw()
 		
 	if is_charging:
 		charge_timer -= delta
@@ -251,6 +291,10 @@ func get_attack_interval() -> float:
 			base_interval = 3.5
 		TurretType.SHIELD_GENERATOR:
 			base_interval = 2.2
+		TurretType.CLUSTER_SPLITTER:
+			base_interval = 3.4
+		TurretType.ELECTROMAGNETIC_FIELD:
+			base_interval = 2.5
 	return base_interval * p_info["interval_mult"] * Global.get_enemy_attack_interval_multiplier()
 
 
@@ -283,6 +327,10 @@ func start_attack_sequence() -> void:
 			var warn_msg = "METEOR LAUNCH!" if phase == 1 else ("RAPID METEOR LAUNCH!!" if phase == 2 else "OVERDRIVE METEORS!!!")
 			spawn_turret_warning(warn_msg)
 		TurretType.SHIELD_GENERATOR:
+			execute_attack()
+		TurretType.CLUSTER_SPLITTER:
+			execute_attack()
+		TurretType.ELECTROMAGNETIC_FIELD:
 			execute_attack()
 
 
@@ -364,6 +412,60 @@ func execute_attack() -> void:
 						var dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
 						bullet.set_direction(dir, 300.0 * spd_mult)
 
+		TurretType.CLUSTER_SPLITTER:
+			# 8方向分裂クラスター弾の射撃 (Phase 1: 1発, Phase 2/3: 2発)
+			if pool:
+				var bullet = pool.get_bullet("cluster_bomb")
+				if bullet:
+					bullet.global_position = global_position + Vector2(0.0, 25.0)
+					bullet.damage = int(22 * final_dmg_mult)
+					var shoot_dir = Vector2.DOWN
+					if is_instance_valid(player):
+						shoot_dir = (player.global_position - global_position).normalized()
+					bullet.set_direction(shoot_dir, 320.0 * spd_mult)
+					
+				if phase >= 2:
+					get_tree().create_timer(0.4).timeout.connect(func():
+						if is_instance_valid(self) and is_alive and is_instance_valid(pool):
+							var b2 = pool.get_bullet("cluster_bomb")
+							if b2:
+								b2.global_position = global_position + Vector2(0.0, 25.0)
+								b2.damage = int(22 * final_dmg_mult)
+								var d2 = Vector2.DOWN.rotated(randf_range(-0.35, 0.35))
+								b2.set_direction(d2, 320.0 * spd_mult)
+					)
+
+		TurretType.ELECTROMAGNETIC_FIELD:
+			# プラズマ放電弾の射撃
+			if pool:
+				var bullet = pool.get_bullet("thunder")
+				if bullet:
+					bullet.global_position = global_position + Vector2(0.0, 20.0)
+					bullet.damage = int(16 * final_dmg_mult)
+					var dir = Vector2.DOWN
+					if is_instance_valid(player):
+						dir = (player.global_position - global_position).normalized()
+					bullet.set_direction(dir, 360.0 * spd_mult)
+
+
+func execute_em_field_tick() -> void:
+	var main = get_node_or_null("/root/Main")
+	var player = main.get_node_or_null("Player") if main else null
+	if not is_instance_valid(player) or player.current_hp <= 0:
+		return
+		
+	# 電磁ショックの適用 (毎秒30ダメージ)
+	if "is_guarding" in player and player.is_guarding:
+		Global.play_guard(1.2)
+		HitSpark.create_spark(get_parent(), player.global_position, "shield")
+		spawn_turret_warning("電磁パルス 防御成功！")
+	else:
+		if player.has_method("take_damage"):
+			player.take_damage(30)
+		Global.play_hit(0.8)
+		HitSpark.create_spark(get_parent(), player.global_position, "heavy", Color(0.8, 0.3, 1.0))
+		spawn_turret_warning("⚡ 電磁ショック -30 HP ⚡")
+
 
 func _draw() -> void:
 	# レーザー照射予告線
@@ -380,6 +482,29 @@ func _draw() -> void:
 		var turret_alpha = 0.20 + sin(shield_pulse * 1.5) * 0.05
 		draw_circle(Vector2.ZERO, turret_pulse_r, Color(0.18, 0.78, 1.0, turret_alpha))
 		draw_arc(Vector2.ZERO, turret_pulse_r, 0, TAU, 28, Color(0.35, 0.92, 1.0, 0.85), 2.5)
+
+	# 電磁フィールド (EM FIELD) の全画面グリッド＆放電エフェクト描画
+	if turret_type == TurretType.ELECTROMAGNETIC_FIELD and is_em_field_active:
+		var vp_rect = get_viewport_rect()
+		var local_top_left = -global_position
+		var local_bottom_right = Vector2(vp_rect.size.x, vp_rect.size.y) - global_position
+		
+		# 全画面エレクトリックパルス背景
+		var field_alpha = 0.08 + sin(em_field_pulse * 2.0) * 0.04
+		draw_rect(Rect2(local_top_left, vp_rect.size), Color(0.65, 0.25, 1.0, field_alpha))
+		
+		# 稲妻グリッド線
+		var grid_step = 70.0
+		var num_lines = int(vp_rect.size.x / grid_step)
+		for i in range(num_lines + 1):
+			var x_pos = local_top_left.x + i * grid_step
+			var wave_offset = sin(em_field_pulse * 3.0 + i) * 6.0
+			draw_line(Vector2(x_pos + wave_offset, local_top_left.y), Vector2(x_pos - wave_offset, local_bottom_right.y), Color(0.8, 0.4, 1.0, 0.15), 1.5)
+			
+		# 砲台周囲の高密度放電リング
+		var r = 70.0 + sin(em_field_pulse * 4.0) * 8.0
+		draw_circle(Vector2.ZERO, r, Color(0.7, 0.3, 1.0, 0.25))
+		draw_arc(Vector2.ZERO, r, 0, TAU, 32, Color(0.9, 0.5, 1.0, 0.9), 3.0)
 
 	# 砲台専用ミニHPバー (頭上に表示: 視覚的な削りフィードバック)
 	if is_alive and max_hp > 0:
@@ -433,10 +558,15 @@ func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO, is_critical: bool
 		Global.play_guard(randf_range(0.95, 1.05))
 		HitSpark.create_spark(get_parent(), actual_hit_pos, "shield")
 	else:
-		Global.play_hit(randf_range(0.95, 1.1))
-		var spark_type_str = "heavy" if is_critical else "normal"
-		var spark_col = Color(1.0, 0.9, 0.2) if is_critical else Color(1.0, 0.85, 0.3)
-		HitSpark.create_spark(get_parent(), actual_hit_pos, spark_type_str, spark_col)
+		if is_critical:
+			# ジャストガード反射弾などのクリティカル被弾時は特効大ダメージ
+			Global.play_heavy_hit(randf_range(1.05, 1.2))
+			HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy", Color(1.0, 0.9, 0.2))
+		else:
+			# 通常射撃に対しては装甲により微減衰 (通常攻撃でも倒せるがジャストガードの方が格段に速い)
+			final_damage = max(1, int(amount * 0.75))
+			Global.play_hit(randf_range(0.95, 1.1))
+			HitSpark.create_spark(get_parent(), actual_hit_pos, "normal", Color(1.0, 0.85, 0.3))
 		
 	current_hp -= final_damage
 	

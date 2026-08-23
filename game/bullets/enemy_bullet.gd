@@ -10,6 +10,7 @@ const BULLET_TYPE_MISSILE = "missile"
 const BULLET_TYPE_BOSS_LASER = "boss_laser"
 const BULLET_TYPE_BOSS_MISSILE = "boss_missile"
 const BULLET_TYPE_DECEL_MISSILE = "decel_missile"
+const BULLET_TYPE_CLUSTER = "cluster_bomb"
 const BULLET_TYPE_UNPARRYABLE = "unparryable_laser"
 
 # カラー定数
@@ -19,6 +20,7 @@ const COLOR_MISSILE = Color(0.8, 0.2, 1.0)
 const COLOR_BOSS_LASER = Color(1.0, 0.1, 0.1)
 const COLOR_BOSS_MISSILE = Color(0.9, 0.6, 0.1)
 const COLOR_DECEL_MISSILE = Color(1.0, 0.4, 0.8)
+const COLOR_CLUSTER = Color(1.0, 0.6, 0.15)
 const COLOR_UNPARRYABLE = Color(1.0, 0.05, 0.15) # 鮮烈な真紅・パリィ不可
 
 # 速度・反射マルチプライヤー
@@ -42,6 +44,9 @@ var initial_speed: float = 350.0
 var decel_timer: float = 0.0
 var decel_phase: int = 0 # 0: 減速中 (0~1.0s), 1: 急加速追尾 (1.0s~)
 
+# クラスター分裂弾用変数
+var cluster_timer: float = 0.85
+
 # ライフタイム＆自然消滅管理（処理落ち防止）
 var lifetime: float = 0.0
 var max_lifetime: float = 7.5
@@ -56,6 +61,7 @@ func _ready() -> void:
 	is_friendly = false
 	decel_timer = 0.0
 	decel_phase = 0
+	cluster_timer = 0.85
 	lifetime = 0.0
 	is_dissolving = false
 	target_node = null
@@ -114,6 +120,9 @@ func update_bullet_color() -> void:
 			BULLET_TYPE_DECEL_MISSILE:
 				modulate = Color(1.0, 0.3, 0.8) # 減速追尾ピンク
 				if sprite: sprite.scale = Vector2(0.7, 0.7)
+			BULLET_TYPE_CLUSTER, "cluster":
+				modulate = COLOR_CLUSTER # 巨大オレンジクラスター弾
+				if sprite: sprite.scale = Vector2(1.2, 1.2)
 			_:
 				modulate = COLOR_BEAM
 
@@ -145,10 +154,14 @@ func _on_area_entered(area: Area2D) -> void:
 			if not area.has_method("take_damage") and area.get_parent() and area.get_parent().has_method("take_damage"):
 				damage_target = area.get_parent()
 				
+			var is_turret = area.is_in_group("boss_turrets") or (is_instance_valid(damage_target) and damage_target.is_in_group("boss_turrets"))
+			# 砲台に対してジャストガード反射弾は特効ボーナス（格段に速く撃破可能）
+			var dealt_damage = int(damage * (2.8 if is_turret else 1.0))
+			
 			if damage_target.has_method("take_damage"):
-				damage_target.take_damage(damage)
+				damage_target.take_damage(dealt_damage, global_position, is_turret)
 			elif damage_target.has_method("take_damage_on_part"):
-				damage_target.take_damage_on_part("core", damage)
+				damage_target.take_damage_on_part("core", dealt_damage, global_position, is_turret)
 			recycle_bullet()
 
 
@@ -188,6 +201,13 @@ func _process(delta: float) -> void:
 					var target_dir = (player.global_position - global_position).normalized()
 					velocity = velocity.lerp(target_dir * (initial_speed * 1.2), delta * 4.0)
 
+		# クラスター分裂弾処理 (0.85秒前進後、8方向へ放射分裂)
+		if (bullet_type == BULLET_TYPE_CLUSTER or bullet_type == "cluster") and not is_friendly:
+			cluster_timer -= delta
+			if cluster_timer <= 0.0:
+				trigger_cluster_split()
+				return
+
 	if velocity.length() < MIN_SAFETY_SPEED and decel_phase != 0:
 		if velocity == Vector2.ZERO:
 			velocity = Vector2.UP * speed
@@ -223,6 +243,31 @@ func dissolve_and_recycle(spawn_particles: bool = true) -> void:
 		particle.modulate = Color(modulate.r, modulate.g, modulate.b, 0.6)
 		get_parent().add_child(particle)
 		
+	recycle_bullet()
+
+
+func trigger_cluster_split() -> void:
+	var main = get_node_or_null("/root/Main")
+	var pool = main.get_node_or_null("BulletPool") if main else null
+	Global.play_hit(randf_range(1.15, 1.35))
+	
+	if PARRY_PARTICLE_SCENE and get_parent():
+		var p = PARRY_PARTICLE_SCENE.instantiate()
+		p.global_position = global_position
+		p.scale = Vector2(2.0, 2.0)
+		p.modulate = Color(1.0, 0.65, 0.15)
+		get_parent().add_child(p)
+		
+	if pool:
+		var angles = [0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0]
+		for a in angles:
+			var sub_b = pool.get_bullet("wave")
+			if sub_b:
+				sub_b.global_position = global_position
+				sub_b.damage = int(max(6, damage * 0.45))
+				var dir = Vector2.DOWN.rotated(deg_to_rad(a))
+				sub_b.set_direction(dir, 260.0)
+				
 	recycle_bullet()
 
 

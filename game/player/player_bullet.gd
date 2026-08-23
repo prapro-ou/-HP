@@ -237,6 +237,9 @@ func update_visual() -> void:
 			damage = 70
 			speed = 3000.0
 			
+	# 通常攻撃弾の透明度を上げて少しだけ目立ちにくく調整（ジャストガードと敵弾の視認性を重視）
+	modulate.a = 0.55
+	
 	if velocity == Vector2.ZERO:
 		velocity = Vector2.UP * speed
 

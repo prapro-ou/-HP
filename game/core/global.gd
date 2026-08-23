@@ -14,9 +14,10 @@ var equipped_weapon: String = "machine_gun"
 var is_first_launch: bool = true
 var tech_points: int = 0
 var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (faster charge/absorb), "power" (buff primary)
+var equipped_counter_weapon: String = "turret" # "turret" (支援砲台部隊), "funnel" (サイバーファンネル部隊), "boss_beam", "boss_missile"
 var unlocked_shields: Array = ["counter"] # Available shield frameworks
 var unlocked_weapons: Array = ["machine_gun", "burst_rifle", "pulse_gun"] # Available primary weapon frameworks
-var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
+var unlocked_counter_weapons: Array = ["turret", "funnel"] # Boss & support weapons unlocked for COUNTER SYSTEM
 var unlocked_stages: Array = [1] # Unlocked stages (Stage 1 is unlocked by default)
 var cleared_stages: Array = [] # Stages cleared at least once (unlocks hard mode for that stage)
 var discovered_analysis_weapons: Array = [] # Discovered analysis mutation patterns
@@ -638,6 +639,7 @@ func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -
 	config.set_value("game", "is_first_launch", is_first_launch)
 	config.set_value("game", "tech_points", tech_points)
 	config.set_value("game", "equipped_shield", equipped_shield)
+	config.set_value("game", "equipped_counter_weapon", equipped_counter_weapon)
 	config.set_value("game", "unlocked_shields", unlocked_shields)
 	config.set_value("game", "unlocked_weapons", unlocked_weapons)
 	config.set_value("game", "unlocked_counter_weapons", unlocked_counter_weapons)
@@ -669,6 +671,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"is_first_launch": is_first_launch,
 		"tech_points": tech_points,
 		"equipped_shield": equipped_shield,
+		"equipped_counter_weapon": equipped_counter_weapon,
 		"unlocked_shields": unlocked_shields,
 		"unlocked_weapons": unlocked_weapons,
 		"unlocked_counter_weapons": unlocked_counter_weapons,
@@ -696,9 +699,10 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["is_first_launch"] = config.get_value("game", "is_first_launch", true)
 		data["tech_points"] = config.get_value("game", "tech_points", 0)
 		data["equipped_shield"] = config.get_value("game", "equipped_shield", equipped_shield)
+		data["equipped_counter_weapon"] = config.get_value("game", "equipped_counter_weapon", "turret")
 		data["unlocked_shields"] = config.get_value("game", "unlocked_shields", ["counter"])
 		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "burst_rifle", "pulse_gun"])
-		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", [])
+		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", ["turret", "funnel"])
 		data["unlocked_stages"] = config.get_value("game", "unlocked_stages", [1])
 		data["cleared_stages"] = config.get_value("game", "cleared_stages", [])
 		data["discovered_analysis_weapons"] = config.get_value("game", "discovered_analysis_weapons", [])
@@ -725,6 +729,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			is_first_launch = data["is_first_launch"]
 			tech_points = data["tech_points"]
 			equipped_shield = data["equipped_shield"]
+			equipped_counter_weapon = data["equipped_counter_weapon"]
 			unlocked_shields = data["unlocked_shields"]
 			unlocked_weapons = data["unlocked_weapons"]
 			unlocked_counter_weapons = data["unlocked_counter_weapons"]
@@ -763,9 +768,10 @@ func reset_tech_points() -> void:
 func reset_development_progress() -> void:
 	discovered_analysis_weapons = []
 	unlocked_weapons = ["machine_gun", "burst_rifle", "pulse_gun"]
-	unlocked_counter_weapons = []
+	unlocked_counter_weapons = ["turret", "funnel"]
 	unlocked_shields = ["counter"]
 	equipped_shield = "counter"
+	equipped_counter_weapon = "turret"
 	equipped_weapon = "machine_gun"
 	unlocked_stages = [1]
 	cleared_stages = []
