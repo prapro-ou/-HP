@@ -78,6 +78,7 @@ var parried_in_current_frame: bool = false
 var parry_succeeded_in_guard: bool = false
 var guard_recovery_timer: float = 0.0 # ガード終了直後の隙（カウンター受付時間）
 var is_full_burst: bool = false
+var counter_system_turrets: Array[Node2D] = []
 var is_control_locked: bool = false
 var is_victory_flyby: bool = false
 var flyby_timer: float = 0.0
@@ -144,8 +145,7 @@ func reset_state() -> void:
 	is_invincible = false
 	invincibility_timer = 0.0
 	
-	var parry_lvl = Global.upgrade_levels.get("parry_window", 0)
-	parry_window_radius = 85.0 + 5.0 * parry_lvl
+	parry_window_radius = Global.get_just_guard_radius()
 	
 	is_attack_unlocked = false
 	power_shield_damage_buff = 0.0
@@ -414,28 +414,70 @@ func _process(delta: float) -> void:
 			Engine.time_scale = 0.15
 			if not has_meta("slow_alert_shown"):
 				set_meta("slow_alert_shown", true)
-				spawn_popup_message("危険: SPACEでパリィを実行！")
+				spawn_popup_message("危険: SPACEでジャストガードを実行！")
 		else:
 			if Engine.time_scale < 0.5 and not is_guarding:
 				Engine.time_scale = 1.0
 
+	# COUNTER SYSTEM 手動発動 (Xキー)
 	if not is_full_burst and not get_meta("is_counter_system_used", false):
-		var main = get_node_or_null("/root/Main")
-		if main:
-			var manager = main.get_node_or_null("GameManager")
-			if manager and manager.get("state") == "boss":
-				if Input.is_key_pressed(KEY_X):
-					set_meta("is_counter_system_used", true)
-					is_full_burst = true
-					spawn_popup_message("COUNTER SYSTEM ACTIVE: FULL BURST!")
-					
-					get_tree().create_timer(3.0).timeout.connect(func():
-						is_full_burst = false
-						spawn_popup_message("COUNTER SYSTEM: DEPLETED")
-					)
+		if Input.is_key_pressed(KEY_X) or Input.is_action_just_pressed("ui_focus_next"):
+			set_meta("is_counter_system_used", true)
+			activate_counter_system()
+
+	# ジャストガード有効範囲リングの常時プロット再描画
+	queue_redraw()
+
+
+func activate_counter_system() -> void:
+	if is_full_burst:
+		return
+	is_full_burst = true
+	
+	var duration = Global.get_counter_system_duration()
+	var dmg_mult = Global.get_counter_system_power_multiplier()
+	
+	spawn_popup_message("[COUNTER SYSTEM ONLINE] 支援砲台部隊 展開！ (%.0fs / %.1fx)" % [duration, dmg_mult])
+	
+	# 全画面プレイヤーカラーフィルター＆専用HUDの起動
+	var main_node = get_node_or_null("/root/Main")
+	if main_node:
+		var ui_node = main_node.get_node_or_null("UI")
+		if ui_node and ui_node.has_method("activate_counter_system_tint"):
+			ui_node.activate_counter_system_tint(duration)
+			
+	# 支援ボスタレットポッドの召喚
+	var main_parent = get_parent()
+	var num_turrets = 4 if Global.counter_only_mode_enabled else 2
+	for i in range(num_turrets):
+		var turret = PlayerSupportTurret.new()
+		turret.setup_turret(self, i, num_turrets, duration, dmg_mult)
+		turret.global_position = global_position + Vector2((i - 0.5) * 60.0, 30.0)
+		if main_parent:
+			main_parent.add_child(turret)
+			counter_system_turrets.append(turret)
+			
+	Global.play_explosion(1.2)
+	
+	get_tree().create_timer(duration).timeout.connect(func():
+		is_full_burst = false
+		counter_system_turrets.clear()
+		if is_instance_valid(self) and current_hp > 0:
+			spawn_popup_message("COUNTER SYSTEM: 支援部隊帰還")
+			# COUNTER ONLY MODE なら 2.0秒後に自動再展開！
+			if Global.counter_only_mode_enabled:
+				get_tree().create_timer(2.0).timeout.connect(func():
+					if is_instance_valid(self) and current_hp > 0:
+						activate_counter_system()
+				)
+	)
 
 
 func fire() -> void:
+	# COUNTER ONLY MODE 出撃時は手動主兵装射撃をスキップ（砲台部隊専任モード）
+	if Global.counter_only_mode_enabled:
+		return
+		
 	if current_hp <= 0 or not is_attack_unlocked or not PLAYER_BULLET_SCENE:
 		return
 		
@@ -698,6 +740,8 @@ func check_parry() -> void:
 		return
 	var parry_triggered_now = false
 	var shield_type = Global.equipped_shield
+	parry_window_radius = Global.get_just_guard_radius()
+	var focus_dmg_mult = Global.get_just_guard_damage_multiplier()
 	
 	var all_targets = []
 	all_targets.append_array(enemy_bullets)
@@ -708,7 +752,7 @@ func check_parry() -> void:
 	var last_parry_pos = global_position
 	for bullet in all_targets:
 		if is_instance_valid(bullet) and not bullet.is_friendly:
-			# パリィ不可弾は跳ね返し判定を完全にスキップ
+			# ジャストガード不可弾は跳ね返し判定を完全にスキップ
 			var is_unparryable = bullet.get("is_unparryable") == true or (bullet.get("bullet_type") != null and String(bullet.get("bullet_type")).contains("unparryable"))
 			if is_unparryable:
 				continue
@@ -721,7 +765,7 @@ func check_parry() -> void:
 					if Global.is_first_launch:
 						Global.is_first_launch = false
 						Engine.time_scale = 1.0
-						spawn_popup_message("パリィ成功！武装システムオンライン！")
+						spawn_popup_message("ジャストガード成功！武装システムオンライン！")
 						
 						var current_stage = 1
 						var main = get_node_or_null("/root/Main")
@@ -734,11 +778,11 @@ func check_parry() -> void:
 				var b_type = bullet.bullet_type if "bullet_type" in bullet else "missile"
 				var analysis_pts = 4.0
 				if b_type.contains("meteor"):
-					analysis_pts = 16.0 # 巨大隕石パリィは+16%
+					analysis_pts = 16.0 # 巨大隕石ジャストガードは+16%
 				elif b_type.contains("decel") or b_type.contains("boss_missile"):
-					analysis_pts = 10.0 # 追尾ミサイルパリィは+10%
+					analysis_pts = 10.0 # 追尾ミサイルジャストガードは+10%
 				elif b_type.contains("boss_laser") or b_type.contains("beam"):
-					analysis_pts = 8.0  # ビームマシンガンパリィは+8%
+					analysis_pts = 8.0  # ビームマシンガンジャストガードは+8%
 					
 				advance_analysis(b_type, analysis_pts)
 				
@@ -750,7 +794,7 @@ func check_parry() -> void:
 						bullet.explode_and_free()
 					else:
 						bullet.queue_free()
-					power_shield_damage_buff = min(power_shield_damage_buff + 4.0, 20.0)
+					power_shield_damage_buff = min(power_shield_damage_buff + 4.0 * focus_dmg_mult, 25.0)
 					
 					var main = get_node_or_null("/root/Main")
 					if main:
@@ -772,12 +816,12 @@ func check_parry() -> void:
 						if manager and manager.has_method("register_parry"):
 							manager.register_parry()
 				else:
-					# カウンターシールド: 弾丸を友軍弾に変換して超威力反射
+					# カウンターシールド: 弾丸を友軍弾に変換して超威力反射（フォーカス設定でさらに倍率UP！）
 					if bullet.has_method("convert_to_friendly"):
 						bullet.convert_to_friendly()
 					if shield_type == SHIELD_COUNTER:
 						if "damage" in bullet:
-							bullet.damage = int(bullet.damage * 1.8)
+							bullet.damage = int(bullet.damage * 1.8 * focus_dmg_mult)
 						
 				parry_triggered_now = true
 				
@@ -1253,6 +1297,37 @@ func spawn_parry_popup_message(text: String) -> void:
 
 
 func _draw() -> void:
+	# 1. 常時プロット：ジャストガード有効判定範囲リング (Focus Tuning ＆ シールド別カラー)
+	if current_hp > 0 and not is_victory_flyby:
+		var cur_radius = Global.get_just_guard_radius()
+		var s_type = Global.equipped_shield
+		var shield_color = Color(0.35, 0.75, 1.0) # カウンター: シアン
+		if s_type == SHIELD_GAUGE:
+			shield_color = Color(0.2, 1.0, 0.6) # 吸収マトリクス: エメラルドグリーン
+		elif s_type == SHIELD_POWER:
+			shield_color = Color(1.0, 0.55, 0.15) # パワーシールド: ネオンオレンジ
+			
+		# 通常時は落ち着いた半透明、ガード展開中・被弾時は発光
+		var base_alpha = 0.28 if not is_guarding else 0.85
+		var pulse = sin(Time.get_ticks_msec() * 0.005) * 0.06
+		var ring_alpha = clamp(base_alpha + pulse, 0.15, 0.95)
+		
+		# ガード展開中の内部エネルギーフィールド（半透明塗りつぶし）
+		if is_guarding:
+			draw_circle(Vector2.ZERO, cur_radius, Color(shield_color.r, shield_color.g, shield_color.b, 0.12))
+			
+		# 外郭プロットリング (高精度アーク描画)
+		var line_w = 1.5 if not is_guarding else 2.5
+		draw_arc(Vector2.ZERO, cur_radius, 0, TAU, 48, Color(shield_color.r, shield_color.g, shield_color.b, ring_alpha), line_w)
+		
+		# 4方向の照準プロットマーカー（サイバー目盛り）
+		var marker_len = 5.0 if not is_guarding else 9.0
+		for angle_deg in [0, 90, 180, 270]:
+			var dir = Vector2.RIGHT.rotated(deg_to_rad(angle_deg))
+			var p1 = dir * (cur_radius - marker_len)
+			var p2 = dir * (cur_radius + marker_len)
+			draw_line(p1, p2, Color(shield_color.r, shield_color.g, shield_color.b, ring_alpha * 1.2), line_w)
+
 	# 勝利フライバイ時の巨大アフターバーナー炎描画
 	if is_victory_flyby and flyby_boost_alpha > 0.0:
 		var flame_len = (110.0 + sin(flyby_timer * 40.0) * 25.0) * flyby_boost_alpha

@@ -113,7 +113,7 @@ func create_top_warning_ui() -> void:
 	top_warning_label.offset_top = 110.0
 	top_warning_label.offset_bottom = 160.0
 	top_warning_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	top_warning_label.text = "DANGER: パリィ不可攻撃警告\n【PARRY IMPOSSIBLE - EVADE!】"
+	top_warning_label.text = "DANGER: ガード不可攻撃警告\n【GUARD IMPOSSIBLE - EVADE!】"
 	var l_set = LabelSettings.new()
 	if PIXEL_FONT:
 		l_set.font = PIXEL_FONT
@@ -132,7 +132,7 @@ func show_top_unparryable_warning(duration: float = 2.0, message: String = "") -
 	if message != "":
 		top_warning_label.text = message
 	else:
-		top_warning_label.text = "DANGER: パリィ不可攻撃警告\n【PARRY IMPOSSIBLE - EVADE!】"
+		top_warning_label.text = "DANGER: ガード不可攻撃警告\n【GUARD IMPOSSIBLE - EVADE!】"
 		
 	if is_instance_valid(top_warning_tween):
 		top_warning_tween.kill()
@@ -356,7 +356,7 @@ func create_analysis_matrix_ui() -> void:
 	prog_vbox.add_child(prog_header)
 	
 	active_analysis_label = Label.new()
-	active_analysis_label.text = "解析: 敵弾パリィで吸収蓄積"
+	active_analysis_label.text = "解析: 敵弾ジャストガードで吸収蓄積"
 	active_analysis_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var a_set = LabelSettings.new()
 	if PIXEL_FONT:
@@ -456,10 +456,10 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 		style_analysis_bar(active_analysis_bar, latest_pattern.get("color", Color.CYAN))
 	else:
 		if active_traits.size() >= 2:
-			active_analysis_label.text = "【スロット固定中】全パリィで集中強化！"
+			active_analysis_label.text = "【スロット固定中】全ジャストガードで集中強化！"
 			active_analysis_label.label_settings.font_color = Color(1.0, 0.85, 0.3)
 		else:
-			active_analysis_label.text = "解析: 敵弾パリィで吸収蓄積"
+			active_analysis_label.text = "解析: 敵弾ジャストガードで吸収蓄積"
 			active_analysis_label.label_settings.font_color = Color.GRAY
 		active_analysis_percent_label.text = "0%"
 		active_analysis_bar.value = 0
@@ -823,7 +823,7 @@ func show_analysis_unlock_modal(pattern_key: String, data: Dictionary) -> void:
 	desc_vbox.add_child(stat_lbl)
 	
 	var body_lbl = Label.new()
-	body_lbl.text = cat_info.get("description", "") + "\n\n※変異スロットに固定装備されました（最大2枠・上書きなし）。\n以降のパリィ解析でLvアップ集中強化されます！"
+	body_lbl.text = cat_info.get("description", "") + "\n\n※変異スロットに固定装備されました（最大2枠・上書きなし）。\n以降のジャストガード解析でLvアップ集中強化されます！"
 	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_label_style(body_lbl, 15, Color.WHITE, 4)
 	desc_vbox.add_child(body_lbl)
@@ -880,7 +880,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 	
 	match topic:
 		"controls":
-			title_text = "【機体操作 ＆ パリィ指南】"
+			title_text = "【機体操作 ＆ ジャストガード指南】"
 			sub_text = "基本システムを把握し、激戦を生き残れ！"
 			border_col = Color(0.2, 0.8, 1.0)
 			items = [
@@ -895,9 +895,9 @@ func show_tutorial_guide_modal(topic: String) -> void:
 					"desc": "[Zキー] / [左クリック]（押しっぱなしで自動連射）\n通常物理弾で雑魚ドローンを撃破し、侵攻を食い止めろ。"
 				},
 				{
-					"title": "シールド ＆ パリィ",
+					"title": "シールド ＆ ジャストガード",
 					"color": Color.GOLD,
-					"desc": "[スペースキー] / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【パリィ】発動！敵弾を赤色反射弾に変換して大ダメージ＆機体修復！"
+					"desc": "[スペースキー] / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【ジャストガード】発動！敵弾を反射弾に変換して大ダメージ＆機体修復！"
 				}
 			]
 		"weapon_analysis":
@@ -908,7 +908,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "敵弾の解析",
 					"color": Color.CYAN,
-					"desc": "敵弾をガードまたはパリィすると、画面左下の解析マトリクスに敵の兵装データがスキャン・蓄積されます。"
+					"desc": "敵弾をガードまたはジャストガードすると、画面左下の解析マトリクスに敵の兵装データがスキャン・蓄積されます。"
 				},
 				{
 					"title": "変異兵装の解放",
@@ -955,12 +955,12 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "攻略手順",
 					"color": Color(0.3, 0.9, 1.0),
-					"desc": "まずは左右のサブ砲台を集中攻撃して破壊するか、砲台の弾幕をパリィしてボスに反射ダメージを与えましょう！"
+					"desc": "まずは左右のサブ砲台を集中攻撃して破壊するか、砲台の弾幕をジャストガードしてボスに反射ダメージを与えましょう！"
 				},
 				{
-					"title": "【パリィ不可】真紅の警告",
+					"title": "【ガード不可】真紅の警告",
 					"color": Color(1.0, 0.1, 0.15),
-					"desc": "画面上部が赤く点灯した際はパリィ不可・断絶レーザーの合図！ガードを貫通するため緊急回避してください！"
+					"desc": "画面上部が赤く点灯した際はガード不可・断絶レーザーの合図！シールドを貫通するため緊急回避してください！"
 				}
 			]
 			
@@ -1110,7 +1110,7 @@ func toggle_pause_menu() -> void:
 	
 	if active_keys.size() == 0:
 		var empty_lbl = Label.new()
-		empty_lbl.text = "※ 現在装備中の変異兵装はありません。\n（敵弾をジャストガード/パリィして解析ゲージを100%にすると最大2つまで固定装備されます）"
+		empty_lbl.text = "※ 現在装備中の変異兵装はありません。\n（敵弾をジャストガードして解析ゲージを100%にすると最大2つまで固定装備されます）"
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		setup_label_style(empty_lbl, 15, Color.GRAY, 3)
 		vbox.add_child(empty_lbl)
@@ -1484,7 +1484,7 @@ func show_game_over(result: String) -> void:
 		if "total_damage_score" in game_manager:
 			score = game_manager.total_damage_score
 			
-	stats_label.text = "総パリィ数: %d 回\n技術回収: 100%%" % parries
+	stats_label.text = "総ジャストガード数: %d 回\n技術回収: 100%%" % parries
 	container.add_child(stats_label)
 	
 	if result == "VICTORY":
@@ -1801,3 +1801,141 @@ func animate_score_count(label: Label, target_score: int) -> void:
 			bounce_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 			bounce_tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	)
+
+
+# --- COUNTER SYSTEM 全画面プレイヤーカラーフィルター＆HUD ---
+var counter_system_tint_rect: ColorRect = null
+var counter_system_banner: PanelContainer = null
+var counter_system_progress_bar: ProgressBar = null
+var counter_system_timer_lbl: Label = null
+var counter_system_active: bool = false
+var counter_system_total_time: float = 10.0
+var counter_system_remaining_time: float = 0.0
+
+func _process(delta: float) -> void:
+	if counter_system_active:
+		update_counter_system_ui(delta)
+
+func activate_counter_system_tint(duration: float) -> void:
+	counter_system_active = true
+	counter_system_total_time = duration
+	counter_system_remaining_time = duration
+	
+	# プレイヤーカラーの取得
+	var p_col_key = Global.player_color
+	var p_data = Global.available_player_colors.get(p_col_key, {})
+	var p_accent: Color = p_data.get("accent_color", Color(0.2, 0.7, 1.0))
+	
+	# 1. 全画面カラーティント矩形の生成・初期化
+	if not counter_system_tint_rect or not is_instance_valid(counter_system_tint_rect):
+		counter_system_tint_rect = ColorRect.new()
+		counter_system_tint_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		counter_system_tint_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		counter_system_tint_rect.z_index = 5
+		add_child(counter_system_tint_rect)
+		
+	counter_system_tint_rect.color = Color(p_accent.r, p_accent.g, p_accent.b, 0.0)
+	counter_system_tint_rect.visible = true
+	
+	# ティントのフェードイン＆緩やかなパルス
+	var tint_tween = create_tween()
+	tint_tween.tween_property(counter_system_tint_rect, "color:a", 0.22, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	# 2. 上部カウンターバナーHUDの表示
+	if not counter_system_banner or not is_instance_valid(counter_system_banner):
+		create_counter_system_banner(p_accent)
+	
+	if is_instance_valid(counter_system_banner):
+		counter_system_banner.visible = true
+		counter_system_banner.modulate.a = 0.0
+		counter_system_banner.position = Vector2(get_viewport_rect().size.x / 2.0 - 150.0, 75.0)
+		var b_tween = create_tween()
+		b_tween.tween_property(counter_system_banner, "modulate:a", 1.0, 0.25)
+		
+	# 3. 画面フラッシュ
+	trigger_screen_flash(Color(p_accent.r, p_accent.g, p_accent.b, 0.45))
+
+func create_counter_system_banner(p_accent: Color) -> void:
+	counter_system_banner = PanelContainer.new()
+	counter_system_banner.z_index = 50
+	counter_system_banner.custom_minimum_size = Vector2(300, 48)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.06, 0.12, 0.9)
+	sb.border_width_left = 2
+	sb.border_width_right = 2
+	sb.border_width_top = 2
+	sb.border_width_bottom = 2
+	sb.border_color = p_accent
+	sb.corner_radius_top_left = 6
+	sb.corner_radius_top_right = 6
+	sb.corner_radius_bottom_left = 6
+	sb.corner_radius_bottom_right = 6
+	counter_system_banner.add_theme_stylebox_override("panel", sb)
+	
+	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 2)
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	counter_system_banner.add_child(vb)
+	
+	var title_lbl = Label.new()
+	title_lbl.text = "[COUNTER SYSTEM ONLINE]"
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(title_lbl, 13, p_accent, 3)
+	vb.add_child(title_lbl)
+	
+	counter_system_timer_lbl = Label.new()
+	counter_system_timer_lbl.text = "支援砲台部隊 展開中: 10.0s"
+	counter_system_timer_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(counter_system_timer_lbl, 11, Color.WHITE, 2)
+	vb.add_child(counter_system_timer_lbl)
+	
+	counter_system_progress_bar = ProgressBar.new()
+	counter_system_progress_bar.custom_minimum_size = Vector2(280, 5)
+	counter_system_progress_bar.show_percentage = false
+	counter_system_progress_bar.max_value = 100.0
+	counter_system_progress_bar.value = 100.0
+	var bar_fill = StyleBoxFlat.new()
+	bar_fill.bg_color = p_accent
+	counter_system_progress_bar.add_theme_stylebox_override("fill", bar_fill)
+	vb.add_child(counter_system_progress_bar)
+	
+	add_child(counter_system_banner)
+
+func update_counter_system_ui(delta: float) -> void:
+	if not counter_system_active:
+		return
+		
+	counter_system_remaining_time -= delta
+	if counter_system_remaining_time <= 0.0:
+		deactivate_counter_system_tint()
+		return
+		
+	if is_instance_valid(counter_system_timer_lbl):
+		counter_system_timer_lbl.text = "支援砲台部隊 展開中: %.1fs" % counter_system_remaining_time
+		
+	if is_instance_valid(counter_system_progress_bar) and counter_system_total_time > 0.0:
+		counter_system_progress_bar.value = (counter_system_remaining_time / counter_system_total_time) * 100.0
+		
+	# プレイヤーカラーティントの呼吸パルス
+	if is_instance_valid(counter_system_tint_rect):
+		var pulse = sin(Time.get_ticks_msec() * 0.006) * 0.04
+		counter_system_tint_rect.color.a = clamp(0.20 + pulse, 0.12, 0.28)
+
+func deactivate_counter_system_tint() -> void:
+	counter_system_active = false
+	if is_instance_valid(counter_system_tint_rect):
+		var t = create_tween()
+		t.tween_property(counter_system_tint_rect, "color:a", 0.0, 0.35)
+		t.chain().tween_callback(func():
+			if is_instance_valid(counter_system_tint_rect):
+				counter_system_tint_rect.visible = false
+		)
+		
+	if is_instance_valid(counter_system_banner):
+		var bt = create_tween()
+		bt.tween_property(counter_system_banner, "modulate:a", 0.0, 0.35)
+		bt.chain().tween_callback(func():
+			if is_instance_valid(counter_system_banner):
+				counter_system_banner.visible = false
+		)

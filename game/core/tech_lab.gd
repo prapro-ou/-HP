@@ -18,6 +18,21 @@ var parry_cost_btn: Button
 var cd_lvl_lbl: Label
 var cd_cost_btn: Button
 
+# Focus mode tuning variables
+var focus_mode_btn: Button
+var focus_mode_desc_lbl: Label
+var focus_mode_stat_lbl: Label
+
+# COUNTER SYSTEM enhancement variables
+var cs_dur_lvl_lbl: Label
+var cs_dur_cost_btn: Button
+var cs_pwr_lvl_lbl: Label
+var cs_pwr_cost_btn: Button
+
+# COUNTER ONLY mode variables
+var counter_only_btn: Button
+var counter_only_status_lbl: Label
+
 # Shield research buttons
 var shield_gauge_btn: Button
 var shield_power_btn: Button
@@ -136,17 +151,17 @@ func setup_ui() -> void:
 	# HP Enhancement Row
 	var hp_row = create_upgrade_row(
 		"最大HP増加", 
-		"装甲を補強し、最大HPを+10増加。",
+		"装甲を補強し、最大HPを+50増加。",
 		cap_sec
 	)
 	hp_lvl_lbl = hp_row.level_label
 	hp_cost_btn = hp_row.cost_button
 	hp_cost_btn.pressed.connect(func(): perform_upgrade("hp"))
 	
-	# Parry Area Row
+	# Just Guard Window Row
 	var parry_row = create_upgrade_row(
-		"パリィ範囲拡大", 
-		"シールド範囲を拡張し、パリィを容易にする。",
+		"ジャストガード基本範囲拡大", 
+		"全シールド共通の基本判定範囲を拡張し、ジャストガードを容易にする。",
 		cap_sec
 	)
 	parry_lvl_lbl = parry_row.level_label
@@ -156,15 +171,19 @@ func setup_ui() -> void:
 	# Cooldown Row
 	var cd_row = create_upgrade_row(
 		"冷却時間短縮", 
-		"冷却機構を強化し、パリィの再使用時間を短縮。",
+		"冷却機構を強化し、シールドの再使用・放熱時間を短縮。",
 		cap_sec
 	)
 	cd_lvl_lbl = cd_row.level_label
 	cd_cost_btn = cd_row.cost_button
 	cd_cost_btn.pressed.connect(func(): perform_upgrade("cooldown"))
 	
-	# --- SECTION 2: SHIELDS RESEARCH (1個 30 TP) ---
-	var sh_sec = create_section_vbox("特殊シールド開発 (各 30 TP)", vbox)
+	# --- SECTION 2: JUST GUARD FOCUS TUNING (範囲狭小化＆高威力化設定) ---
+	var focus_sec = create_section_vbox("ジャストガード・フォーカス設定 (効果範囲 ⇔ 威力調整)", vbox)
+	create_focus_tuning_ui(focus_sec)
+	
+	# --- SECTION 3: SHIELDS RESEARCH & RADIUS (各 30 TP) ---
+	var sh_sec = create_section_vbox("特殊シールド開発 ＆ 固有範囲強化", vbox)
 	var sh_vbox = VBoxContainer.new()
 	sh_vbox.add_theme_constant_override("separation", 8)
 	sh_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -183,14 +202,41 @@ func setup_ui() -> void:
 	# Power shield card
 	var power_card = create_weapon_research_card(
 		"増幅ブースター",
-		"パリィ成功時に弾丸を吸収し、主兵装の攻撃力を永続スタック強化。",
+		"ジャストガード成功時に弾丸を吸収し、主兵装の攻撃力を永続スタック強化。",
 		"コスト: 30 TP",
 		sh_vbox
 	)
 	shield_power_btn = power_card.unlock_button
 	shield_power_btn.pressed.connect(func(): unlock_shield("power", 30))
 
-	# --- SECTION 3: WEAPONS ANALYSIS & RESEARCH ---
+	# --- SECTION 4: COUNTER SYSTEM 強化 (支援砲台部隊) ---
+	var cs_sec = create_section_vbox("COUNTER SYSTEM 強化 (Xキー支援砲台部隊)", vbox)
+	
+	# Duration upgrade row
+	var dur_row = create_upgrade_row(
+		"支援砲台・展開持続時間",
+		"ボスタレット支援部隊の滞在時間を延長 (10秒 -> 最大20秒)。",
+		cs_sec
+	)
+	cs_dur_lvl_lbl = dur_row.level_label
+	cs_dur_cost_btn = dur_row.cost_button
+	cs_dur_cost_btn.pressed.connect(func(): perform_counter_system_upgrade("duration"))
+	
+	# Power upgrade row
+	var pwr_row = create_upgrade_row(
+		"支援砲台・攻撃力倍率",
+		"支援タレットの全弾丸威力を大幅増幅 (1.0倍 -> 最大5.0倍)。",
+		cs_sec
+	)
+	cs_pwr_lvl_lbl = pwr_row.level_label
+	cs_pwr_cost_btn = pwr_row.cost_button
+	cs_pwr_cost_btn.pressed.connect(func(): perform_counter_system_upgrade("power"))
+
+	# --- SECTION 5: 極秘作戦 COUNTER ONLY 出撃モード (ステージ5を5回クリア + 150 TP) ---
+	var only_sec = create_section_vbox("極秘作戦：COUNTER ONLY 出撃モード", vbox)
+	create_counter_only_mode_ui(only_sec)
+
+	# --- SECTION 6: WEAPONS ANALYSIS & RESEARCH ---
 	var wp_sec = create_section_vbox("特殊兵装開発", vbox)
 	var wp_vbox = VBoxContainer.new()
 	wp_vbox.add_theme_constant_override("separation", 8)
@@ -497,6 +543,132 @@ func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
 		tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1)
 	)
 
+func create_focus_tuning_ui(parent: Control) -> void:
+	var card_panel = PanelContainer.new()
+	card_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.16, 0.85)
+	sb.border_width_left = 1
+	sb.border_width_right = 1
+	sb.border_width_top = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.3, 0.75, 1.0, 0.5)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
+	card_panel.add_theme_stylebox_override("panel", sb)
+	parent.add_child(card_panel)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	card_panel.add_child(margin)
+	
+	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 6)
+	margin.add_child(vb)
+	
+	var top_hb = HBoxContainer.new()
+	vb.add_child(top_hb)
+	
+	focus_mode_stat_lbl = Label.new()
+	focus_mode_stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	focus_mode_stat_lbl.text = "現在の設定: STANDARD [標準]"
+	top_hb.add_child(focus_mode_stat_lbl)
+	
+	focus_mode_btn = Button.new()
+	focus_mode_btn.text = "設定切替 [CLICK]"
+	focus_mode_btn.custom_minimum_size = Vector2(130, 32)
+	style_neon_button(focus_mode_btn, Color(0.3, 0.75, 1.0), Color.CYAN)
+	focus_mode_btn.pressed.connect(func():
+		Global.just_guard_focus_mode = (Global.just_guard_focus_mode + 1) % 3
+		Global.save_game(1, 0, {})
+		update_lab_hud()
+		play_flash_effect(Color.CYAN)
+		var audio_mgr = get_node_or_null("/root/AudioManager")
+		if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+			audio_mgr.play_upgrade_success()
+	)
+	top_hb.add_child(focus_mode_btn)
+	
+	focus_mode_desc_lbl = Label.new()
+	focus_mode_desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	focus_mode_desc_lbl.text = "安定した標準範囲でのジャストガード。"
+	focus_mode_desc_lbl.modulate = Color(0.7, 0.85, 1.0, 0.8)
+	vb.add_child(focus_mode_desc_lbl)
+
+func create_counter_only_mode_ui(parent: Control) -> void:
+	var card_panel = PanelContainer.new()
+	card_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.05, 0.16, 0.85)
+	sb.border_width_left = 1
+	sb.border_width_right = 1
+	sb.border_width_top = 1
+	sb.border_width_bottom = 1
+	sb.border_color = Color(1.0, 0.4, 0.8, 0.5)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
+	card_panel.add_theme_stylebox_override("panel", sb)
+	parent.add_child(card_panel)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	card_panel.add_child(margin)
+	
+	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 6)
+	margin.add_child(vb)
+	
+	var top_hb = HBoxContainer.new()
+	vb.add_child(top_hb)
+	
+	counter_only_status_lbl = Label.new()
+	counter_only_status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	counter_only_status_lbl.text = "COUNTER ONLY 出撃: 【未解放】"
+	top_hb.add_child(counter_only_status_lbl)
+	
+	counter_only_btn = Button.new()
+	counter_only_btn.text = "極秘作戦解放"
+	counter_only_btn.custom_minimum_size = Vector2(140, 32)
+	style_neon_button(counter_only_btn, Color(1.0, 0.3, 0.8), Color.MAGENTA)
+	counter_only_btn.pressed.connect(func():
+		if not Global.counter_only_mode_unlocked:
+			if Global.stage5_clears_count >= 5 and Global.tech_points >= 150:
+				Global.tech_points -= 150
+				Global.counter_only_mode_unlocked = true
+				Global.counter_only_mode_enabled = true
+				Global.save_game(1, 0, {})
+				update_lab_hud()
+				play_flash_effect(Color.MAGENTA)
+				var audio_mgr = get_node_or_null("/root/AudioManager")
+				if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+					audio_mgr.play_upgrade_success()
+		else:
+			Global.counter_only_mode_enabled = not Global.counter_only_mode_enabled
+			Global.save_game(1, 0, {})
+			update_lab_hud()
+			play_flash_effect(Color.MAGENTA)
+			var audio_mgr = get_node_or_null("/root/AudioManager")
+			if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+				audio_mgr.play_upgrade_success()
+	)
+	top_hb.add_child(counter_only_btn)
+	
+	var desc_lbl = Label.new()
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.text = "【解放条件: STAGE 5を5回クリア ＆ 150 TP】\n自機の通常射撃を行わず、4基のボスタレット支援部隊が常時・自動で自機を守護・殲滅する超爽快モード！"
+	desc_lbl.modulate = Color(1.0, 0.8, 0.9, 0.8)
+	vb.add_child(desc_lbl)
+
 func update_lab_hud() -> void:
 	tech_points_label.text = "所持ポイント: " + str(Global.tech_points) + " TP"
 	
@@ -536,7 +708,62 @@ func update_lab_hud() -> void:
 		cd_cost_btn.text = "強化\n(" + str(cost) + " TP)"
 		cd_cost_btn.disabled = Global.tech_points < cost
 
-	# 4. Shields Research states (30 TP each)
+	# 4. Focus mode state
+	if is_instance_valid(focus_mode_stat_lbl) and is_instance_valid(focus_mode_desc_lbl):
+		var f_info = Global.get_focus_mode_info()
+		focus_mode_stat_lbl.text = "現在の設定: " + f_info.get("name", "STANDARD") + " (範囲: " + f_info.get("radius_pct", "100%") + " | 威力: " + f_info.get("dmg_mult", "1.0倍") + ")"
+		focus_mode_desc_lbl.text = f_info.get("description", "")
+
+	# 5. COUNTER SYSTEM Duration state (10s -> 20s)
+	if is_instance_valid(cs_dur_lvl_lbl) and is_instance_valid(cs_dur_cost_btn):
+		var dur_lvl = Global.counter_system_duration_lvl
+		var cur_dur = Global.get_counter_system_duration()
+		cs_dur_lvl_lbl.text = "LV. %d (%.0fs)" % [dur_lvl, cur_dur]
+		if dur_lvl >= 5:
+			cs_dur_lvl_lbl.text = "MAX (20s)"
+			cs_dur_cost_btn.disabled = true
+			cs_dur_cost_btn.text = "MAX"
+		else:
+			var cost = 15 + dur_lvl * 15
+			cs_dur_cost_btn.text = "強化\n(%d TP)" % cost
+			cs_dur_cost_btn.disabled = Global.tech_points < cost
+
+	# 6. COUNTER SYSTEM Power state (1.0x -> 5.0x)
+	if is_instance_valid(cs_pwr_lvl_lbl) and is_instance_valid(cs_pwr_cost_btn):
+		var pwr_lvl = Global.counter_system_power_lvl
+		var cur_pwr = Global.get_counter_system_power_multiplier()
+		cs_pwr_lvl_lbl.text = "LV. %d (%.1fx)" % [pwr_lvl, cur_pwr]
+		if pwr_lvl >= 5:
+			cs_pwr_lvl_lbl.text = "MAX (5.0x)"
+			cs_pwr_cost_btn.disabled = true
+			cs_pwr_cost_btn.text = "MAX"
+		else:
+			var cost = 20 + pwr_lvl * 20
+			cs_pwr_cost_btn.text = "強化\n(%d TP)" % cost
+			cs_pwr_cost_btn.disabled = Global.tech_points < cost
+
+	# 7. COUNTER ONLY Mode state
+	if is_instance_valid(counter_only_status_lbl) and is_instance_valid(counter_only_btn):
+		if not Global.counter_only_mode_unlocked:
+			var clears = Global.stage5_clears_count
+			counter_only_status_lbl.text = "COUNTER ONLY 出撃: 【未解放】 (STAGE 5 クリア: %d/5回)" % clears
+			if clears < 5:
+				counter_only_btn.disabled = true
+				counter_only_btn.text = "条件未達成\n(%d/5回)" % clears
+			else:
+				counter_only_btn.disabled = Global.tech_points < 150
+				counter_only_btn.text = "極秘解放\n(150 TP)"
+		else:
+			if Global.counter_only_mode_enabled:
+				counter_only_status_lbl.text = "COUNTER ONLY 出撃: 【有効 (砲台部隊専任出撃中)】"
+				counter_only_btn.disabled = false
+				counter_only_btn.text = "出撃設定:\n【有効 (ON)】"
+			else:
+				counter_only_status_lbl.text = "COUNTER ONLY 出撃: 【無効 (通常出撃)】"
+				counter_only_btn.disabled = false
+				counter_only_btn.text = "出撃設定:\n【無効 (OFF)】"
+
+	# 8. Shields Research states (30 TP each)
 	if Global.unlocked_shields.has("gauge"):
 		shield_gauge_btn.disabled = true
 		shield_gauge_btn.text = "開発完了"
@@ -551,7 +778,7 @@ func update_lab_hud() -> void:
 		shield_power_btn.disabled = Global.tech_points < 30
 		shield_power_btn.text = "開発 (30 TP)"
 
-	# 5. Weapons Research states
+	# 9. Weapons Research states
 	if Global.unlocked_weapons.has("plasma_emitter"):
 		plasma_btn.disabled = true
 		plasma_btn.text = "開発完了"
@@ -565,6 +792,32 @@ func update_lab_hud() -> void:
 	else:
 		tackle_btn.disabled = Global.tech_points < 50
 		tackle_btn.text = "開発 (50 TP)"
+
+func perform_counter_system_upgrade(type: String) -> void:
+	if type == "duration":
+		var lvl = Global.counter_system_duration_lvl
+		var cost = 15 + lvl * 15
+		if Global.tech_points >= cost and lvl < 5:
+			Global.tech_points -= cost
+			Global.counter_system_duration_lvl += 1
+			Global.save_game(1, 0, {})
+			update_lab_hud()
+			play_flash_effect(Color.CYAN)
+			var audio_mgr = get_node_or_null("/root/AudioManager")
+			if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+				audio_mgr.play_upgrade_success()
+	elif type == "power":
+		var lvl = Global.counter_system_power_lvl
+		var cost = 20 + lvl * 20
+		if Global.tech_points >= cost and lvl < 5:
+			Global.tech_points -= cost
+			Global.counter_system_power_lvl += 1
+			Global.save_game(1, 0, {})
+			update_lab_hud()
+			play_flash_effect(Color.GOLD)
+			var audio_mgr = get_node_or_null("/root/AudioManager")
+			if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+				audio_mgr.play_upgrade_success()
 
 func get_upgrade_cost(type: String, current_lvl: int) -> int:
 	match type:

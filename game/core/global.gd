@@ -25,6 +25,25 @@ var upgrade_levels: Dictionary = {
 	"cooldown": 0
 }
 
+# 各シールド固有のジャストガード範囲強化レベル (Lv.0〜5)
+var shield_radius_upgrades: Dictionary = {
+	"counter": 0,
+	"gauge": 0,
+	"power": 0
+}
+
+# ジャストガード フォーカス設定 (0: 標準 100%/1.0x, 1: 集中 75%/1.5x, 2: 極小ピンポイント 50%/2.2x)
+var just_guard_focus_mode: int = 0
+
+# COUNTER SYSTEM 強化レベル (Lv.0〜5)
+var counter_system_duration_lvl: int = 0 # 10s -> 12s -> 14s -> 16s -> 18s -> 20s
+var counter_system_power_lvl: int = 0    # 1.0x -> 1.2x -> 1.5x -> 2.0x -> 3.0x -> 5.0x
+
+# エンドコンテンツ: COUNTER ONLY 出撃モード (ステージ5を5回クリア + 150 TPで解放)
+var stage5_clears_count: int = 0
+var counter_only_mode_unlocked: bool = false
+var counter_only_mode_enabled: bool = false
+
 # Catalog of all 10 Enemy Analysis Mutation Patterns
 var analysis_catalog: Dictionary = {
 	"rapid": {
@@ -438,6 +457,13 @@ func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -
 	config.set_value("game", "unlocked_stages", unlocked_stages)
 	config.set_value("game", "discovered_analysis_weapons", discovered_analysis_weapons)
 	config.set_value("game", "upgrade_levels", upgrade_levels)
+	config.set_value("game", "shield_radius_upgrades", shield_radius_upgrades)
+	config.set_value("game", "just_guard_focus_mode", just_guard_focus_mode)
+	config.set_value("game", "counter_system_duration_lvl", counter_system_duration_lvl)
+	config.set_value("game", "counter_system_power_lvl", counter_system_power_lvl)
+	config.set_value("game", "stage5_clears_count", stage5_clears_count)
+	config.set_value("game", "counter_only_mode_unlocked", counter_only_mode_unlocked)
+	config.set_value("game", "counter_only_mode_enabled", counter_only_mode_enabled)
 	config.set_value("game", "tutorial_flags", tutorial_flags)
 	config.save(SAVE_PATH)
 	has_save = true
@@ -458,6 +484,13 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"unlocked_stages": unlocked_stages,
 		"discovered_analysis_weapons": discovered_analysis_weapons,
 		"upgrade_levels": upgrade_levels,
+		"shield_radius_upgrades": shield_radius_upgrades,
+		"just_guard_focus_mode": just_guard_focus_mode,
+		"counter_system_duration_lvl": counter_system_duration_lvl,
+		"counter_system_power_lvl": counter_system_power_lvl,
+		"stage5_clears_count": stage5_clears_count,
+		"counter_only_mode_unlocked": counter_only_mode_unlocked,
+		"counter_only_mode_enabled": counter_only_mode_enabled,
 		"tutorial_flags": tutorial_flags
 	}
 	if config.load(SAVE_PATH) == OK:
@@ -474,6 +507,13 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["unlocked_stages"] = config.get_value("game", "unlocked_stages", [1])
 		data["discovered_analysis_weapons"] = config.get_value("game", "discovered_analysis_weapons", [])
 		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0})
+		data["shield_radius_upgrades"] = config.get_value("game", "shield_radius_upgrades", {"counter": 0, "gauge": 0, "power": 0})
+		data["just_guard_focus_mode"] = config.get_value("game", "just_guard_focus_mode", 0)
+		data["counter_system_duration_lvl"] = config.get_value("game", "counter_system_duration_lvl", 0)
+		data["counter_system_power_lvl"] = config.get_value("game", "counter_system_power_lvl", 0)
+		data["stage5_clears_count"] = config.get_value("game", "stage5_clears_count", 0)
+		data["counter_only_mode_unlocked"] = config.get_value("game", "counter_only_mode_unlocked", false)
+		data["counter_only_mode_enabled"] = config.get_value("game", "counter_only_mode_enabled", false)
 		data["tutorial_flags"] = config.get_value("game", "tutorial_flags", {
 			"controls": false,
 			"weapon_analysis": false,
@@ -495,11 +535,22 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 				unlocked_stages.sort()
 			discovered_analysis_weapons = data["discovered_analysis_weapons"]
 			upgrade_levels = data["upgrade_levels"]
+			shield_radius_upgrades = data["shield_radius_upgrades"]
+			just_guard_focus_mode = data["just_guard_focus_mode"]
+			counter_system_duration_lvl = data["counter_system_duration_lvl"]
+			counter_system_power_lvl = data["counter_system_power_lvl"]
+			stage5_clears_count = data["stage5_clears_count"]
+			counter_only_mode_unlocked = data["counter_only_mode_unlocked"]
+			counter_only_mode_enabled = data["counter_only_mode_enabled"]
 			tutorial_flags = data["tutorial_flags"]
 	return data
 
 func reset_upgrade_levels() -> void:
 	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
+	shield_radius_upgrades = {"counter": 0, "gauge": 0, "power": 0}
+	just_guard_focus_mode = 0
+	counter_system_duration_lvl = 0
+	counter_system_power_lvl = 0
 	save_game()
 
 func reset_tech_points() -> void:
@@ -514,6 +565,13 @@ func reset_development_progress() -> void:
 	equipped_shield = "counter"
 	equipped_weapon = "machine_gun"
 	unlocked_stages = [1]
+	shield_radius_upgrades = {"counter": 0, "gauge": 0, "power": 0}
+	just_guard_focus_mode = 0
+	counter_system_duration_lvl = 0
+	counter_system_power_lvl = 0
+	stage5_clears_count = 0
+	counter_only_mode_unlocked = false
+	counter_only_mode_enabled = false
 	tutorial_flags = {
 		"controls": false,
 		"weapon_analysis": false,
@@ -539,12 +597,101 @@ func delete_save_game() -> void:
 	unlocked_stages = [1]
 	discovered_analysis_weapons = []
 	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
+	shield_radius_upgrades = {"counter": 0, "gauge": 0, "power": 0}
+	just_guard_focus_mode = 0
+	counter_system_duration_lvl = 0
+	counter_system_power_lvl = 0
+	stage5_clears_count = 0
+	counter_only_mode_unlocked = false
+	counter_only_mode_enabled = false
 	tutorial_flags = {
 		"controls": false,
 		"weapon_analysis": false,
 		"time_limit": false,
 		"boss_info": false
 	}
+
+# --- COUNTER SYSTEM パラメータ計算 ---
+
+func get_counter_system_duration() -> float:
+	# 10.0秒 -> 12.0秒 -> 14.0秒 -> 16.0秒 -> 18.0秒 -> 20.0秒
+	return 10.0 + counter_system_duration_lvl * 2.0
+
+func get_counter_system_power_multiplier() -> float:
+	# 1.0倍 -> 1.2倍 -> 1.5倍 -> 2.0倍 -> 3.0倍 -> 5.0倍
+	match counter_system_power_lvl:
+		0: return 1.0
+		1: return 1.2
+		2: return 1.5
+		3: return 2.0
+		4: return 3.0
+		5: return 5.0
+	return 1.0
+
+# --- ジャストガード判定範囲 ＆ 威力倍率の計算 ---
+
+func get_just_guard_radius(shield_type: String = "") -> float:
+	var s_type = shield_type if shield_type != "" else equipped_shield
+	var s_lvl = shield_radius_upgrades.get(s_type, 0)
+	var global_window_lvl = upgrade_levels.get("parry_window", 0)
+	
+	# シールド別基礎半径
+	var base_radius = 85.0
+	match s_type:
+		"counter":
+			base_radius = 85.0 + s_lvl * 6.0 + global_window_lvl * 4.0
+		"gauge":
+			# 吸収マトリクス: 広域吸収仕様
+			base_radius = 105.0 + s_lvl * 8.0 + global_window_lvl * 4.0
+		"power":
+			# パワーシールド: タイトな集中仕様
+			base_radius = 75.0 + s_lvl * 5.0 + global_window_lvl * 4.0
+			
+	# フォーカス設定による範囲補正
+	var focus_mult = 1.0
+	match just_guard_focus_mode:
+		0: focus_mult = 1.00 # STANDARD: 100%
+		1: focus_mult = 0.75 # FOCUS: 75%
+		2: focus_mult = 0.50 # PINPOINT: 50%
+		
+	return base_radius * focus_mult
+
+func get_just_guard_damage_multiplier() -> float:
+	# フォーカス設定によるジャストガード反射威力倍率
+	match just_guard_focus_mode:
+		0: return 1.00 # 標準
+		1: return 1.50 # 集中: 1.5倍 (+50%)
+		2: return 2.20 # 極小ピンポイント: 2.2倍 (+120%)
+	return 1.00
+
+func get_focus_mode_info(mode: int = -1) -> Dictionary:
+	var m = mode if mode >= 0 else just_guard_focus_mode
+	match m:
+		0:
+			return {
+				"mode": 0,
+				"name": "STANDARD [標準範囲]",
+				"radius_pct": "100%",
+				"dmg_mult": "1.0倍",
+				"description": "安定した標準範囲でのジャストガード。安全な防御重視モード。"
+			}
+		1:
+			return {
+				"mode": 1,
+				"name": "FOCUS [集中]",
+				"radius_pct": "75% (-25%)",
+				"dmg_mult": "1.5倍 (+50%)",
+				"description": "有効範囲を25%絞る代わりに、ジャストガード反射弾の威力が1.5倍に強化。"
+			}
+		2:
+			return {
+				"mode": 2,
+				"name": "PINPOINT [極小高出力]",
+				"radius_pct": "50% (-50%)",
+				"dmg_mult": "2.2倍 (+120%)",
+				"description": "有効範囲が半分になるハイリスク設定。成功時は反射弾が2.2倍の壊滅的破壊力に跳ね上がる！"
+			}
+	return {}
 
 func save_settings() -> void:
 	var config = ConfigFile.new()

@@ -161,7 +161,7 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	match current_stage_num:
 		1:
 			codename = "第1エリア: 惑星到達前・デブリ宙域"
-			goal = "敵部隊の攻撃をパリィ解析し、防衛要塞を突破せよ！"
+			goal = "敵部隊の攻撃をジャストガード解析し、防衛要塞を突破せよ！"
 		2:
 			codename = "第2エリア: 惑星地上上空・成層圏"
 			goal = "雲海防衛網を突破し、空中要塞キャリアを撃墜せよ！"
@@ -598,6 +598,11 @@ func on_boss_destroyed() -> void:
 		if is_new_unlock:
 			spawn_popup("次の作戦エリア【STAGE %d】が解放されました！" % next_stage_num)
 		
+	if current_stage_num == 5:
+		Global.stage5_clears_count += 1
+		if Global.stage5_clears_count >= 5 and not Global.counter_only_mode_unlocked:
+			spawn_popup("【極秘通信】ステージ5を5回攻略！テックラボにてCOUNTER ONLY出撃が解放可能になりました！")
+
 	if is_instance_valid(player):
 		Global.save_game(current_stage_num, total_damage_score, {})
 		
