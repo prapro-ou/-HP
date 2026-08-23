@@ -49,22 +49,38 @@ var counter_only_mode_enabled: bool = false
 var hard_mode_enabled: bool = false
 
 # 操作キー割り当て設定
-# 0: 両方 (WASD ＆ 十字キー), 1: WASD 専用, 2: 十字キー 専用
-var control_move_type: int = 0
+# 0: 両方 (WASD ＆ 十字キー), 1: WASD 専用, 2: 十字キー 専用, 3: カスタム割り当て
+var control_move_preset: int = 0
 
-# COUNTER SYSTEM 発動キー割り当て (0: X, 1: C, 2: E, 3: Q, 4: Shift, 5: F, 6: V)
-var counter_system_key: int = 0
+# 各アクションのキーコード (任意のキーに割り当て可能)
+var key_counter_system: int = KEY_X
+var key_shield: int = KEY_SPACE
+var key_up: int = KEY_W
+var key_down: int = KEY_S
+var key_left: int = KEY_A
+var key_right: int = KEY_D
+var key_weapon_prev: int = KEY_Q
+var key_weapon_next: int = KEY_E
+
+func get_key_display_name(keycode: int) -> String:
+	match keycode:
+		KEY_SPACE: return "Space"
+		KEY_SHIFT: return "Shift"
+		KEY_CTRL: return "Ctrl"
+		KEY_ALT: return "Alt"
+		KEY_ENTER: return "Enter"
+		KEY_TAB: return "Tab"
+		KEY_BACKSPACE: return "Backspace"
+		KEY_UP: return "↑"
+		KEY_DOWN: return "↓"
+		KEY_LEFT: return "←"
+		KEY_RIGHT: return "→"
+		_:
+			var s = OS.get_keycode_string(keycode)
+			return s.to_upper() if s != "" else ("Key " + str(keycode))
 
 func get_counter_system_key_name() -> String:
-	match counter_system_key:
-		0: return "X"
-		1: return "C"
-		2: return "E"
-		3: return "Q"
-		4: return "Shift"
-		5: return "F"
-		6: return "V"
-	return "X"
+	return get_key_display_name(key_counter_system)
 
 func get_enemy_hp_multiplier() -> float:
 	return 2.0 if hard_mode_enabled else 1.0
@@ -938,8 +954,15 @@ func save_settings() -> void:
 	config.set_value("display", "vsync", vsync)
 	config.set_value("gameplay", "screen_shake", screen_shake)
 	config.set_value("player", "player_color", player_color)
-	config.set_value("controls", "move_type", control_move_type)
-	config.set_value("controls", "counter_key", counter_system_key)
+	config.set_value("controls", "move_preset", control_move_preset)
+	config.set_value("controls", "key_counter", key_counter_system)
+	config.set_value("controls", "key_shield", key_shield)
+	config.set_value("controls", "key_up", key_up)
+	config.set_value("controls", "key_down", key_down)
+	config.set_value("controls", "key_left", key_left)
+	config.set_value("controls", "key_right", key_right)
+	config.set_value("controls", "key_w_prev", key_weapon_prev)
+	config.set_value("controls", "key_w_next", key_weapon_next)
 	config.save(SETTINGS_PATH)
 
 func load_settings() -> void:
@@ -954,8 +977,15 @@ func load_settings() -> void:
 		vsync = config.get_value("display", "vsync", true)
 		screen_shake = config.get_value("gameplay", "screen_shake", true)
 		player_color = config.get_value("player", "player_color", "blue")
-		control_move_type = config.get_value("controls", "move_type", 0)
-		counter_system_key = config.get_value("controls", "counter_key", 0)
+		control_move_preset = config.get_value("controls", "move_preset", config.get_value("controls", "move_type", 0))
+		key_counter_system = config.get_value("controls", "key_counter", KEY_X)
+		key_shield = config.get_value("controls", "key_shield", KEY_SPACE)
+		key_up = config.get_value("controls", "key_up", KEY_W)
+		key_down = config.get_value("controls", "key_down", KEY_S)
+		key_left = config.get_value("controls", "key_left", KEY_A)
+		key_right = config.get_value("controls", "key_right", KEY_D)
+		key_weapon_prev = config.get_value("controls", "key_w_prev", KEY_Q)
+		key_weapon_next = config.get_value("controls", "key_w_next", KEY_E)
 
 func apply_all_settings() -> void:
 	apply_audio()

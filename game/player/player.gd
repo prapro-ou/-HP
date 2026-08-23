@@ -283,23 +283,32 @@ func _process(delta: float) -> void:
 				sprite.modulate.a = 1.0
 
 	var input_vector = Vector2.ZERO
-	var move_mode = Global.control_move_type
+	var move_preset = Global.control_move_preset
 	var left_in = false
 	var right_in = false
 	var up_in = false
 	var down_in = false
 	
-	if move_mode == 0 or move_mode == 1: # WASD enabled
+	if move_preset == 0: # Both WASD and Arrows
+		if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT): left_in = true
+		if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT): right_in = true
+		if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP): up_in = true
+		if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN): down_in = true
+	elif move_preset == 1: # WASD only
 		if Input.is_key_pressed(KEY_A): left_in = true
 		if Input.is_key_pressed(KEY_D): right_in = true
 		if Input.is_key_pressed(KEY_W): up_in = true
 		if Input.is_key_pressed(KEY_S): down_in = true
-		
-	if move_mode == 0 or move_mode == 2: # Arrow keys enabled
+	elif move_preset == 2: # Arrows only
 		if Input.is_key_pressed(KEY_LEFT): left_in = true
 		if Input.is_key_pressed(KEY_RIGHT): right_in = true
 		if Input.is_key_pressed(KEY_UP): up_in = true
 		if Input.is_key_pressed(KEY_DOWN): down_in = true
+	elif move_preset == 3: # Custom
+		if Input.is_key_pressed(Global.key_left): left_in = true
+		if Input.is_key_pressed(Global.key_right): right_in = true
+		if Input.is_key_pressed(Global.key_up): up_in = true
+		if Input.is_key_pressed(Global.key_down): down_in = true
 		
 	if left_in: input_vector.x -= 1.0
 	if right_in: input_vector.x += 1.0
@@ -366,29 +375,28 @@ func _process(delta: float) -> void:
 		parry_sparks = remaining
 		queue_redraw()
 
-	var space_pressed = Input.is_key_pressed(KEY_SPACE)
-	var space_just_pressed = space_pressed and not space_was_pressed
-	space_was_pressed = space_pressed
+	# --- シールド展開入力 (Space / カスタムキー) ---
+	var shield_pressed = Input.is_key_pressed(Global.key_shield) or (Global.key_shield != KEY_SPACE and Input.is_key_pressed(KEY_SPACE))
+	var space_just_pressed = shield_pressed and not space_was_pressed
+	space_was_pressed = shield_pressed
+
+	# --- 兵装のリアルタイム切替 ---
+	var prev_pressed = Input.is_key_pressed(Global.key_weapon_prev)
+	var next_pressed = Input.is_key_pressed(Global.key_weapon_next) or Input.is_key_pressed(KEY_TAB)
 	
-	# --- 兵装のリアルタイム切替 (Q / E / C / Tab) ---
-	var cs_key = Global.counter_system_key
-	var q_avail = (cs_key != 3)
-	var e_avail = (cs_key != 2)
-	var c_avail = (cs_key != 1)
-	
-	if (q_avail and Input.is_key_pressed(KEY_Q)) and not get_meta("q_was_pressed", false):
+	if prev_pressed and not get_meta("q_was_pressed", false):
 		set_meta("q_was_pressed", true)
 		cycle_equipped_weapon(-1)
-	elif not (q_avail and Input.is_key_pressed(KEY_Q)):
+	elif not prev_pressed:
 		set_meta("q_was_pressed", false)
 		
-	if (Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_C)) and not get_meta("e_was_pressed", false):
+	if next_pressed and not get_meta("e_was_pressed", false):
 		set_meta("e_was_pressed", true)
 		cycle_equipped_weapon(1)
-	elif not (Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_C)):
+	elif not next_pressed:
 		set_meta("e_was_pressed", false)
 	
-	# --- シールド展開入力 (Spaceキー) ---
+	# --- シールド展開処理 ---
 	if space_just_pressed:
 		if Global.equipped_shield == SHIELD_GAUGE:
 			# 吸収マトリクス: 1回展開で3.0秒クールダウン（超高速解析＆修復のピーキー仕様）
@@ -462,18 +470,8 @@ func _process(delta: float) -> void:
 
 	# COUNTER SYSTEM 手動発動 (設定キー)
 	if not is_full_burst and not get_meta("is_counter_system_used", false):
-		var is_cs_pressed = false
-		match Global.counter_system_key:
-			0: is_cs_pressed = Input.is_key_pressed(KEY_X)
-			1: is_cs_pressed = Input.is_key_pressed(KEY_C)
-			2: is_cs_pressed = Input.is_key_pressed(KEY_E)
-			3: is_cs_pressed = Input.is_key_pressed(KEY_Q)
-			4: is_cs_pressed = Input.is_key_pressed(KEY_SHIFT)
-			5: is_cs_pressed = Input.is_key_pressed(KEY_F)
-			6: is_cs_pressed = Input.is_key_pressed(KEY_V)
-			_: is_cs_pressed = Input.is_key_pressed(KEY_X)
-			
-		if is_cs_pressed or Input.is_action_just_pressed("ui_focus_next"):
+		var cs_pressed = Input.is_key_pressed(Global.key_counter_system)
+		if cs_pressed or Input.is_action_just_pressed("ui_focus_next"):
 			set_meta("is_counter_system_used", true)
 			activate_counter_system()
 

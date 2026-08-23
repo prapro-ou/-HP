@@ -892,7 +892,19 @@ func show_tutorial_guide_modal(topic: String) -> void:
 			title_text = "【機体操作 ＆ 戦闘システム指南】"
 			sub_text = "基本操作と必殺システムを把握し、激戦を制圧せよ！"
 			border_col = Color(0.2, 0.8, 1.0)
-			var move_k_str = "[WASD] / [方向キー]" if Global.control_move_type == 0 else ("[WASDキー]" if Global.control_move_type == 1 else "[方向キー (↑↓←→)]")
+			var move_k_str = "[WASD] / [方向キー]"
+			if Global.control_move_preset == 1:
+				move_k_str = "[WASDキー]"
+			elif Global.control_move_preset == 2:
+				move_k_str = "[方向キー (↑↓←→)]"
+			elif Global.control_move_preset == 3:
+				move_k_str = "[%s/%s/%s/%s]" % [
+					Global.get_key_display_name(Global.key_up),
+					Global.get_key_display_name(Global.key_left),
+					Global.get_key_display_name(Global.key_down),
+					Global.get_key_display_name(Global.key_right)
+				]
+			var shield_k_str = "[%sキー]" % Global.get_key_display_name(Global.key_shield)
 			var cs_k_str = "[%sキー]" % Global.get_counter_system_key_name()
 			items = [
 				{
@@ -908,7 +920,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "シールド ＆ ジャストガード",
 					"color": Color.GOLD,
-					"desc": "[スペースキー] / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【ジャストガード】発動！敵弾を反射弾に変換して大ダメージ＆機体修復！"
+					"desc": "%s / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【ジャストガード】発動！敵弾を反射弾に変換して大ダメージ＆機体修復！" % shield_k_str
 				},
 				{
 					"title": "COUNTER SYSTEM (必殺支援部隊)",
