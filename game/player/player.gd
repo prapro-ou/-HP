@@ -1244,7 +1244,7 @@ func trigger_hit_stop(duration_sec: float, scale: float) -> void:
 	)
 
 
-func trigger_parry_ring_effect(color_override: Color = Color.TRANSPARENT) -> void:
+func trigger_parry_ring_effect(_color_override: Color = Color.TRANSPARENT) -> void:
 	parry_ring_radius = 15.0
 	parry_ring_alpha = 0.95
 	parry_shockwave_radius = 20.0

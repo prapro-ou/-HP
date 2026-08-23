@@ -1323,6 +1323,11 @@ func update_boss_hp(current: int, max_hp_val: int) -> void:
 	boss_hp_label.text = "ボス HP: %d / %d" % [current, max_hp_val]
 
 
+func update_parry_count(count: int) -> void:
+	if is_instance_valid(parry_count_label):
+		parry_count_label.text = "PARRY: %d" % count
+
+
 func hide_boss_hp() -> void:
 	boss_hp_bar.visible = false
 	boss_hp_label.visible = false

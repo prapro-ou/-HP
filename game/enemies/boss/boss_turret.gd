@@ -16,7 +16,6 @@ enum TurretType {
 const METEOR_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
 const BOSS_WIDE_SHIELD_SCENE: PackedScene = preload("res://game/effects/boss_wide_shield.tscn")
-const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var turret_type: TurretType = TurretType.BEAM_MACHINEGUN
 @export var max_hp: int = 800
