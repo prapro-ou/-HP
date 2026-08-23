@@ -175,34 +175,90 @@ func _process(delta: float) -> void:
 		start_attack_sequence()
 
 
+func get_boss_phase_info() -> Dictionary:
+	var boss = null
+	var main = get_node_or_null("/root/Main")
+	if main:
+		boss = main.get_node_or_null("Boss")
+	if not is_instance_valid(boss):
+		var bosses = get_tree().get_nodes_in_group("boss")
+		for b in bosses:
+			if b != self and is_instance_valid(b) and "current_hp" in b and "max_hp" in b:
+				boss = b
+				break
+				
+	var hp_ratio = 1.0
+	if is_instance_valid(boss) and boss.max_hp > 0:
+		hp_ratio = clamp(float(boss.current_hp) / float(boss.max_hp), 0.0, 1.0)
+		
+	var phase = 1
+	var interval_mult = 1.0
+	var damage_mult = 1.0
+	var speed_mult = 1.0
+	
+	if hp_ratio <= 0.35:
+		phase = 3 # 臨界・第3段階 (ボスHP 35%以下: 超激化)
+		interval_mult = 0.52 # 攻撃スパン約半分（超高頻度攻撃）
+		damage_mult = 1.50 # ダメージ1.5倍
+		speed_mult = 1.30 # 弾速1.3倍
+	elif hp_ratio <= 0.70:
+		phase = 2 # 激化・第2段階 (ボスHP 70%以下: 激化)
+		interval_mult = 0.75 # 攻撃スパン0.75倍
+		damage_mult = 1.25 # ダメージ1.25倍
+		speed_mult = 1.15 # 弾速1.15倍
+		
+	return {
+		"phase": phase,
+		"hp_ratio": hp_ratio,
+		"interval_mult": interval_mult,
+		"damage_mult": damage_mult,
+		"speed_mult": speed_mult
+	}
+
+
 func get_attack_interval() -> float:
+	var p_info = get_boss_phase_info()
+	var base_interval = 3.5
 	match turret_type:
 		TurretType.BEAM_MACHINEGUN:
-			return 7.0
+			base_interval = 7.0
 		TurretType.HOMING_MISSILE:
-			return 2.8
+			base_interval = 2.8
 		TurretType.METEOR_LAUNCHER:
-			return 3.5
+			base_interval = 3.5
 		TurretType.SHIELD_GENERATOR:
-			return 2.2
-	return 3.5
+			base_interval = 2.2
+	return base_interval * p_info["interval_mult"]
 
 
 func start_attack_sequence() -> void:
+	var p_info = get_boss_phase_info()
+	var phase = p_info["phase"]
+	var charge_dur = 1.0
+	if phase == 2:
+		charge_dur = 0.75
+	elif phase == 3:
+		charge_dur = 0.50
+
 	match turret_type:
 		TurretType.BEAM_MACHINEGUN:
 			is_charging = true
-			charge_timer = 1.0 # チャージ予兆
+			charge_timer = charge_dur
 			var player = get_node_or_null("/root/Main/Player")
 			beam_warning_target_x = player.global_position.x if is_instance_valid(player) else global_position.x
-			spawn_turret_warning("LASER CHARGE!")
+			var warn_msg = "LASER CHARGE!"
+			if phase == 2:
+				warn_msg = "RAPID LASER CHARGE!!"
+			elif phase == 3:
+				warn_msg = "OVERDRIVE LASER CHARGE!!!"
+			spawn_turret_warning(warn_msg)
 		TurretType.HOMING_MISSILE:
-			# 即時発射
 			execute_attack()
 		TurretType.METEOR_LAUNCHER:
 			is_charging = true
-			charge_timer = 1.0 # チャージ予兆
-			spawn_turret_warning("METEOR LAUNCH!")
+			charge_timer = charge_dur
+			var warn_msg = "METEOR LAUNCH!" if phase == 1 else ("RAPID METEOR LAUNCH!!" if phase == 2 else "OVERDRIVE METEORS!!!")
+			spawn_turret_warning(warn_msg)
 		TurretType.SHIELD_GENERATOR:
 			execute_attack()
 
@@ -211,64 +267,79 @@ func execute_attack() -> void:
 	var main = get_node_or_null("/root/Main")
 	var pool = main.get_node_or_null("BulletPool") if main else null
 	var player = main.get_node_or_null("Player") if main else null
-	var mult = get_stage_difficulty_mult()
+	var diff_mult = get_stage_difficulty_mult()
+	var p_info = get_boss_phase_info()
+	var final_dmg_mult = diff_mult * p_info["damage_mult"]
+	var phase = p_info["phase"]
+	var spd_mult = p_info["speed_mult"]
 	
 	match turret_type:
 		TurretType.BEAM_MACHINEGUN:
-			# 高速ビーム連射
+			# 高速ビーム連射 (Phase 1: 8発, Phase 2: 12発, Phase 3: 16発)
+			var beam_count = 8
+			if phase == 2:
+				beam_count = 12
+			elif phase == 3:
+				beam_count = 16
 			if pool:
-				for i in range(8):
-					get_tree().create_timer(i * 0.08).timeout.connect(func():
+				var delay_step = 0.08 / spd_mult
+				for i in range(beam_count):
+					get_tree().create_timer(i * delay_step).timeout.connect(func():
 						if is_instance_valid(self) and is_alive and is_instance_valid(pool):
 							var bullet = pool.get_bullet("boss_laser")
 							if bullet:
 								bullet.global_position = global_position + Vector2(randf_range(-12, 12), 25)
-								bullet.damage = int(20 * mult)
-								# プレイヤー方向へわずかに角度をブレさせながら直進
+								bullet.damage = int(20 * final_dmg_mult)
 								var dir = Vector2.DOWN
 								if is_instance_valid(player):
-									var target_x = player.global_position.x + randf_range(-30, 30)
+									var target_x = player.global_position.x + randf_range(-25, 25)
 									dir = (Vector2(target_x, player.global_position.y) - global_position).normalized()
-								bullet.set_direction(dir, 640.0)
+								bullet.set_direction(dir, 640.0 * spd_mult)
 					)
 					
 		TurretType.HOMING_MISSILE:
-			# 砲台から合計4発発射 -> 減速停止 -> 追尾
+			# 減速追尾ミサイル (Phase 1: 4発, Phase 2: 6発, Phase 3: 8発)
 			if pool:
 				var spread_angles = [-40.0, -20.0, 20.0, 40.0]
+				if phase == 2:
+					spread_angles = [-50.0, -30.0, -10.0, 10.0, 30.0, 50.0]
+				elif phase == 3:
+					spread_angles = [-60.0, -42.0, -25.0, -8.0, 8.0, 25.0, 42.0, 60.0]
 				for angle_deg in spread_angles:
 					var bullet = pool.get_bullet("decel_missile")
 					if bullet:
 						bullet.global_position = global_position + Vector2(0.0, 20.0)
-						bullet.damage = int(16 * mult)
+						bullet.damage = int(16 * final_dmg_mult)
 						var launch_dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
-						bullet.set_direction(launch_dir, 320.0)
+						bullet.set_direction(launch_dir, 320.0 * spd_mult)
 						
 		TurretType.METEOR_LAUNCHER:
-			# 巨大隕石射出 (画面内に最大4個)
+			# 巨大隕石射出 (Phase 3では最大6個まで許容、弾速向上)
+			var max_meteors = 4 if phase <= 2 else 6
 			var current_meteors = get_tree().get_nodes_in_group("enemy_projectiles")
-			if current_meteors.size() < 4 and METEOR_SCENE:
+			if current_meteors.size() < max_meteors and METEOR_SCENE:
 				var meteor = METEOR_SCENE.instantiate()
 				meteor.global_position = global_position + Vector2(0.0, 30.0)
-				meteor.damage = int(60 * mult)
-				
-				# プレイヤー方向を基準に拡散角度で射出
+				meteor.damage = int(60 * final_dmg_mult)
 				var shoot_dir = Vector2.DOWN.rotated(randf_range(-0.6, 0.6))
 				if is_instance_valid(player):
 					shoot_dir = (player.global_position - global_position).normalized().rotated(randf_range(-0.4, 0.4))
-				meteor.set_direction(shoot_dir, 320.0)
+				meteor.set_direction(shoot_dir, 320.0 * spd_mult)
 				get_parent().add_child(meteor)
 				
 		TurretType.SHIELD_GENERATOR:
-			# シールド砲台からの水色プラズマ拡散射撃
+			# プラズマ拡散射撃 (Phase 1: 3方向, Phase 2/3: 5方向)
 			if pool:
-				for angle_deg in [-18.0, 0.0, 18.0]:
+				var angles = [-18.0, 0.0, 18.0]
+				if phase >= 2:
+					angles = [-32.0, -16.0, 0.0, 16.0, 32.0]
+				for angle_deg in angles:
 					var bullet = pool.get_bullet("wave")
 					if bullet:
 						bullet.global_position = global_position + Vector2(0.0, 20.0)
-						bullet.damage = int(18 * mult)
+						bullet.damage = int(18 * final_dmg_mult)
 						var dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
-						bullet.set_direction(dir, 300.0)
+						bullet.set_direction(dir, 300.0 * spd_mult)
 
 
 func _draw() -> void:
@@ -397,12 +468,24 @@ func destroy_turret() -> void:
 	var main = get_node_or_null("/root/Main")
 	if main:
 		var player = main.get_node_or_null("Player")
-		if player:
+		if is_instance_valid(player):
 			if player.has_method("heal"):
 				player.heal(50)
 			if player.has_method("spawn_popup_message"):
 				player.spawn_popup_message("サブ砲台撃破！ +5 TP / 機体修復 +50 HP")
-			
+
+	# ボスへ撃破を通知して弱点露出（BREAK）を発動
+	if main:
+		var boss = main.get_node_or_null("Boss")
+		if is_instance_valid(boss) and boss.has_method("on_turret_destroyed"):
+			boss.on_turret_destroyed(self)
+		else:
+			var bosses = get_tree().get_nodes_in_group("boss")
+			for b in bosses:
+				if b != self and is_instance_valid(b) and b.has_method("on_turret_destroyed"):
+					b.on_turret_destroyed(self)
+					break
+
 	# フェードアウトして消滅
 	var tween = create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.4)
