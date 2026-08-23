@@ -52,6 +52,9 @@ const SUB_MISSILE_SPEED: float = 450.0
 const GIGA_LASER_SPEED: float = 2500.0
 const HYPER_MISSILE_SPEED: float = 800.0
 
+const PLAYER_SUPPORT_TURRET_SCRIPT: GDScript = preload("res://game/player/support_turret.gd")
+const PLAYER_FUNNEL_UNIT_SCRIPT: GDScript = preload("res://game/player/player_funnel_unit.gd")
+
 var current_hp: int = 500
 var last_fire_time: float = 0.0
 var enemy_bullets: Array = []
@@ -505,7 +508,7 @@ func activate_counter_system() -> void:
 		# サイバーファンネル部隊の召喚 (通常4機、COUNTER ONLY時は6機)
 		var num_funnels = 6 if Global.counter_only_mode_enabled else 4
 		for i in range(num_funnels):
-			var funnel = PlayerFunnelUnit.new()
+			var funnel = PLAYER_FUNNEL_UNIT_SCRIPT.new()
 			funnel.setup_funnel(self, i, num_funnels, duration, dmg_mult)
 			funnel.global_position = global_position
 			if main_parent:
@@ -515,7 +518,7 @@ func activate_counter_system() -> void:
 		# 支援ボスタレットポッドの召喚
 		var num_turrets = 4 if Global.counter_only_mode_enabled else 2
 		for i in range(num_turrets):
-			var turret = PlayerSupportTurret.new()
+			var turret = PLAYER_SUPPORT_TURRET_SCRIPT.new()
 			turret.setup_turret(self, i, num_turrets, duration, dmg_mult)
 			turret.global_position = global_position + Vector2((i - 0.5) * 60.0, 30.0)
 			if main_parent:
