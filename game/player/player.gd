@@ -86,6 +86,7 @@ var is_control_locked: bool = false
 var is_victory_flyby: bool = false
 var flyby_timer: float = 0.0
 var flyby_boost_alpha: float = 0.0
+var victory_flyby_tween: Tween = null
 
 # --- シールド・オーバーヒートシステム (リスク＆リターン調整) ---
 @export var max_shield_heat: float = 100.0
@@ -150,6 +151,20 @@ func reset_state() -> void:
 	
 	parry_window_radius = Global.get_just_guard_radius()
 	
+	# アフターバーナー等の進行中Tweenを強制停止
+	if victory_flyby_tween and victory_flyby_tween.is_valid():
+		victory_flyby_tween.kill()
+		victory_flyby_tween = null
+		
+	# 自機座標・姿勢・透明度・移動状態の完全初期化 (画面中央下部へ復帰)
+	var vp_w = get_viewport_rect().size.x
+	global_position = Vector2(vp_w / 2.0 if vp_w > 0.0 else 400.0, 720.0)
+	position = global_position
+	velocity = Vector2.ZERO
+	rotation = 0.0
+	modulate = Color.WHITE
+	visible = true
+	
 	is_attack_unlocked = false
 	power_shield_damage_buff = 0.0
 	is_full_burst = false
@@ -165,6 +180,7 @@ func reset_state() -> void:
 	parry_hex_scale = 1.0
 	parry_sparks.clear()
 	consecutive_parries = 0
+	parry_heal_counter = 0
 	
 	shield_heat = 0.0
 	overheat_timer = 0.0
@@ -197,13 +213,19 @@ func reset_state() -> void:
 	var main_ui_sync = get_node_or_null("/root/Main")
 	if main_ui_sync:
 		var ui_node = main_ui_sync.get_node_or_null("UI")
-		if ui_node:
+		if is_instance_valid(ui_node):
+			if ui_node.has_method("update_player_hp"):
+				ui_node.update_player_hp(current_hp, max_hp)
 			if ui_node.has_method("update_equipped_weapon_hud"):
 				ui_node.update_equipped_weapon_hud(Global.equipped_weapon)
 			if ui_node.has_method("reset_counter_system_ui"):
 				ui_node.reset_counter_system_ui()
 			if ui_node.has_method("update_pattern_analysis"):
 				ui_node.update_pattern_analysis(analysis_patterns, active_traits)
+			if ui_node.has_method("update_guard_heat"):
+				ui_node.update_guard_heat(0.0, max_shield_heat, false, 0.0, false, Global.equipped_shield, 0.0, gauge_shield_cooldown)
+			if ui_node.has_method("update_parry_count"):
+				ui_node.update_parry_count(0)
 	
 	if Global.is_first_launch:
 		get_tree().create_timer(0.8).timeout.connect(func():
@@ -1784,23 +1806,26 @@ func play_victory_flyby() -> void:
 	
 	spawn_popup_message("FULL AFTERBURNER ONLINE: ACCELERATE!")
 	
-	var tween = create_tween()
+	if victory_flyby_tween and victory_flyby_tween.is_valid():
+		victory_flyby_tween.kill()
+		
+	victory_flyby_tween = create_tween()
 	# 1. 画面中央下部へスムーズに位置合わせ (0.5秒)
-	tween.tween_property(self, "global_position", prepare_pos, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	victory_flyby_tween.tween_property(self, "global_position", prepare_pos, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
 	# 2. アフターバーナー全開点火 (0.35秒)
-	tween.tween_property(self, "flyby_boost_alpha", 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.parallel().tween_callback(func():
+	victory_flyby_tween.tween_property(self, "flyby_boost_alpha", 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	victory_flyby_tween.parallel().tween_callback(func():
 		Global.play_explosion(1.35)
 		trigger_screen_flash(Color(0.3, 0.8, 1.0, 0.4))
 	)
-	tween.tween_interval(0.2)
+	victory_flyby_tween.tween_interval(0.2)
 	
 	# 3. 上空へ向かって超高速急加速（大気圏・成層圏を突き抜けるフライバイ） (1.0秒)
-	tween.tween_property(self, "global_position", escape_pos, 1.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	victory_flyby_tween.tween_property(self, "global_position", escape_pos, 1.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 	
 	# ソニックブーム衝撃波リング＆パーティクルの連続放出
-	tween.parallel().tween_callback(func():
+	victory_flyby_tween.parallel().tween_callback(func():
 		var p_scene = preload("res://game/bullets/parry_particle.tscn")
 		var main_parent = get_parent()
 		if not main_parent:

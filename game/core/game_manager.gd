@@ -116,8 +116,13 @@ func clean_stage_entities() -> void:
 	if is_instance_valid(player) and player.has_method("reset_state"):
 		player.reset_state()
 		
-	if is_instance_valid(ui) and ui.has_method("reset_counter_system_ui"):
-		ui.reset_counter_system_ui()
+	if is_instance_valid(ui):
+		if ui.has_method("reset_counter_system_ui"):
+			ui.reset_counter_system_ui()
+		if ui.has_method("hide_boss_hp"):
+			ui.hide_boss_hp()
+		if ui.has_method("update_parry_count"):
+			ui.update_parry_count(0)
 
 
 func load_stage(stage_path: String, stage_num: int = 1) -> void:
@@ -132,6 +137,10 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 		
 	current_stage = stage_scene.instantiate()
 	stage_container.add_child(current_stage)
+	
+	# 自機状態・位置の再確認（ステージ開始地点へ確実に配置）
+	if is_instance_valid(player) and player.has_method("reset_state"):
+		player.reset_state()
 	
 	if current_stage.has_node("Boss"):
 		boss = current_stage.get_node("Boss")
