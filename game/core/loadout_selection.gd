@@ -215,7 +215,7 @@ func setup_ui() -> void:
 	# 3. Main VBox Container for configuration elements
 	var main_vbox = VBoxContainer.new()
 	main_vbox.anchor_left = 0.04
-	main_vbox.anchor_top = 0.11
+	main_vbox.anchor_top = 0.08
 	main_vbox.anchor_right = 0.96
 	main_vbox.anchor_bottom = 0.89
 	main_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -224,7 +224,7 @@ func setup_ui() -> void:
 	main_vbox.offset_right = 0
 	main_vbox.offset_top = 0
 	main_vbox.offset_bottom = 0
-	main_vbox.add_theme_constant_override("separation", 16)
+	main_vbox.add_theme_constant_override("separation", 12)
 	add_child(main_vbox)
 	
 	# --- SECTION 1: PRIMARY WEAPON ---
@@ -255,14 +255,16 @@ func setup_ui() -> void:
 			
 	# --- SECTION 2: SHIELD TYPE ---
 	var s_sec = create_section_vbox("シールド（防御）", main_vbox)
-	var s_grid = HBoxContainer.new()
-	s_grid.add_theme_constant_override("separation", 18)
+	var s_grid = GridContainer.new()
+	s_grid.columns = 3
+	s_grid.add_theme_constant_override("h_separation", 15)
+	s_grid.add_theme_constant_override("v_separation", 10)
 	s_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	s_sec.add_child(s_grid)
 	
 	for s in shields:
 		var btn = Button.new()
-		btn.text = s.name.left(6)
+		btn.text = s.name
 		btn.custom_minimum_size = Vector2(90, 48)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.add_theme_font_size_override("font_size", 18)
@@ -274,8 +276,10 @@ func setup_ui() -> void:
 		
 	# --- SECTION 3: COUNTER SYSTEM ---
 	var c_sec = create_section_vbox("カウンター兵装", main_vbox)
-	var c_grid = HBoxContainer.new()
-	c_grid.add_theme_constant_override("separation", 18)
+	var c_grid = GridContainer.new()
+	c_grid.columns = 3
+	c_grid.add_theme_constant_override("h_separation", 15)
+	c_grid.add_theme_constant_override("v_separation", 10)
 	c_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	c_sec.add_child(c_grid)
 	
@@ -284,7 +288,7 @@ func setup_ui() -> void:
 		btn.text = c.name
 		btn.custom_minimum_size = Vector2(90, 48)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.add_theme_font_size_override("font_size", 18)
+		btn.add_theme_font_size_override("font_size", 17)
 		c_grid.add_child(btn)
 		counter_buttons[c.id] = btn
 		
@@ -298,7 +302,7 @@ func setup_ui() -> void:
 
 	# --- DESCRIPTION CARD PANEL ---
 	desc_panel = PanelContainer.new()
-	desc_panel.custom_minimum_size = Vector2(0, 160)
+	desc_panel.custom_minimum_size = Vector2(0, 150)
 	desc_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main_vbox.add_child(desc_panel)
 	
@@ -379,11 +383,11 @@ func setup_ui() -> void:
 	# --- FOOTER BUTTONS ---
 	var footer_hbox = HBoxContainer.new()
 	footer_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	footer_hbox.add_theme_constant_override("separation", 40)
-	footer_hbox.anchor_left = 0.0
-	footer_hbox.anchor_right = 1.0
-	footer_hbox.anchor_top = 0.91
-	footer_hbox.anchor_bottom = 0.91
+	footer_hbox.add_theme_constant_override("separation", 30)
+	footer_hbox.anchor_left = 0.04
+	footer_hbox.anchor_right = 0.96
+	footer_hbox.anchor_top = 0.92
+	footer_hbox.anchor_bottom = 0.92
 	footer_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	footer_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH
 	add_child(footer_hbox)

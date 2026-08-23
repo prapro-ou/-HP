@@ -456,7 +456,6 @@ func start_chain_sweep_bomber_sequence() -> void:
 	)
 	
 	# 右から左へ移動中に5つの起爆弾を投下
-	var check_x = [640.0, 510.0, 380.0, 250.0, 120.0]
 	for i in range(5):
 		get_tree().create_timer(i * 0.45).timeout.connect(func():
 			if is_instance_valid(self) and is_alive:

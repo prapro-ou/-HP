@@ -12,7 +12,7 @@ config_version=5
 
 config/name="shooting-v2"
 run/main_scene="res://game/core/main_menu.tscn"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
 [audio]

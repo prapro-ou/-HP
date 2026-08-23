@@ -31,7 +31,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	super._process(delta)
 	
-	if is_alive and not is_invincible:
+	if is_alive and is_active:
 		trap_timer += delta
 		if trap_timer >= TRAP_INTERVAL:
 			trap_timer = 0.0

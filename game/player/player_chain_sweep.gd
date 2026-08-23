@@ -19,6 +19,12 @@ var player_ref: Node2D = null
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
 
 
+func _ready() -> void:
+	z_index = 50
+	z_as_relative = false
+	start_chain_sequence()
+
+
 func setup_sweep(p_player: Node2D, p_dur: float, p_mult: float) -> void:
 	player_ref = p_player
 	duration = p_dur
@@ -27,10 +33,15 @@ func setup_sweep(p_player: Node2D, p_dur: float, p_mult: float) -> void:
 	explosion_index = 0
 	
 	Global.play_laser(0.8)
-	start_chain_sequence()
+	if is_inside_tree():
+		start_chain_sequence()
 
 
 func start_chain_sequence() -> void:
+	var tree = get_tree()
+	if not tree:
+		return
+		
 	var base_y = 480.0
 	if is_instance_valid(player_ref):
 		base_y = clamp(player_ref.global_position.y - 140.0, 220.0, 680.0)
@@ -41,13 +52,13 @@ func start_chain_sequence() -> void:
 	for i in range(TOTAL_EXPLOSIONS):
 		var x_pos = x_coords[i]
 		var spawn_pos = Vector2(x_pos, base_y + sin(i * 1.2) * 20.0)
-		get_tree().create_timer(i * EXPLOSION_INTERVAL).timeout.connect(func():
+		tree.create_timer(i * EXPLOSION_INTERVAL).timeout.connect(func():
 			if is_instance_valid(self):
 				trigger_single_chain_explosion(spawn_pos, i)
 		)
 
 
-func trigger_single_chain_explosion(pos: Vector2, idx: int) -> void:
+func trigger_single_chain_explosion(pos: Vector2, _idx: int) -> void:
 	var radius = 135.0
 	explosion_events.append({
 		"pos": pos,
