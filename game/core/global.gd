@@ -610,6 +610,11 @@ func play_laser(pitch: float = 1.0) -> void:
 	play_sound("laser", pitch, 0.04)
 
 
+func play_upgrade_success(pitch: float = 1.0) -> void:
+	play_sound("upgrade", pitch, 0.1)
+
+
+
 func _exit_tree() -> void:
 	for asp in _sfx_player_pool:
 		if is_instance_valid(asp):
