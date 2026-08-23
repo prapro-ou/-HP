@@ -105,5 +105,5 @@ func _setup_boss() -> void:
 	boss_config.base_move_speed = 220.0
 
 func _setup_rewards() -> void:
-	reward_config.tech_points = 100
+	reward_config.tech_points = 50
 	reward_config.unlock_message = "全作戦完了！惑星の粉砕に成功し、銀河の平和は守られた！"

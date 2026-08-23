@@ -88,7 +88,7 @@ func init_stages() -> void:
 	st1.id = 1
 	st1.title = "デブリ帯突破"
 	st1.codename = "第1エリア: 惑星到達前・デブリ宙域"
-	st1.description = "惑星到達前の小惑星・残骸漂流地帯。高密度なデブリと哨戒防衛網をパリィで解析・突破せよ。"
+	st1.description = "惑星到達前の小惑星・残骸漂流地帯。高密度なデブリと哨戒防衛網をジャストガードで解析・突破せよ。"
 	st1.difficulty = "難易度: ★☆☆☆☆"
 	st1.color = Color(0.2, 0.8, 1.0)
 	st1.scene_path = "res://game/stages/stage_1.tscn"
@@ -676,7 +676,7 @@ func update_archive_content() -> void:
 		if discovered.has(k):
 			unlocked_count += 1
 			
-	archive_summary_label.text = "解析解放状況: %d / %d 系統完了 （敵弾をジャストガード/パリィして解析）" % [unlocked_count, total_count]
+	archive_summary_label.text = "解析解放状況: %d / %d 系統完了 （敵弾をジャストガードして解析）" % [unlocked_count, total_count]
 	
 	for key in Global.analysis_catalog.keys():
 		var data = Global.analysis_catalog[key]
@@ -733,7 +733,7 @@ func update_archive_content() -> void:
 			src_lbl.text = "【出現敵】 %s （%s）" % [data["enemy_color"], data["enemy_type"]]
 			src_set.font_color = Color(0.85, 0.95, 1.0)
 		else:
-			src_lbl.text = "【入手条件】 %sの敵弾（%s）をパリィして解析ゲージを100%%にすると解放" % [data["enemy_color"], data["enemy_type"]]
+			src_lbl.text = "【入手条件】 %sの敵弾（%s）をジャストガードして解析ゲージを100%%にすると解放" % [data["enemy_color"], data["enemy_type"]]
 			src_set.font_color = Color.GOLD
 		src_lbl.label_settings = src_set
 		cv.add_child(src_lbl)

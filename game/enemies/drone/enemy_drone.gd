@@ -442,8 +442,9 @@ func fire_charged_shot() -> void:
 const DATA_ORB_SCENE: PackedScene = preload("res://game/core/data_orb.tscn")
 
 func die() -> void:
-	# 技研ポイント獲得: 雑魚敵撃破で +3 TP
-	Global.tech_points += 3
+	# 技研ポイント獲得: 雑魚敵撃破で確率ドロップ (15%の確率で +1 TP)
+	if randf() <= 0.15:
+		Global.tech_points += 1
 	
 	# 吸収マトリクス（GAUGE SHIELD）装備時のみ解析データオーブを放出して高速吸引！
 	var parent_node = get_parent()

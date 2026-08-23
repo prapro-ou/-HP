@@ -84,6 +84,6 @@ func _setup_boss() -> void:
 	boss_config.base_move_speed = 210.0
 
 func _setup_rewards() -> void:
-	reward_config.tech_points = 55
+	reward_config.tech_points = 30
 	reward_config.unlocked_stage = 5
 	reward_config.unlock_message = "【作戦完了】FINAL STAGE: 惑星そのものの破壊が解放されました！"

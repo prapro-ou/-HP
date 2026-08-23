@@ -88,5 +88,5 @@ func _setup_boss() -> void:
 
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_missile"
-	reward_config.tech_points = 40
+	reward_config.tech_points = 20
 	reward_config.unlock_message = "【AIアシスト】ボス技術の回収成功！\n『ハイパーミサイル』がカウンター兵装で装備可能です。"

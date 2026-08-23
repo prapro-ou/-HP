@@ -86,5 +86,5 @@ func _setup_boss() -> void:
 
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_beam"
-	reward_config.tech_points = 30
+	reward_config.tech_points = 15
 	reward_config.unlock_message = "【AIアシスト】要塞解析データの回収成功！\n『ギガレーザー』がカウンター兵装で装備可能です。"

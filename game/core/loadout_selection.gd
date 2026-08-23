@@ -117,7 +117,7 @@ func init_data() -> void:
 	var s1 = LoadoutItem.new()
 	s1.id = "counter"
 	s1.name = "カウンターシールド"
-	s1.description = "パリィ反撃の威力を最大化する標準モデル。"
+	s1.description = "ジャストガード反撃の威力を最大化する標準モデル。"
 	s1.stats = "反射:★★★ | 溜め:★★☆ | 強化:★☆☆"
 	s1.is_unlocked = Global.unlocked_shields.has("counter")
 	shields.append(s1)
@@ -133,7 +133,7 @@ func init_data() -> void:
 	var s3 = LoadoutItem.new()
 	s3.id = "power"
 	s3.name = "増幅ブースター"
-	s3.description = "パリィ成功時に弾丸を吸収し、主兵装の威力を永続スタック強化。"
+	s3.description = "ジャストガード成功時に弾丸を吸収し、主兵装の威力を永続スタック強化。"
 	s3.stats = "反射:★★☆ | 溜め:★☆☆ | 強化:★★★"
 	s3.is_unlocked = Global.unlocked_shields.has("power")
 	shields.append(s3)
