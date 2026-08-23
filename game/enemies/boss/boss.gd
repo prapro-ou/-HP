@@ -482,25 +482,26 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 		call_deferred("destroy_boss")
 
 
-func spawn_shield_message(text: String, text_color: Color = Color(1.0, 0.3, 0.3), duration: float = 1.4) -> void:
+func spawn_shield_message(text: String, text_color: Color = Color(1.0, 0.4, 0.4), duration: float = 1.2) -> void:
 	var label = Label.new()
 	label.text = text
 	var label_set = LabelSettings.new()
 	var pixel_font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 	if pixel_font:
 		label_set.font = pixel_font
-	label_set.font_size = 20
+	label_set.font_size = 14
 	label_set.font_color = text_color
-	label_set.outline_size = 4
+	label_set.outline_size = 2
 	label_set.outline_color = Color.BLACK
 	label.label_settings = label_set
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 250, 180)
-	label.custom_minimum_size = Vector2(500, 30)
+	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 250, 115)
+	label.custom_minimum_size = Vector2(500, 24)
+	label.modulate.a = 0.70
 	get_parent().add_child(label)
 	
 	var tween = create_tween()
-	tween.tween_property(label, "global_position:y", label.global_position.y - 30.0, duration)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 18.0, duration)
 	tween.tween_property(label, "modulate:a", 0.0, duration)
 	tween.chain().tween_callback(label.queue_free)
 

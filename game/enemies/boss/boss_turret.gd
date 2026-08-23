@@ -547,20 +547,20 @@ func execute_em_field_tick() -> void:
 
 
 func _draw() -> void:
-	# レーザー照射予告線
+	# レーザー照射予告線 (弾丸を遮らない細く控えめな透過照準線)
 	if beam_warning_line_alpha > 0.0:
-		var line_color = Color(1.0, 0.1, 0.1, beam_warning_line_alpha)
+		var line_color = Color(1.0, 0.2, 0.2, beam_warning_line_alpha * 0.35)
 		var local_target_x = beam_warning_target_x - global_position.x
-		draw_line(Vector2(0, 15), Vector2(local_target_x, 800), line_color, 2.5)
-		var glow_color = Color(1.0, 0.3, 0.3, beam_warning_line_alpha * 0.3)
-		draw_line(Vector2(0, 15), Vector2(local_target_x, 800), glow_color, 8.0)
+		draw_line(Vector2(0, 15), Vector2(local_target_x, 800), line_color, 1.0)
+		var glow_color = Color(1.0, 0.3, 0.3, beam_warning_line_alpha * 0.12)
+		draw_line(Vector2(0, 15), Vector2(local_target_x, 800), glow_color, 3.0)
 		
 	# 砲台自体の防護フィールドサークル
 	if turret_type == TurretType.SHIELD_GENERATOR and is_shield_active:
 		var turret_pulse_r = 55.0 + sin(shield_pulse) * 4.0
-		var turret_alpha = 0.20 + sin(shield_pulse * 1.5) * 0.05
+		var turret_alpha = 0.10 + sin(shield_pulse * 1.5) * 0.03
 		draw_circle(Vector2.ZERO, turret_pulse_r, Color(0.18, 0.78, 1.0, turret_alpha))
-		draw_arc(Vector2.ZERO, turret_pulse_r, 0, TAU, 28, Color(0.35, 0.92, 1.0, 0.85), 2.5)
+		draw_arc(Vector2.ZERO, turret_pulse_r, 0, TAU, 28, Color(0.35, 0.92, 1.0, 0.65), 1.5)
 
 	# 電磁フィールド (EM FIELD) の全画面グリッド＆放電エフェクト描画
 	if turret_type == TurretType.ELECTROMAGNETIC_FIELD and is_em_field_active:
@@ -568,32 +568,32 @@ func _draw() -> void:
 		var local_top_left = -global_position
 		var local_bottom_right = Vector2(vp_rect.size.x, vp_rect.size.y) - global_position
 		
-		# 全画面エレクトリックパルス背景
-		var field_alpha = 0.08 + sin(em_field_pulse * 2.0) * 0.04
+		# 全画面エレクトリックパルス背景 (弾丸の邪魔にならない極薄ティント)
+		var field_alpha = 0.03 + sin(em_field_pulse * 2.0) * 0.015
 		draw_rect(Rect2(local_top_left, vp_rect.size), Color(0.65, 0.25, 1.0, field_alpha))
 		
-		# 稲妻グリッド線
-		var grid_step = 70.0
+		# 稲妻グリッド線 (半透明の極細線)
+		var grid_step = 80.0
 		var num_lines = int(vp_rect.size.x / grid_step)
 		for i in range(num_lines + 1):
 			var x_pos = local_top_left.x + i * grid_step
-			var wave_offset = sin(em_field_pulse * 3.0 + i) * 6.0
-			draw_line(Vector2(x_pos + wave_offset, local_top_left.y), Vector2(x_pos - wave_offset, local_bottom_right.y), Color(0.8, 0.4, 1.0, 0.15), 1.5)
+			var wave_offset = sin(em_field_pulse * 3.0 + i) * 4.0
+			draw_line(Vector2(x_pos + wave_offset, local_top_left.y), Vector2(x_pos - wave_offset, local_bottom_right.y), Color(0.8, 0.4, 1.0, 0.05), 1.0)
 			
 		# 砲台周囲の高密度放電リング
-		var r = 70.0 + sin(em_field_pulse * 4.0) * 8.0
-		draw_circle(Vector2.ZERO, r, Color(0.7, 0.3, 1.0, 0.25))
-		draw_arc(Vector2.ZERO, r, 0, TAU, 32, Color(0.9, 0.5, 1.0, 0.9), 3.0)
+		var r = 65.0 + sin(em_field_pulse * 4.0) * 6.0
+		draw_circle(Vector2.ZERO, r, Color(0.7, 0.3, 1.0, 0.08))
+		draw_arc(Vector2.ZERO, r, 0, TAU, 32, Color(0.9, 0.5, 1.0, 0.6), 1.5)
 
 	# 砲台専用ミニHPバー (頭上に表示: 視覚的な削りフィードバック)
 	if is_alive and max_hp > 0:
-		var bar_w = 70.0
-		var bar_h = 5.0
-		var bar_pos = Vector2(-bar_w / 2.0, -52.0)
+		var bar_w = 60.0
+		var bar_h = 4.0
+		var bar_pos = Vector2(-bar_w / 2.0, -50.0)
 		var hp_ratio = clamp(float(current_hp) / float(max_hp), 0.0, 1.0)
 		
 		# 黒背景枠
-		draw_rect(Rect2(bar_pos - Vector2(1, 1), Vector2(bar_w + 2, bar_h + 2)), Color(0.05, 0.08, 0.12, 0.85))
+		draw_rect(Rect2(bar_pos - Vector2(1, 1), Vector2(bar_w + 2, bar_h + 2)), Color(0.05, 0.08, 0.12, 0.75))
 		# HPバー本体 (割合に応じて緑->黄->赤)
 		var hp_col = Color(0.2, 0.95, 0.4)
 		if hp_ratio < 0.35:
@@ -607,19 +607,20 @@ func spawn_turret_warning(text: String) -> void:
 	var label = Label.new()
 	label.text = text
 	var label_settings = LabelSettings.new()
-	label_settings.font_size = 16
-	label_settings.font_color = Color(0.3, 0.9, 1.0) if turret_type == TurretType.SHIELD_GENERATOR else Color.RED
-	label_settings.outline_size = 4
+	label_settings.font_size = 12
+	label_settings.font_color = Color(0.4, 0.85, 1.0) if turret_type == TurretType.SHIELD_GENERATOR else Color(1.0, 0.4, 0.4)
+	label_settings.outline_size = 2
 	label_settings.outline_color = Color.BLACK
 	label.label_settings = label_settings
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.global_position = global_position + Vector2(-120, -45)
-	label.custom_minimum_size = Vector2(240, 20)
+	label.global_position = global_position + Vector2(-100, -38)
+	label.custom_minimum_size = Vector2(200, 16)
+	label.modulate.a = 0.75
 	get_parent().add_child(label)
 	
 	var tween = create_tween()
-	tween.tween_property(label, "global_position:y", label.global_position.y - 30.0, 1.2)
-	tween.tween_property(label, "modulate:a", 0.0, 1.2)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 20.0, 0.9)
+	tween.tween_property(label, "modulate:a", 0.0, 0.9)
 	tween.chain().tween_callback(label.queue_free)
 
 

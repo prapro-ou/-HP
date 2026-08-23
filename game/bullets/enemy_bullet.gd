@@ -63,7 +63,7 @@ const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_part
 
 
 func _ready() -> void:
-	z_index = 50
+	z_index = 70
 	z_as_relative = false
 	is_friendly = false
 	decel_timer = 0.0

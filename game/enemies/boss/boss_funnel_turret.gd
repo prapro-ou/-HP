@@ -173,13 +173,13 @@ func execute_beam_burst(dir: Vector2) -> void:
 
 
 func _draw() -> void:
-	# レーザー予告照準線
+	# レーザー予告照準線 (細く控えめな透過照準線)
 	if warning_alpha > 0.0:
-		var line_color = Color(1.0, 0.15, 0.15, warning_alpha * 0.9)
-		var glow_color = Color(1.0, 0.4, 0.4, warning_alpha * 0.3)
+		var line_color = Color(1.0, 0.2, 0.2, warning_alpha * 0.35)
+		var glow_color = Color(1.0, 0.3, 0.3, warning_alpha * 0.10)
 		var end_pos = aim_dir.rotated(-rotation) * 900.0
-		draw_line(Vector2.ZERO, end_pos, line_color, 2.5)
-		draw_line(Vector2.ZERO, end_pos, glow_color, 7.0)
+		draw_line(Vector2.ZERO, end_pos, line_color, 1.0)
+		draw_line(Vector2.ZERO, end_pos, glow_color, 3.0)
 		
 	# ミニHPバー
 	if is_alive and max_hp > 0:

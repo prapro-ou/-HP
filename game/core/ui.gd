@@ -104,7 +104,7 @@ func create_top_warning_ui() -> void:
 	top_warning_overlay.anchor_left = 0.0
 	top_warning_overlay.anchor_right = 1.0
 	top_warning_overlay.offset_top = 0.0
-	top_warning_overlay.offset_bottom = 260.0
+	top_warning_overlay.offset_bottom = 65.0
 	top_warning_overlay.color = Color(1.0, 0.0, 0.08, 0.0)
 	top_warning_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(top_warning_overlay)
@@ -113,17 +113,17 @@ func create_top_warning_ui() -> void:
 	top_warning_label.name = "TopWarningLabel"
 	top_warning_label.anchor_left = 0.0
 	top_warning_label.anchor_right = 1.0
-	top_warning_label.offset_top = 110.0
-	top_warning_label.offset_bottom = 160.0
+	top_warning_label.offset_top = 18.0
+	top_warning_label.offset_bottom = 55.0
 	top_warning_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	top_warning_label.text = "DANGER: ガード不可攻撃警告\n【GUARD IMPOSSIBLE - EVADE!】"
+	top_warning_label.text = "DANGER: ガード不可攻撃警告 【GUARD IMPOSSIBLE - EVADE!】"
 	var l_set = LabelSettings.new()
 	if PIXEL_FONT:
 		l_set.font = PIXEL_FONT
-	l_set.font_size = 20
-	l_set.font_color = Color(1.0, 0.25, 0.25)
-	l_set.outline_size = 6
-	l_set.outline_color = Color(0.15, 0.0, 0.0)
+	l_set.font_size = 14
+	l_set.font_color = Color(1.0, 0.4, 0.4)
+	l_set.outline_size = 3
+	l_set.outline_color = Color(0.1, 0.0, 0.0)
 	top_warning_label.label_settings = l_set
 	top_warning_label.modulate.a = 0.0
 	top_warning_overlay.add_child(top_warning_label)
@@ -135,27 +135,27 @@ func show_top_unparryable_warning(duration: float = 2.0, message: String = "") -
 	if message != "":
 		top_warning_label.text = message
 	else:
-		top_warning_label.text = "DANGER: ガード不可攻撃警告\n【GUARD IMPOSSIBLE - EVADE!】"
+		top_warning_label.text = "DANGER: ガード不可攻撃警告 【GUARD IMPOSSIBLE - EVADE!】"
 		
 	if is_instance_valid(top_warning_tween):
 		top_warning_tween.kill()
 		
 	top_warning_tween = create_tween().set_parallel(true)
-	# やんわり赤く点灯（alpha 0.35）
-	top_warning_tween.tween_property(top_warning_overlay, "color:a", 0.36, 0.3).set_trans(Tween.TRANS_SINE)
-	top_warning_tween.tween_property(top_warning_label, "modulate:a", 1.0, 0.3)
+	# 弾幕の視認性を最優先し、極めて控えめな半透明ティント（alpha 0.08）
+	top_warning_tween.tween_property(top_warning_overlay, "color:a", 0.08, 0.25).set_trans(Tween.TRANS_SINE)
+	top_warning_tween.tween_property(top_warning_label, "modulate:a", 0.75, 0.25)
 	
-	# やんわりパルス
+	# 控えめな微弱パルス
 	var pulse_loops = max(1, int(duration / 0.4))
 	var pulse_tween = create_tween().set_loops(pulse_loops)
-	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.20, 0.2).set_trans(Tween.TRANS_SINE)
-	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.40, 0.2).set_trans(Tween.TRANS_SINE)
+	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.04, 0.2).set_trans(Tween.TRANS_SINE)
+	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.08, 0.2).set_trans(Tween.TRANS_SINE)
 	
 	get_tree().create_timer(duration).timeout.connect(func():
 		if is_instance_valid(top_warning_overlay):
 			var fade_tween = create_tween().set_parallel(true)
-			fade_tween.tween_property(top_warning_overlay, "color:a", 0.0, 0.5).set_trans(Tween.TRANS_SINE)
-			fade_tween.tween_property(top_warning_label, "modulate:a", 0.0, 0.5).set_trans(Tween.TRANS_SINE)
+			fade_tween.tween_property(top_warning_overlay, "color:a", 0.0, 0.4).set_trans(Tween.TRANS_SINE)
+			fade_tween.tween_property(top_warning_label, "modulate:a", 0.0, 0.4).set_trans(Tween.TRANS_SINE)
 	)
 
 
