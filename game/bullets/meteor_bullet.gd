@@ -108,7 +108,7 @@ func convert_to_friendly() -> void:
 	# 赤っぽく巨大化
 	scale = Vector2(0.65, 0.65)
 	modulate = Color(1.0, 0.2, 0.2)
-	damage = int(120 * Global.get_just_guard_damage_multiplier())
+	damage = int(360 * Global.get_just_guard_damage_multiplier())
 	
 	# 反射パーティクル
 	if PARRY_PARTICLE_SCENE and get_parent():

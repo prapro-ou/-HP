@@ -814,14 +814,14 @@ func check_parry() -> void:
 				advance_analysis(b_type, analysis_pts)
 				
 				if shield_type == SHIELD_POWER:
-					# パワーシールド: 弾を吸収し主兵装ダメージ永続加算
+					# パワーシールド: 弾を吸収し主兵装ダメージ永続加算 (バフ量2倍UP)
 					if bullet.has_method("recycle_bullet"):
 						bullet.recycle_bullet()
 					elif bullet.has_method("explode_and_free"):
 						bullet.explode_and_free()
 					else:
 						bullet.queue_free()
-					power_shield_damage_buff = min(power_shield_damage_buff + 4.0 * focus_dmg_mult, 25.0)
+					power_shield_damage_buff = min(power_shield_damage_buff + 8.0 * focus_dmg_mult, 50.0)
 					
 					var main = get_node_or_null("/root/Main")
 					if main:
@@ -843,12 +843,13 @@ func check_parry() -> void:
 						if manager and manager.has_method("register_parry"):
 							manager.register_parry()
 				else:
-					# カウンターシールド: 弾丸を友軍弾に変換して超威力反射（フォーカス設定でさらに倍率UP！）
+					# カウンターシールド / 通常シールド: 弾丸を友軍弾に変換して超威力反射
 					if bullet.has_method("convert_to_friendly"):
 						bullet.convert_to_friendly()
-					if shield_type == SHIELD_COUNTER:
-						if "damage" in bullet:
-							bullet.damage = int(bullet.damage * 1.8 * focus_dmg_mult)
+					if "damage" in bullet:
+						bullet.damage += get_global_analysis_damage_bonus() * 2
+						if shield_type == SHIELD_COUNTER:
+							bullet.damage = int(bullet.damage * 2.5 * focus_dmg_mult)
 						
 				parry_triggered_now = true
 				

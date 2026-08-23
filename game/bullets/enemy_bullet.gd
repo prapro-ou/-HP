@@ -270,7 +270,8 @@ func convert_to_friendly() -> void:
 		return
 	is_friendly = true
 	var f_mult = Global.get_just_guard_damage_multiplier()
-	damage = int(damage * 3.5 * f_mult) # ジャストガード反射ボーナスダメージ (フォーカス設定でさらに威力激増！)
+	# ジャストガード反射ボーナスダメージ: 最低80ダメージ保証＆基礎威力8倍＋フォーカス倍率
+	damage = int(max(damage * 8.0, 80.0) * f_mult)
 	
 	# スピード上昇と方向反転
 	velocity = -velocity * PARRY_SPEED_MULTIPLIER
