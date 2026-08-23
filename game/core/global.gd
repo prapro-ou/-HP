@@ -834,14 +834,14 @@ func get_counter_system_duration() -> float:
 	return 10.0 + counter_system_duration_lvl * 2.0
 
 func get_counter_system_power_multiplier() -> float:
-	# 1.0倍 -> 1.2倍 -> 1.5倍 -> 2.0倍 -> 3.0倍 -> 5.0倍
+	# 1.0倍 -> 1.15倍 -> 1.30倍 -> 1.45倍 -> 1.60倍 -> 1.80倍
 	match counter_system_power_lvl:
 		0: return 1.0
-		1: return 1.2
-		2: return 1.5
-		3: return 2.0
-		4: return 3.0
-		5: return 5.0
+		1: return 1.15
+		2: return 1.30
+		3: return 1.45
+		4: return 1.60
+		5: return 1.80
 	return 1.0
 
 # --- ジャストガード判定範囲 ＆ 威力倍率の計算 ---
@@ -876,8 +876,8 @@ func get_just_guard_damage_multiplier() -> float:
 	# フォーカス設定によるジャストガード反射威力倍率
 	match just_guard_focus_mode:
 		0: return 1.00 # 標準
-		1: return 1.50 # 集中: 1.5倍 (+50%)
-		2: return 2.20 # 極小ピンポイント: 2.2倍 (+120%)
+		1: return 1.20 # 集中: 1.2倍 (+20%)
+		2: return 1.40 # 極小ピンポイント: 1.4倍 (+40%)
 	return 1.00
 
 func get_focus_mode_info(mode: int = -1) -> Dictionary:
@@ -896,16 +896,16 @@ func get_focus_mode_info(mode: int = -1) -> Dictionary:
 				"mode": 1,
 				"name": "FOCUS [集中]",
 				"radius_pct": "75% (-25%)",
-				"dmg_mult": "1.5倍 (+50%)",
-				"description": "有効範囲を25%絞る代わりに、ジャストガード反射弾の威力が1.5倍に強化。"
+				"dmg_mult": "1.2倍 (+20%)",
+				"description": "有効範囲を25%絞る代わりに、ジャストガード反射弾の威力が1.2倍に強化。"
 			}
 		2:
 			return {
 				"mode": 2,
 				"name": "PINPOINT [極小高出力]",
 				"radius_pct": "50% (-50%)",
-				"dmg_mult": "2.2倍 (+120%)",
-				"description": "有効範囲が半分になるハイリスク設定。成功時は反射弾が2.2倍の壊滅的破壊力に跳ね上がる！"
+				"dmg_mult": "1.4倍 (+40%)",
+				"description": "有効範囲が半分になるハイリスク設定。成功時は反射弾が1.4倍の破壊力に跳ね上がる！"
 			}
 	return {}
 

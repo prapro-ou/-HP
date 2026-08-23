@@ -336,10 +336,10 @@ func _on_area_entered(area: Area2D) -> void:
 		var dmg_multiplier: float = 1.0
 		var is_critical: bool = false
 		if dist_to_player <= 140.0:
-			dmg_multiplier = 1.50 # 超至近距離: 1.5倍クリティカル
+			dmg_multiplier = 1.15 # 超至近距離: 1.15倍クリティカル
 			is_critical = true
 		elif dist_to_player <= 260.0:
-			dmg_multiplier = 1.25 # 近距離: 1.25倍
+			dmg_multiplier = 1.08 # 近距離: 1.08倍
 			
 		var final_damage = max(1, int(damage * dmg_multiplier))
 			

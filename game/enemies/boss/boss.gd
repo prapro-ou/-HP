@@ -424,8 +424,8 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 			var tween = create_tween()
 			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
 	elif is_break_vulnerable:
-		# 【BREAK中】弱点コア露出: ダメージ 2.0倍 (200%)！
-		final_dmg = int(amount * 2.0)
+		# 【BREAK中】弱点コア露出: ダメージ 1.3倍 (130%)
+		final_dmg = int(amount * 1.3)
 		is_break_hit = true
 		
 		# クリティカル・ヘビーヒット音 & 黄金スパーク

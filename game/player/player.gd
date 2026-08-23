@@ -535,11 +535,11 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_meteor_cluster"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -20.0)
-				bullet.speed = 800.0 + max_lvl * 40.0
+				bullet.speed = 800.0 + max_lvl * 30.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 38 + max_lvl * 10 + global_dmg
-				bullet.explosion_radius = 80.0 + max_lvl * 15.0
-				bullet.explosion_dmg = 24 + max_lvl * 8 + global_dmg
+				bullet.damage = 22 + max_lvl * 4 + global_dmg
+				bullet.explosion_radius = 80.0 + max_lvl * 10.0
+				bullet.explosion_dmg = 14 + max_lvl * 3 + global_dmg
 				target_parent.add_child(bullet)
 				
 		"rapid+spread":
@@ -552,9 +552,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_gatling_storm"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 6.0, -18.0)
-				bullet.speed = 1750.0 + max_lvl * 80.0
+				bullet.speed = 1750.0 + max_lvl * 50.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 16 + max_lvl * 4 + global_dmg
+				bullet.damage = 10 + max_lvl * 2 + global_dmg
 				target_parent.add_child(bullet)
 				
 		"homing+spread":
@@ -565,10 +565,10 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_swarm"
 				bullet.global_position = global_position + Vector2(randf_range(-18.0, 18.0), -15.0)
-				bullet.speed = 700.0 + max_lvl * 40.0
+				bullet.speed = 700.0 + max_lvl * 30.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 22 + max_lvl * 6 + global_dmg
-				bullet.homing_strength = 9.0 + max_lvl * 1.5
+				bullet.damage = 14 + max_lvl * 2 + global_dmg
+				bullet.homing_strength = 9.0 + max_lvl * 1.0
 				target_parent.add_child(bullet)
 				
 		"pierce+spread":
@@ -581,9 +581,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_cross_penetrator"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -20.0)
-				bullet.speed = 1700.0 + max_lvl * 60.0
+				bullet.speed = 1700.0 + max_lvl * 40.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 28 + max_lvl * 8 + global_dmg
+				bullet.damage = 18 + max_lvl * 3 + global_dmg
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
 				
@@ -597,9 +597,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_prism_laser"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 7.0, -22.0)
-				bullet.speed = 2300.0 + max_lvl * 100.0
+				bullet.speed = 2300.0 + max_lvl * 60.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 26 + max_lvl * 7 + global_dmg
+				bullet.damage = 16 + max_lvl * 3 + global_dmg
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
 				
@@ -613,11 +613,11 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_electric_spread"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -18.0)
-				bullet.speed = 1100.0 + max_lvl * 50.0
+				bullet.speed = 1100.0 + max_lvl * 40.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 22 + max_lvl * 5 + global_dmg
+				bullet.damage = 14 + max_lvl * 2 + global_dmg
 				bullet.chain_count = 3 + max_lvl
-				bullet.chain_damage = 18 + max_lvl * 6 + global_dmg
+				bullet.chain_damage = 10 + max_lvl * 2 + global_dmg
 				target_parent.add_child(bullet)
 				
 		"spread+vortex":
@@ -630,11 +630,11 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_gravity_vortex"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 10.0, -20.0)
-				bullet.speed = 850.0 + max_lvl * 40.0
+				bullet.speed = 850.0 + max_lvl * 30.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 22 + max_lvl * 6 + global_dmg
-				bullet.vortex_radius = 75.0 + max_lvl * 15.0
-				bullet.vortex_dmg = 14 + max_lvl * 4
+				bullet.damage = 14 + max_lvl * 2 + global_dmg
+				bullet.vortex_radius = 75.0 + max_lvl * 10.0
+				bullet.vortex_dmg = 8 + max_lvl * 2
 				target_parent.add_child(bullet)
 				
 		"blade+spread":
@@ -647,9 +647,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_tempest_slash"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 12.0, -20.0)
-				bullet.speed = 1150.0 + max_lvl * 60.0
+				bullet.speed = 1150.0 + max_lvl * 40.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 32 + max_lvl * 9 + global_dmg
+				bullet.damage = 20 + max_lvl * 3 + global_dmg
 				bullet.is_blade = true
 				bullet.blade_lvl = max_lvl
 				bullet.pierce_limit = 99
@@ -663,10 +663,10 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_spiral_cyclone"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -18.0)
-				bullet.speed = 950.0 + max_lvl * 50.0
+				bullet.speed = 950.0 + max_lvl * 40.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 24 + max_lvl * 6 + global_dmg
-				bullet.wave_amp = 60.0 + max_lvl * 15.0
+				bullet.damage = 15 + max_lvl * 2 + global_dmg
+				bullet.wave_amp = 60.0 + max_lvl * 10.0
 				target_parent.add_child(bullet)
 				
 		"laser+rapid":
@@ -675,9 +675,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_photon_repeater"
 				bullet.global_position = global_position + Vector2(off_x, -24.0)
-				bullet.speed = 2500.0 + max_lvl * 120.0
+				bullet.speed = 2500.0 + max_lvl * 80.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 22 + max_lvl * 6 + global_dmg
+				bullet.damage = 14 + max_lvl * 2 + global_dmg
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
 				
@@ -687,9 +687,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_hyper_needler"
 				bullet.global_position = global_position + Vector2(off_x, -22.0)
-				bullet.speed = 2000.0 + max_lvl * 100.0
+				bullet.speed = 2000.0 + max_lvl * 60.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 20 + max_lvl * 5 + global_dmg
+				bullet.damage = 13 + max_lvl * 2 + global_dmg
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
 				
@@ -699,10 +699,10 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_homing_gatling"
 				bullet.global_position = global_position + Vector2(randf_range(-14.0, 14.0), -16.0)
-				bullet.speed = 900.0 + max_lvl * 50.0
+				bullet.speed = 900.0 + max_lvl * 30.0
 				bullet.velocity = Vector2.UP.rotated(randf_range(-0.25, 0.25)) * bullet.speed
-				bullet.damage = 18 + max_lvl * 5 + global_dmg
-				bullet.homing_strength = 8.5 + max_lvl * 1.2
+				bullet.damage = 12 + max_lvl * 2 + global_dmg
+				bullet.homing_strength = 8.5 + max_lvl * 0.8
 				target_parent.add_child(bullet)
 				
 		"meteor+rapid":
@@ -711,11 +711,11 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_bomber_vulcan"
 				bullet.global_position = global_position + Vector2(off_x, -20.0)
-				bullet.speed = 1400.0 + max_lvl * 60.0
+				bullet.speed = 1400.0 + max_lvl * 40.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 24 + max_lvl * 7 + global_dmg
-				bullet.explosion_radius = 55.0 + max_lvl * 10.0
-				bullet.explosion_dmg = 16 + max_lvl * 5 + global_dmg
+				bullet.damage = 15 + max_lvl * 2 + global_dmg
+				bullet.explosion_radius = 55.0 + max_lvl * 8.0
+				bullet.explosion_dmg = 10 + max_lvl * 2 + global_dmg
 				target_parent.add_child(bullet)
 				
 		"meteor+pierce":
@@ -724,12 +724,12 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_megaton_drill"
 				bullet.global_position = global_position + Vector2(off_x, -26.0)
-				bullet.speed = 950.0 + max_lvl * 50.0
+				bullet.speed = 950.0 + max_lvl * 30.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 55 + max_lvl * 14 + global_dmg
+				bullet.damage = 28 + max_lvl * 4 + global_dmg
 				bullet.pierce_limit = 99
-				bullet.explosion_radius = 85.0 + max_lvl * 15.0
-				bullet.explosion_dmg = 26 + max_lvl * 8 + global_dmg
+				bullet.explosion_radius = 85.0 + max_lvl * 10.0
+				bullet.explosion_dmg = 16 + max_lvl * 3 + global_dmg
 				target_parent.add_child(bullet)
 				
 		"homing+thunder":
@@ -738,12 +738,12 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_tesla_seeker"
 				bullet.global_position = global_position + Vector2(randf_range(-16.0, 16.0), -16.0)
-				bullet.speed = 750.0 + max_lvl * 40.0
+				bullet.speed = 750.0 + max_lvl * 30.0
 				bullet.velocity = Vector2.UP.rotated(randf_range(-0.3, 0.3)) * bullet.speed
-				bullet.damage = 28 + max_lvl * 7 + global_dmg
-				bullet.homing_strength = 9.0 + max_lvl * 1.2
+				bullet.damage = 16 + max_lvl * 2 + global_dmg
+				bullet.homing_strength = 9.0 + max_lvl * 0.8
 				bullet.chain_count = 4 + max_lvl
-				bullet.chain_damage = 22 + max_lvl * 6 + global_dmg
+				bullet.chain_damage = 12 + max_lvl * 2 + global_dmg
 				target_parent.add_child(bullet)
 				
 		"homing+vortex":
@@ -752,12 +752,12 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_singularity_missile"
 				bullet.global_position = global_position + Vector2(off_x, -18.0)
-				bullet.speed = 700.0 + max_lvl * 35.0
+				bullet.speed = 700.0 + max_lvl * 25.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 30 + max_lvl * 8 + global_dmg
-				bullet.homing_strength = 9.0 + max_lvl * 1.2
-				bullet.vortex_radius = 90.0 + max_lvl * 15.0
-				bullet.vortex_dmg = 18 + max_lvl * 5
+				bullet.damage = 18 + max_lvl * 3 + global_dmg
+				bullet.homing_strength = 9.0 + max_lvl * 0.8
+				bullet.vortex_radius = 90.0 + max_lvl * 10.0
+				bullet.vortex_dmg = 10 + max_lvl * 2
 				target_parent.add_child(bullet)
 				
 		"blade+laser":
@@ -766,9 +766,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_photon_blade"
 				bullet.global_position = global_position + Vector2(off_x, -28.0)
-				bullet.speed = 1700.0 + max_lvl * 80.0
+				bullet.speed = 1700.0 + max_lvl * 50.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 48 + max_lvl * 12 + global_dmg
+				bullet.damage = 26 + max_lvl * 4 + global_dmg
 				bullet.is_blade = true
 				bullet.blade_lvl = max_lvl
 				bullet.pierce_limit = 99
@@ -779,13 +779,13 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 			var bullet = PLAYER_BULLET_SCENE.instantiate()
 			bullet.bullet_type = "fusion_supernova"
 			bullet.global_position = global_position + Vector2(0.0, -28.0)
-			bullet.speed = 650.0 + max_lvl * 30.0
+			bullet.speed = 650.0 + max_lvl * 20.0
 			bullet.velocity = Vector2.UP * bullet.speed
-			bullet.damage = 60 + max_lvl * 16 + global_dmg
-			bullet.vortex_radius = 110.0 + max_lvl * 20.0
-			bullet.vortex_dmg = 22 + max_lvl * 6
-			bullet.explosion_radius = 120.0 + max_lvl * 25.0
-			bullet.explosion_dmg = 38 + max_lvl * 12 + global_dmg
+			bullet.damage = 32 + max_lvl * 5 + global_dmg
+			bullet.vortex_radius = 110.0 + max_lvl * 15.0
+			bullet.vortex_dmg = 12 + max_lvl * 2
+			bullet.explosion_radius = 120.0 + max_lvl * 15.0
+			bullet.explosion_dmg = 20 + max_lvl * 4 + global_dmg
 			target_parent.add_child(bullet)
 			
 		"blade+cyclone":
@@ -794,12 +794,12 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_twister_slasher"
 				bullet.global_position = global_position + Vector2(a * 1.5, -24.0)
-				bullet.speed = 1000.0 + max_lvl * 50.0
+				bullet.speed = 1000.0 + max_lvl * 30.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(a)) * bullet.speed
-				bullet.damage = 38 + max_lvl * 10 + global_dmg
+				bullet.damage = 22 + max_lvl * 3 + global_dmg
 				bullet.is_blade = true
 				bullet.blade_lvl = max_lvl
-				bullet.wave_amp = 85.0 + max_lvl * 15.0
+				bullet.wave_amp = 85.0 + max_lvl * 10.0
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
 				
@@ -809,9 +809,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "fusion_rail_cannon"
 				bullet.global_position = global_position + Vector2(off_x, -32.0)
-				bullet.speed = 3000.0 + max_lvl * 150.0
+				bullet.speed = 3000.0 + max_lvl * 80.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 65 + max_lvl * 15 + global_dmg
+				bullet.damage = 32 + max_lvl * 5 + global_dmg
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
 				
@@ -823,9 +823,9 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "pulse"
 				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -18.0)
-				bullet.speed = 1200.0 + max_lvl * 60.0
+				bullet.speed = 1200.0 + max_lvl * 40.0
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 25 + max_lvl * 7 + global_dmg
+				bullet.damage = 16 + max_lvl * 3 + global_dmg
 				bullet.pierce_limit = 2 + max_lvl
 				target_parent.add_child(bullet)
 
@@ -864,8 +864,8 @@ func fire_base_weapon(target_parent: Node) -> void:
 	var global_dmg_bonus = get_global_analysis_damage_bonus()
 	
 	# 融合強化パラメータの算出
-	var speed_bonus = rapid_lvl * 160.0 + laser_lvl * 140.0
-	var trait_dmg = pierce_lvl * 8 + laser_lvl * 10 + rapid_lvl * 5
+	var speed_bonus = rapid_lvl * 80.0 + laser_lvl * 70.0
+	var trait_dmg = pierce_lvl * 2 + laser_lvl * 2 + rapid_lvl * 1
 	
 	var p_limit = 0
 	if is_pierce_active:
@@ -883,13 +883,13 @@ func fire_base_weapon(target_parent: Node) -> void:
 		elif homing_lvl == 4: h_strength = 9.2
 		elif homing_lvl >= 5: h_strength = 12.0
 	
-	var w_amp = cyclone_lvl * 45.0 if is_cyclone_active else 0.0
-	var exp_rad = meteor_lvl * 25.0 if is_meteor_active else 0.0
-	var exp_dmg = meteor_lvl * 12 if is_meteor_active else 0
+	var w_amp = cyclone_lvl * 35.0 if is_cyclone_active else 0.0
+	var exp_rad = meteor_lvl * 18.0 if is_meteor_active else 0.0
+	var exp_dmg = meteor_lvl * 4 if is_meteor_active else 0
 	var c_count = thunder_lvl * 2 if is_thunder_active else 0
-	var c_dmg = thunder_lvl * 14 if is_thunder_active else 0
-	var v_rad = vortex_lvl * 30.0 if is_vortex_active else 0.0
-	var v_dmg = vortex_lvl * 10 if is_vortex_active else 0
+	var c_dmg = thunder_lvl * 4 if is_thunder_active else 0
+	var v_rad = vortex_lvl * 20.0 if is_vortex_active else 0.0
+	var v_dmg = vortex_lvl * 3 if is_vortex_active else 0
 
 	var spread_angles = [0.0]
 	var spread_offsets = [Vector2(0.0, -18.0)]
@@ -1127,14 +1127,14 @@ func check_parry() -> void:
 				advance_analysis(b_type, analysis_pts)
 				
 				if shield_type == SHIELD_POWER:
-					# パワーシールド: 弾を吸収し主兵装ダメージ永続加算 (バフ量2倍UP)
+					# パワーシールド: 弾を吸収し主兵装ダメージ永続加算
 					if bullet.has_method("recycle_bullet"):
 						bullet.recycle_bullet()
 					elif bullet.has_method("explode_and_free"):
 						bullet.explode_and_free()
 					else:
 						bullet.queue_free()
-					power_shield_damage_buff = min(power_shield_damage_buff + 8.0 * focus_dmg_mult, 50.0)
+					power_shield_damage_buff = min(power_shield_damage_buff + 3.0 * focus_dmg_mult, 20.0)
 					
 					var main = get_node_or_null("/root/Main")
 					if main:
@@ -1156,13 +1156,13 @@ func check_parry() -> void:
 						if manager and manager.has_method("register_parry"):
 							manager.register_parry()
 				else:
-					# カウンターシールド / 通常シールド: 弾丸を友軍弾に変換して超威力反射
+					# カウンターシールド / 通常シールド: 弾丸を友軍弾に変換して反射
 					if bullet.has_method("convert_to_friendly"):
 						bullet.convert_to_friendly()
 					if "damage" in bullet:
-						bullet.damage += get_global_analysis_damage_bonus() * 2
+						bullet.damage += get_global_analysis_damage_bonus()
 						if shield_type == SHIELD_COUNTER:
-							bullet.damage = int(bullet.damage * 2.5 * focus_dmg_mult)
+							bullet.damage = int(bullet.damage * 1.4 * focus_dmg_mult)
 						
 				parry_triggered_now = true
 				
@@ -1291,8 +1291,8 @@ func get_total_analysis_level() -> int:
 
 
 func get_global_analysis_damage_bonus() -> int:
-	# 全兵装共鳴強化: 解析レベル1毎に全攻撃力+5
-	return get_total_analysis_level() * 5
+	# 全兵装共鳴強化: 解析レベル1毎に全攻撃力+1
+	return get_total_analysis_level() * 1
 
 
 func add_pattern_analysis(pattern_key: String, amount: float) -> void:
