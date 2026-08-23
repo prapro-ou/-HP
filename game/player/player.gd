@@ -3,12 +3,12 @@ extends CharacterBody2D
 ## - 移動・ガード・攻撃・各種解析変異およびフルバースト制御
 
 # --- 基本パラメータ ---
-@export var max_hp: int = 400
+@export var max_hp: int = 500
 @export var move_speed: float = 300.0
 @export var parry_window_radius: float = 85.0  # パリィ判定範囲 (65 -> 85へ拡大)
 @export var fire_rate: float = 0.2            # 射撃間隔
 @export var parry_active_time: float = 0.28  # ガード持続時間
-@export var invincible_duration: float = 1.4  # 被弾後無敵時間（1.4秒）
+@export var invincible_duration: float = 1.6  # 被弾後無敵時間（1.6秒に延長して多段ヒット防止）
 
 # 定数：フォント定義
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
@@ -52,7 +52,7 @@ const SUB_MISSILE_SPEED: float = 450.0
 const GIGA_LASER_SPEED: float = 2500.0
 const HYPER_MISSILE_SPEED: float = 800.0
 
-var current_hp: int = 400
+var current_hp: int = 500
 var last_fire_time: float = 0.0
 var enemy_bullets: Array = []
 
@@ -140,7 +140,7 @@ func apply_appearance() -> void:
 func reset_state() -> void:
 	apply_appearance()
 	var hp_lvl = Global.upgrade_levels.get("hp", 0)
-	max_hp = 400 + 50 * hp_lvl
+	max_hp = 500 + 60 * hp_lvl
 	current_hp = max_hp
 	is_invincible = false
 	invincibility_timer = 0.0
@@ -846,31 +846,26 @@ func take_damage(amount: int, is_guard_break: bool = false) -> void:
 	var alert_text: String = ""
 	var is_critical_hit: bool = false
 	
-	# ① パリィ不可弾直撃 / ガードブレイク (1.75倍 & 即時過熱)
+	# ① パリィ不可弾直撃 / ガードブレイク (1.75倍 -> 1.20倍に緩和)
 	if is_guard_break or (is_guarding and is_guard_break):
-		dmg_multiplier = 1.75
+		dmg_multiplier = 1.20
 		is_critical_hit = true
-		alert_text = "GUARD BREAK! 致命傷 -%d"
+		alert_text = "GUARD BREAK! -%d"
 		is_guarding = false
 		if Global.equipped_shield != SHIELD_GAUGE:
 			is_overheated = true
-			overheat_timer = overheat_cooldown
+			overheat_timer = overheat_cooldown * 0.75
 			shield_heat = max_shield_heat
-	# ② オーバーヒート中の被弾 (装甲脆弱化: 1.6倍)
+	# ② オーバーヒート中の被弾 (1.60倍 -> 1.15倍に緩和)
 	elif is_overheated:
-		dmg_multiplier = 1.60
+		dmg_multiplier = 1.15
 		is_critical_hit = true
-		alert_text = "OVERHEAT HIT! 脆弱被弾 -%d"
-	# ③ ガード隙（リカバリー硬直中）の被弾 (カウンター: 1.5倍)
+		alert_text = "OVERHEAT HIT! -%d"
+	# ③ ガード隙（リカバリー硬直中）の被弾 (1.50倍 -> 1.10倍に緩和)
 	elif guard_recovery_timer > 0.0:
-		dmg_multiplier = 1.50
+		dmg_multiplier = 1.10
 		is_critical_hit = true
-		alert_text = "COUNTER HIT! 隙に直撃 -%d"
-		
-	# ④ コンボ維持中のハイリスク倍率 (1コンボ毎に+3%, 最大+30%)
-	if consecutive_parries > 0:
-		var combo_risk = min(0.30, consecutive_parries * 0.03)
-		dmg_multiplier += combo_risk
+		alert_text = "COUNTER HIT! -%d"
 		
 	var final_damage = int(amount * dmg_multiplier)
 	current_hp -= final_damage
