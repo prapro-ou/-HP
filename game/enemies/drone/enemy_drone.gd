@@ -98,9 +98,9 @@ func _ready_enemy() -> void:
 		var total_tech_lvls = Global.upgrade_levels.get("hp", 0) + Global.upgrade_levels.get("parry_window", 0) + Global.upgrade_levels.get("cooldown", 0)
 		base_hp += total_tech_lvls * 10
 		
-	# ステージ進行による1.2倍指数スケーリング (Stage 1: 1.0x, Stage 2: 1.2x, Stage 3: 1.44x...)
+	# ステージ進行による1.08倍指数スケーリング & ハードモード倍率
 	var stage_mult = Global.get_stage_difficulty_multiplier(stage_num)
-	max_hp = int(base_hp * stage_mult)
+	max_hp = int(base_hp * stage_mult * Global.get_enemy_hp_multiplier())
 	current_hp = max_hp
 	
 	# タイプ別に攻撃スパンと行動範囲・高度・飛行パターンを設定
@@ -181,6 +181,8 @@ func _ready_enemy() -> void:
 			speed = 135.0
 			move_direction = Vector2(dir_x, 0.0)
 		
+	# ハードモード攻撃スパン短縮 (攻撃頻度 1.3倍)
+	shoot_interval = max(0.4, shoot_interval * Global.get_enemy_attack_interval_multiplier())
 	target_y = base_y
 	time_since_last_shot = randf_range(0.0, shoot_interval * 0.75)
 	

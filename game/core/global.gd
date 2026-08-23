@@ -44,6 +44,15 @@ var stage5_clears_count: int = 0
 var counter_only_mode_unlocked: bool = false
 var counter_only_mode_enabled: bool = false
 
+# ハードモード設定 (敵HP 2.0倍 / 攻撃頻度 1.3倍 [攻撃スパン短縮])
+var hard_mode_enabled: bool = false
+
+func get_enemy_hp_multiplier() -> float:
+	return 2.0 if hard_mode_enabled else 1.0
+
+func get_enemy_attack_interval_multiplier() -> float:
+	return (1.0 / 1.3) if hard_mode_enabled else 1.0
+
 # TIPS 戦術アーカイブ管理 (出撃ごとに1つずつ解放)
 var unlocked_tips: Array = ["tip_move", "tip_shoot"]
 var unread_tips: Array = ["tip_move", "tip_shoot"]
@@ -587,6 +596,7 @@ func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -
 	config.set_value("game", "stage5_clears_count", stage5_clears_count)
 	config.set_value("game", "counter_only_mode_unlocked", counter_only_mode_unlocked)
 	config.set_value("game", "counter_only_mode_enabled", counter_only_mode_enabled)
+	config.set_value("game", "hard_mode_enabled", hard_mode_enabled)
 	config.set_value("game", "unlocked_tips", unlocked_tips)
 	config.set_value("game", "unread_tips", unread_tips)
 	config.set_value("game", "tutorial_flags", tutorial_flags)
@@ -616,6 +626,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"stage5_clears_count": stage5_clears_count,
 		"counter_only_mode_unlocked": counter_only_mode_unlocked,
 		"counter_only_mode_enabled": counter_only_mode_enabled,
+		"hard_mode_enabled": hard_mode_enabled,
 		"unlocked_tips": ["tip_move", "tip_shoot"],
 		"unread_tips": ["tip_move", "tip_shoot"],
 		"tutorial_flags": tutorial_flags
@@ -641,6 +652,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["stage5_clears_count"] = config.get_value("game", "stage5_clears_count", 0)
 		data["counter_only_mode_unlocked"] = config.get_value("game", "counter_only_mode_unlocked", false)
 		data["counter_only_mode_enabled"] = config.get_value("game", "counter_only_mode_enabled", false)
+		data["hard_mode_enabled"] = config.get_value("game", "hard_mode_enabled", false)
 		data["unlocked_tips"] = config.get_value("game", "unlocked_tips", ["tip_move", "tip_shoot"])
 		data["unread_tips"] = config.get_value("game", "unread_tips", ["tip_move", "tip_shoot"])
 		data["tutorial_flags"] = config.get_value("game", "tutorial_flags", {
@@ -671,6 +683,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			stage5_clears_count = data["stage5_clears_count"]
 			counter_only_mode_unlocked = data["counter_only_mode_unlocked"]
 			counter_only_mode_enabled = data["counter_only_mode_enabled"]
+			hard_mode_enabled = data["hard_mode_enabled"]
 			unlocked_tips = data["unlocked_tips"]
 			unread_tips = data["unread_tips"]
 			tutorial_flags = data["tutorial_flags"]

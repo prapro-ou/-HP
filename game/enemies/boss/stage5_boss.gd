@@ -61,8 +61,8 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 		if TURRET_SCENE:
 			var turret = TURRET_SCENE.instantiate()
 			turret.turret_type = cfg["type"]
-			turret.max_hp = 1800
-			turret.current_hp = 1800
+			turret.max_hp = int(1800 * Global.get_enemy_hp_multiplier())
+			turret.current_hp = turret.max_hp
 			turret.setup_custom_visual(cfg["texture"], cfg["rotation_deg"], cfg["scale"])
 			get_parent().add_child(turret)
 			turret.spawn_intro(cfg["start"], cfg["target"], duration)

@@ -30,6 +30,7 @@ var desc_stats: Label
 var desc_body: Label
 
 var deploy_btn: Button
+var hard_mode_btn: Button
 var back_btn: Button
 
 # Particles/Background
@@ -368,19 +369,42 @@ func setup_ui() -> void:
 	
 	back_btn = Button.new()
 	back_btn.text = "戻る"
-	back_btn.custom_minimum_size = Vector2(180, 52)
+	back_btn.custom_minimum_size = Vector2(160, 52)
 	back_btn.add_theme_font_size_override("font_size", 22)
 	footer_hbox.add_child(back_btn)
 	style_action_btn(back_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	back_btn.pressed.connect(_on_back_pressed)
 	
+	hard_mode_btn = Button.new()
+	hard_mode_btn.custom_minimum_size = Vector2(230, 52)
+	hard_mode_btn.add_theme_font_size_override("font_size", 18)
+	footer_hbox.add_child(hard_mode_btn)
+	update_hard_mode_btn_style()
+	hard_mode_btn.pressed.connect(func():
+		Global.hard_mode_enabled = not Global.hard_mode_enabled
+		var cur_data = Global.load_game_data(false)
+		Global.save_game(cur_data.get("stage_num", 1), cur_data.get("score", 0), {})
+		Global.play_ui_select()
+		update_hard_mode_btn_style()
+	)
+	
 	deploy_btn = Button.new()
 	deploy_btn.text = "出撃開始"
-	deploy_btn.custom_minimum_size = Vector2(240, 52)
+	deploy_btn.custom_minimum_size = Vector2(220, 52)
 	deploy_btn.add_theme_font_size_override("font_size", 22)
 	footer_hbox.add_child(deploy_btn)
 	style_action_btn(deploy_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
 	deploy_btn.pressed.connect(_on_deploy_pressed)
+
+func update_hard_mode_btn_style() -> void:
+	if not is_instance_valid(hard_mode_btn):
+		return
+	if Global.hard_mode_enabled:
+		hard_mode_btn.text = "HARD MODE [ON]\n(HP 2.0x / 攻撃 1.3x)"
+		style_action_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
+	else:
+		hard_mode_btn.text = "MODE: NORMAL\n(標準難易度)"
+		style_action_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
 
 func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 	var vbox = VBoxContainer.new()

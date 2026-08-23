@@ -163,6 +163,8 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	
 	# ステージ開始の大判テロップ表示 (4.2秒間、画面中央に大きく表示)
 	var st_name = current_stage.stage_name if current_stage else "STAGE " + str(current_stage_num)
+	if Global.hard_mode_enabled:
+		st_name += " [HARD MODE]"
 	var codename = ""
 	var goal = "90秒間防衛＆敵弾解析 -> ボス要塞を撃破せよ"
 	match current_stage_num:
@@ -181,6 +183,9 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 		5:
 			codename = "最終エリア: 終焉の支配者・オメガ"
 			goal = "全兵装を同期解放し、覚醒惑星オメガを殲滅せよ！"
+			
+	if Global.hard_mode_enabled:
+		codename += " 【HARD: HP 2倍 / 攻撃 1.3倍】"
 			
 	if ui and ui.has_method("show_stage_intro_banner"):
 		ui.show_stage_intro_banner(current_stage_num, st_name, codename, goal)

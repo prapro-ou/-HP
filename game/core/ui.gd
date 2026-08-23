@@ -546,15 +546,18 @@ func show_stage_intro_banner(stage_num: int, stage_title: String, subtitle: Stri
 	bg_rect.anchor_bottom = 1.0
 	stage_intro_banner.add_child(bg_rect)
 	
+	var is_hard = Global.hard_mode_enabled if Global else false
+	var accent_col = Color(1.0, 0.3, 0.3, 0.9) if is_hard else Color(0.3, 0.9, 1.0, 0.8)
+	
 	# Top & Bottom accent lines
 	var line_top = ColorRect.new()
-	line_top.color = Color(0.3, 0.9, 1.0, 0.8)
+	line_top.color = accent_col
 	line_top.anchor_right = 1.0
 	line_top.offset_bottom = 2.0
 	stage_intro_banner.add_child(line_top)
 	
 	var line_bottom = ColorRect.new()
-	line_bottom.color = Color(0.3, 0.9, 1.0, 0.8)
+	line_bottom.color = accent_col
 	line_bottom.anchor_top = 1.0
 	line_bottom.anchor_right = 1.0
 	line_bottom.anchor_bottom = 1.0
@@ -576,9 +579,9 @@ func show_stage_intro_banner(stage_num: int, stage_title: String, subtitle: Stri
 	margin.add_child(vbox)
 	
 	var num_lbl = Label.new()
-	num_lbl.text = "── OPERATION STAGE %d ──" % stage_num
+	num_lbl.text = "── OPERATION STAGE %d%s ──" % [stage_num, " [HARD MODE]" if is_hard else ""]
 	num_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(num_lbl, 16, Color(0.3, 0.9, 1.0), 4)
+	setup_label_style(num_lbl, 16, accent_col, 4)
 	vbox.add_child(num_lbl)
 	
 	var title_lbl = Label.new()

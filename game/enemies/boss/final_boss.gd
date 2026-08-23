@@ -47,6 +47,11 @@ var missile_smoke_timer: float = 0.0
 @onready var sprite: Sprite2D = $Sprite2D
 
 func _ready() -> void:
+	max_hp = int(max_hp * Global.get_enemy_hp_multiplier())
+	laser_hp = int(laser_hp * Global.get_enemy_hp_multiplier())
+	missile_hp = int(missile_hp * Global.get_enemy_hp_multiplier())
+	core_hp = int(core_hp * Global.get_enemy_hp_multiplier())
+	
 	bullet_pool = get_node_or_null("/root/Main/BulletPool")
 	if not bullet_pool:
 		bullet_pool = get_tree().get_first_node_in_group("bullet_pool")
@@ -140,8 +145,8 @@ func trigger_phase_2_overload() -> void:
 	phase = 2
 	current_move_speed = 240.0
 	# 全回復＆パワーアップ
-	core_hp = 8000
-	max_hp = 8000
+	core_hp = int(8000 * Global.get_enemy_hp_multiplier())
+	max_hp = core_hp
 	
 	# 演出: 画面上に衝撃波・オーラ変色
 	scale = Vector2(4.0, 4.0)
@@ -163,7 +168,7 @@ func process_charge(delta: float) -> void:
 		1:
 			charge_timer += delta
 			sprite.modulate = Color(2.0, 0.2, 0.8) if int(charge_timer * 16.0) % 2 == 0 else Color.WHITE
-			if charge_timer >= 0.5:
+			if charge_timer >= 0.5 * Global.get_enemy_attack_interval_multiplier():
 				charge_state = 2
 				charge_timer = 0.0
 				if is_instance_valid(player):
@@ -197,13 +202,14 @@ func start_charge_attack() -> void:
 		charge_timer = 0.0
 
 func process_attacks() -> void:
+	var at_mult = Global.get_enemy_attack_interval_multiplier()
 	# Phase 1 行動パターン
 	if phase == 1:
-		if fire_timer >= 0.6:
+		if fire_timer >= 0.6 * at_mult:
 			fire_timer = 0.0
 			spawn_spiral_barrage()
 			
-		if pattern_timer >= 4.5:
+		if pattern_timer >= 4.5 * at_mult:
 			pattern_timer = 0.0
 			if randf() > 0.4:
 				start_charge_attack()
@@ -211,11 +217,11 @@ func process_attacks() -> void:
 				spawn_homing_cluster()
 	# Phase 2 (OVERLOAD) 超劇的行動パターン
 	else:
-		if fire_timer >= 0.35:
+		if fire_timer >= 0.35 * at_mult:
 			fire_timer = 0.0
 			spawn_apocalypse_vortex()
 			
-		if pattern_timer >= 3.2:
+		if pattern_timer >= 3.2 * at_mult:
 			pattern_timer = 0.0
 			if randf() > 0.3:
 				spawn_ring_bullets(16, "boss_laser", 400.0)

@@ -31,6 +31,7 @@ func _ready() -> void:
 	add_to_group("enemy")
 	add_to_group("boss")
 	
+	max_hp = int(max_hp * Global.get_enemy_hp_multiplier())
 	current_hp = max_hp
 	is_alive = true
 	is_active = false
@@ -86,8 +87,8 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 		if TURRET_SCENE:
 			var turret = TURRET_SCENE.instantiate()
 			turret.turret_type = cfg["type"]
-			turret.max_hp = 900
-			turret.current_hp = 900
+			turret.max_hp = int(900 * Global.get_enemy_hp_multiplier())
+			turret.current_hp = turret.max_hp
 			get_parent().add_child(turret)
 			turret.spawn_intro(cfg["start"], cfg["target"], duration)
 			turrets.append(turret)
@@ -149,8 +150,9 @@ func _process(delta: float) -> void:
 	process_proximity_counter_attack(delta)
 	
 	fire_timer += delta
-	# 弱点露出中はボスが隙を見せるため攻撃頻度が少し緩和、砲台撃破後は手数が倍増
-	var attack_interval = 1.6 if is_break_vulnerable else (1.0 if is_enraged else 2.4)
+	# 弱点露出中はボスが隙を見せるため攻撃頻度が少し緩和、砲台撃破後は手数が倍増 (ハードモード時はさらに1.3倍高速化)
+	var base_interval = 1.6 if is_break_vulnerable else (1.0 if is_enraged else 2.4)
+	var attack_interval = base_interval * Global.get_enemy_attack_interval_multiplier()
 	if fire_timer >= attack_interval:
 		fire_timer = 0.0
 		execute_fortress_attack()

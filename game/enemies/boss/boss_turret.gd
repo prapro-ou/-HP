@@ -74,7 +74,7 @@ func _ready() -> void:
 	add_to_group("enemy")
 	
 	var mult = get_stage_difficulty_mult()
-	max_hp = int(max_hp * mult)
+	max_hp = int(max_hp * mult * Global.get_enemy_hp_multiplier())
 	current_hp = max_hp
 	is_alive = true
 	is_active = false
@@ -251,7 +251,7 @@ func get_attack_interval() -> float:
 			base_interval = 3.5
 		TurretType.SHIELD_GENERATOR:
 			base_interval = 2.2
-	return base_interval * p_info["interval_mult"]
+	return base_interval * p_info["interval_mult"] * Global.get_enemy_attack_interval_multiplier()
 
 
 func start_attack_sequence() -> void:

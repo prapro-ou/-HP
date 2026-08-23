@@ -33,6 +33,7 @@ var select_btn: Button
 var tech_lab_btn: Button
 var archive_btn: Button
 var tips_btn: Button
+var hard_mode_btn: Button
 var menu_btn: Button
 var archive_panel: PanelContainer
 var tips_panel: PanelContainer
@@ -375,6 +376,20 @@ func setup_ui() -> void:
 	style_btn(menu_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	menu_btn.pressed.connect(_on_menu_pressed)
 	
+	hard_mode_btn = Button.new()
+	hard_mode_btn.custom_minimum_size = Vector2(170, 52)
+	hard_mode_btn.add_theme_font_size_override("font_size", 18)
+	action_hbox.add_child(hard_mode_btn)
+	update_hard_mode_btn_style()
+	hard_mode_btn.pressed.connect(func():
+		Global.hard_mode_enabled = not Global.hard_mode_enabled
+		var cur_data = Global.load_game_data(false)
+		Global.save_game(cur_data.get("stage_num", 1), cur_data.get("score", 0), {})
+		Global.play_ui_select()
+		update_hard_mode_btn_style()
+		update_stage_selection(false)
+	)
+	
 	tips_btn = Button.new()
 	var unread_cnt = Global.get_unread_tips_count()
 	tips_btn.text = "TIPS [NEW]" if unread_cnt > 0 else "TIPS戦術"
@@ -490,6 +505,17 @@ func navigate_to_index(idx: int) -> void:
 	current_index = idx
 	update_stage_selection(false)
 
+func update_hard_mode_btn_style() -> void:
+	if not is_instance_valid(hard_mode_btn):
+		return
+	if Global.hard_mode_enabled:
+		hard_mode_btn.text = "HARD [ON]"
+		style_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
+	else:
+		hard_mode_btn.text = "MODE: NORMAL"
+		style_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
+
+
 func update_stage_selection(instant: bool) -> void:
 	var active_stage = stages[current_index]
 	var is_unlocked = Global.is_stage_unlocked(active_stage.id)
@@ -499,8 +525,13 @@ func update_stage_selection(instant: bool) -> void:
 		detail_title.text = active_stage.title
 		detail_codename.text = active_stage.codename
 		detail_desc.text = active_stage.description
-		detail_diff.text = "DIFFICULTY: " + active_stage.difficulty
-		detail_diff.label_settings.font_color = active_stage.color
+		var diff_str = active_stage.difficulty
+		if Global.hard_mode_enabled:
+			diff_str += " 【HARD: HP 2.0x / 攻撃 1.3x】"
+			detail_diff.label_settings.font_color = Color(1.0, 0.35, 0.35)
+		else:
+			detail_diff.label_settings.font_color = active_stage.color
+		detail_diff.text = "DIFFICULTY: " + diff_str
 		select_btn.text = "出撃準備"
 		select_btn.disabled = false
 		style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
