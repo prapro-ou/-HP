@@ -96,6 +96,9 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 
 var is_enraged: bool = false
 var enraged_notified: bool = false
+var is_break_vulnerable: bool = false
+var break_vulnerable_timer: float = 0.0
+const BREAK_VULNERABLE_DURATION: float = 14.0 # 全砲台撃破時の弱点コア露出時間（14秒）
 const METEOR_BULLET_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
 
 func _process(delta: float) -> void:
@@ -110,40 +113,90 @@ func _process(delta: float) -> void:
 			
 	is_enraged = (alive_turrets_count == 0)
 	
-	# コアのパルス演出（砲台全滅後は高速パルスで暴走を表現）
+	# コアのパルス演出（弱点露出中は黄金高速パルス、暴走時は真紅パルス）
 	if is_instance_valid(core_glow):
-		var pulse_speed = 120.0 if is_enraged else 300.0
-		var pulse = 0.3 + 0.3 * sin(Time.get_ticks_msec() / pulse_speed)
-		core_glow.color = Color(1.0, 0.1, 0.1, pulse) if is_enraged else Color(0.9, 0.2, 0.2, pulse)
+		if is_break_vulnerable:
+			var pulse_speed = 80.0
+			var pulse = 0.4 + 0.6 * (0.5 + 0.5 * sin(Time.get_ticks_msec() / pulse_speed))
+			core_glow.color = Color(1.0, 0.85, 0.15, pulse)
+		else:
+			var pulse_speed = 120.0 if is_enraged else 300.0
+			var pulse = 0.3 + 0.3 * sin(Time.get_ticks_msec() / pulse_speed)
+			core_glow.color = Color(1.0, 0.1, 0.1, pulse) if is_enraged else Color(0.9, 0.2, 0.2, pulse)
 		
 	if not is_active:
 		return
 		
-	# 砲台全滅時の暴走アナウンス
-	if is_enraged and not enraged_notified:
-		enraged_notified = true
-		spawn_shield_message("砲台破壊！要塞コア暴走・攻撃頻度激化！")
-		if is_instance_valid(player) and player.has_method("trigger_screen_flash"):
-			player.trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.3))
-			
-	# 増援デッキ展開タイマー
-	if alive_turrets_count == 0 and not reinforcement_wave_spawned:
+	# 弱点コア露出（BREAK）状態のタイマー進行
+	if is_break_vulnerable:
+		break_vulnerable_timer -= delta
+		if break_vulnerable_timer <= 3.0 and break_vulnerable_timer + delta > 3.0:
+			spawn_shield_message("防壁再起動まで あと 3秒...", Color(1.0, 0.4, 0.2), 1.5)
+		if break_vulnerable_timer <= 0.0:
+			is_break_vulnerable = false
+			break_vulnerable_timer = 0.0
+			spawn_shield_message("防壁システム再起動！予備砲台デッキ展開！", Color(0.2, 0.8, 1.0), 2.5)
+			spawn_sub_turrets(4.0, true)
+	elif alive_turrets_count == 0 and not reinforcement_wave_spawned:
+		# 弱点露出終了後、予備砲台デッキ展開タイマー
 		turret_respawn_timer += delta
-		if turret_respawn_timer >= 18.0:
+		if turret_respawn_timer >= 4.0:
 			reinforcement_wave_spawned = true
 			enraged_notified = false
-			spawn_shield_message("警告: 予備砲台デッキ展開！")
+			spawn_shield_message("警告: 予備砲台デッキ展開！", Color(0.2, 0.8, 1.0), 2.5)
 			spawn_sub_turrets(4.0, true)
 			
 	# プレイヤーの接近感知による全方位迎撃パルス（円形弾）
 	process_proximity_counter_attack(delta)
 	
 	fire_timer += delta
-	# 砲台生存中は2.4秒、砲台撃破後は1.0秒に手数が倍増
-	var attack_interval = 1.0 if is_enraged else 2.4
+	# 弱点露出中はボスが隙を見せるため攻撃頻度が少し緩和、砲台撃破後は手数が倍増
+	var attack_interval = 1.6 if is_break_vulnerable else (1.0 if is_enraged else 2.4)
 	if fire_timer >= attack_interval:
 		fire_timer = 0.0
 		execute_fortress_attack()
+
+
+func on_turret_destroyed(destroyed_turret: Node2D) -> void:
+	# 残存砲台数のチェック
+	var remaining = 0
+	for t in turrets:
+		if is_instance_valid(t) and t != destroyed_turret and t.is_alive:
+			remaining += 1
+			
+	if remaining == 0:
+		trigger_full_break_state()
+	else:
+		trigger_partial_break_state(remaining)
+
+
+func trigger_full_break_state() -> void:
+	is_break_vulnerable = true
+	break_vulnerable_timer = BREAK_VULNERABLE_DURATION
+	turret_respawn_timer = 0.0
+	
+	# ボス白熱スタン演出 ＆ 画面フラッシュ
+	Global.play_heavy_hit(0.6)
+	if is_instance_valid(player) and player.has_method("trigger_screen_flash"):
+		player.trigger_screen_flash(Color(1.0, 0.9, 0.2, 0.45))
+		
+	# アナウンス
+	spawn_shield_message("【BREAK!!】防壁完全崩壊！弱点コア露出中 (被ダメージ 200% !)", Color(1.0, 0.88, 0.1), 3.0)
+	
+	# コアの激発光（ゴールド＆白熱オレンジ）
+	if is_instance_valid(core_glow):
+		core_glow.color = Color(3.5, 3.0, 0.8, 1.0)
+		var t = create_tween()
+		t.tween_property(core_glow, "color", Color(1.0, 0.85, 0.15, 0.85), 0.4)
+		
+	if is_instance_valid(sprite):
+		sprite.modulate = Color(2.5, 2.3, 1.4, 1.0)
+		var tween = create_tween()
+		tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.3)
+
+
+func trigger_partial_break_state(remaining: int) -> void:
+	spawn_shield_message("サブ砲台破壊！要塞装甲に亀裂発生！(残 %d基)" % remaining, Color(0.4, 0.9, 1.0), 2.0)
 
 
 var close_proximity_timer: float = 0.0
@@ -250,83 +303,91 @@ func execute_fortress_attack() -> void:
 			# パターン4 (暴走時): コア直撃チャージボルト＋左右サイクロン弾
 			if is_instance_valid(core_node):
 				var core_pos = core_node.global_position
-				for c_i in range(2):
+				for c_i in range(3):
 					get_tree().create_timer(c_i * 0.15).timeout.connect(func():
 						if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
 							var bullet = bullet_pool.get_bullet("charge")
 							if bullet:
 								bullet.global_position = core_pos + Vector2(0.0, 30.0)
-								bullet.damage = int(32 * mult)
+								bullet.damage = int(24 * mult)
 								var dir = Vector2.DOWN
 								if is_instance_valid(player):
-									dir = (player.global_position - bullet.global_position).normalized()
-								bullet.set_direction(dir, 450.0)
+									dir = (player.global_position - core_pos).normalized()
+								bullet.set_direction(dir, 380.0)
 					)
-				# 左右サイクロン弾
-				for side in [-1.0, 1.0]:
-					var c_bullet = bullet_pool.get_bullet("irregular")
-					if c_bullet:
-						c_bullet.global_position = core_pos + Vector2(side * 80.0, 20.0)
-						c_bullet.damage = int(16 * mult)
-						c_bullet.set_direction(Vector2(side * 0.6, 1.0).normalized(), 300.0)
+			# 左右旋回サイクロン弾
+			for angle_deg in [-45.0, -25.0, -5.0, 5.0, 25.0, 45.0]:
+				var bullet = bullet_pool.get_bullet("wave")
+				if bullet:
+					bullet.global_position = Vector2(vp_w / 2.0, 200.0)
+					bullet.damage = int(18 * mult)
+					var dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
+					bullet.set_direction(dir, 240.0)
 		4:
-			# パターン5 (暴走時): 要塞緊急防衛ギガメテオ投下
-			if METEOR_BULLET_SCENE:
-				for m_i in range(2):
-					get_tree().create_timer(m_i * 0.25).timeout.connect(func():
-						if is_instance_valid(self) and is_alive:
-							var meteor = METEOR_BULLET_SCENE.instantiate()
-							meteor.global_position = Vector2(vp_w * (0.3 if m_i == 0 else 0.7), 20.0)
-							var shoot_dir = Vector2.DOWN.rotated(randf_range(-0.4, 0.4))
-							if is_instance_valid(player):
-								shoot_dir = (player.global_position - meteor.global_position).normalized()
-							meteor.damage = int(50 * mult)
-							meteor.set_direction(shoot_dir, 300.0)
-							get_parent().add_child(meteor)
-					)
+			# パターン5 (暴走時): 超広角扇状フォトン乱射
+			var drop_x = vp_w / 2.0
+			for angle_deg in range(-60, 65, 12):
+				var bullet = bullet_pool.get_bullet("laser")
+				if bullet:
+					bullet.global_position = Vector2(drop_x, 100.0)
+					bullet.damage = int(18 * mult)
+					var dir = Vector2.DOWN.rotated(deg_to_rad(angle_deg))
+					bullet.set_direction(dir, 300.0)
 
-
-const MEGA_BEAM_SCENE: PackedScene = preload("res://game/effects/mega_beam.tscn")
 
 func execute_unparryable_cannon_attack() -> void:
-	# 1. 画面上部をやんわり赤く点灯させる警告演出
 	var main = get_node_or_null("/root/Main")
-	if main:
-		var ui_node = main.get_node_or_null("UI")
-		if ui_node and ui_node.has_method("show_top_unparryable_warning"):
-			ui_node.show_top_unparryable_warning(1.8, "DANGER: パリィ不可・断絶真紅レーザー警告！")
-			
-	# コアが濃赤に激しく明滅
-	if is_instance_valid(core_glow):
-		core_glow.color = Color(1.0, 0.05, 0.05, 0.95)
+	var ui_node = main.get_node_or_null("UI") if main else null
+	if ui_node and ui_node.has_method("show_top_unparryable_warning"):
+		ui_node.show_top_unparryable_warning(2.2, "DANGER: 要塞主砲断絶レーザー斉射！\n【UNPARRYABLE VOID BEAM - EVADE!】")
 		
-	# 1.6秒のチャージ予兆後に真紅の断絶レーザーを射出
-	var mult = get_stage_difficulty_mult()
-	get_tree().create_timer(1.6).timeout.connect(func():
-		if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
-			var vp_w = get_viewport_rect().size.x
-			var core_pos = core_node.global_position if is_instance_valid(core_node) else Vector2(vp_w / 2.0, 250.0)
-			var p_pos = player.global_position if is_instance_valid(player) else Vector2(vp_w / 2.0, 900.0)
+	# アナウンス
+	spawn_shield_message("【WARNING】主砲断絶ヴォイドレーザー充填！")
+	
+	# コアと全身の真紅チャージ発光
+	if is_instance_valid(core_glow):
+		core_glow.color = Color(3.5, 0.2, 0.2, 1.0)
+		var ct = create_tween()
+		ct.tween_property(core_glow, "color", Color(1.0, 0.1, 0.1, 0.8), 1.8)
+		
+	if is_instance_valid(sprite):
+		sprite.modulate = Color(2.5, 0.5, 0.5, 1.0)
+		var st = create_tween()
+		st.tween_property(sprite, "modulate", Color.WHITE, 1.8)
+		
+	# 1.5秒のチャージ予告後、画面を覆う3本の極太ヴォイドレーザー弾幕
+	get_tree().create_timer(1.5).timeout.connect(func():
+		if not is_instance_valid(self) or not is_alive or not is_instance_valid(bullet_pool):
+			return
 			
-			# 極太ビームエフェクト（断絶真紅レーザー）の演出呼び出し
-			if MEGA_BEAM_SCENE and get_parent():
-				var beam = MEGA_BEAM_SCENE.instantiate()
-				var target_bottom = core_pos + (p_pos - core_pos).normalized() * 1100.0
-				beam.setup_beam(core_pos, target_bottom, Color(1.0, 0.15, 0.25), 48.0, 0.5)
-				get_parent().add_child(beam)
-			
-			var angles = [-24.0, -12.0, 0.0, 12.0, 24.0] if is_enraged else [-18.0, 0.0, 18.0]
-			for a_deg in angles:
-				var bullet = bullet_pool.get_bullet("unparryable_laser")
-				if bullet:
-					bullet.is_unparryable = true
-					bullet.damage = int(22 * mult)
-					bullet.global_position = core_pos + Vector2(a_deg * 2.5, 30.0)
-					var center_dir = Vector2.DOWN
-					if is_instance_valid(player):
-						center_dir = (player.global_position - bullet.global_position).normalized()
-					var dir = center_dir.rotated(deg_to_rad(a_deg * 0.6))
-					bullet.set_direction(dir, 460.0)
+		var mult = get_stage_difficulty_mult()
+		var vp_w = get_viewport_rect().size.x
+		Global.play_laser(0.7)
+		
+		# 3箇所の砲門から射出 (左、中央、右)
+		var cannon_x_positions = [vp_w * 0.25, vp_w * 0.5, vp_w * 0.75]
+		for c_x in cannon_x_positions:
+			for i in range(10): # 10発連続高速直進
+				get_tree().create_timer(i * 0.05).timeout.connect(func():
+					if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+						var bullet = bullet_pool.get_bullet("unparryable_laser")
+						if bullet:
+							bullet.global_position = Vector2(c_x + randf_range(-8, 8), 180.0)
+							bullet.damage = int(32 * mult)
+							bullet.set_direction(Vector2.DOWN, 520.0)
+				)
+				
+		# プレイヤー狙い撃ちの拡散牽制弾
+		for a_deg in [-20.0, 0.0, 20.0]:
+			var bullet = bullet_pool.get_bullet("charge")
+			if bullet:
+				bullet.global_position = Vector2(vp_w * 0.5, 180.0)
+				bullet.damage = int(22 * mult)
+				var center_dir = Vector2.DOWN
+				if is_instance_valid(player):
+					center_dir = (player.global_position - bullet.global_position).normalized()
+				var dir = center_dir.rotated(deg_to_rad(a_deg * 0.6))
+				bullet.set_direction(dir, 460.0)
 	)
 
 
@@ -345,11 +406,13 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 			break
 			
 	var final_dmg = amount
+	var is_break_hit = false
+	
 	if has_alive_turrets:
-		# 砲台生存中はバリアでダメージ80%カット
+		# 砲台生存中はバリアでダメージ80%カット (0.2倍)
 		final_dmg = max(1, int(amount * 0.2))
 		if randf() < 0.2:
-			spawn_shield_message("サブ砲台が防壁を展開中！")
+			spawn_shield_message("サブ砲台が防壁を展開中！(砲台を破壊せよ！)")
 			
 		# 防壁ヒット演出 (金属弾きSE & シールドスパーク & 青白フラッシュ)
 		Global.play_guard(randf_range(0.95, 1.05))
@@ -359,15 +422,37 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 			sprite.modulate = Color(0.8, 1.5, 2.5, 1.0)
 			var tween = create_tween()
 			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
+	elif is_break_vulnerable:
+		# 【BREAK中】弱点コア露出: ダメージ 2.0倍 (200%)！
+		final_dmg = int(amount * 2.0)
+		is_break_hit = true
+		
+		# クリティカル・ヘビーヒット音 & 黄金スパーク
+		Global.play_heavy_hit(randf_range(1.05, 1.25))
+		HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy", Color(1.0, 0.9, 0.2))
+		
+		if is_instance_valid(core_glow):
+			core_glow.color = Color(3.5, 3.0, 1.0, 1.0)
+			var c_tween = create_tween()
+			c_tween.tween_property(core_glow, "color", Color(1.0, 0.85, 0.2, 0.8), 0.08)
+			
+		if is_instance_valid(sprite):
+			sprite.modulate = Color(2.5, 2.3, 1.5, 1.0)
+			var tween = create_tween()
+			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
+			
+			# 被弾シェイク
+			sprite.position = Vector2(randf_range(-5.0, 5.0), randf_range(-3.0, 3.0))
+			var shake_t = create_tween()
+			shake_t.tween_property(sprite, "position", Vector2.ZERO, 0.05)
 	else:
-		# 砲台破壊後: 弱点コア直撃 (重被弾SE & ヘビースパーク & 白熱フラッシュ & 被弾シェイク)
+		# 通常時 (砲台全滅・露出終了後など): 等倍 (1.0倍)
+		final_dmg = amount
 		Global.play_heavy_hit(randf_range(0.95, 1.08))
 		HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy" if (part_name == "core" or is_critical) else "normal")
 		
 		if is_instance_valid(core_glow):
 			core_glow.color = Color(3.0, 1.8, 1.8, 0.95)
-			var c_tween = create_tween()
-			c_tween.tween_property(core_glow, "color", Color(1.0, 0.1, 0.1, 0.6), 0.08)
 			
 		if is_instance_valid(sprite):
 			sprite.modulate = Color(2.4, 1.6, 1.6, 1.0)
@@ -385,7 +470,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("spawn_damage_popup"):
-			ui_node.spawn_damage_popup(actual_hit_pos, final_dmg, not has_alive_turrets, is_critical)
+			ui_node.spawn_damage_popup(actual_hit_pos, final_dmg, not has_alive_turrets, is_critical or is_break_hit)
 			
 		var mgr = main.get_node_or_null("GameManager")
 		if mgr and mgr.has_method("add_damage_score"):
@@ -396,7 +481,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 		call_deferred("destroy_boss")
 
 
-func spawn_shield_message(text: String) -> void:
+func spawn_shield_message(text: String, text_color: Color = Color(1.0, 0.3, 0.3), duration: float = 1.4) -> void:
 	var label = Label.new()
 	label.text = text
 	var label_set = LabelSettings.new()
@@ -404,18 +489,18 @@ func spawn_shield_message(text: String) -> void:
 	if pixel_font:
 		label_set.font = pixel_font
 	label_set.font_size = 20
-	label_set.font_color = Color(1.0, 0.3, 0.3)
+	label_set.font_color = text_color
 	label_set.outline_size = 4
 	label_set.outline_color = Color.BLACK
 	label.label_settings = label_set
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 200, 180)
-	label.custom_minimum_size = Vector2(400, 30)
+	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 250, 180)
+	label.custom_minimum_size = Vector2(500, 30)
 	get_parent().add_child(label)
 	
 	var tween = create_tween()
-	tween.tween_property(label, "global_position:y", label.global_position.y - 30.0, 1.4)
-	tween.tween_property(label, "modulate:a", 0.0, 1.4)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 30.0, duration)
+	tween.tween_property(label, "modulate:a", 0.0, duration)
 	tween.chain().tween_callback(label.queue_free)
 
 
