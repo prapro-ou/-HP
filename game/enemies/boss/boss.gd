@@ -532,7 +532,7 @@ func destroy_boss() -> void:
 	# ボス撃破ボーナス: +10 TP
 	Global.tech_points += 10
 	if player_node and player_node.has_method("spawn_popup_message"):
-		player_node.spawn_popup_message("🏆 要塞ボス完全撃破！ +10 TP 獲得！")
+		player_node.spawn_popup_message("[MISSION COMPLETE] 要塞ボス撃破！ +10 TP 獲得")
 		
 	# サブ砲台の破壊
 	for t in turrets:

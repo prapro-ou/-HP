@@ -725,7 +725,7 @@ func setup_confirm_dialog() -> void:
 	margin.add_child(box)
 	
 	var warn_title = Label.new()
-	warn_title.text = "⚠️ 警告"
+	warn_title.text = "[WARNING] セーブデータ初期化の警告"
 	warn_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var w_lbl_set = LabelSettings.new()
 	if PIXEL_FONT:

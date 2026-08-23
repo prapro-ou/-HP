@@ -25,11 +25,11 @@ var upgrade_levels: Dictionary = {
 	"cooldown": 0
 }
 
-# Catalog of all 7 Enemy Analysis Mutation Patterns
+# Catalog of all 10 Enemy Analysis Mutation Patterns
 var analysis_catalog: Dictionary = {
 	"rapid": {
 		"name": "高速連射",
-		"icon": "",
+		"icon": "[RAPID]",
 		"color": Color(0.3, 0.8, 1.0),
 		"enemy_color": "青色",
 		"enemy_type": "直進フォトン弾ドローン",
@@ -39,7 +39,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"spread": {
 		"name": "拡散射撃",
-		"icon": "◈",
+		"icon": "[SPREAD]",
 		"color": Color(0.2, 1.0, 0.6),
 		"enemy_color": "緑色",
 		"enemy_type": "拡散ウェイブ弾ドローン",
@@ -49,7 +49,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"pierce": {
 		"name": "貫通重弾",
-		"icon": "▲",
+		"icon": "[PIERCE]",
 		"color": Color(1.0, 0.6, 0.2),
 		"enemy_color": "赤色",
 		"enemy_type": "重装甲チャージ砲巡洋艦",
@@ -59,7 +59,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"homing": {
 		"name": "誘導弾道",
-		"icon": "▶",
+		"icon": "[HOMING]",
 		"color": Color(0.85, 0.45, 1.0),
 		"enemy_color": "紫色",
 		"enemy_type": "クラスター追尾ミサイル艦",
@@ -69,7 +69,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"laser": {
 		"name": "集束光線",
-		"icon": "━",
+		"icon": "[LASER]",
 		"color": Color(0.4, 0.9, 1.0),
 		"enemy_color": "シアン色",
 		"enemy_type": "高出力ビーム砲台／要塞光線部",
@@ -79,7 +79,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"cyclone": {
 		"name": "旋回スピン",
-		"icon": "◎",
+		"icon": "[CYCLONE]",
 		"color": Color(1.0, 0.85, 0.2),
 		"enemy_color": "黄色",
 		"enemy_type": "不規則旋回ドローン／サイクロンポッド",
@@ -89,7 +89,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"meteor": {
 		"name": "重爆装填",
-		"icon": "●",
+		"icon": "[METEOR]",
 		"color": Color(1.0, 0.35, 0.2),
 		"enemy_color": "橙色",
 		"enemy_type": "要塞迎撃ギガメテオランチャー",
@@ -99,7 +99,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"thunder": {
 		"name": "電撃連鎖",
-		"icon": "",
+		"icon": "[THUNDER]",
 		"color": Color(0.95, 0.9, 0.2),
 		"enemy_color": "金色・放電色",
 		"enemy_type": "成層圏超放電ストーム／放電ドローン",
@@ -109,7 +109,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"vortex": {
 		"name": "重力特異点",
-		"icon": "",
+		"icon": "[VORTEX]",
 		"color": Color(0.75, 0.3, 1.0),
 		"enemy_color": "深紫色",
 		"enemy_type": "特異点重力弾／空間歪曲ユニット",
@@ -119,7 +119,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"blade": {
 		"name": "真空斬撃",
-		"icon": "",
+		"icon": "[BLADE]",
 		"color": Color(0.2, 1.0, 0.85),
 		"enemy_color": "青緑色",
 		"enemy_type": "超振動カッター／真空スラッシャー",

@@ -352,7 +352,7 @@ func _process(delta: float) -> void:
 		if Global.equipped_shield == SHIELD_GAUGE:
 			# 吸収マトリクス: 1回展開で3.0秒クールダウン（超高速解析＆修復のピーキー仕様）
 			if gauge_shield_timer > 0.0:
-				spawn_popup_message("⏳ 吸収パルス充填中... (残り %.1fs)" % gauge_shield_timer)
+				spawn_popup_message("[RECHARGE] 吸収パルス充填中... (残り %.1fs)" % gauge_shield_timer)
 			else:
 				is_guarding = true
 				active_timer = 0.35 # 0.35秒の瞬間パルス展開
@@ -925,18 +925,18 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 	var prev_prog = data["progress"]
 	data["progress"] = min(100.0, data["progress"] + amount)
 	
-	# 自機頭上にリアルタイム解析進捗ポップアップを表示（強化してる感を強く演出！）
-	spawn_analysis_progress_popup(data.get("icon", "⚡"), data.get("name", "属性"), amount, data["progress"], data.get("color", Color.CYAN))
+	# 自機頭上にリアルタイム解析進捗ポップアップを表示
+	spawn_analysis_progress_popup(data.get("name", "属性"), amount, data["progress"], data.get("color", Color.CYAN))
 	
 	if data["progress"] >= 100.0:
 		data["progress"] = 0.0
 		data["level"] += 1
 		data["analyzed"] = true
-		heal(50) # 解析完了時に機体大幅修復 (+50 HP)
+		heal(50) # 解析完了時に機体修復 (+50 HP)
 		Global.play_upgrade_success()
 		
-		# 画面中央＆頭上に【ANALYSIS COMPLETE!!】特大メッセージ
-		spawn_popup_message("【ANALYSIS COMPLETE!!】%s『%s』Lv.%d 獲得・主兵装融合！" % [data.get("icon", "⚡"), data.get("name", "兵装"), data["level"]])
+		# 画面中央＆頭上に [ANALYSIS COMPLETE] メッセージ
+		spawn_popup_message("[ANALYSIS COMPLETE] 『%s』Lv.%d 獲得・主兵装融合" % [data.get("name", "兵装"), data["level"]])
 		
 		# 初めて入手・解放された解析兵装のチェック
 		var is_first_discovery = false
@@ -959,9 +959,9 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 						ui_node.show_analysis_unlock_modal(pattern_key, data)
 
 
-func spawn_analysis_progress_popup(p_icon: String, p_name: String, added: float, current_prog: float, p_color: Color) -> void:
+func spawn_analysis_progress_popup(p_name: String, added: float, current_prog: float, p_color: Color) -> void:
 	var label = Label.new()
-	label.text = "%s [%s] 解析 +%d%%  ( %d%% )" % [p_icon, p_name, int(added), int(current_prog)]
+	label.text = "[ANALYSIS] %s +%d%% (%d%%)" % [p_name, int(added), int(current_prog)]
 	
 	var settings = LabelSettings.new()
 	if PIXEL_FONT:
@@ -992,9 +992,9 @@ func apply_pattern_trait(pattern_key: String) -> void:
 			active_traits.append(pattern_key)
 			if active_traits.size() == 2:
 				var f_info = Global.get_fusion_info(active_traits[0], active_traits[1])
-				spawn_popup_message("⚡【FUSION COMPLETE】融合兵装: 『%s』完成！" % f_info.get("name", "融合兵装"))
+				spawn_popup_message("[FUSION COMPLETE] 融合兵装: 『%s』完成" % f_info.get("name", "融合兵装"))
 			else:
-				spawn_popup_message("【固定スロット%d装備】%s Lv.%d" % [active_traits.size(), data["name"], lvl])
+				spawn_popup_message("[SLOT %d] %s Lv.%d" % [active_traits.size(), data["name"], lvl])
 		else:
 			# スロットが満杯の場合は絶対に上書きしない
 			return

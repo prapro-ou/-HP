@@ -409,7 +409,7 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 				var lvl = data.get("level", 1)
 				var max_lvl = data.get("max_level", 5)
 				var lvl_str = "Lv.%d (強化融合)" % lvl if lvl < max_lvl else "Lv.MAX (極限)"
-				card["label"].text = "%s %s\n%s" % [data.get("icon", ""), data.get("name", "属性"), lvl_str]
+				card["label"].text = "【%s】\n%s" % [data.get("name", "属性"), lvl_str]
 				card["label"].label_settings.font_color = Color(1.0, 0.88, 0.2) if lvl >= 3 else Color.WHITE
 				card["style"].border_color = data.get("color", Color.CYAN)
 				card["style"].bg_color = Color(0.1, 0.16, 0.24, 0.95)
@@ -439,9 +439,8 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 			
 	if latest_pattern and highest_progress > 0:
 		var name_str = latest_pattern.get("name", "未知")
-		var icon_str = latest_pattern.get("icon", "⚡")
 		var is_locked_mode = active_traits.size() >= 2
-		active_analysis_label.text = ("集中強化: %s %s" if is_locked_mode else "解析中: %s %s") % [icon_str, name_str]
+		active_analysis_label.text = ("集中強化: [%s]" if is_locked_mode else "解析中: [%s]") % name_str
 		active_analysis_label.label_settings.font_color = latest_pattern.get("color", Color.CYAN)
 		active_analysis_percent_label.text = "%d%%" % int(highest_progress)
 		active_analysis_percent_label.label_settings.font_color = Color.GOLD if highest_progress >= 70.0 else Color.WHITE
@@ -874,14 +873,14 @@ func show_tutorial_guide_modal(topic: String) -> void:
 	overlay.add_child(panel)
 	
 	# トピックごとの設定データ
-	var title_text = "🔰 チュートリアル"
+	var title_text = "【TUTORIAL 指南】"
 	var sub_text = ""
 	var border_col = Color.CYAN
 	var items = []
 	
 	match topic:
 		"controls":
-			title_text = "🔰 【機体操作 ＆ パリィ指南】"
+			title_text = "【機体操作 ＆ パリィ指南】"
 			sub_text = "基本システムを把握し、激戦を生き残れ！"
 			border_col = Color(0.2, 0.8, 1.0)
 			items = [
@@ -891,7 +890,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 					"desc": "[W][A][S][D] / [方向キー] / [マウス移動]\n自機を360度自在に操り、敵の弾幕をすり抜けろ。"
 				},
 				{
-					"title": "⚔️ 主兵装射撃",
+					"title": "主兵装射撃",
 					"color": Color(0.4, 1.0, 0.5),
 					"desc": "[Zキー] / [左クリック]（押しっぱなしで自動連射）\n通常物理弾で雑魚ドローンを撃破し、侵攻を食い止めろ。"
 				},
@@ -907,12 +906,12 @@ func show_tutorial_guide_modal(topic: String) -> void:
 			border_col = Color(1.0, 0.85, 0.2)
 			items = [
 				{
-					"title": "🔬 敵弾の解析",
+					"title": "敵弾の解析",
 					"color": Color.CYAN,
 					"desc": "敵弾をガードまたはパリィすると、画面左下の解析マトリクスに敵の兵装データがスキャン・蓄積されます。"
 				},
 				{
-					"title": "🧬 変異兵装の解放",
+					"title": "変異兵装の解放",
 					"color": Color.GOLD,
 					"desc": "解析度100%で【変異兵装】が解放！全兵装共鳴により、機体の全攻撃力・機動性も底上げされます。"
 				},
@@ -928,7 +927,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 			border_col = Color(1.0, 0.55, 0.2)
 			items = [
 				{
-					"title": "⏳ 制限時間（90秒）",
+					"title": "制限時間（90秒）",
 					"color": Color(1.0, 0.6, 0.2),
 					"desc": "各ステージの通常防衛時間は【90秒間】です（現在1分経過、残り30秒！）。"
 				},
@@ -954,7 +953,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 					"desc": "左右のサブ砲台が生存中は、ボスの強固な防壁により【ボス本体への被ダメージが80%カット】されます！"
 				},
 				{
-					"title": "🎯 攻略手順",
+					"title": "攻略手順",
 					"color": Color(0.3, 0.9, 1.0),
 					"desc": "まずは左右のサブ砲台を集中攻撃して破壊するか、砲台の弾幕をパリィしてボスに反射ダメージを与えましょう！"
 				},
@@ -1209,7 +1208,7 @@ func create_pause_fusion_card(key_a: String, key_b: String) -> PanelContainer:
 	m.add_child(v)
 	
 	var title_lbl = Label.new()
-	title_lbl.text = "⚡【融合完成兵装: %s】 (%s)" % [f_info.get("name", "融合兵装"), f_info.get("title_en", "")]
+	title_lbl.text = "【融合完成兵装: %s】 (%s)" % [f_info.get("name", "融合兵装"), f_info.get("title_en", "")]
 	setup_label_style(title_lbl, 20, col, 6)
 	v.add_child(title_lbl)
 	
@@ -1256,9 +1255,8 @@ func create_pause_weapon_card(pattern_key: String, p_data: Dictionary) -> PanelC
 	
 	var title_lbl = Label.new()
 	var lvl = p_data.get("level", 1)
-	title_lbl.text = "%s 【%s】 Lv.%d  [解析元: %s敵 (%s)]" % [
-		cat_info.get("icon", p_data.get("icon", "◈")),
-		cat_info.get("name", p_data.get("name", pattern_key)),
+	title_lbl.text = "【%s】 Lv.%d  [解析元: %s敵 (%s)]" % [
+		cat_info.get("name", pattern_key),
 		lvl,
 		cat_info.get("enemy_color", "通常"),
 		cat_info.get("enemy_type", "")
@@ -1330,35 +1328,6 @@ func hide_boss_hp() -> void:
 	boss_hp_label.visible = false
 
 
-var current_parry_heal_count: int = 0
-var total_parry_count: int = 0
-
-func update_parry_count(count: int) -> void:
-	total_parry_count = count
-	_refresh_parry_hud()
-
-
-func update_parry_heal_gauge(current: int, _threshold: int = 5) -> void:
-	current_parry_heal_count = current
-	_refresh_parry_hud()
-
-
-func _refresh_parry_hud() -> void:
-	if not is_instance_valid(parry_count_label):
-		return
-	var gauge_str = ""
-	for i in range(5):
-		if i < current_parry_heal_count:
-			gauge_str += "■"
-		else:
-			gauge_str += "□"
-	parry_count_label.text = "回復ゲージ: [%s] %d/5  (累計:%d)" % [gauge_str, current_parry_heal_count, total_parry_count]
-
-
-func update_guard_status(_cooldown: float, _is_guarding: bool) -> void:
-	pass
-
-
 func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool, shield_type: String = "counter", gauge_timer: float = 0.0, max_gauge_ct: float = 3.0) -> void:
 	if is_instance_valid(shield_heat_bar):
 		if shield_type == "gauge":
@@ -1378,7 +1347,7 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 					fg_style.bg_color = Color(0.1, 0.9, 0.5, flash)
 					
 			if gauge_timer > 0.0:
-				guard_status_label.text = "⏳ ABSORB CT: 冷却中 %.1fs" % gauge_timer
+				guard_status_label.text = "[RECHARGE] ABSORB CT: 冷却中 %.1fs" % gauge_timer
 				guard_status_label.label_settings.font_color = Color(1.0, 0.7, 0.3)
 			elif is_guarding:
 				guard_status_label.text = "吸収パルス展開中！"
