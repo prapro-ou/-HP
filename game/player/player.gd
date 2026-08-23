@@ -966,7 +966,6 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 	if current_lvl >= data["max_level"]:
 		return # 最大レベル到達時はこれ以上加算しない
 		
-	var prev_prog = data["progress"]
 	data["progress"] = min(100.0, data["progress"] + amount)
 	
 	# 自機頭上にリアルタイム解析進捗ポップアップを表示
@@ -1236,9 +1235,9 @@ func add_parry_heal_progress() -> void:
 				ui_node.update_parry_heal_gauge(0, PARRY_HEAL_THRESHOLD)
 
 
-func trigger_hit_stop(duration_sec: float, scale: float) -> void:
-	Engine.time_scale = scale
-	var timer = get_tree().create_timer(duration_sec * scale, true)
+func trigger_hit_stop(duration_sec: float, time_scale_val: float) -> void:
+	Engine.time_scale = time_scale_val
+	var timer = get_tree().create_timer(duration_sec * time_scale_val, true)
 	timer.timeout.connect(func():
 		Engine.time_scale = 1.0
 	)
