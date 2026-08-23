@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://game/stages/base_stage.tscn" id="1_base"]
 [ext_resource type="Script" path="res://game/stages/stage_4.gd" id="2_script"]
-[ext_resource type="PackedScene" path="res://game/enemies/boss/boss.tscn" id="3_boss"]
+[ext_resource type="PackedScene" path="res://game/enemies/boss/stage4_boss.tscn" id="3_boss"]
 
 [node name="Stage4" instance=ExtResource("1_base")]
 script = ExtResource("2_script")

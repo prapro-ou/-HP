@@ -26,7 +26,7 @@ var current_alpha: float = 1.0
 
 
 func _ready() -> void:
-	z_index = 55
+	z_index = 25
 	z_as_relative = false
 	if auto_fade_duration > 0.0:
 		var tween = create_tween()
@@ -60,26 +60,26 @@ func _draw() -> void:
 	var pulse = (sin(time_passed * 36.0) * 0.15 + 1.0) if is_pulsing else 1.0
 	var eff_w = beam_width * pulse
 	
-	# 1. 最外郭プラズマオーラ (超極太・半透明)
-	var outer_w = eff_w * 2.2
-	var outer_col = Color(beam_color.r, beam_color.g, beam_color.b, current_alpha * 0.22)
+	# 1. 最外郭プラズマオーラ (半透明・弾丸を遮らない薄め発光)
+	var outer_w = eff_w * 1.8
+	var outer_col = Color(beam_color.r, beam_color.g, beam_color.b, current_alpha * 0.10)
 	draw_line(start_pos, end_pos, outer_col, outer_w, true)
 	
-	# 2. 中間高熱フレア層 (太・高輝度)
-	var mid_w = eff_w * 1.1
-	var mid_col = Color(beam_color.r, beam_color.g, beam_color.b, current_alpha * 0.75)
+	# 2. 中間高熱フレア層 (視認性を損なわない柔らかい光)
+	var mid_w = eff_w * 0.95
+	var mid_col = Color(beam_color.r, beam_color.g, beam_color.b, current_alpha * 0.35)
 	draw_line(start_pos, end_pos, mid_col, mid_w, true)
 	
-	# 3. 白熱中心コア (純白)
-	var core_w = max(2.5, eff_w * 0.35)
-	var core_col = Color(1.0, 1.0, 1.0, current_alpha * 0.95)
+	# 3. 白熱中心コア
+	var core_w = max(2.0, eff_w * 0.30)
+	var core_col = Color(1.0, 1.0, 1.0, current_alpha * 0.55)
 	draw_line(start_pos, end_pos, core_col, core_w, true)
 	
 	# 4. 発射口＆着弾点の大プラズマ光球
-	draw_circle(start_pos, outer_w * 0.5, outer_col)
-	draw_circle(start_pos, core_w * 1.4, core_col)
-	draw_circle(end_pos, outer_w * 0.6, outer_col)
-	draw_circle(end_pos, core_w * 1.6, core_col)
+	draw_circle(start_pos, outer_w * 0.4, outer_col)
+	draw_circle(start_pos, core_w * 1.2, core_col)
+	draw_circle(end_pos, outer_w * 0.4, outer_col)
+	draw_circle(end_pos, core_w * 1.2, core_col)
 	
 	# 5. 周囲に絡みつく螺旋放電アーク（細い稲妻）
 	if has_discharge_arcs and beam_width >= 16.0:

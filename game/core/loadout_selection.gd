@@ -30,6 +30,7 @@ var desc_stats: Label
 var desc_body: Label
 
 var deploy_btn: Button
+var hard_mode_btn: Button
 var back_btn: Button
 
 # Particles/Background
@@ -44,7 +45,7 @@ var time_passed: float = 0.0
 
 func _ready() -> void:
 	Global.load_settings()
-	var save_data = Global.load_game_data()
+	var _save_data = Global.load_game_data()
 	
 	# Loadout Selection uses SFX only (Stop BGM)
 	var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -58,10 +59,7 @@ func _ready() -> void:
 	# Load pre-selected weapons from Global state
 	selected_primary = Global.equipped_weapon
 	selected_shield = Global.equipped_shield
-	if Global.unlocked_counter_weapons.size() > 0:
-		selected_counter = Global.unlocked_counter_weapons[0]
-	else:
-		selected_counter = "none"
+	selected_counter = Global.equipped_counter_weapon if Global.equipped_counter_weapon != "" else "turret"
 		
 	update_button_states()
 	show_details("primary", selected_primary) # Show details of selected primary initially
@@ -138,28 +136,52 @@ func init_data() -> void:
 	s3.is_unlocked = Global.unlocked_shields.has("power")
 	shields.append(s3)
 
-	# 3. Counter System Weapons (Boss weapons)
+	# 3. Counter System Weapons (支援兵装部隊)
 	var c0 = LoadoutItem.new()
-	c0.id = "none"
-	c0.name = "標準レーザー"
-	c0.description = "標準の反射レーザーを照射する。"
-	c0.stats = "威力:★☆☆ | 範囲:★☆☆"
-	c0.is_unlocked = true
+	c0.id = "turret"
+	c0.name = "支援砲台部隊"
+	c0.description = "自機の側方にボスタレット支援ポッドを展開。高火力ビーム・ミサイル・プラズマの一斉射撃を行う標準支援部隊。"
+	c0.stats = "火力:★★★★☆ | 殲滅:★★★★☆ | 防衛:★★★☆☆"
+	c0.is_unlocked = Global.unlocked_counter_weapons.has("turret") or true
 	counter_weapons.append(c0)
+	
+	var c_funnel = LoadoutItem.new()
+	c_funnel.id = "funnel"
+	c_funnel.name = "サイバーファンネル"
+	c_funnel.description = "自機の周囲をダイナミックにオールレンジ旋回し、敵陣へ高速貫通レーザーの弾幕を叩き込む遠隔自律攻撃端末。"
+	c_funnel.stats = "機動:★★★★★ | 索敵:★★★★★ | 貫通:★★★★☆"
+	c_funnel.is_unlocked = Global.unlocked_counter_weapons.has("funnel") or true
+	counter_weapons.append(c_funnel)
+	
+	var c_orb = LoadoutItem.new()
+	c_orb.id = "gigantic_orb"
+	c_orb.name = "ギガエネルギー弾"
+	c_orb.description = "【超巨大重力弾】自機の前方にプレイヤーより巨大な低速プラズマ弾を射出。敵弾を消滅させながら前進し、敵陣とボスに超多段ヒット貫通ダメージを与える。"
+	c_orb.stats = "制圧:★★★★★ | 破壊:★★★★★ | 弾消:★★★★★"
+	c_orb.is_unlocked = Global.unlocked_counter_weapons.has("gigantic_orb") or true
+	counter_weapons.append(c_orb)
+	
+	var c_chain = LoadoutItem.new()
+	c_chain.id = "chain_explosions"
+	c_chain.name = "5連鎖スーパノヴァ"
+	c_chain.description = "【5連鎖超爆撃】自機の前方に右から左へ5つの超爆発を連続掃射。爆発はジャストガード判定を持ち、敵弾を通常の3倍の破壊力で跳ね返す。"
+	c_chain.stats = "反射:★★★★★ | 破壊:★★★★★ | 殲滅:★★★★★"
+	c_chain.is_unlocked = Global.unlocked_counter_weapons.has("chain_explosions") or true
+	counter_weapons.append(c_chain)
 	
 	var c1 = LoadoutItem.new()
 	c1.id = "boss_beam"
-	c1.name = "ギガレーザー"
-	c1.description = "敵を貫く極太エネルギービーム（ボス兵装）。"
-	c1.stats = "威力:★★★ | 範囲:★★☆"
+	c1.name = "ギガレーザー砲台"
+	c1.description = "敵を貫く極太エネルギービーム支援砲台（ボス兵装モデル）。"
+	c1.stats = "威力:★★★★★ | 範囲:★★☆☆☆"
 	c1.is_unlocked = Global.unlocked_counter_weapons.has("boss_beam")
 	counter_weapons.append(c1)
 	
 	var c2 = LoadoutItem.new()
 	c2.id = "boss_missile"
-	c2.name = "ハイパーミサイル"
-	c2.description = "着弾時に広範囲爆発を起こす誘導ミサイル（ボス兵装）。"
-	c2.stats = "威力:★★☆ | 範囲:★★★"
+	c2.name = "ハイパーミサイル砲台"
+	c2.description = "着弾時に広範囲爆発を起こす誘導ミサイル支援砲台（ボス兵装モデル）。"
+	c2.stats = "威力:★★★★☆ | 範囲:★★★★★"
 	c2.is_unlocked = Global.unlocked_counter_weapons.has("boss_missile")
 	counter_weapons.append(c2)
 
@@ -368,19 +390,52 @@ func setup_ui() -> void:
 	
 	back_btn = Button.new()
 	back_btn.text = "戻る"
-	back_btn.custom_minimum_size = Vector2(180, 52)
+	back_btn.custom_minimum_size = Vector2(160, 52)
 	back_btn.add_theme_font_size_override("font_size", 22)
 	footer_hbox.add_child(back_btn)
 	style_action_btn(back_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	back_btn.pressed.connect(_on_back_pressed)
 	
+	hard_mode_btn = Button.new()
+	hard_mode_btn.custom_minimum_size = Vector2(230, 52)
+	hard_mode_btn.add_theme_font_size_override("font_size", 18)
+	footer_hbox.add_child(hard_mode_btn)
+	update_hard_mode_btn_style()
+	hard_mode_btn.pressed.connect(func():
+		Global.hard_mode_enabled = not Global.hard_mode_enabled
+		var cur_data = Global.load_game_data(false)
+		Global.save_game(cur_data.get("stage_num", 1), cur_data.get("score", 0), {})
+		Global.play_ui_select()
+		update_hard_mode_btn_style()
+	)
+	
 	deploy_btn = Button.new()
 	deploy_btn.text = "出撃開始"
-	deploy_btn.custom_minimum_size = Vector2(240, 52)
+	deploy_btn.custom_minimum_size = Vector2(220, 52)
 	deploy_btn.add_theme_font_size_override("font_size", 22)
 	footer_hbox.add_child(deploy_btn)
 	style_action_btn(deploy_btn, Color.CYAN, Color(0.4, 1.0, 1.0))
 	deploy_btn.pressed.connect(_on_deploy_pressed)
+
+func update_hard_mode_btn_style() -> void:
+	if not is_instance_valid(hard_mode_btn):
+		return
+	var cur_data = Global.load_game_data(false)
+	var stage_id = cur_data.get("stage_num", 1)
+	var is_hard_unlocked = Global.is_stage_hard_unlocked(stage_id)
+	
+	if not is_hard_unlocked:
+		hard_mode_btn.text = "HARD: 未解放\n(要1回クリア)"
+		hard_mode_btn.disabled = true
+		style_action_btn(hard_mode_btn, Color(0.35, 0.35, 0.4), Color(0.45, 0.45, 0.5))
+	else:
+		hard_mode_btn.disabled = false
+		if Global.hard_mode_enabled:
+			hard_mode_btn.text = "HARD MODE [ON]\n(HP 2.0x / 攻撃 1.3x)"
+			style_action_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
+		else:
+			hard_mode_btn.text = "MODE: NORMAL\n(標準難易度)"
+			style_action_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
 
 func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 	var vbox = VBoxContainer.new()
@@ -401,7 +456,7 @@ func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 
-func style_config_button(btn: Button, accent_color: Color) -> void:
+func style_config_button(btn: Button, _accent_color: Color) -> void:
 	if PIXEL_FONT:
 		btn.add_theme_font_override("font", PIXEL_FONT)
 	var sb = StyleBoxFlat.new()
@@ -561,6 +616,7 @@ func _on_deploy_pressed() -> void:
 	# Save changes to Global
 	Global.equipped_weapon = selected_primary
 	Global.equipped_shield = selected_shield
+	Global.equipped_counter_weapon = selected_counter
 	
 	# Load current stage and score without overriding equipped_weapon
 	var cur_data = Global.load_game_data(false)

@@ -33,6 +33,7 @@ var select_btn: Button
 var tech_lab_btn: Button
 var archive_btn: Button
 var tips_btn: Button
+var hard_mode_btn: Button
 var menu_btn: Button
 var archive_panel: PanelContainer
 var tips_panel: PanelContainer
@@ -355,10 +356,50 @@ func setup_ui() -> void:
 	style_nav_button(next_btn)
 	next_btn.pressed.connect(func(): navigate_selection(1))
 	
+	# Top-Right TIPS Button (画面右上)
+	tips_btn = Button.new()
+	var unread_cnt = Global.get_unread_tips_count()
+	tips_btn.text = "TIPS [NEW]" if unread_cnt > 0 else "TIPS戦術"
+	tips_btn.custom_minimum_size = Vector2(120, 42)
+	tips_btn.add_theme_font_size_override("font_size", 18)
+	tips_btn.anchor_left = 1.0
+	tips_btn.anchor_right = 1.0
+	tips_btn.anchor_top = 0.035
+	tips_btn.offset_left = -150
+	tips_btn.offset_right = -30
+	tips_btn.offset_top = 0
+	tips_btn.offset_bottom = 42
+	add_child(tips_btn)
+	style_btn(tips_btn, Color(0.2, 0.9, 0.5) if unread_cnt == 0 else Color(1.0, 0.35, 0.35), Color(0.4, 1.0, 0.7) if unread_cnt == 0 else Color(1.0, 0.6, 0.6))
+	tips_btn.pressed.connect(_on_tips_pressed)
+	
+	# Hard Mode Toggle Button (ステージバーの中央上)
+	hard_mode_btn = Button.new()
+	hard_mode_btn.custom_minimum_size = Vector2(300, 42)
+	hard_mode_btn.add_theme_font_size_override("font_size", 18)
+	hard_mode_btn.anchor_left = 0.5
+	hard_mode_btn.anchor_right = 0.5
+	hard_mode_btn.anchor_top = 0.60
+	hard_mode_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	hard_mode_btn.offset_left = -150
+	hard_mode_btn.offset_right = 150
+	hard_mode_btn.offset_top = 0
+	hard_mode_btn.offset_bottom = 42
+	add_child(hard_mode_btn)
+	update_hard_mode_btn_style()
+	hard_mode_btn.pressed.connect(func():
+		Global.hard_mode_enabled = not Global.hard_mode_enabled
+		var cur_data = Global.load_game_data(false)
+		Global.save_game(cur_data.get("stage_num", 1), cur_data.get("score", 0), {})
+		Global.play_ui_select()
+		update_hard_mode_btn_style()
+		update_stage_selection(false)
+	)
+	
 	# Action buttons at the absolute bottom
 	var action_hbox = HBoxContainer.new()
 	action_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	action_hbox.add_theme_constant_override("separation", 14)
+	action_hbox.add_theme_constant_override("separation", 18)
 	action_hbox.anchor_left = 0.0
 	action_hbox.anchor_right = 1.0
 	action_hbox.anchor_top = 0.90
@@ -369,24 +410,15 @@ func setup_ui() -> void:
 	
 	menu_btn = Button.new()
 	menu_btn.text = "戻る"
-	menu_btn.custom_minimum_size = Vector2(110, 52)
+	menu_btn.custom_minimum_size = Vector2(130, 52)
 	menu_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(menu_btn)
 	style_btn(menu_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	menu_btn.pressed.connect(_on_menu_pressed)
 	
-	tips_btn = Button.new()
-	var unread_cnt = Global.get_unread_tips_count()
-	tips_btn.text = "TIPS [NEW]" if unread_cnt > 0 else "TIPS戦術"
-	tips_btn.custom_minimum_size = Vector2(140, 52)
-	tips_btn.add_theme_font_size_override("font_size", 20)
-	action_hbox.add_child(tips_btn)
-	style_btn(tips_btn, Color(0.2, 0.9, 0.5) if unread_cnt == 0 else Color(1.0, 0.35, 0.35), Color(0.4, 1.0, 0.7) if unread_cnt == 0 else Color(1.0, 0.6, 0.6))
-	tips_btn.pressed.connect(_on_tips_pressed)
-	
 	archive_btn = Button.new()
 	archive_btn.text = "解析図鑑"
-	archive_btn.custom_minimum_size = Vector2(130, 52)
+	archive_btn.custom_minimum_size = Vector2(160, 52)
 	archive_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(archive_btn)
 	style_btn(archive_btn, Color(0.85, 0.45, 1.0), Color(1.0, 0.6, 1.0))
@@ -394,7 +426,7 @@ func setup_ui() -> void:
 	
 	tech_lab_btn = Button.new()
 	tech_lab_btn.text = "機体強化"
-	tech_lab_btn.custom_minimum_size = Vector2(130, 52)
+	tech_lab_btn.custom_minimum_size = Vector2(160, 52)
 	tech_lab_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(tech_lab_btn)
 	style_btn(tech_lab_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
@@ -402,7 +434,7 @@ func setup_ui() -> void:
 	
 	select_btn = Button.new()
 	select_btn.text = "出撃準備"
-	select_btn.custom_minimum_size = Vector2(160, 52)
+	select_btn.custom_minimum_size = Vector2(180, 52)
 	select_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(select_btn)
 	style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
@@ -490,17 +522,44 @@ func navigate_to_index(idx: int) -> void:
 	current_index = idx
 	update_stage_selection(false)
 
+func update_hard_mode_btn_style() -> void:
+	if not is_instance_valid(hard_mode_btn):
+		return
+	var active_stage = stages[current_index] if current_index < stages.size() else null
+	var is_hard_unlocked = Global.is_stage_hard_unlocked(active_stage.id) if active_stage else false
+	
+	if not is_hard_unlocked:
+		hard_mode_btn.text = "HARD MODE: 未解放 [クリアで解放]"
+		hard_mode_btn.disabled = true
+		style_btn(hard_mode_btn, Color(0.35, 0.35, 0.4), Color(0.45, 0.45, 0.5))
+	else:
+		hard_mode_btn.disabled = false
+		if Global.hard_mode_enabled:
+			hard_mode_btn.text = "★ HARD MODE [ON] (HP 2x / 攻撃 1.3x)"
+			style_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
+		else:
+			hard_mode_btn.text = "MODE: NORMAL [標準難易度]"
+			style_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
+
+
 func update_stage_selection(instant: bool) -> void:
 	var active_stage = stages[current_index]
 	var is_unlocked = Global.is_stage_unlocked(active_stage.id)
+	var is_hard_unlocked = Global.is_stage_hard_unlocked(active_stage.id)
+	update_hard_mode_btn_style()
 	
 	# Update active detail card details
 	if is_unlocked:
 		detail_title.text = active_stage.title
 		detail_codename.text = active_stage.codename
 		detail_desc.text = active_stage.description
-		detail_diff.text = "DIFFICULTY: " + active_stage.difficulty
-		detail_diff.label_settings.font_color = active_stage.color
+		var diff_str = active_stage.difficulty
+		if is_hard_unlocked and Global.hard_mode_enabled:
+			diff_str += " 【HARD: HP 2.0x / 攻撃 1.3x】"
+			detail_diff.label_settings.font_color = Color(1.0, 0.35, 0.35)
+		else:
+			detail_diff.label_settings.font_color = active_stage.color
+		detail_diff.text = "DIFFICULTY: " + diff_str
 		select_btn.text = "出撃準備"
 		select_btn.disabled = false
 		style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
@@ -1132,11 +1191,11 @@ func render_tip_detail(tip: Dictionary) -> void:
 	var desc_lbl = Label.new()
 	desc_lbl.text = tip.get("desc", "")
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.add_theme_constant_override("line_spacing", 6)
 	var d_set = LabelSettings.new()
-	if PIXEL_FONT:
-		d_set.font = PIXEL_FONT
+	d_set.font = Global.get_readable_font()
 	d_set.font_size = 18
-	d_set.font_color = Color(0.9, 0.95, 1.0)
+	d_set.font_color = Color(0.92, 0.96, 1.0)
 	desc_lbl.label_settings = d_set
 	vb.add_child(desc_lbl)
 	
@@ -1165,9 +1224,10 @@ func render_tip_detail(tip: Dictionary) -> void:
 		
 		var hint_lbl = Label.new()
 		hint_lbl.text = tip["hint"]
+		hint_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hint_lbl.add_theme_constant_override("line_spacing", 4)
 		var hint_set = LabelSettings.new()
-		if PIXEL_FONT:
-			hint_set.font = PIXEL_FONT
+		hint_set.font = Global.get_readable_font()
 		hint_set.font_size = 16
 		hint_set.font_color = Color.CYAN
 		hint_lbl.label_settings = hint_set
@@ -1194,6 +1254,10 @@ func _on_select_pressed() -> void:
 	var active_stage = stages[current_index]
 	if not Global.is_stage_unlocked(active_stage.id):
 		return
+		
+	# ハードモード未解放ステージの場合はハードモードを自動解除
+	if not Global.is_stage_hard_unlocked(active_stage.id):
+		Global.hard_mode_enabled = false
 		
 	Global.is_continue = false
 	

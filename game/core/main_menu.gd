@@ -43,6 +43,17 @@ var player_color_option: OptionButton
 var player_ship_preview: TextureRect
 var player_ship_color_name_lbl: Label
 var player_color_keys: Array = ["blue", "red", "green", "yellow", "purple", "orange"]
+var currently_rebinding_action: String = ""
+var move_control_option: OptionButton
+var btn_key_counter: Button
+var btn_key_shield: Button
+var btn_key_up: Button
+var btn_key_down: Button
+var btn_key_left: Button
+var btn_key_right: Button
+var btn_key_w_prev: Button
+var btn_key_w_next: Button
+var custom_move_container: VBoxContainer
 var master_slider: HSlider
 var master_lbl: Label
 var bgm_slider: HSlider
@@ -79,6 +90,44 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	update_starfield(delta)
 	animate_title(delta)
+
+func _input(event: InputEvent) -> void:
+	if currently_rebinding_action != "":
+		if event is InputEventKey and event.is_pressed() and not event.is_echo():
+			var code = event.keycode if event.keycode != 0 else event.physical_keycode
+			if code == KEY_ESCAPE:
+				currently_rebinding_action = ""
+				sync_settings_to_ui()
+				get_viewport().set_input_as_handled()
+				return
+				
+			match currently_rebinding_action:
+				"counter":
+					Global.key_counter_system = code
+				"shield":
+					Global.key_shield = code
+				"up":
+					Global.key_up = code
+					Global.control_move_preset = 3
+				"down":
+					Global.key_down = code
+					Global.control_move_preset = 3
+				"left":
+					Global.key_left = code
+					Global.control_move_preset = 3
+				"right":
+					Global.key_right = code
+					Global.control_move_preset = 3
+				"w_prev":
+					Global.key_weapon_prev = code
+				"w_next":
+					Global.key_weapon_next = code
+					
+			Global.save_settings()
+			Global.play_upgrade_success()
+			currently_rebinding_action = ""
+			sync_settings_to_ui()
+			get_viewport().set_input_as_handled()
 
 # ----------------- UI Creation & Styling -----------------
 
@@ -419,7 +468,160 @@ func setup_settings_container() -> void:
 		player_color_option.add_item(col_info["name"], i)
 	controls_vbox.add_child(player_color_option)
 	
-	# --- SECTION 3: AUDIO ---
+	# --- SECTION 3: CONTROLS / 操作キー設定 ---
+	var ctrl_title = Label.new()
+	ctrl_title.text = "操作キー設定 (ボタンを押してキーを入力)"
+	ctrl_title.label_settings = sec_set
+	scroll_content.add_child(ctrl_title)
+	
+	var grid_ctrl = GridContainer.new()
+	grid_ctrl.columns = 2
+	grid_ctrl.add_theme_constant_override("h_separation", 16)
+	grid_ctrl.add_theme_constant_override("v_separation", 14)
+	scroll_content.add_child(grid_ctrl)
+	
+	# 移動操作キー方式
+	grid_ctrl.add_child(create_label("自機移動方式:"))
+	move_control_option = OptionButton.new()
+	move_control_option.add_item("WASD ＆ 十字キー (両方有効)", 0)
+	move_control_option.add_item("WASD 専用", 1)
+	move_control_option.add_item("十字キー 専用 (↑↓←→)", 2)
+	move_control_option.add_item("カスタム個別設定", 3)
+	move_control_option.custom_minimum_size = Vector2(260, 44)
+	move_control_option.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		move_control_option.add_theme_font_override("font", PIXEL_FONT)
+	grid_ctrl.add_child(move_control_option)
+	
+	# COUNTER SYSTEM 発動キー (自由選択ボタン)
+	grid_ctrl.add_child(create_label("COUNTER SYSTEM:"))
+	btn_key_counter = Button.new()
+	btn_key_counter.custom_minimum_size = Vector2(260, 44)
+	btn_key_counter.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		btn_key_counter.add_theme_font_override("font", PIXEL_FONT)
+	grid_ctrl.add_child(btn_key_counter)
+	add_button_animations(btn_key_counter)
+	btn_key_counter.pressed.connect(func(): _start_rebinding("counter"))
+	
+	# シールド / ジャストガード キー
+	grid_ctrl.add_child(create_label("シールド展開:"))
+	btn_key_shield = Button.new()
+	btn_key_shield.custom_minimum_size = Vector2(260, 44)
+	btn_key_shield.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT:
+		btn_key_shield.add_theme_font_override("font", PIXEL_FONT)
+	grid_ctrl.add_child(btn_key_shield)
+	add_button_animations(btn_key_shield)
+	btn_key_shield.pressed.connect(func(): _start_rebinding("shield"))
+	
+	# 兵装切替 (前 / 次)
+	grid_ctrl.add_child(create_label("兵装切替 (前 / 次):"))
+	var w_box = HBoxContainer.new()
+	w_box.add_theme_constant_override("separation", 10)
+	
+	btn_key_w_prev = Button.new()
+	btn_key_w_prev.custom_minimum_size = Vector2(125, 44)
+	btn_key_w_prev.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT: btn_key_w_prev.add_theme_font_override("font", PIXEL_FONT)
+	add_button_animations(btn_key_w_prev)
+	btn_key_w_prev.pressed.connect(func(): _start_rebinding("w_prev"))
+	w_box.add_child(btn_key_w_prev)
+	
+	btn_key_w_next = Button.new()
+	btn_key_w_next.custom_minimum_size = Vector2(125, 44)
+	btn_key_w_next.add_theme_font_size_override("font_size", 18)
+	if PIXEL_FONT: btn_key_w_next.add_theme_font_override("font", PIXEL_FONT)
+	add_button_animations(btn_key_w_next)
+	btn_key_w_next.pressed.connect(func(): _start_rebinding("w_next"))
+	w_box.add_child(btn_key_w_next)
+	grid_ctrl.add_child(w_box)
+
+	# カスタム移動キー設定用サブコンテナ
+	custom_move_container = VBoxContainer.new()
+	custom_move_container.add_theme_constant_override("separation", 10)
+	scroll_content.add_child(custom_move_container)
+	
+	var cm_lbl = Label.new()
+	cm_lbl.text = "【カスタム移動キー設定】"
+	var cm_set = LabelSettings.new()
+	if PIXEL_FONT: cm_set.font = PIXEL_FONT
+	cm_set.font_size = 20
+	cm_set.font_color = Color(1.0, 0.85, 0.3)
+	cm_lbl.label_settings = cm_set
+	custom_move_container.add_child(cm_lbl)
+	
+	var cm_grid = GridContainer.new()
+	cm_grid.columns = 4
+	cm_grid.add_theme_constant_override("h_separation", 12)
+	cm_grid.add_theme_constant_override("v_separation", 10)
+	custom_move_container.add_child(cm_grid)
+	
+	# 上
+	cm_grid.add_child(create_label("上(UP):"))
+	btn_key_up = Button.new()
+	btn_key_up.custom_minimum_size = Vector2(110, 42)
+	btn_key_up.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT: btn_key_up.add_theme_font_override("font", PIXEL_FONT)
+	add_button_animations(btn_key_up)
+	btn_key_up.pressed.connect(func(): _start_rebinding("up"))
+	cm_grid.add_child(btn_key_up)
+	
+	# 下
+	cm_grid.add_child(create_label("下(DOWN):"))
+	btn_key_down = Button.new()
+	btn_key_down.custom_minimum_size = Vector2(110, 42)
+	btn_key_down.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT: btn_key_down.add_theme_font_override("font", PIXEL_FONT)
+	add_button_animations(btn_key_down)
+	btn_key_down.pressed.connect(func(): _start_rebinding("down"))
+	cm_grid.add_child(btn_key_down)
+	
+	# 左
+	cm_grid.add_child(create_label("左(LEFT):"))
+	btn_key_left = Button.new()
+	btn_key_left.custom_minimum_size = Vector2(110, 42)
+	btn_key_left.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT: btn_key_left.add_theme_font_override("font", PIXEL_FONT)
+	add_button_animations(btn_key_left)
+	btn_key_left.pressed.connect(func(): _start_rebinding("left"))
+	cm_grid.add_child(btn_key_left)
+	
+	# 右
+	cm_grid.add_child(create_label("右(RIGHT):"))
+	btn_key_right = Button.new()
+	btn_key_right.custom_minimum_size = Vector2(110, 42)
+	btn_key_right.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT: btn_key_right.add_theme_font_override("font", PIXEL_FONT)
+	add_button_animations(btn_key_right)
+	btn_key_right.pressed.connect(func(): _start_rebinding("right"))
+	cm_grid.add_child(btn_key_right)
+	
+	# キー割り当て初期化ボタン
+	var btn_reset_ctrl = Button.new()
+	btn_reset_ctrl.text = "操作キー設定をすべて初期値に戻す"
+	btn_reset_ctrl.custom_minimum_size = Vector2(0, 44)
+	btn_reset_ctrl.add_theme_font_size_override("font_size", 16)
+	if PIXEL_FONT: btn_reset_ctrl.add_theme_font_override("font", PIXEL_FONT)
+	style_button(btn_reset_ctrl, Color(0.7, 0.4, 0.9), Color(0.85, 0.6, 1.0))
+	add_button_animations(btn_reset_ctrl)
+	btn_reset_ctrl.pressed.connect(func():
+		Global.control_move_preset = 0
+		Global.key_counter_system = KEY_X
+		Global.key_shield = KEY_SPACE
+		Global.key_up = KEY_W
+		Global.key_down = KEY_S
+		Global.key_left = KEY_A
+		Global.key_right = KEY_D
+		Global.key_weapon_prev = KEY_Q
+		Global.key_weapon_next = KEY_E
+		Global.save_settings()
+		sync_settings_to_ui()
+		show_debug_toast("キー設定を初期値に戻しました")
+	)
+	scroll_content.add_child(btn_reset_ctrl)
+	
+	# --- SECTION 4: AUDIO ---
 	var a_title = Label.new()
 	a_title.text = "音量設定"
 	a_title.label_settings = sec_set
@@ -657,6 +859,12 @@ func setup_settings_container() -> void:
 	scale_option.item_selected.connect(_on_display_scale_changed)
 	aspect_option.item_selected.connect(_on_display_aspect_changed)
 	player_color_option.item_selected.connect(_on_player_color_changed)
+	move_control_option.item_selected.connect(func(idx):
+		Global.control_move_preset = idx
+		Global.save_settings()
+		if is_instance_valid(custom_move_container):
+			custom_move_container.visible = (idx == 3)
+	)
 	vsync_check.toggled.connect(func(t): Global.vsync = t)
 	shake_check.toggled.connect(func(t): Global.screen_shake = t)
 	
@@ -1115,7 +1323,43 @@ func sync_settings_to_ui() -> void:
 		player_color_option.selected = color_idx
 	else:
 		player_color_option.selected = 0
+		
+	if is_instance_valid(move_control_option):
+		move_control_option.selected = Global.control_move_preset
+	if is_instance_valid(custom_move_container):
+		custom_move_container.visible = (Global.control_move_preset == 3)
+		
+	# Update key binding buttons
+	_update_rebind_btn(btn_key_counter, "counter", Global.key_counter_system)
+	_update_rebind_btn(btn_key_shield, "shield", Global.key_shield)
+	_update_rebind_btn(btn_key_up, "up", Global.key_up)
+	_update_rebind_btn(btn_key_down, "down", Global.key_down)
+	_update_rebind_btn(btn_key_left, "left", Global.key_left)
+	_update_rebind_btn(btn_key_right, "right", Global.key_right)
+	_update_rebind_btn(btn_key_w_prev, "w_prev", Global.key_weapon_prev)
+	_update_rebind_btn(btn_key_w_next, "w_next", Global.key_weapon_next)
+		
 	update_ship_preview()
+
+func _start_rebinding(action: String) -> void:
+	currently_rebinding_action = action
+	sync_settings_to_ui()
+
+func _update_rebind_btn(btn: Button, action: String, keycode: int) -> void:
+	if not is_instance_valid(btn):
+		return
+	if currently_rebinding_action == action:
+		btn.text = "▶ キー入力待ち... (ESC:取消)"
+		style_button(btn, Color(1.0, 0.85, 0.2), Color(1.0, 1.0, 0.5))
+	else:
+		var kname = Global.get_key_display_name(keycode)
+		if action.begins_with("w_"):
+			btn.text = "[ %s ]" % kname
+		elif action in ["up", "down", "left", "right"]:
+			btn.text = "[ %s ]" % kname
+		else:
+			btn.text = "[ %s キー ]  (キーを選択)" % kname
+		style_button(btn, Color(0.2, 0.7, 0.9), Color(0.4, 0.9, 1.0))
 
 func update_ship_preview() -> void:
 	if not player_ship_preview:
@@ -1137,6 +1381,8 @@ func _on_player_color_changed(idx: int) -> void:
 func _on_play_start_pressed() -> void:
 	# Check if first launch or not
 	Global.load_game_data()
+	if is_instance_valid(credits_dialog):
+		credits_dialog.hide()
 	
 	if Global.is_first_launch:
 		# Show tutorial confirm dialog
@@ -1151,7 +1397,12 @@ func _on_play_start_pressed() -> void:
 		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
 
 func _on_settings_pressed() -> void:
-	# Transition: hide menu container, show settings panel
+	# Transition: hide menu container & modals, show settings panel
+	if is_instance_valid(credits_dialog):
+		credits_dialog.hide()
+	if is_instance_valid(tutorial_dialog):
+		tutorial_dialog.hide()
+		
 	var tween = create_tween().set_parallel(true)
 	menu_container.hide()
 	settings_container.show()
@@ -1161,7 +1412,12 @@ func _on_settings_pressed() -> void:
 	tween.tween_property(settings_container, "modulate:a", 1.0, 0.2)
 
 func _on_credits_pressed() -> void:
-	# Transition: show credits dialog modal
+	# Transition: hide settings & tutorial, show credits dialog modal
+	if is_instance_valid(settings_container):
+		settings_container.hide()
+	if is_instance_valid(tutorial_dialog):
+		tutorial_dialog.hide()
+		
 	credits_dialog.show()
 	credits_dialog.modulate.a = 0.0
 	credits_dialog.scale = Vector2(0.8, 0.8)

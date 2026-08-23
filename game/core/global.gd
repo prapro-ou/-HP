@@ -14,10 +14,12 @@ var equipped_weapon: String = "machine_gun"
 var is_first_launch: bool = true
 var tech_points: int = 0
 var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (faster charge/absorb), "power" (buff primary)
+var equipped_counter_weapon: String = "turret" # "turret" (支援砲台部隊), "funnel" (サイバーファンネル部隊), "boss_beam", "boss_missile"
 var unlocked_shields: Array = ["counter"] # Available shield frameworks
 var unlocked_weapons: Array = ["machine_gun", "burst_rifle", "pulse_gun"] # Available primary weapon frameworks
-var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
+var unlocked_counter_weapons: Array = ["turret", "funnel", "gigantic_orb", "chain_explosions"] # Boss & support weapons unlocked for COUNTER SYSTEM
 var unlocked_stages: Array = [1] # Unlocked stages (Stage 1 is unlocked by default)
+var cleared_stages: Array = [] # Stages cleared at least once (unlocks hard mode for that stage)
 var discovered_analysis_weapons: Array = [] # Discovered analysis mutation patterns
 var upgrade_levels: Dictionary = {
 	"hp": 0,
@@ -43,6 +45,49 @@ var counter_system_power_lvl: int = 0    # 1.0x -> 1.2x -> 1.5x -> 2.0x -> 3.0x 
 var stage5_clears_count: int = 0
 var counter_only_mode_unlocked: bool = false
 var counter_only_mode_enabled: bool = false
+
+# ハードモード設定 (敵HP 2.0倍 / 攻撃頻度 1.3倍 [攻撃スパン短縮])
+var hard_mode_enabled: bool = false
+
+# 操作キー割り当て設定
+# 0: 両方 (WASD ＆ 十字キー), 1: WASD 専用, 2: 十字キー 専用, 3: カスタム割り当て
+var control_move_preset: int = 0
+
+# 各アクションのキーコード (任意のキーに割り当て可能)
+var key_counter_system: int = KEY_X
+var key_shield: int = KEY_SPACE
+var key_up: int = KEY_W
+var key_down: int = KEY_S
+var key_left: int = KEY_A
+var key_right: int = KEY_D
+var key_weapon_prev: int = KEY_Q
+var key_weapon_next: int = KEY_E
+
+func get_key_display_name(keycode: int) -> String:
+	match keycode:
+		KEY_SPACE: return "Space"
+		KEY_SHIFT: return "Shift"
+		KEY_CTRL: return "Ctrl"
+		KEY_ALT: return "Alt"
+		KEY_ENTER: return "Enter"
+		KEY_TAB: return "Tab"
+		KEY_BACKSPACE: return "Backspace"
+		KEY_UP: return "↑"
+		KEY_DOWN: return "↓"
+		KEY_LEFT: return "←"
+		KEY_RIGHT: return "→"
+		_:
+			var s = OS.get_keycode_string(keycode)
+			return s.to_upper() if s != "" else ("Key " + str(keycode))
+
+func get_counter_system_key_name() -> String:
+	return get_key_display_name(key_counter_system)
+
+func get_enemy_hp_multiplier() -> float:
+	return 2.0 if hard_mode_enabled else 1.0
+
+func get_enemy_attack_interval_multiplier() -> float:
+	return (1.0 / 1.3) if hard_mode_enabled else 1.0
 
 # TIPS 戦術アーカイブ管理 (出撃ごとに1つずつ解放)
 var unlocked_tips: Array = ["tip_move", "tip_shoot"]
@@ -71,9 +116,9 @@ var tips_catalog: Array[Dictionary] = [
 		"id": "tip_shoot",
 		"category": "basic",
 		"category_name": "基本操作",
-		"title": "主兵装の連続射撃",
-		"desc": "Zキーまたは左クリックを押し続けることで自動連射が行われます。射撃中も移動速度は低下しないため、常に位置取りを意識して攻撃を継続できます。",
-		"hint": "操作: [Zキー] または [左クリック] (長押し対応)"
+		"title": "主兵装の常時フルオート射撃",
+		"desc": "主兵装は常時自動で連射されます。攻撃ボタンの押しっぱなしは不要なため、敵弾の回避やシールドでのジャストガード、Xキーでの必殺技発動に集中して立ち回ることができます。",
+		"hint": "仕様: 常時フルオート自動連射 (攻撃操作不要)"
 	},
 	{
 		"id": "tip_guard_basic",
@@ -119,9 +164,9 @@ var tips_catalog: Array[Dictionary] = [
 		"id": "tip_counter_system",
 		"category": "attack",
 		"category_name": "攻撃",
-		"title": "COUNTER SYSTEMの展開",
-		"desc": "Xキーを押すことで自機カラーのボスタレット支援部隊が一定時間出撃します。敵を自動索敵して高火力支援射撃を行い、全画面が機体カラーのサイバーティントで包まれます。",
-		"hint": "操作: [Xキー] (支援タレット部隊の召喚)"
+		"title": "COUNTER SYSTEM (必殺支援砲台部隊)",
+		"desc": "Xキー（またはEキー/Cキー）を押すことで、自機カラーのボスタレット支援部隊が一定時間出撃します。敵を自動索敵して圧倒的高火力で支援射撃を行い、全画面が機体カラーのサイバーティントで包まれます。",
+		"hint": "操作: [Xキー] / [E] / [C] (支援タレット部隊の召喚)"
 	},
 	{
 		"id": "tip_boss_turret",
@@ -433,6 +478,8 @@ func get_fusion_info(trait_a: String, trait_b: String) -> Dictionary:
 
 func get_fusion_name(trait_a: String, trait_b: String) -> String:
 	return get_fusion_info(trait_a, trait_b).get("name", "複合融合兵装")
+
+func is_stage_unlocked(stage_num: int) -> bool:
 	return stage_num == 1 or unlocked_stages.has(stage_num)
 
 func unlock_stage(stage_num: int) -> bool:
@@ -443,11 +490,31 @@ func unlock_stage(stage_num: int) -> bool:
 		return true
 	return false
 
+func is_stage_cleared(stage_num: int) -> bool:
+	if cleared_stages.has(stage_num):
+		return true
+	# 後続のステージが解放済みの場合は前ステージをクリア済みと判定
+	for s in unlocked_stages:
+		if s > stage_num:
+			return true
+	return false
+
+func mark_stage_cleared(stage_num: int) -> bool:
+	if not cleared_stages.has(stage_num):
+		cleared_stages.append(stage_num)
+		cleared_stages.sort()
+		save_game()
+		return true
+	return false
+
+func is_stage_hard_unlocked(stage_num: int) -> bool:
+	return is_stage_cleared(stage_num)
+
 func get_stage_difficulty_multiplier(stage_num: int) -> float:
-	# ステージが進むごとに1.2倍ずつ敵の強さ（HP・攻撃力）が段階的に強くなる
-	# Stage 1: 1.000x, Stage 2: 1.200x, Stage 3: 1.440x, Stage 4: 1.728x, Stage 5: 2.074x
+	# ステージが進むごとの敵の強さ（HP・攻撃力）の上昇率を大幅に緩和
+	# Stage 1: 1.000x, Stage 2: 1.080x, Stage 3: 1.166x, Stage 4: 1.260x, Stage 5: 1.360x
 	var exp_step = max(0, stage_num - 1)
-	return pow(1.2, float(exp_step))
+	return pow(1.08, float(exp_step))
 
 # Weapon Dictionary Definition
 var available_weapons: Dictionary = {
@@ -572,10 +639,12 @@ func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -
 	config.set_value("game", "is_first_launch", is_first_launch)
 	config.set_value("game", "tech_points", tech_points)
 	config.set_value("game", "equipped_shield", equipped_shield)
+	config.set_value("game", "equipped_counter_weapon", equipped_counter_weapon)
 	config.set_value("game", "unlocked_shields", unlocked_shields)
 	config.set_value("game", "unlocked_weapons", unlocked_weapons)
 	config.set_value("game", "unlocked_counter_weapons", unlocked_counter_weapons)
 	config.set_value("game", "unlocked_stages", unlocked_stages)
+	config.set_value("game", "cleared_stages", cleared_stages)
 	config.set_value("game", "discovered_analysis_weapons", discovered_analysis_weapons)
 	config.set_value("game", "upgrade_levels", upgrade_levels)
 	config.set_value("game", "shield_radius_upgrades", shield_radius_upgrades)
@@ -585,6 +654,7 @@ func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -
 	config.set_value("game", "stage5_clears_count", stage5_clears_count)
 	config.set_value("game", "counter_only_mode_unlocked", counter_only_mode_unlocked)
 	config.set_value("game", "counter_only_mode_enabled", counter_only_mode_enabled)
+	config.set_value("game", "hard_mode_enabled", hard_mode_enabled)
 	config.set_value("game", "unlocked_tips", unlocked_tips)
 	config.set_value("game", "unread_tips", unread_tips)
 	config.set_value("game", "tutorial_flags", tutorial_flags)
@@ -601,10 +671,12 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"is_first_launch": is_first_launch,
 		"tech_points": tech_points,
 		"equipped_shield": equipped_shield,
+		"equipped_counter_weapon": equipped_counter_weapon,
 		"unlocked_shields": unlocked_shields,
 		"unlocked_weapons": unlocked_weapons,
 		"unlocked_counter_weapons": unlocked_counter_weapons,
 		"unlocked_stages": unlocked_stages,
+		"cleared_stages": cleared_stages,
 		"discovered_analysis_weapons": discovered_analysis_weapons,
 		"upgrade_levels": upgrade_levels,
 		"shield_radius_upgrades": shield_radius_upgrades,
@@ -614,6 +686,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"stage5_clears_count": stage5_clears_count,
 		"counter_only_mode_unlocked": counter_only_mode_unlocked,
 		"counter_only_mode_enabled": counter_only_mode_enabled,
+		"hard_mode_enabled": hard_mode_enabled,
 		"unlocked_tips": ["tip_move", "tip_shoot"],
 		"unread_tips": ["tip_move", "tip_shoot"],
 		"tutorial_flags": tutorial_flags
@@ -626,10 +699,12 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["is_first_launch"] = config.get_value("game", "is_first_launch", true)
 		data["tech_points"] = config.get_value("game", "tech_points", 0)
 		data["equipped_shield"] = config.get_value("game", "equipped_shield", equipped_shield)
+		data["equipped_counter_weapon"] = config.get_value("game", "equipped_counter_weapon", "turret")
 		data["unlocked_shields"] = config.get_value("game", "unlocked_shields", ["counter"])
 		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "burst_rifle", "pulse_gun"])
-		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", [])
+		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", ["turret", "funnel"])
 		data["unlocked_stages"] = config.get_value("game", "unlocked_stages", [1])
+		data["cleared_stages"] = config.get_value("game", "cleared_stages", [])
 		data["discovered_analysis_weapons"] = config.get_value("game", "discovered_analysis_weapons", [])
 		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0})
 		data["shield_radius_upgrades"] = config.get_value("game", "shield_radius_upgrades", {"counter": 0, "gauge": 0, "power": 0})
@@ -639,6 +714,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["stage5_clears_count"] = config.get_value("game", "stage5_clears_count", 0)
 		data["counter_only_mode_unlocked"] = config.get_value("game", "counter_only_mode_unlocked", false)
 		data["counter_only_mode_enabled"] = config.get_value("game", "counter_only_mode_enabled", false)
+		data["hard_mode_enabled"] = config.get_value("game", "hard_mode_enabled", false)
 		data["unlocked_tips"] = config.get_value("game", "unlocked_tips", ["tip_move", "tip_shoot"])
 		data["unread_tips"] = config.get_value("game", "unread_tips", ["tip_move", "tip_shoot"])
 		data["tutorial_flags"] = config.get_value("game", "tutorial_flags", {
@@ -653,6 +729,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			is_first_launch = data["is_first_launch"]
 			tech_points = data["tech_points"]
 			equipped_shield = data["equipped_shield"]
+			equipped_counter_weapon = data["equipped_counter_weapon"]
 			unlocked_shields = data["unlocked_shields"]
 			unlocked_weapons = data["unlocked_weapons"]
 			unlocked_counter_weapons = data["unlocked_counter_weapons"]
@@ -660,6 +737,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			if not unlocked_stages.has(1):
 				unlocked_stages.append(1)
 				unlocked_stages.sort()
+			cleared_stages = data["cleared_stages"]
 			discovered_analysis_weapons = data["discovered_analysis_weapons"]
 			upgrade_levels = data["upgrade_levels"]
 			shield_radius_upgrades = data["shield_radius_upgrades"]
@@ -669,6 +747,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			stage5_clears_count = data["stage5_clears_count"]
 			counter_only_mode_unlocked = data["counter_only_mode_unlocked"]
 			counter_only_mode_enabled = data["counter_only_mode_enabled"]
+			hard_mode_enabled = data["hard_mode_enabled"]
 			unlocked_tips = data["unlocked_tips"]
 			unread_tips = data["unread_tips"]
 			tutorial_flags = data["tutorial_flags"]
@@ -689,11 +768,13 @@ func reset_tech_points() -> void:
 func reset_development_progress() -> void:
 	discovered_analysis_weapons = []
 	unlocked_weapons = ["machine_gun", "burst_rifle", "pulse_gun"]
-	unlocked_counter_weapons = []
+	unlocked_counter_weapons = ["turret", "funnel"]
 	unlocked_shields = ["counter"]
 	equipped_shield = "counter"
+	equipped_counter_weapon = "turret"
 	equipped_weapon = "machine_gun"
 	unlocked_stages = [1]
+	cleared_stages = []
 	shield_radius_upgrades = {"counter": 0, "gauge": 0, "power": 0}
 	just_guard_focus_mode = 0
 	counter_system_duration_lvl = 0
@@ -701,6 +782,7 @@ func reset_development_progress() -> void:
 	stage5_clears_count = 0
 	counter_only_mode_unlocked = false
 	counter_only_mode_enabled = false
+	hard_mode_enabled = false
 	tutorial_flags = {
 		"controls": false,
 		"weapon_analysis": false,
@@ -765,6 +847,26 @@ func is_tip_unread(tip_id: String) -> bool:
 func get_unread_tips_count() -> int:
 	return unread_tips.size()
 
+var readable_font: Font = null
+
+func get_readable_font() -> Font:
+	if readable_font == null:
+		var sf = SystemFont.new()
+		sf.font_names = PackedStringArray([
+			"Yu Gothic UI",
+			"Meiryo",
+			"Hiragino Sans",
+			"Hiragino Kaku Gothic ProN",
+			"Noto Sans CJK JP",
+			"Noto Sans JP",
+			"MS Gothic",
+			"sans-serif"
+		])
+		sf.antialiasing = TextServer.FONT_ANTIALIASING_LCD
+		sf.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
+		readable_font = sf
+	return readable_font
+
 # --- COUNTER SYSTEM パラメータ計算 ---
 
 func get_counter_system_duration() -> float:
@@ -772,14 +874,14 @@ func get_counter_system_duration() -> float:
 	return 10.0 + counter_system_duration_lvl * 2.0
 
 func get_counter_system_power_multiplier() -> float:
-	# 1.0倍 -> 1.2倍 -> 1.5倍 -> 2.0倍 -> 3.0倍 -> 5.0倍
+	# 1.0倍 -> 1.15倍 -> 1.30倍 -> 1.45倍 -> 1.60倍 -> 1.80倍
 	match counter_system_power_lvl:
 		0: return 1.0
-		1: return 1.2
-		2: return 1.5
-		3: return 2.0
-		4: return 3.0
-		5: return 5.0
+		1: return 1.15
+		2: return 1.30
+		3: return 1.45
+		4: return 1.60
+		5: return 1.80
 	return 1.0
 
 # --- ジャストガード判定範囲 ＆ 威力倍率の計算 ---
@@ -814,8 +916,8 @@ func get_just_guard_damage_multiplier() -> float:
 	# フォーカス設定によるジャストガード反射威力倍率
 	match just_guard_focus_mode:
 		0: return 1.00 # 標準
-		1: return 1.50 # 集中: 1.5倍 (+50%)
-		2: return 2.20 # 極小ピンポイント: 2.2倍 (+120%)
+		1: return 1.20 # 集中: 1.2倍 (+20%)
+		2: return 1.40 # 極小ピンポイント: 1.4倍 (+40%)
 	return 1.00
 
 func get_focus_mode_info(mode: int = -1) -> Dictionary:
@@ -834,16 +936,16 @@ func get_focus_mode_info(mode: int = -1) -> Dictionary:
 				"mode": 1,
 				"name": "FOCUS [集中]",
 				"radius_pct": "75% (-25%)",
-				"dmg_mult": "1.5倍 (+50%)",
-				"description": "有効範囲を25%絞る代わりに、ジャストガード反射弾の威力が1.5倍に強化。"
+				"dmg_mult": "1.2倍 (+20%)",
+				"description": "有効範囲を25%絞る代わりに、ジャストガード反射弾の威力が1.2倍に強化。"
 			}
 		2:
 			return {
 				"mode": 2,
 				"name": "PINPOINT [極小高出力]",
 				"radius_pct": "50% (-50%)",
-				"dmg_mult": "2.2倍 (+120%)",
-				"description": "有効範囲が半分になるハイリスク設定。成功時は反射弾が2.2倍の壊滅的破壊力に跳ね上がる！"
+				"dmg_mult": "1.4倍 (+40%)",
+				"description": "有効範囲が半分になるハイリスク設定。成功時は反射弾が1.4倍の破壊力に跳ね上がる！"
 			}
 	return {}
 
@@ -858,6 +960,15 @@ func save_settings() -> void:
 	config.set_value("display", "vsync", vsync)
 	config.set_value("gameplay", "screen_shake", screen_shake)
 	config.set_value("player", "player_color", player_color)
+	config.set_value("controls", "move_preset", control_move_preset)
+	config.set_value("controls", "key_counter", key_counter_system)
+	config.set_value("controls", "key_shield", key_shield)
+	config.set_value("controls", "key_up", key_up)
+	config.set_value("controls", "key_down", key_down)
+	config.set_value("controls", "key_left", key_left)
+	config.set_value("controls", "key_right", key_right)
+	config.set_value("controls", "key_w_prev", key_weapon_prev)
+	config.set_value("controls", "key_w_next", key_weapon_next)
 	config.save(SETTINGS_PATH)
 
 func load_settings() -> void:
@@ -872,6 +983,15 @@ func load_settings() -> void:
 		vsync = config.get_value("display", "vsync", true)
 		screen_shake = config.get_value("gameplay", "screen_shake", true)
 		player_color = config.get_value("player", "player_color", "blue")
+		control_move_preset = config.get_value("controls", "move_preset", config.get_value("controls", "move_type", 0))
+		key_counter_system = config.get_value("controls", "key_counter", KEY_X)
+		key_shield = config.get_value("controls", "key_shield", KEY_SPACE)
+		key_up = config.get_value("controls", "key_up", KEY_W)
+		key_down = config.get_value("controls", "key_down", KEY_S)
+		key_left = config.get_value("controls", "key_left", KEY_A)
+		key_right = config.get_value("controls", "key_right", KEY_D)
+		key_weapon_prev = config.get_value("controls", "key_w_prev", KEY_Q)
+		key_weapon_next = config.get_value("controls", "key_w_next", KEY_E)
 
 func apply_all_settings() -> void:
 	apply_audio()
@@ -983,7 +1103,7 @@ func auto_scale_display() -> void:
 	
 	# Center the window
 	var screen_pos = DisplayServer.screen_get_position()
-	var window_pos = screen_pos + (screen_size - target_size) / 2
+	var window_pos = screen_pos + Vector2i((Vector2(screen_size - target_size) * 0.5).round())
 	window_pos.y = max(window_pos.y, 40)
 	if win:
 		win.position = window_pos
@@ -1072,6 +1192,26 @@ func play_explosion(pitch: float = 1.0) -> void:
 
 func play_laser(pitch: float = 1.0) -> void:
 	play_sound("laser", pitch, 0.04)
+
+
+func play_upgrade_success(pitch: float = 1.0) -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_upgrade_success"):
+		audio_mgr.play_upgrade_success()
+	else:
+		play_sound("upgrade", pitch, 0.05)
+
+
+func play_ui_select() -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_ui_select"):
+		audio_mgr.play_ui_select()
+
+
+func play_ui_cancel() -> void:
+	var audio_mgr = get_node_or_null("/root/AudioManager")
+	if audio_mgr and audio_mgr.has_method("play_ui_cancel"):
+		audio_mgr.play_ui_cancel()
 
 
 func _exit_tree() -> void:

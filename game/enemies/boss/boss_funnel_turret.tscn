@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://game/enemies/boss/boss_funnel_turret.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://game/assets/boss/stage3/stage3_enemy4.png" id="2_texture"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_funnel"]
+radius = 28.0
+
+[node name="BossFunnelTurret" type="Area2D"]
+z_index = -5
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.32, 0.32)
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_funnel")
+debug_color = Color(0.9, 0.2, 0.9, 0.4)

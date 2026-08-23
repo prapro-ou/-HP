@@ -58,7 +58,7 @@ var charge_timer: float = 0.0
 
 var contact_damage_timer: float = 0.0
 const CONTACT_DAMAGE_INTERVAL: float = 1.0
-const CONTACT_DAMAGE_AMOUNT: int = 30
+const CONTACT_DAMAGE_AMOUNT: int = 12
 var is_touching_player: bool = false
 
 
@@ -98,9 +98,9 @@ func _ready_enemy() -> void:
 		var total_tech_lvls = Global.upgrade_levels.get("hp", 0) + Global.upgrade_levels.get("parry_window", 0) + Global.upgrade_levels.get("cooldown", 0)
 		base_hp += total_tech_lvls * 10
 		
-	# ステージ進行による1.2倍指数スケーリング (Stage 1: 1.0x, Stage 2: 1.2x, Stage 3: 1.44x...)
+	# ステージ進行による1.08倍指数スケーリング & ハードモード倍率
 	var stage_mult = Global.get_stage_difficulty_multiplier(stage_num)
-	max_hp = int(base_hp * stage_mult)
+	max_hp = int(base_hp * stage_mult * Global.get_enemy_hp_multiplier())
 	current_hp = max_hp
 	
 	# タイプ別に攻撃スパンと行動範囲・高度・飛行パターンを設定
@@ -181,6 +181,8 @@ func _ready_enemy() -> void:
 			speed = 135.0
 			move_direction = Vector2(dir_x, 0.0)
 		
+	# ハードモード攻撃スパン短縮 (攻撃頻度 1.3倍)
+	shoot_interval = max(0.4, shoot_interval * Global.get_enemy_attack_interval_multiplier())
 	target_y = base_y
 	time_since_last_shot = randf_range(0.0, shoot_interval * 0.75)
 	
@@ -366,7 +368,7 @@ func shoot() -> void:
 						var bullet = bullet_pool.get_bullet("straight")
 						if bullet:
 							bullet.global_position = global_position + Vector2(0.0, 20.0)
-							bullet.damage = int(16 * mult)
+							bullet.damage = int(10 * mult)
 							bullet.set_direction(dir, 320.0)
 				)
 		TYPE_BEAM, TYPE_LASER:
@@ -378,7 +380,7 @@ func shoot() -> void:
 				var bullet = bullet_pool.get_bullet("laser")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 20.0)
-					bullet.damage = int(20 * mult)
+					bullet.damage = int(12 * mult)
 					bullet.set_direction(center_dir.rotated(a), 340.0)
 		TYPE_IRREGULAR:
 			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
@@ -390,7 +392,7 @@ func shoot() -> void:
 						var bullet = bullet_pool.get_bullet("irregular")
 						if bullet:
 							bullet.global_position = global_position + Vector2(0.0, 20.0)
-							bullet.damage = int(16 * mult)
+							bullet.damage = int(10 * mult)
 							bullet.set_direction(dir, 280.0)
 				)
 		TYPE_WAVE:
@@ -399,7 +401,7 @@ func shoot() -> void:
 				var bullet = bullet_pool.get_bullet("wave")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 20.0)
-					bullet.damage = int(16 * mult)
+					bullet.damage = int(10 * mult)
 					bullet.set_direction(Vector2.DOWN.rotated(a), 260.0)
 		TYPE_THUNDER:
 			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
@@ -409,7 +411,7 @@ func shoot() -> void:
 						var bullet = bullet_pool.get_bullet("thunder")
 						if bullet:
 							bullet.global_position = global_position + Vector2(randf_range(-15, 15), 20.0)
-							bullet.damage = int(24 * mult)
+							bullet.damage = int(14 * mult)
 							bullet.set_direction(base_dir.rotated(randf_range(-0.25, 0.25)), 350.0)
 				)
 		TYPE_VORTEX:
@@ -417,7 +419,7 @@ func shoot() -> void:
 			var bullet = bullet_pool.get_bullet("vortex")
 			if bullet:
 				bullet.global_position = global_position + Vector2(0.0, 20.0)
-				bullet.damage = int(28 * mult)
+				bullet.damage = int(15 * mult)
 				bullet.set_direction(dir, 260.0)
 		TYPE_BLADE:
 			var dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
@@ -425,7 +427,7 @@ func shoot() -> void:
 				var bullet = bullet_pool.get_bullet("blade")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 20.0)
-					bullet.damage = int(24 * mult)
+					bullet.damage = int(14 * mult)
 					bullet.set_direction(dir.rotated(a), 320.0)
 		TYPE_MISSILE, _:
 			var dir = Vector2.DOWN
@@ -438,7 +440,7 @@ func shoot() -> void:
 						if bullet:
 							var offset_x = -15.0 if i == 0 else 15.0
 							bullet.global_position = global_position + Vector2(offset_x, 20.0)
-							bullet.damage = int(20 * mult)
+							bullet.damage = int(12 * mult)
 							var shoot_dir = dir.rotated(randf_range(-0.1, 0.1))
 							bullet.set_direction(shoot_dir, 240.0)
 				)
@@ -457,7 +459,7 @@ func fire_charged_shot() -> void:
 				var bullet = bullet_pool.get_bullet("charge")
 				if bullet:
 					bullet.global_position = global_position + Vector2(0.0, 25.0)
-					bullet.damage = int(32 * mult)
+					bullet.damage = int(18 * mult)
 					bullet.set_direction(dir, 480.0)
 		)
 

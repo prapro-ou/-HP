@@ -7,7 +7,6 @@ extends Node2D
 
 const TURRET_SCENE: PackedScene = preload("res://game/enemies/boss/boss_turret.tscn")
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
-const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var max_hp: int = 7500
 var current_hp: int = 7500
@@ -32,6 +31,7 @@ func _ready() -> void:
 	add_to_group("enemy")
 	add_to_group("boss")
 	
+	max_hp = int(max_hp * Global.get_enemy_hp_multiplier())
 	current_hp = max_hp
 	is_alive = true
 	is_active = false
@@ -87,8 +87,8 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 		if TURRET_SCENE:
 			var turret = TURRET_SCENE.instantiate()
 			turret.turret_type = cfg["type"]
-			turret.max_hp = 900
-			turret.current_hp = 900
+			turret.max_hp = int(900 * Global.get_enemy_hp_multiplier())
+			turret.current_hp = turret.max_hp
 			get_parent().add_child(turret)
 			turret.spawn_intro(cfg["start"], cfg["target"], duration)
 			turrets.append(turret)
@@ -150,8 +150,9 @@ func _process(delta: float) -> void:
 	process_proximity_counter_attack(delta)
 	
 	fire_timer += delta
-	# 弱点露出中はボスが隙を見せるため攻撃頻度が少し緩和、砲台撃破後は手数が倍増
-	var attack_interval = 1.6 if is_break_vulnerable else (1.0 if is_enraged else 2.4)
+	# 弱点露出中はボスが隙を見せるため攻撃頻度が少し緩和、砲台撃破後は手数が倍増 (ハードモード時はさらに1.3倍高速化)
+	var base_interval = 1.6 if is_break_vulnerable else (1.0 if is_enraged else 2.4)
+	var attack_interval = base_interval * Global.get_enemy_attack_interval_multiplier()
 	if fire_timer >= attack_interval:
 		fire_timer = 0.0
 		execute_fortress_attack()
@@ -423,8 +424,8 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 			var tween = create_tween()
 			tween.tween_property(sprite, "modulate", Color(0.95, 0.98, 1.0, 1.0), 0.08)
 	elif is_break_vulnerable:
-		# 【BREAK中】弱点コア露出: ダメージ 2.0倍 (200%)！
-		final_dmg = int(amount * 2.0)
+		# 【BREAK中】弱点コア露出: ダメージ 1.3倍 (130%)
+		final_dmg = int(amount * 1.3)
 		is_break_hit = true
 		
 		# クリティカル・ヘビーヒット音 & 黄金スパーク
@@ -481,25 +482,26 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 		call_deferred("destroy_boss")
 
 
-func spawn_shield_message(text: String, text_color: Color = Color(1.0, 0.3, 0.3), duration: float = 1.4) -> void:
+func spawn_shield_message(text: String, text_color: Color = Color(1.0, 0.4, 0.4), duration: float = 1.2) -> void:
 	var label = Label.new()
 	label.text = text
 	var label_set = LabelSettings.new()
 	var pixel_font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 	if pixel_font:
 		label_set.font = pixel_font
-	label_set.font_size = 20
+	label_set.font_size = 14
 	label_set.font_color = text_color
-	label_set.outline_size = 4
+	label_set.outline_size = 2
 	label_set.outline_color = Color.BLACK
 	label.label_settings = label_set
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 250, 180)
-	label.custom_minimum_size = Vector2(500, 30)
+	label.global_position = Vector2(get_viewport_rect().size.x / 2.0 - 250, 115)
+	label.custom_minimum_size = Vector2(500, 24)
+	label.modulate.a = 0.70
 	get_parent().add_child(label)
 	
 	var tween = create_tween()
-	tween.tween_property(label, "global_position:y", label.global_position.y - 30.0, duration)
+	tween.tween_property(label, "global_position:y", label.global_position.y - 18.0, duration)
 	tween.tween_property(label, "modulate:a", 0.0, duration)
 	tween.chain().tween_callback(label.queue_free)
 
@@ -642,4 +644,3 @@ func convert_all_bullets_to_data_orbs(player_node: CharacterBody2D) -> void:
 
 func get_current_hp() -> int:
 	return current_hp
-

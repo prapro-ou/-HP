@@ -10,7 +10,11 @@ const BULLET_TYPE_MISSILE = "missile"
 const BULLET_TYPE_BOSS_LASER = "boss_laser"
 const BULLET_TYPE_BOSS_MISSILE = "boss_missile"
 const BULLET_TYPE_DECEL_MISSILE = "decel_missile"
+const BULLET_TYPE_CLUSTER = "cluster_bomb"
 const BULLET_TYPE_UNPARRYABLE = "unparryable_laser"
+const BULLET_TYPE_ACCEL_LINE = "accel_line"
+const BULLET_TYPE_RAPID_SNIPER = "rapid_sniper"
+const BULLET_TYPE_GIGANTIC_ORB = "gigantic_orb"
 
 # カラー定数
 const COLOR_FRIENDLY = Color(0.25, 0.95, 1.0) # パリィ反射時は鮮やかなネオンシアン＆白光
@@ -19,6 +23,7 @@ const COLOR_MISSILE = Color(0.8, 0.2, 1.0)
 const COLOR_BOSS_LASER = Color(1.0, 0.1, 0.1)
 const COLOR_BOSS_MISSILE = Color(0.9, 0.6, 0.1)
 const COLOR_DECEL_MISSILE = Color(1.0, 0.4, 0.8)
+const COLOR_CLUSTER = Color(1.0, 0.6, 0.15)
 const COLOR_UNPARRYABLE = Color(1.0, 0.05, 0.15) # 鮮烈な真紅・パリィ不可
 
 # 速度・反射マルチプライヤー
@@ -42,6 +47,13 @@ var initial_speed: float = 350.0
 var decel_timer: float = 0.0
 var decel_phase: int = 0 # 0: 減速中 (0~1.0s), 1: 急加速追尾 (1.0s~)
 
+# 2段階加速弾用変数 (1秒間は低速、直後に倍速)
+var accel_line_timer: float = 1.0
+var has_accelerated: bool = false
+
+# クラスター分裂弾用変数
+var cluster_timer: float = 0.85
+
 # ライフタイム＆自然消滅管理（処理落ち防止）
 var lifetime: float = 0.0
 var max_lifetime: float = 7.5
@@ -51,11 +63,14 @@ const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_part
 
 
 func _ready() -> void:
-	z_index = 50
+	z_index = 70
 	z_as_relative = false
 	is_friendly = false
 	decel_timer = 0.0
 	decel_phase = 0
+	accel_line_timer = 1.0
+	has_accelerated = false
+	cluster_timer = 0.85
 	lifetime = 0.0
 	is_dissolving = false
 	target_node = null
@@ -114,6 +129,18 @@ func update_bullet_color() -> void:
 			BULLET_TYPE_DECEL_MISSILE:
 				modulate = Color(1.0, 0.3, 0.8) # 減速追尾ピンク
 				if sprite: sprite.scale = Vector2(0.7, 0.7)
+			BULLET_TYPE_CLUSTER, "cluster":
+				modulate = COLOR_CLUSTER # 巨大オレンジクラスター弾
+				if sprite: sprite.scale = Vector2(1.2, 1.2)
+			BULLET_TYPE_ACCEL_LINE, "accel_line":
+				modulate = Color(1.0, 0.72, 0.2) # オレンジ発光
+				if sprite: sprite.scale = Vector2(0.65, 0.65)
+			BULLET_TYPE_RAPID_SNIPER, "rapid_sniper":
+				modulate = Color(0.2, 0.95, 1.0) # 高速スナイパーシアン
+				if sprite: sprite.scale = Vector2(0.35, 1.8)
+			BULLET_TYPE_GIGANTIC_ORB, "gigantic_orb":
+				modulate = Color(0.88, 0.35, 1.0) # プレイヤーより巨大な重力プラズマ弾
+				if sprite: sprite.scale = Vector2(3.8, 3.8)
 			_:
 				modulate = COLOR_BEAM
 
@@ -125,6 +152,15 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, 10.0, Color(0.12, 0.0, 0.02, 0.7))
 		draw_arc(Vector2.ZERO, 16.0 + pulse * 4.0, 0, TAU, 28, Color(1.0, 0.05, 0.15, 0.9), 3.0)
 		draw_arc(Vector2.ZERO, 22.0 + pulse * 2.0, 0, TAU, 28, Color(1.0, 0.2, 0.3, 0.4), 1.5)
+		
+	# 巨大エネルギー弾の多層プラズマ描画
+	if bullet_type == BULLET_TYPE_GIGANTIC_ORB or bullet_type == "gigantic_orb":
+		var pulse = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.015)
+		var col = COLOR_FRIENDLY if is_friendly else Color(0.85, 0.25, 1.0)
+		draw_circle(Vector2.ZERO, 50.0 + pulse * 6.0, Color(col.r, col.g, col.b, 0.22))
+		draw_circle(Vector2.ZERO, 36.0 + pulse * 3.0, Color(col.r, col.g, col.b, 0.45))
+		draw_circle(Vector2.ZERO, 20.0, Color(1.0, 1.0, 1.0, 0.95))
+		draw_arc(Vector2.ZERO, 55.0 + pulse * 8.0, 0, TAU, 32, col, 2.5)
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -145,10 +181,16 @@ func _on_area_entered(area: Area2D) -> void:
 			if not area.has_method("take_damage") and area.get_parent() and area.get_parent().has_method("take_damage"):
 				damage_target = area.get_parent()
 				
+			var is_turret = area.is_in_group("boss_turrets") or (is_instance_valid(damage_target) and damage_target.is_in_group("boss_turrets"))
+			# 砲台に対してジャストガード反射弾は特効ボーナス（格段に速く撃破可能）
+			var dealt_damage = int(damage * (2.8 if is_turret else 1.0))
+			if bullet_type == BULLET_TYPE_GIGANTIC_ORB or bullet_type == "gigantic_orb":
+				dealt_damage = int(dealt_damage * 3.5) # 巨大オーブ反射は極大破壊力
+			
 			if damage_target.has_method("take_damage"):
-				damage_target.take_damage(damage)
+				damage_target.take_damage(dealt_damage, global_position, is_turret)
 			elif damage_target.has_method("take_damage_on_part"):
-				damage_target.take_damage_on_part("core", damage)
+				damage_target.take_damage_on_part("core", dealt_damage, global_position, is_turret)
 			recycle_bullet()
 
 
@@ -164,6 +206,23 @@ func _process(delta: float) -> void:
 			velocity = velocity.lerp(target_velocity, delta * HOMING_LERP_SPEED)
 			
 	else:
+		# 2段階加速弾処理 (発射後1秒間は遅く、直後に倍速加速)
+		if (bullet_type == BULLET_TYPE_ACCEL_LINE or bullet_type == "accel_line") and not is_friendly:
+			if not has_accelerated:
+				accel_line_timer -= delta
+				if accel_line_timer <= 0.0:
+					has_accelerated = true
+					speed *= 2.0
+					velocity = velocity.normalized() * speed
+					modulate = Color(1.0, 0.4, 0.1) # 点火加速オレンジ
+					if PARRY_PARTICLE_SCENE and get_parent():
+						var p = PARRY_PARTICLE_SCENE.instantiate()
+						p.global_position = global_position
+						p.scale = Vector2(1.5, 1.5)
+						p.modulate = Color(1.0, 0.6, 0.1)
+						get_parent().add_child(p)
+					Global.play_laser(1.4)
+
 		# 減速 -> 急加速追尾ミサイル処理
 		if bullet_type == BULLET_TYPE_DECEL_MISSILE:
 			decel_timer += delta
@@ -187,6 +246,13 @@ func _process(delta: float) -> void:
 				if is_instance_valid(player):
 					var target_dir = (player.global_position - global_position).normalized()
 					velocity = velocity.lerp(target_dir * (initial_speed * 1.2), delta * 4.0)
+
+		# クラスター分裂弾処理 (0.85秒前進後、8方向へ放射分裂)
+		if (bullet_type == BULLET_TYPE_CLUSTER or bullet_type == "cluster") and not is_friendly:
+			cluster_timer -= delta
+			if cluster_timer <= 0.0:
+				trigger_cluster_split()
+				return
 
 	if velocity.length() < MIN_SAFETY_SPEED and decel_phase != 0:
 		if velocity == Vector2.ZERO:
@@ -223,6 +289,31 @@ func dissolve_and_recycle(spawn_particles: bool = true) -> void:
 		particle.modulate = Color(modulate.r, modulate.g, modulate.b, 0.6)
 		get_parent().add_child(particle)
 		
+	recycle_bullet()
+
+
+func trigger_cluster_split() -> void:
+	var main = get_node_or_null("/root/Main")
+	var pool = main.get_node_or_null("BulletPool") if main else null
+	Global.play_hit(randf_range(1.15, 1.35))
+	
+	if PARRY_PARTICLE_SCENE and get_parent():
+		var p = PARRY_PARTICLE_SCENE.instantiate()
+		p.global_position = global_position
+		p.scale = Vector2(2.0, 2.0)
+		p.modulate = Color(1.0, 0.65, 0.15)
+		get_parent().add_child(p)
+		
+	if pool:
+		var angles = [0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0]
+		for a in angles:
+			var sub_b = pool.get_bullet("wave")
+			if sub_b:
+				sub_b.global_position = global_position
+				sub_b.damage = int(max(6, damage * 0.45))
+				var dir = Vector2.DOWN.rotated(deg_to_rad(a))
+				sub_b.set_direction(dir, 260.0)
+				
 	recycle_bullet()
 
 
@@ -270,7 +361,8 @@ func convert_to_friendly() -> void:
 		return
 	is_friendly = true
 	var f_mult = Global.get_just_guard_damage_multiplier()
-	damage = int(damage * 3.5 * f_mult) # ジャストガード反射ボーナスダメージ (フォーカス設定でさらに威力激増！)
+	# ジャストガード反射ボーナスダメージ: 最低25ダメージ保証＆基礎威力2.2倍＋フォーカス倍率
+	damage = int(max(damage * 2.2, 25.0) * f_mult)
 	
 	# スピード上昇と方向反転
 	velocity = -velocity * PARRY_SPEED_MULTIPLIER

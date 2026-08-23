@@ -59,12 +59,15 @@ func _ready() -> void:
 	# 主兵装HUD表示
 	create_equipped_weapon_hud()
 	
-	# 中央ボス情報配置
-	boss_hp_label.position = Vector2(250, 10)
+	# 中央〜右側ボス情報配置 (大迫力のロングHPゲージ)
+	boss_hp_label.position = Vector2(260, 6)
+	boss_hp_label.custom_minimum_size = Vector2(520, 22)
+	boss_hp_label.size = Vector2(520, 22)
 	boss_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	boss_hp_bar.position = Vector2(250, 32)
-	boss_hp_bar.custom_minimum_size = Vector2(240, 16)
-	boss_hp_bar.size = Vector2(240, 16)
+	boss_hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	boss_hp_bar.position = Vector2(260, 30)
+	boss_hp_bar.custom_minimum_size = Vector2(520, 20)
+	boss_hp_bar.size = Vector2(520, 20)
 	
 	create_shield_heat_bar()
 	create_analysis_matrix_ui()
@@ -101,7 +104,7 @@ func create_top_warning_ui() -> void:
 	top_warning_overlay.anchor_left = 0.0
 	top_warning_overlay.anchor_right = 1.0
 	top_warning_overlay.offset_top = 0.0
-	top_warning_overlay.offset_bottom = 260.0
+	top_warning_overlay.offset_bottom = 65.0
 	top_warning_overlay.color = Color(1.0, 0.0, 0.08, 0.0)
 	top_warning_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(top_warning_overlay)
@@ -110,17 +113,17 @@ func create_top_warning_ui() -> void:
 	top_warning_label.name = "TopWarningLabel"
 	top_warning_label.anchor_left = 0.0
 	top_warning_label.anchor_right = 1.0
-	top_warning_label.offset_top = 110.0
-	top_warning_label.offset_bottom = 160.0
+	top_warning_label.offset_top = 18.0
+	top_warning_label.offset_bottom = 55.0
 	top_warning_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	top_warning_label.text = "DANGER: ガード不可攻撃警告\n【GUARD IMPOSSIBLE - EVADE!】"
+	top_warning_label.text = "DANGER: ガード不可攻撃警告 【GUARD IMPOSSIBLE - EVADE!】"
 	var l_set = LabelSettings.new()
 	if PIXEL_FONT:
 		l_set.font = PIXEL_FONT
-	l_set.font_size = 20
-	l_set.font_color = Color(1.0, 0.25, 0.25)
-	l_set.outline_size = 6
-	l_set.outline_color = Color(0.15, 0.0, 0.0)
+	l_set.font_size = 14
+	l_set.font_color = Color(1.0, 0.4, 0.4)
+	l_set.outline_size = 3
+	l_set.outline_color = Color(0.1, 0.0, 0.0)
 	top_warning_label.label_settings = l_set
 	top_warning_label.modulate.a = 0.0
 	top_warning_overlay.add_child(top_warning_label)
@@ -132,27 +135,27 @@ func show_top_unparryable_warning(duration: float = 2.0, message: String = "") -
 	if message != "":
 		top_warning_label.text = message
 	else:
-		top_warning_label.text = "DANGER: ガード不可攻撃警告\n【GUARD IMPOSSIBLE - EVADE!】"
+		top_warning_label.text = "DANGER: ガード不可攻撃警告 【GUARD IMPOSSIBLE - EVADE!】"
 		
 	if is_instance_valid(top_warning_tween):
 		top_warning_tween.kill()
 		
 	top_warning_tween = create_tween().set_parallel(true)
-	# やんわり赤く点灯（alpha 0.35）
-	top_warning_tween.tween_property(top_warning_overlay, "color:a", 0.36, 0.3).set_trans(Tween.TRANS_SINE)
-	top_warning_tween.tween_property(top_warning_label, "modulate:a", 1.0, 0.3)
+	# 弾幕の視認性を最優先し、極めて控えめな半透明ティント（alpha 0.08）
+	top_warning_tween.tween_property(top_warning_overlay, "color:a", 0.08, 0.25).set_trans(Tween.TRANS_SINE)
+	top_warning_tween.tween_property(top_warning_label, "modulate:a", 0.75, 0.25)
 	
-	# やんわりパルス
+	# 控えめな微弱パルス
 	var pulse_loops = max(1, int(duration / 0.4))
 	var pulse_tween = create_tween().set_loops(pulse_loops)
-	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.20, 0.2).set_trans(Tween.TRANS_SINE)
-	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.40, 0.2).set_trans(Tween.TRANS_SINE)
+	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.04, 0.2).set_trans(Tween.TRANS_SINE)
+	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.08, 0.2).set_trans(Tween.TRANS_SINE)
 	
 	get_tree().create_timer(duration).timeout.connect(func():
 		if is_instance_valid(top_warning_overlay):
 			var fade_tween = create_tween().set_parallel(true)
-			fade_tween.tween_property(top_warning_overlay, "color:a", 0.0, 0.5).set_trans(Tween.TRANS_SINE)
-			fade_tween.tween_property(top_warning_label, "modulate:a", 0.0, 0.5).set_trans(Tween.TRANS_SINE)
+			fade_tween.tween_property(top_warning_overlay, "color:a", 0.0, 0.4).set_trans(Tween.TRANS_SINE)
+			fade_tween.tween_property(top_warning_label, "modulate:a", 0.0, 0.4).set_trans(Tween.TRANS_SINE)
 	)
 
 
@@ -273,7 +276,7 @@ var last_analysis_progress_val: float = 0.0
 func create_analysis_matrix_ui() -> void:
 	var trait_panel = PanelContainer.new()
 	trait_panel.name = "TraitSlotsPanel"
-	trait_panel.position = Vector2(440, 10)
+	trait_panel.position = Vector2(440, 58)
 	trait_panel.custom_minimum_size = Vector2(340, 130)
 	
 	var sb = StyleBoxFlat.new()
@@ -390,6 +393,9 @@ func create_analysis_matrix_ui() -> void:
 
 
 func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
+	if slot_cards.is_empty() or not is_instance_valid(active_analysis_bar):
+		return
+		
 	# 0. 2スロット揃っている場合は融合兵装名をヘッダーに表示
 	if active_traits.size() >= 2 and is_instance_valid(analysis_panel_title):
 		var f_info = Global.get_fusion_info(active_traits[0], active_traits[1])
@@ -400,7 +406,7 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 		analysis_panel_title.label_settings.font_color = Color.CYAN
 		
 	# 1. 2つの固定スロット表示の更新
-	for i in range(2):
+	for i in range(min(2, slot_cards.size())):
 		var card = slot_cards[i]
 		if i < active_traits.size():
 			var t_key = active_traits[i]
@@ -543,15 +549,18 @@ func show_stage_intro_banner(stage_num: int, stage_title: String, subtitle: Stri
 	bg_rect.anchor_bottom = 1.0
 	stage_intro_banner.add_child(bg_rect)
 	
+	var is_hard = Global.hard_mode_enabled if Global else false
+	var accent_col = Color(1.0, 0.3, 0.3, 0.9) if is_hard else Color(0.3, 0.9, 1.0, 0.8)
+	
 	# Top & Bottom accent lines
 	var line_top = ColorRect.new()
-	line_top.color = Color(0.3, 0.9, 1.0, 0.8)
+	line_top.color = accent_col
 	line_top.anchor_right = 1.0
 	line_top.offset_bottom = 2.0
 	stage_intro_banner.add_child(line_top)
 	
 	var line_bottom = ColorRect.new()
-	line_bottom.color = Color(0.3, 0.9, 1.0, 0.8)
+	line_bottom.color = accent_col
 	line_bottom.anchor_top = 1.0
 	line_bottom.anchor_right = 1.0
 	line_bottom.anchor_bottom = 1.0
@@ -573,9 +582,9 @@ func show_stage_intro_banner(stage_num: int, stage_title: String, subtitle: Stri
 	margin.add_child(vbox)
 	
 	var num_lbl = Label.new()
-	num_lbl.text = "── OPERATION STAGE %d ──" % stage_num
+	num_lbl.text = "── OPERATION STAGE %d%s ──" % [stage_num, " [HARD MODE]" if is_hard else ""]
 	num_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(num_lbl, 16, Color(0.3, 0.9, 1.0), 4)
+	setup_label_style(num_lbl, 16, accent_col, 4)
 	vbox.add_child(num_lbl)
 	
 	var title_lbl = Label.new()
@@ -880,24 +889,43 @@ func show_tutorial_guide_modal(topic: String) -> void:
 	
 	match topic:
 		"controls":
-			title_text = "【機体操作 ＆ ジャストガード指南】"
-			sub_text = "基本システムを把握し、激戦を生き残れ！"
+			title_text = "【機体操作 ＆ 戦闘システム指南】"
+			sub_text = "基本操作と必殺システムを把握し、激戦を制圧せよ！"
 			border_col = Color(0.2, 0.8, 1.0)
+			var move_k_str = "[WASD] / [方向キー]"
+			if Global.control_move_preset == 1:
+				move_k_str = "[WASDキー]"
+			elif Global.control_move_preset == 2:
+				move_k_str = "[方向キー (↑↓←→)]"
+			elif Global.control_move_preset == 3:
+				move_k_str = "[%s/%s/%s/%s]" % [
+					Global.get_key_display_name(Global.key_up),
+					Global.get_key_display_name(Global.key_left),
+					Global.get_key_display_name(Global.key_down),
+					Global.get_key_display_name(Global.key_right)
+				]
+			var shield_k_str = "[%sキー]" % Global.get_key_display_name(Global.key_shield)
+			var cs_k_str = "[%sキー]" % Global.get_counter_system_key_name()
 			items = [
 				{
 					"title": "機体移動",
 					"color": Color.CYAN,
-					"desc": "[W][A][S][D] / [方向キー] / [マウス移動]\n自機を360度自在に操り、敵の弾幕をすり抜けろ。"
+					"desc": "%s\n自機を自在に操り、敵の弾幕を掻い潜れ。（設定画面で変更可能）" % move_k_str
 				},
 				{
 					"title": "主兵装射撃",
 					"color": Color(0.4, 1.0, 0.5),
-					"desc": "[Zキー] / [左クリック]（押しっぱなしで自動連射）\n通常物理弾で雑魚ドローンを撃破し、侵攻を食い止めろ。"
+					"desc": "【常時フルオート自動連射】\n主兵装は常時自動で連射されます。攻撃キーの長押しは不要で、回避とシールド防御に集中できます。"
 				},
 				{
 					"title": "シールド ＆ ジャストガード",
 					"color": Color.GOLD,
-					"desc": "[スペースキー] / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【ジャストガード】発動！敵弾を反射弾に変換して大ダメージ＆機体修復！"
+					"desc": "%s / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【ジャストガード】発動！敵弾を反射弾に変換して大ダメージ＆機体修復！" % shield_k_str
+				},
+				{
+					"title": "COUNTER SYSTEM (必殺支援部隊)",
+					"color": Color(1.0, 0.45, 0.9),
+					"desc": "%s (設定画面で変更可能)\nボスタレット支援部隊を一斉召喚！全画面が機体色に染まり、圧倒的な高火力援護射撃で敵陣を殲滅！" % cs_k_str
 				}
 			]
 		"weapon_analysis":
@@ -1031,7 +1059,12 @@ func show_tutorial_guide_modal(topic: String) -> void:
 		var it_desc = Label.new()
 		it_desc.text = it.get("desc", "")
 		it_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		setup_label_style(it_desc, 17, Color.WHITE, 3)
+		it_desc.add_theme_constant_override("line_spacing", 4)
+		var desc_set = LabelSettings.new()
+		desc_set.font = Global.get_readable_font()
+		desc_set.font_size = 17
+		desc_set.font_color = Color(0.92, 0.96, 1.0)
+		it_desc.label_settings = desc_set
 		c_vbox.add_child(it_desc)
 		
 	var resume_btn = Button.new()
@@ -1309,6 +1342,8 @@ func setup_label_style(label: Label, size: int, color: Color, outline: int = 4) 
 
 
 func update_player_hp(current: int, max_hp_val: int) -> void:
+	if not is_instance_valid(player_hp_bar) or not is_instance_valid(player_hp_label):
+		return
 	player_hp_bar.max_value = max_hp_val
 	player_hp_bar.value = current
 	player_hp_label.text = "自機 HP: %d / %d" % [current, max_hp_val]
@@ -1316,78 +1351,85 @@ func update_player_hp(current: int, max_hp_val: int) -> void:
 
 func update_boss_hp(current: int, max_hp_val: int) -> void:
 	hide_wave_phase_hud()
-	boss_hp_bar.visible = true
-	boss_hp_label.visible = true
-	boss_hp_bar.max_value = max_hp_val
-	boss_hp_bar.value = current
-	boss_hp_label.text = "ボス HP: %d / %d" % [current, max_hp_val]
+	if is_instance_valid(boss_hp_bar):
+		boss_hp_bar.visible = true
+		boss_hp_bar.max_value = max_hp_val
+		boss_hp_bar.value = current
+	if is_instance_valid(boss_hp_label):
+		boss_hp_label.visible = true
+		boss_hp_label.text = "【BOSS TARGET】 HP: %d / %d" % [current, max_hp_val]
+
+
+func update_parry_count(count: int) -> void:
+	if is_instance_valid(parry_count_label):
+		parry_count_label.text = "PARRY: %d" % count
 
 
 func hide_boss_hp() -> void:
-	boss_hp_bar.visible = false
-	boss_hp_label.visible = false
+	if is_instance_valid(boss_hp_bar):
+		boss_hp_bar.visible = false
+	if is_instance_valid(boss_hp_label):
+		boss_hp_label.visible = false
 
 
 func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool, shield_type: String = "counter", gauge_timer: float = 0.0, max_gauge_ct: float = 3.0) -> void:
-	if is_instance_valid(shield_heat_bar):
-		if shield_type == "gauge":
-			# 吸収マトリクス (3.0s クールダウン表示)
-			shield_heat_bar.max_value = max_gauge_ct
-			shield_heat_bar.value = gauge_timer
-			
-			var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
-			if fg_style:
-				if is_guarding:
-					fg_style.bg_color = Color(0.2, 1.0, 0.6)
-				elif gauge_timer > 0.0:
-					var pct = (gauge_timer / max_gauge_ct)
-					fg_style.bg_color = Color(1.0, 0.45, 0.1).lerp(Color(1.0, 0.85, 0.2), 1.0 - pct)
-				else:
-					var flash = 0.6 + 0.4 * sin(Time.get_ticks_msec() * 0.015)
-					fg_style.bg_color = Color(0.1, 0.9, 0.5, flash)
-					
-			if gauge_timer > 0.0:
-				guard_status_label.text = "[RECHARGE] ABSORB CT: 冷却中 %.1fs" % gauge_timer
-				guard_status_label.label_settings.font_color = Color(1.0, 0.7, 0.3)
-			elif is_guarding:
-				guard_status_label.text = "吸収パルス展開中！"
-				guard_status_label.label_settings.font_color = Color(0.2, 1.0, 0.6)
+	if not is_instance_valid(shield_heat_bar) or not is_instance_valid(guard_status_label):
+		return
+	if shield_type == "gauge":
+		# 吸収マトリクス (3.0s クールダウン表示)
+		shield_heat_bar.max_value = max_gauge_ct
+		shield_heat_bar.value = gauge_timer
+		
+		var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
+		if fg_style:
+			if is_guarding:
+				fg_style.bg_color = Color(0.2, 1.0, 0.6)
+			elif gauge_timer > 0.0:
+				var pct = (gauge_timer / max_gauge_ct)
+				fg_style.bg_color = Color(1.0, 0.45, 0.1).lerp(Color(1.0, 0.85, 0.2), 1.0 - pct)
 			else:
-				guard_status_label.text = "吸収パルス準備完了 [Space]"
-				guard_status_label.label_settings.font_color = Color(0.3, 1.0, 0.6)
+				var flash = 0.6 + 0.4 * sin(Time.get_ticks_msec() * 0.015)
+				fg_style.bg_color = Color(0.1, 0.9, 0.5, flash)
+				
+		if gauge_timer > 0.0:
+			guard_status_label.text = "[RECHARGE] ABSORB CT: 冷却中 %.1fs" % gauge_timer
+			guard_status_label.label_settings.font_color = Color(1.0, 0.7, 0.3)
+		elif is_guarding:
+			guard_status_label.text = "吸収パルス展開中！"
+			guard_status_label.label_settings.font_color = Color(0.2, 1.0, 0.6)
 		else:
-			# 通常・カウンター・パワーシールド (ヒート制)
-			shield_heat_bar.max_value = max_heat
-			shield_heat_bar.value = heat
-			
-			var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
-			if fg_style:
-				if is_overheated:
-					var flash = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
-					fg_style.bg_color = Color(1.0, 0.1, 0.1).lerp(Color(0.4, 0.0, 0.0), flash)
-				elif is_guarding:
-					fg_style.bg_color = Color(0.2, 1.0, 1.0)
-				else:
-					var pct = (heat / max_heat)
-					if pct > 0.7:
-						fg_style.bg_color = Color(1.0, 0.45, 0.1)
-					elif pct > 0.35:
-						fg_style.bg_color = Color(1.0, 0.85, 0.2)
-					else:
-						fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
-	
+			guard_status_label.text = "吸収パルス準備完了 [Space]"
+			guard_status_label.label_settings.font_color = Color(0.3, 1.0, 0.6)
+	else:
+		# 通常・カウンター・パワーシールド (ヒート制)
+		shield_heat_bar.max_value = max_heat
+		shield_heat_bar.value = heat
+		
+		var fg_style = shield_heat_bar.get_theme_stylebox("fill") as StyleBoxFlat
+		if fg_style:
 			if is_overheated:
-				guard_status_label.text = "OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
-				guard_status_label.label_settings.font_color = Color.RED
+				var flash = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02)
+				fg_style.bg_color = Color(1.0, 0.1, 0.1).lerp(Color(0.4, 0.0, 0.0), flash)
 			elif is_guarding:
-				guard_status_label.text = "シールド: 展開中！"
-				guard_status_label.label_settings.font_color = Color.CYAN
+				fg_style.bg_color = Color(0.2, 1.0, 1.0)
 			else:
-				guard_status_label.text = "シールドヒート [Space]"
-				guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
+				var pct = (heat / max_heat)
+				if pct > 0.7:
+					fg_style.bg_color = Color(1.0, 0.45, 0.1)
+				elif pct > 0.35:
+					fg_style.bg_color = Color(1.0, 0.85, 0.2)
+				else:
+					fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
 
-
-
+		if is_overheated:
+			guard_status_label.text = "OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
+			guard_status_label.label_settings.font_color = Color.RED
+		elif is_guarding:
+			guard_status_label.text = "シールド: 展開中！"
+			guard_status_label.label_settings.font_color = Color.CYAN
+		else:
+			guard_status_label.text = "シールドヒート [Space]"
+			guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
 func trigger_flash(color: Color = Color(1.0, 1.0, 1.0, 0.5)) -> void:
@@ -1848,12 +1890,13 @@ func activate_counter_system_tint(duration: float) -> void:
 	if is_instance_valid(counter_system_banner):
 		counter_system_banner.visible = true
 		counter_system_banner.modulate.a = 0.0
-		counter_system_banner.position = Vector2(get_viewport_rect().size.x / 2.0 - 150.0, 75.0)
+		var vp_width = get_viewport().get_visible_rect().size.x if get_viewport() else 800.0
+		counter_system_banner.position = Vector2(vp_width / 2.0 - 150.0, 75.0)
 		var b_tween = create_tween()
 		b_tween.tween_property(counter_system_banner, "modulate:a", 1.0, 0.25)
 		
 	# 3. 画面フラッシュ
-	trigger_screen_flash(Color(p_accent.r, p_accent.g, p_accent.b, 0.45))
+	trigger_flash(Color(p_accent.r, p_accent.g, p_accent.b, 0.45))
 
 func create_counter_system_banner(p_accent: Color) -> void:
 	counter_system_banner = PanelContainer.new()
@@ -1939,3 +1982,14 @@ func deactivate_counter_system_tint() -> void:
 			if is_instance_valid(counter_system_banner):
 				counter_system_banner.visible = false
 		)
+
+
+func reset_counter_system_ui() -> void:
+	counter_system_active = false
+	counter_system_remaining_time = 0.0
+	if is_instance_valid(counter_system_tint_rect):
+		counter_system_tint_rect.visible = false
+		counter_system_tint_rect.color.a = 0.0
+	if is_instance_valid(counter_system_banner):
+		counter_system_banner.visible = false
+		counter_system_banner.modulate.a = 0.0

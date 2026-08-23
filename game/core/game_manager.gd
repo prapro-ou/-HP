@@ -95,6 +95,10 @@ func clean_stage_entities() -> void:
 		if is_instance_valid(node):
 			node.queue_free()
 			
+	for node in get_tree().get_nodes_in_group("support_turrets"):
+		if is_instance_valid(node):
+			node.queue_free()
+			
 	if is_instance_valid(current_stage):
 		current_stage.queue_free()
 		current_stage = null
@@ -111,6 +115,14 @@ func clean_stage_entities() -> void:
 	
 	if is_instance_valid(player) and player.has_method("reset_state"):
 		player.reset_state()
+		
+	if is_instance_valid(ui):
+		if ui.has_method("reset_counter_system_ui"):
+			ui.reset_counter_system_ui()
+		if ui.has_method("hide_boss_hp"):
+			ui.hide_boss_hp()
+		if ui.has_method("update_parry_count"):
+			ui.update_parry_count(0)
 
 
 func load_stage(stage_path: String, stage_num: int = 1) -> void:
@@ -125,6 +137,10 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 		
 	current_stage = stage_scene.instantiate()
 	stage_container.add_child(current_stage)
+	
+	# 自機状態・位置の再確認（ステージ開始地点へ確実に配置）
+	if is_instance_valid(player) and player.has_method("reset_state"):
+		player.reset_state()
 	
 	if current_stage.has_node("Boss"):
 		boss = current_stage.get_node("Boss")
@@ -156,6 +172,8 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	
 	# ステージ開始の大判テロップ表示 (4.2秒間、画面中央に大きく表示)
 	var st_name = current_stage.stage_name if current_stage else "STAGE " + str(current_stage_num)
+	if Global.hard_mode_enabled:
+		st_name += " [HARD MODE]"
 	var codename = ""
 	var goal = "90秒間防衛＆敵弾解析 -> ボス要塞を撃破せよ"
 	match current_stage_num:
@@ -174,6 +192,9 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 		5:
 			codename = "最終エリア: 終焉の支配者・オメガ"
 			goal = "全兵装を同期解放し、覚醒惑星オメガを殲滅せよ！"
+			
+	if Global.hard_mode_enabled:
+		codename += " 【HARD: HP 2倍 / 攻撃 1.3倍】"
 			
 	if ui and ui.has_method("show_stage_intro_banner"):
 		ui.show_stage_intro_banner(current_stage_num, st_name, codename, goal)
@@ -599,6 +620,11 @@ func on_boss_destroyed() -> void:
 	if reward.tech_points > 0:
 		Global.tech_points += reward.tech_points
 		spawn_popup("強化ポイント +%d 獲得！" % reward.tech_points)
+		
+	# 現在ステージのクリア記録（ハードモード解放）
+	var is_first_clear = Global.mark_stage_cleared(current_stage_num)
+	if is_first_clear:
+		spawn_popup("【HARD MODE 解放！】STAGE %d のハードモードが解放されました！" % current_stage_num)
 		
 	# 次ステージの開放（アンロック）処理
 	var next_stage_num = current_stage_num + 1
