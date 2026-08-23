@@ -264,6 +264,7 @@ func create_shield_heat_bar() -> void:
 
 
 var slot_cards: Array = []
+var analysis_panel_title: Label
 var active_analysis_label: Label
 var active_analysis_bar: ProgressBar
 var active_analysis_percent_label: Label
@@ -294,8 +295,8 @@ func create_analysis_matrix_ui() -> void:
 	trait_panel.add_child(vbox)
 	
 	# タイトルヘッダー
-	var title = Label.new()
-	title.text = "【変異兵装スロット (MAX 2・固定強化)】"
+	analysis_panel_title = Label.new()
+	analysis_panel_title.text = "【変異兵装スロット (MAX 2・固定強化)】"
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_set.font = PIXEL_FONT
@@ -303,8 +304,8 @@ func create_analysis_matrix_ui() -> void:
 	t_set.font_color = Color.CYAN
 	t_set.outline_size = 3
 	t_set.outline_color = Color.BLACK
-	title.label_settings = t_set
-	vbox.add_child(title)
+	analysis_panel_title.label_settings = t_set
+	vbox.add_child(analysis_panel_title)
 	
 	# 2つの固定変異スロットボックス（横並び）
 	var hbox = HBoxContainer.new()
@@ -389,6 +390,15 @@ func create_analysis_matrix_ui() -> void:
 
 
 func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
+	# 0. 2スロット揃っている場合は融合兵装名をヘッダーに表示
+	if active_traits.size() >= 2 and is_instance_valid(analysis_panel_title):
+		var f_info = Global.get_fusion_info(active_traits[0], active_traits[1])
+		analysis_panel_title.text = "【融合: %s】" % f_info.get("name", "複合融合兵装")
+		analysis_panel_title.label_settings.font_color = f_info.get("color", Color.GOLD)
+	elif is_instance_valid(analysis_panel_title):
+		analysis_panel_title.text = "【変異兵装スロット (MAX 2・固定強化)】"
+		analysis_panel_title.label_settings.font_color = Color.CYAN
+		
 	# 1. 2つの固定スロット表示の更新
 	for i in range(2):
 		var card = slot_cards[i]
@@ -1106,6 +1116,10 @@ func toggle_pause_menu() -> void:
 		setup_label_style(empty_lbl, 15, Color.GRAY, 3)
 		vbox.add_child(empty_lbl)
 	else:
+		if active_keys.size() >= 2:
+			var fusion_card = create_pause_fusion_card(active_keys[0], active_keys[1])
+			vbox.add_child(fusion_card)
+			
 		for k in active_keys:
 			var card = create_pause_weapon_card(k, player_node.analysis_patterns.get(k, {}))
 			vbox.add_child(card)
@@ -1161,6 +1175,56 @@ func toggle_pause_menu() -> void:
 		get_tree().paused = false
 		get_tree().change_scene_to_file("res://game/core/main_menu.tscn")
 	)
+
+
+func create_pause_fusion_card(key_a: String, key_b: String) -> PanelContainer:
+	var card = PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var f_info = Global.get_fusion_info(key_a, key_b)
+	var col = f_info.get("color", Color.GOLD)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.06, 0.02, 0.95)
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.border_color = col
+	sb.corner_radius_top_left = 6
+	sb.corner_radius_top_right = 6
+	sb.corner_radius_bottom_left = 6
+	sb.corner_radius_bottom_right = 6
+	card.add_theme_stylebox_override("panel", sb)
+	
+	var m = MarginContainer.new()
+	m.add_theme_constant_override("margin_left", 16)
+	m.add_theme_constant_override("margin_top", 12)
+	m.add_theme_constant_override("margin_right", 16)
+	m.add_theme_constant_override("margin_bottom", 12)
+	card.add_child(m)
+	
+	var v = VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	m.add_child(v)
+	
+	var title_lbl = Label.new()
+	title_lbl.text = "⚡【融合完成兵装: %s】 (%s)" % [f_info.get("name", "融合兵装"), f_info.get("title_en", "")]
+	setup_label_style(title_lbl, 20, col, 6)
+	v.add_child(title_lbl)
+	
+	var sum_lbl = Label.new()
+	sum_lbl.text = "特性: %s" % f_info.get("summary", "")
+	setup_label_style(sum_lbl, 16, Color(1.0, 0.9, 0.4), 4)
+	v.add_child(sum_lbl)
+	
+	var desc_lbl = Label.new()
+	desc_lbl.text = f_info.get("description", "")
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_label_style(desc_lbl, 14, Color(0.9, 0.95, 1.0), 3)
+	v.add_child(desc_lbl)
+	
+	return card
 
 
 func create_pause_weapon_card(pattern_key: String, p_data: Dictionary) -> PanelContainer:

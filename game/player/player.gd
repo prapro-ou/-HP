@@ -990,7 +990,11 @@ func apply_pattern_trait(pattern_key: String) -> void:
 	if not active_traits.has(pattern_key):
 		if active_traits.size() < MAX_TRAIT_SLOTS:
 			active_traits.append(pattern_key)
-			spawn_popup_message("【固定スロット%d装備】%s Lv.%d" % [active_traits.size(), data["name"], lvl])
+			if active_traits.size() == 2:
+				var f_info = Global.get_fusion_info(active_traits[0], active_traits[1])
+				spawn_popup_message("⚡【FUSION COMPLETE】融合兵装: 『%s』完成！" % f_info.get("name", "融合兵装"))
+			else:
+				spawn_popup_message("【固定スロット%d装備】%s Lv.%d" % [active_traits.size(), data["name"], lvl])
 		else:
 			# スロットが満杯の場合は絶対に上書きしない
 			return
