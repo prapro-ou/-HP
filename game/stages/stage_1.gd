@@ -19,7 +19,7 @@ func _setup_waves() -> void:
 	w1.display_title = "PHASE 1: 惑星外縁・デブリ帯前哨"
 	w1.start_message = "【MISSION 01: デブリ帯防衛・解析戦】\n制限時間（90秒）まで敵部隊を撃破＆パリィせよ！\n敵弾データを解析・反射して自機兵装を覚醒させてください！"
 	w1.replenish_types = ["straight", "wave", "irregular"]
-	w1.min_active_drones = 4
+	w1.min_active_drones = 3  # 【調整】4 -> 3 (同時出現数を少し軽減)
 	
 	w1.initial_spawns = [
 		WaveSpawnConfig.new("straight", 0.15, -50.0),
@@ -35,8 +35,8 @@ func _setup_waves() -> void:
 	w2.display_title = "PHASE 2: デブリ帯深部・重装哨戒編隊"
 	w2.start_message = "[ASSIST AI]: 軌道哨戒編隊が接近！\nチャージ射撃・レーザーをパリィして変異兵装を解放せよ！"
 	w2.replenish_types = ["charge", "laser", "irregular", "straight", "wave"]
-	w2.min_active_drones = 5
-	w2.drone_speed_override = 160.0
+	w2.min_active_drones = 4  # 【調整】5 -> 4 (同時出現数を少し軽減)
+	w2.drone_speed_override = 130.0  # 【調整】160.0 -> 130.0 (速度低下)
 	
 	w2.initial_spawns = [
 		WaveSpawnConfig.new("charge", 0.12, -60.0),
@@ -53,16 +53,16 @@ func _setup_waves() -> void:
 	w3.display_title = "PHASE 3: 要塞警戒宙域・直衛エリート部隊"
 	w3.start_message = "[ASSIST AI]: 要塞直衛部隊が全方位展開！\n誘導ミサイルと集中弾幕をパリィし、最大変異Lv.2を覚醒せよ！"
 	w3.replenish_types = ["missile", "charge", "laser", "irregular", "wave", "straight"]
-	w3.min_active_drones = 6
-	w3.drone_speed_override = 180.0
+	w3.min_active_drones = 4  # 【調整】6 -> 4 (弾幕で処理不能にならないよう抑えめ)
+	w3.drone_speed_override = 150.0  # 【調整】180.0 -> 150.0 (速度低下)
 	
 	w3.initial_spawns = [
 		WaveSpawnConfig.new("missile", 0.10, -60.0),
 		WaveSpawnConfig.new("charge", 0.28, -90.0),
 		WaveSpawnConfig.new("laser", 0.46, -60.0),
 		WaveSpawnConfig.new("wave", 0.64, -90.0),
-		WaveSpawnConfig.new("irregular", 0.80, -60.0),
-		WaveSpawnConfig.new("missile", 0.92, -90.0)
+		WaveSpawnConfig.new("irregular", 0.80, -60.0)
+		# 【調整】初期配置のミサイル1機を減らして5機に変更
 	]
 	waves.append(w3)
 
@@ -76,15 +76,16 @@ func _setup_interlude() -> void:
 
 func _setup_boss() -> void:
 	boss_config.name = "軌道防衛要塞ガーディアン"
-	boss_config.laser_hp = 900
-	boss_config.missile_hp = 900
-	boss_config.core_hp = 7500
-	boss_config.max_hp = 7500
+	boss_config.laser_hp = 700    # 【調整】900 -> 700 (破壊しやすく変更)
+	boss_config.missile_hp = 700  # 【調整】900 -> 700 (破壊しやすく変更)
+	boss_config.core_hp = 5500     # 【調整】7500 -> 5500 (ボス戦が長引きすぎないよう調整)
+	boss_config.max_hp = 5500      # 【調整】7500 -> 5500
 	boss_config.base_move_speed = 0.0
 	boss_config.enable_support_drones = true
-	boss_config.support_drone_interval = 8.0
+	boss_config.support_drone_interval = 12.0  # 【調整】8.0 -> 12.0 (雑魚敵の補充感覚を延長)
 
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_beam"
 	reward_config.tech_points = 30
 	reward_config.unlock_message = "【AIアシスト】要塞解析データの回収成功！\n『ギガレーザー』がカウンター兵装で装備可能です。"
+	
