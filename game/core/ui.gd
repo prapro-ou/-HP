@@ -1950,3 +1950,14 @@ func deactivate_counter_system_tint() -> void:
 			if is_instance_valid(counter_system_banner):
 				counter_system_banner.visible = false
 		)
+
+
+func reset_counter_system_ui() -> void:
+	counter_system_active = false
+	counter_system_remaining_time = 0.0
+	if is_instance_valid(counter_system_tint_rect):
+		counter_system_tint_rect.visible = false
+		counter_system_tint_rect.color.a = 0.0
+	if is_instance_valid(counter_system_banner):
+		counter_system_banner.visible = false
+		counter_system_banner.modulate.a = 0.0

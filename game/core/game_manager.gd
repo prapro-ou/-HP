@@ -95,6 +95,10 @@ func clean_stage_entities() -> void:
 		if is_instance_valid(node):
 			node.queue_free()
 			
+	for node in get_tree().get_nodes_in_group("support_turrets"):
+		if is_instance_valid(node):
+			node.queue_free()
+			
 	if is_instance_valid(current_stage):
 		current_stage.queue_free()
 		current_stage = null
@@ -111,6 +115,9 @@ func clean_stage_entities() -> void:
 	
 	if is_instance_valid(player) and player.has_method("reset_state"):
 		player.reset_state()
+		
+	if is_instance_valid(ui) and ui.has_method("reset_counter_system_ui"):
+		ui.reset_counter_system_ui()
 
 
 func load_stage(stage_path: String, stage_num: int = 1) -> void:

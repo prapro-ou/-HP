@@ -172,8 +172,18 @@ func reset_state() -> void:
 	flyby_boost_alpha = 0.0
 	flyby_timer = 0.0
 	
-	active_traits.clear()
+	# COUNTER SYSTEM 状態・支援砲台の完全初期化
+	set_meta("is_counter_system_used", false)
+	for t in counter_system_turrets:
+		if is_instance_valid(t):
+			t.queue_free()
+	counter_system_turrets.clear()
+	for t in get_tree().get_nodes_in_group("support_turrets"):
+		if is_instance_valid(t):
+			t.queue_free()
 	
+	# 弾の解析・進化状態の完全初期化
+	active_traits.clear()
 	for key in analysis_patterns.keys():
 		analysis_patterns[key]["progress"] = 0.0
 		analysis_patterns[key]["analyzed"] = false
@@ -184,8 +194,13 @@ func reset_state() -> void:
 	var main_ui_sync = get_node_or_null("/root/Main")
 	if main_ui_sync:
 		var ui_node = main_ui_sync.get_node_or_null("UI")
-		if ui_node and ui_node.has_method("update_equipped_weapon_hud"):
-			ui_node.update_equipped_weapon_hud(Global.equipped_weapon)
+		if ui_node:
+			if ui_node.has_method("update_equipped_weapon_hud"):
+				ui_node.update_equipped_weapon_hud(Global.equipped_weapon)
+			if ui_node.has_method("reset_counter_system_ui"):
+				ui_node.reset_counter_system_ui()
+			if ui_node.has_method("update_pattern_analysis"):
+				ui_node.update_pattern_analysis(analysis_patterns, active_traits)
 	
 	if Global.is_first_launch:
 		get_tree().create_timer(0.8).timeout.connect(func():
@@ -200,19 +215,19 @@ func apply_equipped_weapon_settings() -> void:
 		WEAPON_MACHINE_GUN:
 			fire_rate = 0.16 # 高速マシンガン
 		WEAPON_BURST_RIFLE:
-			fire_rate = 0.42 # 3点バーストライフル
+			fire_rate = 0.40 # 3点バーストライフル
 		WEAPON_PULSE_GUN:
-			fire_rate = 0.28 # パルス波動砲
+			fire_rate = 0.26 # パルス波動砲
 		WEAPON_PLASMA_EMITTER:
-			fire_rate = 0.38 # 高熱プラズマ放射器
+			fire_rate = 0.36 # 高熱プラズマ放射器
 		WEAPON_KINETIC_TACKLE:
-			fire_rate = 0.55 # キネティック衝撃タックル
+			fire_rate = 0.50 # キネティック衝撃タックル
 		_:
 			fire_rate = 0.25
 			
-	if active_traits.has(PATTERN_RAPID):
-		var r_lvl = analysis_patterns[PATTERN_RAPID]["level"]
-		var reduction = clamp(0.12 * r_lvl, 0.0, 0.60)
+	var r_lvl = analysis_patterns[PATTERN_RAPID]["level"]
+	if r_lvl > 0:
+		var reduction = clamp(0.10 * r_lvl, 0.0, 0.50)
 		fire_rate *= (1.0 - reduction)
 
 
@@ -524,57 +539,67 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 	
 	var global_dmg_bonus = get_global_analysis_damage_bonus()
 	
-	# 融合強化パラメータの算出 (Lv.1〜5 スケーリング)
-	var speed_bonus = rapid_lvl * 180.0 + laser_lvl * 120.0
-	var trait_dmg = pierce_lvl * 8 + laser_lvl * 10
+	# 融合強化パラメータの算出 (固定スロット装備中の2属性による直接強化)
+	var speed_bonus = rapid_lvl * 160.0 + laser_lvl * 140.0
+	var trait_dmg = pierce_lvl * 8 + laser_lvl * 10 + rapid_lvl * 5
 	
 	var p_limit = 0
-	if pierce_lvl == 1: p_limit = 1
-	elif pierce_lvl == 2: p_limit = 2
-	elif pierce_lvl == 3: p_limit = 4
-	elif pierce_lvl == 4: p_limit = 7
-	elif pierce_lvl >= 5: p_limit = 99
+	if is_pierce_active:
+		if pierce_lvl == 1: p_limit = 1
+		elif pierce_lvl == 2: p_limit = 2
+		elif pierce_lvl == 3: p_limit = 4
+		elif pierce_lvl == 4: p_limit = 7
+		elif pierce_lvl >= 5: p_limit = 99
 	
 	var h_strength = 0.0
-	if homing_lvl == 1: h_strength = 2.2
-	elif homing_lvl == 2: h_strength = 4.2
-	elif homing_lvl == 3: h_strength = 6.5
-	elif homing_lvl == 4: h_strength = 8.5
-	elif homing_lvl >= 5: h_strength = 11.0 # 超吸着誘導
+	if is_homing_active:
+		if homing_lvl == 1: h_strength = 2.5
+		elif homing_lvl == 2: h_strength = 4.8
+		elif homing_lvl == 3: h_strength = 7.0
+		elif homing_lvl == 4: h_strength = 9.2
+		elif homing_lvl >= 5: h_strength = 12.0
 	
-	var w_amp = cyclone_lvl * 45.0
-	var exp_rad = meteor_lvl * 22.0
-	var exp_dmg = meteor_lvl * 10
-	var c_count = thunder_lvl * 2
-	var c_dmg = thunder_lvl * 12
-	var v_rad = vortex_lvl * 28.0
-	var v_dmg = vortex_lvl * 8
+	var w_amp = cyclone_lvl * 45.0 if is_cyclone_active else 0.0
+	var exp_rad = meteor_lvl * 25.0 if is_meteor_active else 0.0
+	var exp_dmg = meteor_lvl * 12 if is_meteor_active else 0
+	var c_count = thunder_lvl * 2 if is_thunder_active else 0
+	var c_dmg = thunder_lvl * 14 if is_thunder_active else 0
+	var v_rad = vortex_lvl * 30.0 if is_vortex_active else 0.0
+	var v_dmg = vortex_lvl * 10 if is_vortex_active else 0
 
-	# 拡散パターンの角度リスト (Lv.1〜5)
+	# 拡散パターンの角度＆オフセット生成 (拡散時はLv1〜5で同時発射数が2〜7発に増加！)
 	var spread_angles = [0.0]
-	var spread_offsets = [Vector2(-8.0, -15.0), Vector2(8.0, -15.0)]
+	var spread_offsets = [Vector2(0.0, -18.0)]
 	if is_spread_active:
 		if spread_lvl == 1:
-			spread_angles = [-6.0, 6.0]
-			spread_offsets = [Vector2(-12.0, -15.0), Vector2(12.0, -15.0)]
+			# Lv.1: 2発同時発射
+			spread_angles = [-7.0, 7.0]
+			spread_offsets = [Vector2(-10.0, -15.0), Vector2(10.0, -15.0)]
 		elif spread_lvl == 2:
-			spread_angles = [-10.0, -3.0, 3.0, 10.0]
-			spread_offsets = [Vector2(-14.0, -15.0), Vector2(-5.0, -15.0), Vector2(5.0, -15.0), Vector2(14.0, -15.0)]
+			# Lv.2: 3発同時発射
+			spread_angles = [-11.0, 0.0, 11.0]
+			spread_offsets = [Vector2(-14.0, -15.0), Vector2(0.0, -18.0), Vector2(14.0, -15.0)]
 		elif spread_lvl == 3:
-			spread_angles = [-14.0, -7.0, 0.0, 7.0, 14.0]
-			spread_offsets = [Vector2(-16.0, -15.0), Vector2(-8.0, -15.0), Vector2(0.0, -18.0), Vector2(8.0, -15.0), Vector2(16.0, -15.0)]
+			# Lv.3: 4発同時発射
+			spread_angles = [-15.0, -5.0, 5.0, 15.0]
+			spread_offsets = [Vector2(-16.0, -15.0), Vector2(-6.0, -17.0), Vector2(6.0, -17.0), Vector2(16.0, -15.0)]
 		elif spread_lvl == 4:
-			spread_angles = [-18.0, -10.0, -3.0, 3.0, 10.0, 18.0]
-			spread_offsets = [Vector2(-18.0, -15.0), Vector2(-11.0, -15.0), Vector2(-4.0, -15.0), Vector2(4.0, -15.0), Vector2(11.0, -15.0), Vector2(18.0, -15.0)]
+			# Lv.4: 5発同時発射
+			spread_angles = [-18.0, -9.0, 0.0, 9.0, 18.0]
+			spread_offsets = [Vector2(-18.0, -15.0), Vector2(-9.0, -17.0), Vector2(0.0, -20.0), Vector2(9.0, -17.0), Vector2(18.0, -15.0)]
 		elif spread_lvl >= 5:
-			spread_angles = [-22.0, -14.0, -7.0, 0.0, 7.0, 14.0, 22.0]
-			spread_offsets = [Vector2(-20.0, -15.0), Vector2(-13.0, -15.0), Vector2(-6.0, -15.0), Vector2(0.0, -18.0), Vector2(6.0, -15.0), Vector2(13.0, -15.0), Vector2(20.0, -15.0)]
+			# Lv.5: 7発同時超広角発射
+			spread_angles = [-24.0, -16.0, -8.0, 0.0, 8.0, 16.0, 24.0]
+			spread_offsets = [Vector2(-22.0, -14.0), Vector2(-15.0, -16.0), Vector2(-7.0, -18.0), Vector2(0.0, -20.0), Vector2(7.0, -18.0), Vector2(15.0, -16.0), Vector2(22.0, -14.0)]
 
 	var eq_w = Global.equipped_weapon
 	match eq_w:
 		WEAPON_MACHINE_GUN:
-			# マシンガン: 弾速・連射に優れるメイン機関砲
-			var offsets = spread_offsets if is_spread_active else [Vector2(-8.0, -15.0), Vector2(8.0, -15.0)]
+			# マシンガン: 弾速・連射に優れるメイン機関砲（拡散でワイド化、速射高Lvで多連装ストリーム化）
+			var default_offsets = [Vector2(-8.0, -15.0), Vector2(8.0, -15.0)]
+			if rapid_lvl >= 3:
+				default_offsets = [Vector2(-12.0, -15.0), Vector2(0.0, -18.0), Vector2(12.0, -15.0)]
+			var offsets = spread_offsets if is_spread_active else default_offsets
 			for i in range(offsets.size()):
 				var deg = spread_angles[i % spread_angles.size()] if is_spread_active else 0.0
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
@@ -601,8 +626,8 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				target_parent.add_child(bullet)
 
 		WEAPON_BURST_RIFLE:
-			# ライフル: 徹甲精密バースト（拡散時は各バーストで扇状拡散弾幕を3〜5連射！）
-			var burst_waves = 3 if not is_rapid_active else (3 + int(rapid_lvl * 0.6))
+			# ライフル: 徹甲精密バースト（速射で連射数増加、拡散で扇状拡散弾幕化）
+			var burst_waves = 3 + rapid_lvl
 			var angles_to_fire = spread_angles if is_spread_active else [0.0]
 			var offsets_to_fire = spread_offsets if is_spread_active else [Vector2(0, -22.0)]
 			
@@ -619,7 +644,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 							bullet.speed = base_spd
 							bullet.velocity = Vector2.UP.rotated(deg_to_rad(deg)) * base_spd
 							bullet.damage += trait_dmg + int(power_shield_damage_buff) + global_dmg_bonus
-							bullet.pierce_limit = max(p_limit, 1) # ライフルは元々1貫通
+							bullet.pierce_limit = max(p_limit, 1 + pierce_lvl) # ライフル固有貫通力
 							bullet.homing_strength = h_strength
 							bullet.wave_amp = w_amp * 0.5
 							bullet.explosion_radius = exp_rad
@@ -636,21 +661,23 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				)
 
 		WEAPON_PULSE_GUN:
-			# パルスガン: 拡散プラズマ波動
+			# パルスガン: 拡散プラズマ波動（拡散Lvに応じて全方位・大輪パルス化）
 			var angles = spread_angles if is_spread_active else [-10.0, 10.0]
-			for angle_deg in angles:
+			var offsets = spread_offsets if is_spread_active else [Vector2(-8.0, -15.0), Vector2(8.0, -15.0)]
+			for idx in range(offsets.size()):
+				var angle_deg = angles[idx % angles.size()]
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "pulse"
-				bullet.global_position = global_position + Vector2(angle_deg * 0.6, -15.0)
+				bullet.global_position = global_position + offsets[idx]
 				var base_spd = 950.0 + speed_bonus
 				bullet.speed = base_spd
 				var dir = Vector2.UP.rotated(deg_to_rad(angle_deg))
 				bullet.velocity = dir * base_spd
 				bullet.damage += trait_dmg + int(power_shield_damage_buff) + global_dmg_bonus
-				bullet.pierce_limit = p_limit
+				bullet.pierce_limit = max(p_limit, 1) # パルスは群れを貫通
 				bullet.homing_strength = h_strength
 				bullet.wave_amp = w_amp
-				bullet.explosion_radius = exp_rad
+				bullet.explosion_radius = max(exp_rad, 30.0 + pulse_burst_lvl * 5.0 if "pulse_burst_lvl" in self else exp_rad)
 				bullet.explosion_dmg = exp_dmg
 				bullet.chain_count = c_count
 				bullet.chain_damage = c_dmg
@@ -661,7 +688,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				target_parent.add_child(bullet)
 
 		WEAPON_PLASMA_EMITTER:
-			# プラズマ放射器: 高熱エネルギー大玉球（拡散時は扇状ワイドに大玉を放射！）
+			# プラズマ放射器: 高熱エネルギー大玉球（拡散時は扇状ワイドに大玉マルチ放射！）
 			var angles = spread_angles if is_spread_active else [0.0]
 			var offsets = spread_offsets if is_spread_active else [Vector2(0, -20.0)]
 			for idx in range(offsets.size()):
@@ -670,7 +697,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "plasma"
 				bullet.global_position = global_position + offset
-				var base_spd = 600.0 + speed_bonus
+				var base_spd = 650.0 + speed_bonus
 				bullet.speed = base_spd
 				var dir = Vector2.UP.rotated(deg_to_rad(deg))
 				bullet.velocity = dir * base_spd
@@ -678,7 +705,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.pierce_limit = 99 # プラズマは持続貫通
 				bullet.homing_strength = h_strength
 				bullet.wave_amp = w_amp * 0.5
-				bullet.explosion_radius = max(exp_rad, 50.0 + spread_lvl * 12.0)
+				bullet.explosion_radius = max(exp_rad, 55.0 + meteor_lvl * 18.0 + spread_lvl * 8.0)
 				bullet.explosion_dmg = exp_dmg
 				bullet.chain_count = c_count
 				bullet.chain_damage = c_dmg
@@ -689,23 +716,23 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				target_parent.add_child(bullet)
 
 		WEAPON_KINETIC_TACKLE:
-			# タックル: キネティック衝撃破砕波
+			# タックル: キネティック衝撃破砕波（拡散で超ワイド破砕領域形成）
 			var angles = spread_angles if is_spread_active else [0.0]
-			var count = 1 if not is_spread_active else (1 + spread_lvl)
-			for i in range(count):
-				var deg = angles[i % angles.size()] if is_spread_active else 0.0
-				var offset_x = (i - (count - 1) * 0.5) * 24.0
+			var offsets = spread_offsets if is_spread_active else [Vector2(0, -30.0)]
+			for i in range(offsets.size()):
+				var deg = angles[i % angles.size()]
+				var offset = offsets[i]
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
 				bullet.bullet_type = "tackle"
-				bullet.global_position = global_position + Vector2(offset_x, -30.0)
-				var base_spd = 850.0 + speed_bonus
+				bullet.global_position = global_position + offset
+				var base_spd = 900.0 + speed_bonus
 				bullet.speed = base_spd
 				bullet.velocity = Vector2.UP.rotated(deg_to_rad(deg)) * base_spd
 				bullet.damage += trait_dmg + int(power_shield_damage_buff) + global_dmg_bonus
 				bullet.pierce_limit = 99
 				bullet.homing_strength = h_strength * 0.5
 				bullet.wave_amp = w_amp
-				bullet.explosion_radius = max(exp_rad, 70.0 + spread_lvl * 14.0)
+				bullet.explosion_radius = max(exp_rad, 75.0 + meteor_lvl * 20.0 + spread_lvl * 10.0)
 				bullet.explosion_dmg = exp_dmg
 				bullet.chain_count = c_count
 				bullet.chain_damage = c_dmg
@@ -897,7 +924,7 @@ func heal(amount: int) -> void:
 	current_hp = min(current_hp + amount, max_hp)
 
 
-func advance_analysis(bullet_type: String, amount: float = 8.0) -> void:
+func advance_analysis(bullet_type: String, amount: float = 12.0) -> void:
 	var pattern_key = PATTERN_RAPID
 	match bullet_type:
 		"meteor":
@@ -923,21 +950,23 @@ func advance_analysis(bullet_type: String, amount: float = 8.0) -> void:
 		
 	var actual_amount = amount
 	if Global.equipped_shield == SHIELD_GAUGE:
-		actual_amount *= 4.0 # 吸収シールドは通常の4倍の超高速解析！
+		actual_amount *= 3.0 # 吸収シールドは通常の3倍の超高速解析！
 		
-	# スロット固定＆集中強化システム：
-	# スロットが満杯（2枠）の場合、スロット装備中の属性のみに集中還元（上書きは絶対に起きない）
-	if active_traits.size() >= MAX_TRAIT_SLOTS:
+	# 【解析仕様】
+	# 1. 最初の2種決定前（スロットが0枠または1枠のとき）:
+	#    パリィした弾の属性ゲージを直接加算（100%でスロットに固定登録）
+	if active_traits.size() < MAX_TRAIT_SLOTS:
+		add_pattern_analysis(pattern_key, actual_amount)
+	else:
+		# 2. スロット2種決定後:
+		#    ・同じ種類の弾 (スロット登録済みの属性): ゲージが大きく溜まる（高効率 100%）
+		#    ・別の種類の弾 (スロット未登録の属性): 登録済みの2種に少量ずつ均等ボーナス蓄積（中効率 35%）
 		if active_traits.has(pattern_key):
 			add_pattern_analysis(pattern_key, actual_amount)
 		else:
-			# 未装備属性の弾をパリィした場合は、スロット固定装備中の全属性に均等ボーナス還元！
-			var split_amount = actual_amount / float(active_traits.size())
+			var sub_amount = actual_amount * 0.35
 			for t_key in active_traits:
-				add_pattern_analysis(t_key, split_amount)
-	else:
-		# スロットに空きがある場合は、その属性の解析を進めてスロット登録を目指す
-		add_pattern_analysis(pattern_key, actual_amount)
+				add_pattern_analysis(t_key, sub_amount)
 
 
 func get_total_analysis_level() -> int:
