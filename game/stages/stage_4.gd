@@ -85,5 +85,6 @@ func _setup_boss() -> void:
 
 func _setup_rewards() -> void:
 	reward_config.tech_points = 30
+	reward_config.counter_weapon_unlock = "gigantic_orb"
 	reward_config.unlocked_stage = 5
-	reward_config.unlock_message = "【作戦完了】FINAL STAGE: 惑星そのものの破壊が解放されました！"
+	reward_config.unlock_message = "【新兵装解析完了】COUNTER SYSTEM兵装『ギガエネルギー弾』が解放されました！"

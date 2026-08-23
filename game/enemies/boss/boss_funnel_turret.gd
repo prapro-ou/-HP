@@ -146,7 +146,8 @@ func _process(delta: float) -> void:
 			var to_player = (target_player_pos - global_position).normalized()
 			rotation = lerp_angle(rotation, to_player.angle() + PI/2, delta * 8.0)
 			
-			if state_timer >= 1.8:
+			# 再度の攻撃までのクールダウン: 2.0秒
+			if state_timer >= 2.0:
 				state = FunnelState.FLANKING
 				state_timer = 0.0
 
@@ -198,12 +199,13 @@ func take_damage(amount: int, hit_pos: Vector2 = Vector2.ZERO, is_critical: bool
 	var final_damage = amount
 	
 	if is_critical:
-		# ジャストガード反射弾は特効大ダメージ（3回分の反射で素早く撃破可能）
-		final_damage = int(amount * 2.8)
+		# ジャストガード反射弾は特効：ジャストガード5回で確実に撃破可能
+		final_damage = int(ceil(float(max_hp) / 5.0))
 		Global.play_heavy_hit(randf_range(1.1, 1.3))
 		HitSpark.create_spark(get_parent(), actual_hit_pos, "heavy", Color(1.0, 0.9, 0.2))
 	else:
-		final_damage = max(1, int(amount * 0.8))
+		# 通常攻撃は非常に通りづらい（装甲軽減・ジャストガード推奨）
+		final_damage = max(1, int(amount * 0.10))
 		Global.play_hit(randf_range(1.0, 1.2))
 		HitSpark.create_spark(get_parent(), actual_hit_pos, "normal", Color(1.0, 0.85, 0.3))
 		

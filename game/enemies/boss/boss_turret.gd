@@ -12,7 +12,10 @@ enum TurretType {
 	METEOR_LAUNCHER,
 	SHIELD_GENERATOR,
 	CLUSTER_SPLITTER,
-	ELECTROMAGNETIC_FIELD
+	ELECTROMAGNETIC_FIELD,
+	ACCEL_LINE_SPREAD,
+	RAPID_SNIPER,
+	GIGANTIC_ENERGY_ORB
 }
 
 const METEOR_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
@@ -295,6 +298,12 @@ func get_attack_interval() -> float:
 			base_interval = 3.4
 		TurretType.ELECTROMAGNETIC_FIELD:
 			base_interval = 2.5
+		TurretType.ACCEL_LINE_SPREAD:
+			base_interval = 3.6
+		TurretType.RAPID_SNIPER:
+			base_interval = 1.0
+		TurretType.GIGANTIC_ENERGY_ORB:
+			base_interval = 10.0
 	return base_interval * p_info["interval_mult"] * Global.get_enemy_attack_interval_multiplier()
 
 
@@ -332,6 +341,32 @@ func start_attack_sequence() -> void:
 			execute_attack()
 		TurretType.ELECTROMAGNETIC_FIELD:
 			execute_attack()
+		TurretType.ACCEL_LINE_SPREAD:
+			execute_attack()
+		TurretType.RAPID_SNIPER:
+			execute_attack()
+		TurretType.GIGANTIC_ENERGY_ORB:
+			start_giga_orb_sequence()
+
+
+func start_giga_orb_sequence() -> void:
+	var anchor_x_options = [180.0, 400.0, 620.0]
+	var pick_x = anchor_x_options[randi() % 3]
+	var target_dest = Vector2(pick_x, 180.0)
+	
+	spawn_turret_warning("⚡ GIGA ENERGY CHARGE ⚡")
+	Global.play_laser(0.8)
+	
+	# スムーズに目標地点へ移動
+	var move_tw = create_tween()
+	move_tw.tween_property(self, "global_position", target_dest, 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	is_charging = true
+	charge_timer = 1.2
+	
+	if sprite:
+		var st = create_tween()
+		st.tween_property(sprite, "modulate", Color(2.5, 1.2, 3.0), 1.0)
 
 
 func execute_attack() -> void:
@@ -446,6 +481,50 @@ func execute_attack() -> void:
 					if is_instance_valid(player):
 						dir = (player.global_position - global_position).normalized()
 					bullet.set_direction(dir, 360.0 * spd_mult)
+
+		TurretType.ACCEL_LINE_SPREAD:
+			# 発射1秒間は遅く、直後に倍に加速する2段階速度弾（真ん中の弾に付随するように5個横並び）
+			if pool:
+				var center_dir = Vector2.DOWN
+				if is_instance_valid(player):
+					center_dir = (player.global_position - global_position).normalized()
+				var normal = Vector2(-center_dir.y, center_dir.x)
+				var offsets = [-64.0, -32.0, 0.0, 32.0, 64.0]
+				for offset_px in offsets:
+					var bullet = pool.get_bullet("accel_line")
+					if bullet:
+						bullet.global_position = global_position + normal * offset_px + center_dir * 20.0
+						bullet.damage = int(20 * final_dmg_mult)
+						bullet.set_direction(center_dir, 150.0 * spd_mult)
+				Global.play_laser(1.2)
+
+		TurretType.RAPID_SNIPER:
+			# 1秒に1回とても速い弾を速射
+			if pool:
+				var bullet = pool.get_bullet("rapid_sniper")
+				if bullet:
+					bullet.global_position = global_position + Vector2(0.0, 25.0)
+					bullet.damage = int(16 * final_dmg_mult)
+					var shoot_dir = Vector2.DOWN
+					if is_instance_valid(player):
+						shoot_dir = (player.global_position - global_position).normalized()
+					bullet.set_direction(shoot_dir, 950.0 * spd_mult)
+					Global.play_laser(randf_range(1.6, 1.8))
+					HitSpark.create_spark(get_parent(), global_position + shoot_dir * 25.0, "normal", Color(0.2, 1.0, 1.0))
+
+		TurretType.GIGANTIC_ENERGY_ORB:
+			# 前方にプレイヤーよりも大きな低速のエネルギー弾を1個発射
+			if pool:
+				var bullet = pool.get_bullet("gigantic_orb")
+				if bullet:
+					bullet.global_position = global_position + Vector2(0.0, 45.0)
+					bullet.damage = int(45 * final_dmg_mult)
+					bullet.set_direction(Vector2.DOWN, 120.0 * spd_mult)
+					Global.play_heavy_hit(0.8)
+					HitSpark.create_spark(get_parent(), global_position + Vector2(0.0, 45.0), "heavy", Color(0.9, 0.3, 1.0))
+					
+			if sprite:
+				sprite.modulate = Color.WHITE
 
 
 func execute_em_field_tick() -> void:

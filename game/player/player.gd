@@ -54,6 +54,7 @@ const HYPER_MISSILE_SPEED: float = 800.0
 
 const PLAYER_SUPPORT_TURRET_SCRIPT: GDScript = preload("res://game/player/support_turret.gd")
 const PLAYER_FUNNEL_UNIT_SCRIPT: GDScript = preload("res://game/player/player_funnel_unit.gd")
+const PLAYER_GIGANTIC_ORB_SCRIPT: GDScript = preload("res://game/player/player_gigantic_orb.gd")
 
 var current_hp: int = 500
 var last_fire_time: float = 0.0
@@ -515,6 +516,8 @@ func activate_counter_system() -> void:
 	
 	if c_type == "funnel":
 		spawn_popup_message("[COUNTER SYSTEM ONLINE] サイバーファンネル部隊 展開！ (%.0fs / %.1fx)" % [duration, dmg_mult])
+	elif c_type == "gigantic_orb":
+		spawn_popup_message("[COUNTER SYSTEM ONLINE] ギガエネルギー弾 射出！ (%.0fs / %.1fx)" % [duration, dmg_mult])
 	else:
 		spawn_popup_message("[COUNTER SYSTEM ONLINE] 支援砲台部隊 展開！ (%.0fs / %.1fx)" % [duration, dmg_mult])
 	
@@ -536,6 +539,16 @@ func activate_counter_system() -> void:
 			if main_parent:
 				main_parent.add_child(funnel)
 				counter_system_turrets.append(funnel)
+	elif c_type == "gigantic_orb":
+		# プレイヤーより巨大な低速の重力エネルギー弾を射出
+		var num_orbs = 2 if Global.counter_only_mode_enabled else 1
+		for i in range(num_orbs):
+			var offset_x = (i - 0.5) * 80.0 if num_orbs > 1 else 0.0
+			var orb = PLAYER_GIGANTIC_ORB_SCRIPT.new()
+			orb.setup_orb(global_position + Vector2(offset_x, -50.0), duration, dmg_mult)
+			if main_parent:
+				main_parent.add_child(orb)
+				counter_system_turrets.append(orb)
 	else:
 		# 支援ボスタレットポッドの召喚
 		var num_turrets = 4 if Global.counter_only_mode_enabled else 2
@@ -555,6 +568,8 @@ func activate_counter_system() -> void:
 		if is_instance_valid(self) and current_hp > 0:
 			if c_type == "funnel":
 				spawn_popup_message("COUNTER SYSTEM: ファンネル部隊帰還")
+			elif c_type == "gigantic_orb":
+				spawn_popup_message("COUNTER SYSTEM: ギガエネルギー弾消滅")
 			else:
 				spawn_popup_message("COUNTER SYSTEM: 支援部隊帰還")
 			# COUNTER ONLY MODE なら 2.0秒後に自動再展開！

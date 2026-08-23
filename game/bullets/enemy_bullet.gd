@@ -12,6 +12,9 @@ const BULLET_TYPE_BOSS_MISSILE = "boss_missile"
 const BULLET_TYPE_DECEL_MISSILE = "decel_missile"
 const BULLET_TYPE_CLUSTER = "cluster_bomb"
 const BULLET_TYPE_UNPARRYABLE = "unparryable_laser"
+const BULLET_TYPE_ACCEL_LINE = "accel_line"
+const BULLET_TYPE_RAPID_SNIPER = "rapid_sniper"
+const BULLET_TYPE_GIGANTIC_ORB = "gigantic_orb"
 
 # カラー定数
 const COLOR_FRIENDLY = Color(0.25, 0.95, 1.0) # パリィ反射時は鮮やかなネオンシアン＆白光
@@ -44,6 +47,10 @@ var initial_speed: float = 350.0
 var decel_timer: float = 0.0
 var decel_phase: int = 0 # 0: 減速中 (0~1.0s), 1: 急加速追尾 (1.0s~)
 
+# 2段階加速弾用変数 (1秒間は低速、直後に倍速)
+var accel_line_timer: float = 1.0
+var has_accelerated: bool = false
+
 # クラスター分裂弾用変数
 var cluster_timer: float = 0.85
 
@@ -61,6 +68,8 @@ func _ready() -> void:
 	is_friendly = false
 	decel_timer = 0.0
 	decel_phase = 0
+	accel_line_timer = 1.0
+	has_accelerated = false
 	cluster_timer = 0.85
 	lifetime = 0.0
 	is_dissolving = false
@@ -123,6 +132,15 @@ func update_bullet_color() -> void:
 			BULLET_TYPE_CLUSTER, "cluster":
 				modulate = COLOR_CLUSTER # 巨大オレンジクラスター弾
 				if sprite: sprite.scale = Vector2(1.2, 1.2)
+			BULLET_TYPE_ACCEL_LINE, "accel_line":
+				modulate = Color(1.0, 0.72, 0.2) # オレンジ発光
+				if sprite: sprite.scale = Vector2(0.65, 0.65)
+			BULLET_TYPE_RAPID_SNIPER, "rapid_sniper":
+				modulate = Color(0.2, 0.95, 1.0) # 高速スナイパーシアン
+				if sprite: sprite.scale = Vector2(0.35, 1.8)
+			BULLET_TYPE_GIGANTIC_ORB, "gigantic_orb":
+				modulate = Color(0.88, 0.35, 1.0) # プレイヤーより巨大な重力プラズマ弾
+				if sprite: sprite.scale = Vector2(3.8, 3.8)
 			_:
 				modulate = COLOR_BEAM
 
@@ -134,6 +152,15 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, 10.0, Color(0.12, 0.0, 0.02, 0.7))
 		draw_arc(Vector2.ZERO, 16.0 + pulse * 4.0, 0, TAU, 28, Color(1.0, 0.05, 0.15, 0.9), 3.0)
 		draw_arc(Vector2.ZERO, 22.0 + pulse * 2.0, 0, TAU, 28, Color(1.0, 0.2, 0.3, 0.4), 1.5)
+		
+	# 巨大エネルギー弾の多層プラズマ描画
+	if bullet_type == BULLET_TYPE_GIGANTIC_ORB or bullet_type == "gigantic_orb":
+		var pulse = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.015)
+		var col = COLOR_FRIENDLY if is_friendly else Color(0.85, 0.25, 1.0)
+		draw_circle(Vector2.ZERO, 50.0 + pulse * 6.0, Color(col.r, col.g, col.b, 0.22))
+		draw_circle(Vector2.ZERO, 36.0 + pulse * 3.0, Color(col.r, col.g, col.b, 0.45))
+		draw_circle(Vector2.ZERO, 20.0, Color(1.0, 1.0, 1.0, 0.95))
+		draw_arc(Vector2.ZERO, 55.0 + pulse * 8.0, 0, TAU, 32, col, 2.5)
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -157,6 +184,8 @@ func _on_area_entered(area: Area2D) -> void:
 			var is_turret = area.is_in_group("boss_turrets") or (is_instance_valid(damage_target) and damage_target.is_in_group("boss_turrets"))
 			# 砲台に対してジャストガード反射弾は特効ボーナス（格段に速く撃破可能）
 			var dealt_damage = int(damage * (2.8 if is_turret else 1.0))
+			if bullet_type == BULLET_TYPE_GIGANTIC_ORB or bullet_type == "gigantic_orb":
+				dealt_damage = int(dealt_damage * 3.5) # 巨大オーブ反射は極大破壊力
 			
 			if damage_target.has_method("take_damage"):
 				damage_target.take_damage(dealt_damage, global_position, is_turret)
@@ -177,6 +206,23 @@ func _process(delta: float) -> void:
 			velocity = velocity.lerp(target_velocity, delta * HOMING_LERP_SPEED)
 			
 	else:
+		# 2段階加速弾処理 (発射後1秒間は遅く、直後に倍速加速)
+		if (bullet_type == BULLET_TYPE_ACCEL_LINE or bullet_type == "accel_line") and not is_friendly:
+			if not has_accelerated:
+				accel_line_timer -= delta
+				if accel_line_timer <= 0.0:
+					has_accelerated = true
+					speed *= 2.0
+					velocity = velocity.normalized() * speed
+					modulate = Color(1.0, 0.4, 0.1) # 点火加速オレンジ
+					if PARRY_PARTICLE_SCENE and get_parent():
+						var p = PARRY_PARTICLE_SCENE.instantiate()
+						p.global_position = global_position
+						p.scale = Vector2(1.5, 1.5)
+						p.modulate = Color(1.0, 0.6, 0.1)
+						get_parent().add_child(p)
+					Global.play_laser(1.4)
+
 		# 減速 -> 急加速追尾ミサイル処理
 		if bullet_type == BULLET_TYPE_DECEL_MISSILE:
 			decel_timer += delta

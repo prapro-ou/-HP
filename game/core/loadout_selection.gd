@@ -153,6 +153,14 @@ func init_data() -> void:
 	c_funnel.is_unlocked = Global.unlocked_counter_weapons.has("funnel") or true
 	counter_weapons.append(c_funnel)
 	
+	var c_orb = LoadoutItem.new()
+	c_orb.id = "gigantic_orb"
+	c_orb.name = "ギガエネルギー弾"
+	c_orb.description = "【超巨大重力弾】自機の前方にプレイヤーより巨大な低速プラズマ弾を射出。敵弾を消滅させながら前進し、敵陣とボスに超多段ヒット貫通ダメージを与える。"
+	c_orb.stats = "制圧:★★★★★ | 破壊:★★★★★ | 弾消:★★★★★"
+	c_orb.is_unlocked = Global.unlocked_counter_weapons.has("gigantic_orb") or true
+	counter_weapons.append(c_orb)
+	
 	var c1 = LoadoutItem.new()
 	c1.id = "boss_beam"
 	c1.name = "ギガレーザー砲台"
