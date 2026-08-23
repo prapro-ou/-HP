@@ -106,4 +106,5 @@ func _setup_boss() -> void:
 
 func _setup_rewards() -> void:
 	reward_config.tech_points = 50
-	reward_config.unlock_message = "全作戦完了！惑星の粉砕に成功し、銀河の平和は守られた！"
+	reward_config.counter_weapon_unlock = "chain_explosions"
+	reward_config.unlock_message = "全作戦完了！COUNTER SYSTEM兵装『5連鎖スーパノヴァ』が解放されました！"

@@ -15,7 +15,10 @@ enum TurretType {
 	ELECTROMAGNETIC_FIELD,
 	ACCEL_LINE_SPREAD,
 	RAPID_SNIPER,
-	GIGANTIC_ENERGY_ORB
+	GIGANTIC_ENERGY_ORB,
+	DIVE_SCATTER,
+	STEP_PURSUIT,
+	CHAIN_SWEEP_BOMBER
 }
 
 const METEOR_SCENE: PackedScene = preload("res://game/bullets/meteor_bullet.tscn")
@@ -36,6 +39,18 @@ var is_charging: bool = false
 var charge_timer: float = 0.0
 var target_pos: Vector2 = Vector2.ZERO
 var hover_offset: float = 0.0
+
+# 突進拡散砲台用 (DIVE_SCATTER)
+var dive_fire_timer: float = 0.0
+var dive_speed: float = 340.0
+
+# 1秒追尾停止砲台用 (STEP_PURSUIT)
+var step_timer: float = 0.0
+var has_fired_in_step: bool = false
+var step_target_dir: Vector2 = Vector2.DOWN
+
+# 5連鎖爆撃砲台用 (CHAIN_SWEEP_BOMBER)
+var is_sweeping: bool = false
 
 # ビームチャージ予告用
 var beam_warning_line_alpha: float = 0.0
@@ -153,14 +168,80 @@ func _process(delta: float) -> void:
 	if not is_alive:
 		return
 		
-	# わずかな浮遊アニメーション
-	if is_active:
+	# わずかな浮遊アニメーション (特殊移動砲台を除く)
+	if is_active and turret_type != TurretType.DIVE_SCATTER and turret_type != TurretType.STEP_PURSUIT and turret_type != TurretType.CHAIN_SWEEP_BOMBER:
 		hover_offset += delta * 2.0
 		position.y = target_pos.y + sin(hover_offset) * 8.0
 		position.x = target_pos.x + cos(hover_offset * 0.7) * 5.0
 		
 	if not is_active:
 		return
+
+	# 突進拡散砲台の制御 (上端から下端へ突進しつつ斜め下へ左右同時射撃)
+	if turret_type == TurretType.DIVE_SCATTER and is_active:
+		var spd_mult = get_boss_phase_info()["speed_mult"]
+		global_position.y += dive_speed * spd_mult * delta
+		
+		dive_fire_timer -= delta
+		if dive_fire_timer <= 0.0:
+			dive_fire_timer = 0.20 / spd_mult
+			var main = get_node_or_null("/root/Main")
+			var pool = main.get_node_or_null("BulletPool") if main else null
+			if pool:
+				var final_dmg = int(16 * get_stage_difficulty_mult() * get_boss_phase_info()["damage_mult"])
+				# 斜め左下弾
+				var b_l = pool.get_bullet("straight")
+				if b_l:
+					b_l.global_position = global_position + Vector2(-15, 10)
+					b_l.damage = final_dmg
+					b_l.set_direction(Vector2(-0.72, 0.72).normalized(), 380.0 * spd_mult)
+				# 斜め右下弾
+				var b_r = pool.get_bullet("straight")
+				if b_r:
+					b_r.global_position = global_position + Vector2(15, 10)
+					b_r.damage = final_dmg
+					b_r.set_direction(Vector2(0.72, 0.72).normalized(), 380.0 * spd_mult)
+				Global.play_laser(randf_range(1.4, 1.6))
+				
+		if global_position.y > 880.0:
+			global_position.y = -80.0
+			global_position.x = randf_range(160.0, 640.0)
+			target_pos = global_position
+
+	# 1秒ごとにプレイヤーの方向へまっすぐ追尾と停止を繰り返す砲台
+	if turret_type == TurretType.STEP_PURSUIT and is_active:
+		var spd_mult = get_boss_phase_info()["speed_mult"]
+		step_timer += delta
+		if step_timer < 0.5:
+			# 追尾突進フェーズ (0.0~0.5s)
+			var main = get_node_or_null("/root/Main")
+			var player = main.get_node_or_null("Player") if main else null
+			if is_instance_valid(player):
+				step_target_dir = (player.global_position - global_position).normalized()
+			global_position += step_target_dir * (360.0 * spd_mult * delta)
+			target_pos = global_position
+			rotation = lerp_angle(rotation, step_target_dir.angle() - PI/2, delta * 12.0)
+		else:
+			# 停止＆精密射撃フェーズ (0.5~1.0s)
+			if not has_fired_in_step:
+				has_fired_in_step = true
+				var main = get_node_or_null("/root/Main")
+				var pool = main.get_node_or_null("BulletPool") if main else null
+				if pool:
+					var final_dmg = int(18 * get_stage_difficulty_mult() * get_boss_phase_info()["damage_mult"])
+					for i in range(2):
+						get_tree().create_timer(i * 0.09).timeout.connect(func():
+							if is_instance_valid(self) and is_alive and is_instance_valid(pool):
+								var bullet = pool.get_bullet("boss_laser")
+								if bullet:
+									bullet.global_position = global_position + step_target_dir * 20.0
+									bullet.damage = final_dmg
+									bullet.set_direction(step_target_dir, 780.0 * spd_mult)
+									Global.play_laser(1.5)
+						)
+		if step_timer >= 1.0:
+			step_timer = 0.0
+			has_fired_in_step = false
 		
 	# シールド発生装置の制御 (7秒間展開 -> 5秒間クールダウン)
 	if turret_type == TurretType.SHIELD_GENERATOR:
@@ -304,6 +385,12 @@ func get_attack_interval() -> float:
 			base_interval = 1.0
 		TurretType.GIGANTIC_ENERGY_ORB:
 			base_interval = 10.0
+		TurretType.DIVE_SCATTER:
+			base_interval = 999.0 # 常時突進処理
+		TurretType.STEP_PURSUIT:
+			base_interval = 999.0 # 常時1秒追尾処理
+		TurretType.CHAIN_SWEEP_BOMBER:
+			base_interval = 7.5
 	return base_interval * p_info["interval_mult"] * Global.get_enemy_attack_interval_multiplier()
 
 
@@ -347,6 +434,93 @@ func start_attack_sequence() -> void:
 			execute_attack()
 		TurretType.GIGANTIC_ENERGY_ORB:
 			start_giga_orb_sequence()
+		TurretType.CHAIN_SWEEP_BOMBER:
+			start_chain_sweep_bomber_sequence()
+
+
+func start_chain_sweep_bomber_sequence() -> void:
+	if is_sweeping:
+		return
+	is_sweeping = true
+	
+	spawn_turret_warning("⚡ CHAIN SUPERNOVA SWEEP ⚡")
+	Global.play_laser(0.9)
+	
+	# ボス画像上部（右から左へ移動）
+	global_position = Vector2(700.0, 180.0)
+	var sweep_tw = create_tween()
+	sweep_tw.tween_property(self, "global_position:x", 100.0, 2.4).set_trans(Tween.TRANS_SINE)
+	sweep_tw.chain().tween_callback(func():
+		is_sweeping = false
+		target_pos = global_position
+	)
+	
+	# 右から左へ移動中に5つの起爆弾を投下
+	var check_x = [640.0, 510.0, 380.0, 250.0, 120.0]
+	for i in range(5):
+		get_tree().create_timer(i * 0.45).timeout.connect(func():
+			if is_instance_valid(self) and is_alive:
+				drop_chain_fuse_bullet(Vector2(global_position.x, global_position.y + 20.0))
+		)
+
+
+func drop_chain_fuse_bullet(spawn_pos: Vector2) -> void:
+	var main = get_node_or_null("/root/Main")
+	var pool = main.get_node_or_null("BulletPool") if main else null
+	if not pool:
+		return
+		
+	var bullet = pool.get_bullet("charge")
+	if bullet:
+		bullet.global_position = spawn_pos
+		bullet.damage = 22
+		bullet.set_direction(Vector2.DOWN, 110.0)
+		Global.play_laser(1.3)
+		
+		# 0.75秒後に爆発（事前に弾をはじき返していれば爆発キャンセル）
+		get_tree().create_timer(0.75).timeout.connect(func():
+			if is_instance_valid(bullet):
+				if not bullet.is_friendly:
+					# 弾をはじき返せなかったため爆発発生！
+					trigger_hazard_chain_explosion(bullet.global_position)
+					bullet.recycle_bullet()
+				else:
+					# 弾をはじき返したため連鎖爆発は阻止された！
+					spawn_turret_warning("連鎖爆発 阻止成功！")
+		)
+
+
+func trigger_hazard_chain_explosion(pos: Vector2) -> void:
+	Global.play_explosion(1.2)
+	var parent_node = get_parent()
+	if not parent_node:
+		return
+		
+	# プレイヤーへの爆风ダメージ
+	var main = get_node_or_null("/root/Main")
+	var player = main.get_node_or_null("Player") if main else null
+	if is_instance_valid(player) and player.current_hp > 0:
+		if pos.distance_to(player.global_position) <= 75.0:
+			player.take_damage(26)
+			HitSpark.create_spark(parent_node, player.global_position, "heavy", Color(1.0, 0.3, 0.2))
+			
+	# 8方向への放射弾
+	var pool = main.get_node_or_null("BulletPool") if main else null
+	if pool:
+		for i in range(8):
+			var b = pool.get_bullet("straight")
+			if b:
+				b.global_position = pos
+				b.damage = 16
+				var dir = Vector2.DOWN.rotated(i * (TAU / 8.0))
+				b.set_direction(dir, 280.0)
+				
+	if PARRY_PARTICLE_SCENE:
+		var p = PARRY_PARTICLE_SCENE.instantiate()
+		p.global_position = pos
+		p.scale = Vector2(2.2, 2.2)
+		p.modulate = Color(1.0, 0.45, 0.2)
+		parent_node.add_child(p)
 
 
 func start_giga_orb_sequence() -> void:

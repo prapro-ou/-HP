@@ -161,6 +161,14 @@ func init_data() -> void:
 	c_orb.is_unlocked = Global.unlocked_counter_weapons.has("gigantic_orb") or true
 	counter_weapons.append(c_orb)
 	
+	var c_chain = LoadoutItem.new()
+	c_chain.id = "chain_explosions"
+	c_chain.name = "5連鎖スーパノヴァ"
+	c_chain.description = "【5連鎖超爆撃】自機の前方に右から左へ5つの超爆発を連続掃射。爆発はジャストガード判定を持ち、敵弾を通常の3倍の破壊力で跳ね返す。"
+	c_chain.stats = "反射:★★★★★ | 破壊:★★★★★ | 殲滅:★★★★★"
+	c_chain.is_unlocked = Global.unlocked_counter_weapons.has("chain_explosions") or true
+	counter_weapons.append(c_chain)
+	
 	var c1 = LoadoutItem.new()
 	c1.id = "boss_beam"
 	c1.name = "ギガレーザー砲台"
