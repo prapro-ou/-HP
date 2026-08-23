@@ -1031,7 +1031,12 @@ func show_tutorial_guide_modal(topic: String) -> void:
 		var it_desc = Label.new()
 		it_desc.text = it.get("desc", "")
 		it_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		setup_label_style(it_desc, 17, Color.WHITE, 3)
+		it_desc.add_theme_constant_override("line_spacing", 4)
+		var desc_set = LabelSettings.new()
+		desc_set.font = Global.get_readable_font()
+		desc_set.font_size = 17
+		desc_set.font_color = Color(0.92, 0.96, 1.0)
+		it_desc.label_settings = desc_set
 		c_vbox.add_child(it_desc)
 		
 	var resume_btn = Button.new()

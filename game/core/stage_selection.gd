@@ -1132,11 +1132,11 @@ func render_tip_detail(tip: Dictionary) -> void:
 	var desc_lbl = Label.new()
 	desc_lbl.text = tip.get("desc", "")
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.add_theme_constant_override("line_spacing", 6)
 	var d_set = LabelSettings.new()
-	if PIXEL_FONT:
-		d_set.font = PIXEL_FONT
+	d_set.font = Global.get_readable_font()
 	d_set.font_size = 18
-	d_set.font_color = Color(0.9, 0.95, 1.0)
+	d_set.font_color = Color(0.92, 0.96, 1.0)
 	desc_lbl.label_settings = d_set
 	vb.add_child(desc_lbl)
 	
@@ -1165,9 +1165,10 @@ func render_tip_detail(tip: Dictionary) -> void:
 		
 		var hint_lbl = Label.new()
 		hint_lbl.text = tip["hint"]
+		hint_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hint_lbl.add_theme_constant_override("line_spacing", 4)
 		var hint_set = LabelSettings.new()
-		if PIXEL_FONT:
-			hint_set.font = PIXEL_FONT
+		hint_set.font = Global.get_readable_font()
 		hint_set.font_size = 16
 		hint_set.font_color = Color.CYAN
 		hint_lbl.label_settings = hint_set

@@ -767,6 +767,26 @@ func is_tip_unread(tip_id: String) -> bool:
 func get_unread_tips_count() -> int:
 	return unread_tips.size()
 
+var readable_font: Font = null
+
+func get_readable_font() -> Font:
+	if readable_font == null:
+		var sf = SystemFont.new()
+		sf.font_names = PackedStringArray([
+			"Yu Gothic UI",
+			"Meiryo",
+			"Hiragino Sans",
+			"Hiragino Kaku Gothic ProN",
+			"Noto Sans CJK JP",
+			"Noto Sans JP",
+			"MS Gothic",
+			"sans-serif"
+		])
+		sf.antialiasing = TextServer.FONT_ANTIALIASING_LCD
+		sf.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
+		readable_font = sf
+	return readable_font
+
 # --- COUNTER SYSTEM パラメータ計算 ---
 
 func get_counter_system_duration() -> float:

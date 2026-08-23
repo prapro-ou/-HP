@@ -641,4 +641,3 @@ func convert_all_bullets_to_data_orbs(player_node: CharacterBody2D) -> void:
 
 func get_current_hp() -> int:
 	return current_hp
-
