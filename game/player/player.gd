@@ -677,7 +677,7 @@ func fire_equipped_physics_weapon(target_parent: Node) -> void:
 				bullet.pierce_limit = max(p_limit, 1) # パルスは群れを貫通
 				bullet.homing_strength = h_strength
 				bullet.wave_amp = w_amp
-				bullet.explosion_radius = max(exp_rad, 30.0 + pulse_burst_lvl * 5.0 if "pulse_burst_lvl" in self else exp_rad)
+				bullet.explosion_radius = max(exp_rad, 25.0) if is_meteor_active else 0.0
 				bullet.explosion_dmg = exp_dmg
 				bullet.chain_count = c_count
 				bullet.chain_damage = c_dmg
