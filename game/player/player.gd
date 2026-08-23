@@ -293,7 +293,9 @@ func _process(delta: float) -> void:
 	position.x = clamp(position.x, 20.0, viewport_size.x - 20.0)
 	position.y = clamp(position.y, 20.0, viewport_size.y - 20.0)
 	
-	if is_attack_unlocked:
+	# 主兵装の射撃入力判定: Zキー長押し、マウス左クリック長押し、またはEnterキー
+	var is_shooting_pressed = Input.is_key_pressed(KEY_Z) or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or Input.is_action_pressed("ui_accept")
+	if is_attack_unlocked and not Global.counter_only_mode_enabled and is_shooting_pressed:
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_fire_time > fire_rate:
 			fire()

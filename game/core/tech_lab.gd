@@ -28,6 +28,7 @@ var cd_cost_btn: Button
 var focus_mode_btn: Button
 var focus_mode_desc_lbl: Label
 var focus_mode_stat_lbl: Label
+var focus_mode_sub_lbl: Label
 
 # COUNTER SYSTEM enhancement variables
 var cs_dur_lvl_lbl: Label
@@ -608,8 +609,7 @@ func create_weapon_research_card(w_name: String, w_desc: String, cost_text: Stri
 func create_focus_tuning_ui(parent: Control) -> void:
 	var card_panel = PanelContainer.new()
 	card_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	# 固定高さを確保して切り替え時の画面揺れ・サイズ変化を完全に防止
-	card_panel.custom_minimum_size = Vector2(0, 115)
+	card_panel.custom_minimum_size = Vector2(0, 135)
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.06, 0.08, 0.16, 0.85)
 	sb.border_width_left = 1
@@ -636,23 +636,37 @@ func create_focus_tuning_ui(parent: Control) -> void:
 	margin.add_child(vb)
 	
 	var top_hb = HBoxContainer.new()
+	top_hb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_child(top_hb)
 	
+	var text_left = VBoxContainer.new()
+	text_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_left.add_theme_constant_override("separation", 2)
+	top_hb.add_child(text_left)
+	
 	focus_mode_stat_lbl = Label.new()
-	focus_mode_stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	focus_mode_stat_lbl.custom_minimum_size = Vector2(0, 26)
-	focus_mode_stat_lbl.text = "現在の設定: STANDARD [標準]"
+	focus_mode_stat_lbl.text = "設定: STANDARD [標準範囲]"
 	var f_set = LabelSettings.new()
 	if PIXEL_FONT:
 		f_set.font = PIXEL_FONT
 	f_set.font_size = 18
 	f_set.font_color = Color.WHITE
 	focus_mode_stat_lbl.label_settings = f_set
-	top_hb.add_child(focus_mode_stat_lbl)
+	text_left.add_child(focus_mode_stat_lbl)
+	
+	focus_mode_sub_lbl = Label.new()
+	focus_mode_sub_lbl.text = "範囲: 100% ｜ 反射威力: 1.0倍"
+	var sub_set = LabelSettings.new()
+	if PIXEL_FONT:
+		sub_set.font = PIXEL_FONT
+	sub_set.font_size = 15
+	sub_set.font_color = Color(0.35, 0.85, 1.0)
+	focus_mode_sub_lbl.label_settings = sub_set
+	text_left.add_child(focus_mode_sub_lbl)
 	
 	focus_mode_btn = Button.new()
-	focus_mode_btn.text = "設定切替 [CLICK]"
-	focus_mode_btn.custom_minimum_size = Vector2(160, 38)
+	focus_mode_btn.text = "設定切替\n[CLICK]"
+	focus_mode_btn.custom_minimum_size = Vector2(150, 44)
 	focus_mode_btn.add_theme_font_size_override("font_size", 16)
 	style_neon_button(focus_mode_btn, Color(0.3, 0.75, 1.0), Color.CYAN)
 	focus_mode_btn.pressed.connect(func():
@@ -668,8 +682,7 @@ func create_focus_tuning_ui(parent: Control) -> void:
 	
 	focus_mode_desc_lbl = Label.new()
 	focus_mode_desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	# 固定最小高さを設定してテキスト量によるガタつきを防止
-	focus_mode_desc_lbl.custom_minimum_size = Vector2(0, 46)
+	focus_mode_desc_lbl.custom_minimum_size = Vector2(0, 40)
 	focus_mode_desc_lbl.text = "安定した標準範囲でのジャストガード。"
 	var fd_set = LabelSettings.new()
 	fd_set.font = Global.get_readable_font()
@@ -808,7 +821,9 @@ func update_lab_hud() -> void:
 	# 4. Focus mode state
 	if is_instance_valid(focus_mode_stat_lbl) and is_instance_valid(focus_mode_desc_lbl):
 		var f_info = Global.get_focus_mode_info()
-		focus_mode_stat_lbl.text = "現在の設定: " + f_info.get("name", "STANDARD") + " (範囲: " + f_info.get("radius_pct", "100%") + " | 威力: " + f_info.get("dmg_mult", "1.0倍") + ")"
+		focus_mode_stat_lbl.text = "設定: " + f_info.get("name", "STANDARD")
+		if is_instance_valid(focus_mode_sub_lbl):
+			focus_mode_sub_lbl.text = "範囲: %s ｜ 反射威力: %s" % [f_info.get("radius_pct", "100%"), f_info.get("dmg_mult", "1.0倍")]
 		focus_mode_desc_lbl.text = f_info.get("description", "")
 
 	# 5. COUNTER SYSTEM Duration state (10s -> 20s)

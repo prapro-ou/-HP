@@ -1137,6 +1137,8 @@ func _on_player_color_changed(idx: int) -> void:
 func _on_play_start_pressed() -> void:
 	# Check if first launch or not
 	Global.load_game_data()
+	if is_instance_valid(credits_dialog):
+		credits_dialog.hide()
 	
 	if Global.is_first_launch:
 		# Show tutorial confirm dialog
@@ -1151,7 +1153,12 @@ func _on_play_start_pressed() -> void:
 		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
 
 func _on_settings_pressed() -> void:
-	# Transition: hide menu container, show settings panel
+	# Transition: hide menu container & modals, show settings panel
+	if is_instance_valid(credits_dialog):
+		credits_dialog.hide()
+	if is_instance_valid(tutorial_dialog):
+		tutorial_dialog.hide()
+		
 	var tween = create_tween().set_parallel(true)
 	menu_container.hide()
 	settings_container.show()
@@ -1161,7 +1168,12 @@ func _on_settings_pressed() -> void:
 	tween.tween_property(settings_container, "modulate:a", 1.0, 0.2)
 
 func _on_credits_pressed() -> void:
-	# Transition: show credits dialog modal
+	# Transition: hide settings & tutorial, show credits dialog modal
+	if is_instance_valid(settings_container):
+		settings_container.hide()
+	if is_instance_valid(tutorial_dialog):
+		tutorial_dialog.hide()
+		
 	credits_dialog.show()
 	credits_dialog.modulate.a = 0.0
 	credits_dialog.scale = Vector2(0.8, 0.8)

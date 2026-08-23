@@ -59,12 +59,15 @@ func _ready() -> void:
 	# 主兵装HUD表示
 	create_equipped_weapon_hud()
 	
-	# 中央ボス情報配置
-	boss_hp_label.position = Vector2(250, 10)
+	# 中央〜右側ボス情報配置 (大迫力のロングHPゲージ)
+	boss_hp_label.position = Vector2(260, 6)
+	boss_hp_label.custom_minimum_size = Vector2(520, 22)
+	boss_hp_label.size = Vector2(520, 22)
 	boss_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	boss_hp_bar.position = Vector2(250, 32)
-	boss_hp_bar.custom_minimum_size = Vector2(240, 16)
-	boss_hp_bar.size = Vector2(240, 16)
+	boss_hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	boss_hp_bar.position = Vector2(260, 30)
+	boss_hp_bar.custom_minimum_size = Vector2(520, 20)
+	boss_hp_bar.size = Vector2(520, 20)
 	
 	create_shield_heat_bar()
 	create_analysis_matrix_ui()
@@ -273,7 +276,7 @@ var last_analysis_progress_val: float = 0.0
 func create_analysis_matrix_ui() -> void:
 	var trait_panel = PanelContainer.new()
 	trait_panel.name = "TraitSlotsPanel"
-	trait_panel.position = Vector2(440, 10)
+	trait_panel.position = Vector2(440, 58)
 	trait_panel.custom_minimum_size = Vector2(340, 130)
 	
 	var sb = StyleBoxFlat.new()
@@ -1331,7 +1334,7 @@ func update_boss_hp(current: int, max_hp_val: int) -> void:
 	boss_hp_label.visible = true
 	boss_hp_bar.max_value = max_hp_val
 	boss_hp_bar.value = current
-	boss_hp_label.text = "ボス HP: %d / %d" % [current, max_hp_val]
+	boss_hp_label.text = "【BOSS TARGET】 HP: %d / %d" % [current, max_hp_val]
 
 
 func update_parry_count(count: int) -> void:
