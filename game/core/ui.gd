@@ -390,6 +390,9 @@ func create_analysis_matrix_ui() -> void:
 
 
 func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
+	if slot_cards.is_empty() or not is_instance_valid(active_analysis_bar):
+		return
+		
 	# 0. 2スロット揃っている場合は融合兵装名をヘッダーに表示
 	if active_traits.size() >= 2 and is_instance_valid(analysis_panel_title):
 		var f_info = Global.get_fusion_info(active_traits[0], active_traits[1])
@@ -400,7 +403,7 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 		analysis_panel_title.label_settings.font_color = Color.CYAN
 		
 	# 1. 2つの固定スロット表示の更新
-	for i in range(2):
+	for i in range(min(2, slot_cards.size())):
 		var card = slot_cards[i]
 		if i < active_traits.size():
 			var t_key = active_traits[i]
