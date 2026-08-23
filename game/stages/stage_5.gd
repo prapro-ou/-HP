@@ -92,7 +92,7 @@ func _setup_waves() -> void:
 	waves.append(w4)
 
 func _setup_interlude() -> void:
-	interlude.title = "💥 FINAL WARNING: PLANETARY AWAKENING 💥"
+	interlude.title = "FINAL WARNING: PLANETARY AWAKENING"
 	interlude.subtitle = "惑星融合型超兵器・ガイア・カタストロフ覚醒！"
 	interlude.flash_color = Color(1.0, 0.1, 0.2, 0.7)
 	interlude.secondary_flash_color = Color(1.0, 0.8, 0.0, 0.8)
@@ -109,4 +109,4 @@ func _setup_boss() -> void:
 
 func _setup_rewards() -> void:
 	reward_config.tech_points = 100
-	reward_config.unlock_message = "🎉 全作戦完了！惑星の粉砕に成功し、銀河の平和は守られた！"
+	reward_config.unlock_message = "全作戦完了！惑星の粉砕に成功し、銀河の平和は守られた！"

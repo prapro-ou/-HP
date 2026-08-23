@@ -26,7 +26,7 @@ class WaveData:
 	var drone_shoot_interval_missile: float = 0.0
 
 class InterludeData:
-	var title: String = "⚠️ 警告 ⚠️"
+	var title: String = "警告"
 	var subtitle: String = "強大な敵反応を検知！"
 	var flash_color: Color = Color(1.0, 0.0, 0.0, 0.4)
 	var secondary_flash_color: Color = Color.TRANSPARENT

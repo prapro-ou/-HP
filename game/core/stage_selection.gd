@@ -50,10 +50,10 @@ func _ready() -> void:
 	Global.load_settings()
 	Global.check_save_game()
 	
-	# Play Stage Select BGM
+	# Stage Selection uses SFX only (Stop BGM)
 	var audio_mgr = get_node_or_null("/root/AudioManager")
-	if audio_mgr and audio_mgr.has_method("play_bgm"):
-		audio_mgr.play_bgm("stage_select", 0.8)
+	if audio_mgr and audio_mgr.has_method("stop_bgm"):
+		audio_mgr.stop_bgm(0.3)
 	
 	var save_data = Global.load_game_data()
 	var saved_stage_num = save_data.get("stage_num", 1)
@@ -486,13 +486,13 @@ func update_stage_selection(instant: bool) -> void:
 		select_btn.disabled = false
 		style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
 	else:
-		detail_title.text = "STAGE %d: 🔒 未解放エリア" % active_stage.id
+		detail_title.text = "STAGE %d: 未解放エリア" % active_stage.id
 		detail_codename.text = "[アクセス権限: 未解除]"
 		var prev_stage_name = stages[active_stage.id - 2].title if active_stage.id > 1 and active_stage.id - 2 < stages.size() else "前ステージ"
 		detail_desc.text = "前ステージ (STAGE %d: %s) をクリアすることで作戦宙域へのアクセス権限が解放されます。" % [active_stage.id - 1, prev_stage_name]
-		detail_diff.text = "DIFFICULTY: 🔒 LOCKED"
+		detail_diff.text = "DIFFICULTY: LOCKED"
 		detail_diff.label_settings.font_color = Color(0.6, 0.3, 0.3)
-		select_btn.text = "🔒 未解放"
+		select_btn.text = "未解放"
 		select_btn.disabled = true
 		style_btn(select_btn, Color(0.3, 0.3, 0.3), Color(0.4, 0.4, 0.4))
 	
@@ -520,7 +520,7 @@ func update_stage_selection(instant: bool) -> void:
 		if item_unlocked:
 			card_lbl.text = "STAGE " + str(stage_item.id) + "\n" + stage_item.title
 		else:
-			card_lbl.text = "STAGE " + str(stage_item.id) + "\n🔒 LOCKED"
+			card_lbl.text = "STAGE " + str(stage_item.id) + "\nLOCKED"
 		
 		if i == current_index:
 			# Focused Card
@@ -723,7 +723,7 @@ func update_archive_content() -> void:
 			l_set.font_size = 20
 			l_set.font_color = data["color"]
 		else:
-			hdr_lbl.text = "🔒 【未解析アーカイブ】"
+			hdr_lbl.text = "【未解析アーカイブ】"
 			l_set.font_size = 18
 			l_set.font_color = Color(0.5, 0.5, 0.6)
 		hdr_lbl.label_settings = l_set

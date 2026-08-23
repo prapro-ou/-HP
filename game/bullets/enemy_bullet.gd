@@ -29,7 +29,7 @@ const HOMING_LERP_SPEED: float = 16.0
 const SCREEN_OFFSCREEN_MARGIN: float = 60.0
 
 @export var speed: float = 200.0
-@export var damage: int = 8
+@export var damage: int = 16
 
 var velocity: Vector2 = Vector2.ZERO
 var is_friendly: bool = false
@@ -164,7 +164,7 @@ func _process(delta: float) -> void:
 			velocity = velocity.lerp(target_velocity, delta * HOMING_LERP_SPEED)
 			
 	else:
-		# 減速 ➔ 急加速追尾ミサイル処理
+		# 減速 -> 急加速追尾ミサイル処理
 		if bullet_type == BULLET_TYPE_DECEL_MISSILE:
 			decel_timer += delta
 			if decel_phase == 0:

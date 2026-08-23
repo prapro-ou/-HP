@@ -46,10 +46,10 @@ func _ready() -> void:
 	Global.load_settings()
 	var save_data = Global.load_game_data()
 	
-	# Play Stage Select BGM
+	# Loadout Selection uses SFX only (Stop BGM)
 	var audio_mgr = get_node_or_null("/root/AudioManager")
-	if audio_mgr and audio_mgr.has_method("play_bgm"):
-		audio_mgr.play_bgm("stage_select", 0.8)
+	if audio_mgr and audio_mgr.has_method("stop_bgm"):
+		audio_mgr.stop_bgm(0.3)
 	
 	init_data()
 	setup_ui()
@@ -223,7 +223,7 @@ func setup_ui() -> void:
 		
 		if not w.is_unlocked:
 			btn.disabled = true
-			btn.text = "🔒 未解放"
+			btn.text = "未解放"
 		else:
 			btn.pressed.connect(func(): select_item("primary", w.id))
 			btn.mouse_entered.connect(func(): show_details("primary", w.id))
@@ -266,7 +266,7 @@ func setup_ui() -> void:
 		
 		if not c.is_unlocked:
 			btn.disabled = true
-			btn.text = "🔒 未解放"
+			btn.text = "未解放"
 		else:
 			btn.pressed.connect(func(): select_item("counter", c.id))
 			btn.mouse_entered.connect(func(): show_details("counter", c.id))

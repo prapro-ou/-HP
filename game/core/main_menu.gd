@@ -61,10 +61,10 @@ func _ready() -> void:
 	Global.check_save_game()
 	Global.load_game_data()
 	
-	# Play Main Menu BGM
+	# Main Menu uses SFX only (Stop BGM)
 	var audio_mgr = get_node_or_null("/root/AudioManager")
-	if audio_mgr and audio_mgr.has_method("play_bgm"):
-		audio_mgr.play_bgm("main_menu", 1.0)
+	if audio_mgr and audio_mgr.has_method("stop_bgm"):
+		audio_mgr.stop_bgm(0.3)
 	
 	# Layout design
 	setup_layout()
@@ -592,7 +592,7 @@ func setup_settings_container() -> void:
 	
 	# 1. 強化内容のみリセット
 	var reset_upgrades_btn = Button.new()
-	reset_upgrades_btn.text = "🔧 強化内容のみリセット (HP/パリィ/CD ➔ 0)"
+	reset_upgrades_btn.text = "強化内容のみリセット (HP/パリィ/CD -> 0)"
 	reset_upgrades_btn.custom_minimum_size = Vector2(0, 48)
 	reset_upgrades_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
@@ -601,12 +601,12 @@ func setup_settings_container() -> void:
 	dbg_vbox.add_child(reset_upgrades_btn)
 	reset_upgrades_btn.pressed.connect(func():
 		Global.reset_upgrade_levels()
-		show_debug_toast("✅ 強化内容（HP・パリィ判定・CD）を 0 にリセットしました")
+		show_debug_toast("強化内容（HP・パリィ判定・CD）を 0 にリセットしました")
 	)
 	
 	# 2. 開発ポイント(TP)のみリセット
 	var reset_tp_btn = Button.new()
-	reset_tp_btn.text = "💎 獲得開発ポイント(TP)のみリセット (➔ 0)"
+	reset_tp_btn.text = "獲得開発ポイント(TP)のみリセット (-> 0)"
 	reset_tp_btn.custom_minimum_size = Vector2(0, 48)
 	reset_tp_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
@@ -615,12 +615,12 @@ func setup_settings_container() -> void:
 	dbg_vbox.add_child(reset_tp_btn)
 	reset_tp_btn.pressed.connect(func():
 		Global.reset_tech_points()
-		show_debug_toast("✅ 開発ポイント（TP）を 0 にリセットしました")
+		show_debug_toast("開発ポイント（TP）を 0 にリセットしました")
 	)
 	
 	# 3. 兵装開発・解析図鑑・ステージ解放リセット
 	var reset_dev_btn = Button.new()
-	reset_dev_btn.text = "📜 兵装開発・解析図鑑・ステージ解放リセット"
+	reset_dev_btn.text = "兵装開発・解析図鑑・ステージ解放リセット"
 	reset_dev_btn.custom_minimum_size = Vector2(0, 48)
 	reset_dev_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
@@ -629,12 +629,12 @@ func setup_settings_container() -> void:
 	dbg_vbox.add_child(reset_dev_btn)
 	reset_dev_btn.pressed.connect(func():
 		Global.reset_development_progress()
-		show_debug_toast("✅ 兵装開発・解析図鑑・ステージ解放を初期化しました")
+		show_debug_toast("兵装開発・解析図鑑・ステージ解放を初期化しました")
 	)
 	
 	# 4. 全データ初期化
 	reset_btn = Button.new()
-	reset_btn.text = "⚠️ 全セーブデータ一括初期化 (完全消去)"
+	reset_btn.text = "全セーブデータ一括初期化 (完全消去)"
 	reset_btn.custom_minimum_size = Vector2(0, 50)
 	reset_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
@@ -825,7 +825,7 @@ func setup_tutorial_confirm_dialog() -> void:
 	margin.add_child(box)
 	
 	var t_title = Label.new()
-	t_title.text = "🤖 チュートリアル"
+	t_title.text = "チュートリアル"
 	t_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var t_lbl_set = LabelSettings.new()
 	if PIXEL_FONT:

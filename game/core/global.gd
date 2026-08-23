@@ -29,7 +29,7 @@ var upgrade_levels: Dictionary = {
 var analysis_catalog: Dictionary = {
 	"rapid": {
 		"name": "高速連射",
-		"icon": "⚡",
+		"icon": "",
 		"color": Color(0.3, 0.8, 1.0),
 		"enemy_color": "青色",
 		"enemy_type": "直進フォトン弾ドローン",
@@ -43,7 +43,7 @@ var analysis_catalog: Dictionary = {
 		"color": Color(0.2, 1.0, 0.6),
 		"enemy_color": "緑色",
 		"enemy_type": "拡散ウェイブ弾ドローン",
-		"effect": "主兵装の同時発射ライン数を増加（2連装➔3連装➔多方向拡散）",
+		"effect": "主兵装の同時発射ライン数を増加（2連装->3連装->多方向拡散）",
 		"stats": "同時発射数: ＋1〜3発 | 攻撃範囲: 扇状広域",
 		"description": "緑色ドローンの広角プラズマ照射機構を解析。主兵装の射撃ラインを前方扇状に拡張し、複数の敵を一網打尽にする。"
 	},
@@ -99,7 +99,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"thunder": {
 		"name": "電撃連鎖",
-		"icon": "⚡⚡",
+		"icon": "",
 		"color": Color(0.95, 0.9, 0.2),
 		"enemy_color": "金色・放電色",
 		"enemy_type": "成層圏超放電ストーム／放電ドローン",
@@ -109,7 +109,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"vortex": {
 		"name": "重力特異点",
-		"icon": "🌀",
+		"icon": "",
 		"color": Color(0.75, 0.3, 1.0),
 		"enemy_color": "深紫色",
 		"enemy_type": "特異点重力弾／空間歪曲ユニット",
@@ -119,7 +119,7 @@ var analysis_catalog: Dictionary = {
 	},
 	"blade": {
 		"name": "真空斬撃",
-		"icon": "✦",
+		"icon": "",
 		"color": Color(0.2, 1.0, 0.85),
 		"enemy_color": "青緑色",
 		"enemy_type": "超振動カッター／真空スラッシャー",

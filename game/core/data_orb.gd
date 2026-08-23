@@ -88,7 +88,7 @@ func absorb_to_player(player: Node2D) -> void:
 		player.heal(8)
 		
 	if player.has_method("spawn_popup_message"):
-		player.spawn_popup_message("⚡ DATA EXP +12% / HP +8")
+		player.spawn_popup_message("DATA EXP +12% / HP +8")
 		
 	# キラキラ消滅
 	var tween = create_tween()

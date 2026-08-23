@@ -43,10 +43,10 @@ func _ready() -> void:
 	Global.load_settings()
 	Global.load_game_data()
 	
-	# Play Tech Lab BGM
+	# Tech Lab uses SFX only (Stop BGM)
 	var audio_mgr = get_node_or_null("/root/AudioManager")
-	if audio_mgr and audio_mgr.has_method("play_bgm"):
-		audio_mgr.play_bgm("tech_lab", 0.8)
+	if audio_mgr and audio_mgr.has_method("stop_bgm"):
+		audio_mgr.stop_bgm(0.3)
 	
 	# Give starting points if none exists for a better first-time demo experience
 	if Global.tech_points == 0 and not Global.has_save:

@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 	# 砲台全滅時の暴走アナウンス
 	if is_enraged and not enraged_notified:
 		enraged_notified = true
-		spawn_shield_message("⚠️ 砲台破壊！要塞コア暴走・攻撃頻度激化！")
+		spawn_shield_message("砲台破壊！要塞コア暴走・攻撃頻度激化！")
 		if is_instance_valid(player) and player.has_method("trigger_screen_flash"):
 			player.trigger_screen_flash(Color(1.0, 0.2, 0.2, 0.3))
 			
@@ -132,22 +132,22 @@ func _process(delta: float) -> void:
 		if turret_respawn_timer >= 18.0:
 			reinforcement_wave_spawned = true
 			enraged_notified = false
-			spawn_shield_message("⚠️ 警告: 予備砲台デッキ展開！")
+			spawn_shield_message("警告: 予備砲台デッキ展開！")
 			spawn_sub_turrets(4.0, true)
 			
 	# プレイヤーの接近感知による全方位迎撃パルス（円形弾）
 	process_proximity_counter_attack(delta)
 	
 	fire_timer += delta
-	# 砲台生存中は3.5秒、砲台撃破後は1.5秒に手数が倍増！
-	var attack_interval = 1.5 if is_enraged else 3.5
+	# 砲台生存中は2.4秒、砲台撃破後は1.0秒に手数が倍増
+	var attack_interval = 1.0 if is_enraged else 2.4
 	if fire_timer >= attack_interval:
 		fire_timer = 0.0
 		execute_fortress_attack()
 
 
 var close_proximity_timer: float = 0.0
-const CLOSE_PROXIMITY_COOLDOWN: float = 3.5
+const CLOSE_PROXIMITY_COOLDOWN: float = 2.5
 const CLOSE_PROXIMITY_DISTANCE: float = 250.0
 
 func process_proximity_counter_attack(delta: float) -> void:
@@ -174,7 +174,7 @@ func fire_proximity_ring_attack(center_pos: Vector2) -> void:
 		t.tween_property(core_glow, "color", Color(1.0, 0.2, 0.2, 0.6), 0.25)
 		
 	Global.play_laser(randf_range(1.1, 1.3))
-	spawn_shield_message("⚠️ 接近感知！全方位迎撃パルス起動！")
+	spawn_shield_message("接近感知！全方位迎撃パルス起動！")
 	
 	var mult = get_stage_difficulty_mult()
 	var bullet_count = 16
@@ -184,7 +184,7 @@ func fire_proximity_ring_attack(center_pos: Vector2) -> void:
 		var bullet = bullet_pool.get_bullet("wave")
 		if bullet:
 			bullet.global_position = center_pos
-			bullet.damage = int(8 * mult)
+			bullet.damage = int(16 * mult)
 			bullet.set_direction(dir, 280.0)
 
 
@@ -223,20 +223,20 @@ func execute_fortress_attack() -> void:
 					var bullet = bullet_pool.get_bullet("laser")
 					if bullet:
 						bullet.global_position = Vector2(drop_x, 15.0)
-						bullet.damage = int(10 * mult)
+						bullet.damage = int(20 * mult)
 						var dir = center_dir.rotated(deg_to_rad(angle_deg))
 						bullet.set_direction(dir, 320.0)
 		1:
 			# パターン2: 画面上端からのクラスター追尾ミサイル雨
 			var missile_waves = 4 if is_enraged else 2
 			for wave in range(missile_waves):
-				get_tree().create_timer(wave * 0.22).timeout.connect(func():
+				get_tree().create_timer(wave * 0.18).timeout.connect(func():
 					if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
 						var spawn_x = randf_range(100.0, vp_w - 100.0)
 						var bullet = bullet_pool.get_bullet("missile")
 						if bullet:
 							bullet.global_position = Vector2(spawn_x, 15.0)
-							bullet.damage = int(10 * mult)
+							bullet.damage = int(20 * mult)
 							var target_dir = Vector2.DOWN
 							if is_instance_valid(player):
 								target_dir = (player.global_position - bullet.global_position).normalized()
@@ -256,7 +256,7 @@ func execute_fortress_attack() -> void:
 							var bullet = bullet_pool.get_bullet("charge")
 							if bullet:
 								bullet.global_position = core_pos + Vector2(0.0, 30.0)
-								bullet.damage = int(16 * mult)
+								bullet.damage = int(32 * mult)
 								var dir = Vector2.DOWN
 								if is_instance_valid(player):
 									dir = (player.global_position - bullet.global_position).normalized()
@@ -267,7 +267,7 @@ func execute_fortress_attack() -> void:
 					var c_bullet = bullet_pool.get_bullet("irregular")
 					if c_bullet:
 						c_bullet.global_position = core_pos + Vector2(side * 80.0, 20.0)
-						c_bullet.damage = int(8 * mult)
+						c_bullet.damage = int(16 * mult)
 						c_bullet.set_direction(Vector2(side * 0.6, 1.0).normalized(), 300.0)
 		4:
 			# パターン5 (暴走時): 要塞緊急防衛ギガメテオ投下
@@ -280,7 +280,7 @@ func execute_fortress_attack() -> void:
 							var shoot_dir = Vector2.DOWN.rotated(randf_range(-0.4, 0.4))
 							if is_instance_valid(player):
 								shoot_dir = (player.global_position - meteor.global_position).normalized()
-							meteor.damage = int(25 * mult)
+							meteor.damage = int(50 * mult)
 							meteor.set_direction(shoot_dir, 300.0)
 							get_parent().add_child(meteor)
 					)
@@ -294,7 +294,7 @@ func execute_unparryable_cannon_attack() -> void:
 	if main:
 		var ui_node = main.get_node_or_null("UI")
 		if ui_node and ui_node.has_method("show_top_unparryable_warning"):
-			ui_node.show_top_unparryable_warning(1.8, "⚠️ DANGER: パリィ不可・断絶真紅レーザー警告！ ⚠️")
+			ui_node.show_top_unparryable_warning(1.8, "DANGER: パリィ不可・断絶真紅レーザー警告！")
 			
 	# コアが濃赤に激しく明滅
 	if is_instance_valid(core_glow):
@@ -349,7 +349,7 @@ func take_damage_on_part(part_name: String, amount: int, hit_pos: Vector2 = Vect
 		# 砲台生存中はバリアでダメージ80%カット
 		final_dmg = max(1, int(amount * 0.2))
 		if randf() < 0.2:
-			spawn_shield_message("⚠️ サブ砲台が防壁を展開中！")
+			spawn_shield_message("サブ砲台が防壁を展開中！")
 			
 		# 防壁ヒット演出 (金属弾きSE & シールドスパーク & 青白フラッシュ)
 		Global.play_guard(randf_range(0.95, 1.05))
