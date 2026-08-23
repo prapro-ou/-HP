@@ -356,30 +356,36 @@ func setup_ui() -> void:
 	style_nav_button(next_btn)
 	next_btn.pressed.connect(func(): navigate_selection(1))
 	
-	# Action buttons at the absolute bottom
-	var action_hbox = HBoxContainer.new()
-	action_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	action_hbox.add_theme_constant_override("separation", 14)
-	action_hbox.anchor_left = 0.0
-	action_hbox.anchor_right = 1.0
-	action_hbox.anchor_top = 0.90
-	action_hbox.anchor_bottom = 0.90
-	action_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	action_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH
-	add_child(action_hbox)
+	# Top-Right TIPS Button (画面右上)
+	tips_btn = Button.new()
+	var unread_cnt = Global.get_unread_tips_count()
+	tips_btn.text = "TIPS [NEW]" if unread_cnt > 0 else "TIPS戦術"
+	tips_btn.custom_minimum_size = Vector2(120, 42)
+	tips_btn.add_theme_font_size_override("font_size", 18)
+	tips_btn.anchor_left = 1.0
+	tips_btn.anchor_right = 1.0
+	tips_btn.anchor_top = 0.035
+	tips_btn.offset_left = -150
+	tips_btn.offset_right = -30
+	tips_btn.offset_top = 0
+	tips_btn.offset_bottom = 42
+	add_child(tips_btn)
+	style_btn(tips_btn, Color(0.2, 0.9, 0.5) if unread_cnt == 0 else Color(1.0, 0.35, 0.35), Color(0.4, 1.0, 0.7) if unread_cnt == 0 else Color(1.0, 0.6, 0.6))
+	tips_btn.pressed.connect(_on_tips_pressed)
 	
-	menu_btn = Button.new()
-	menu_btn.text = "戻る"
-	menu_btn.custom_minimum_size = Vector2(110, 52)
-	menu_btn.add_theme_font_size_override("font_size", 20)
-	action_hbox.add_child(menu_btn)
-	style_btn(menu_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
-	menu_btn.pressed.connect(_on_menu_pressed)
-	
+	# Hard Mode Toggle Button (ステージバーの中央上)
 	hard_mode_btn = Button.new()
-	hard_mode_btn.custom_minimum_size = Vector2(170, 52)
+	hard_mode_btn.custom_minimum_size = Vector2(300, 42)
 	hard_mode_btn.add_theme_font_size_override("font_size", 18)
-	action_hbox.add_child(hard_mode_btn)
+	hard_mode_btn.anchor_left = 0.5
+	hard_mode_btn.anchor_right = 0.5
+	hard_mode_btn.anchor_top = 0.60
+	hard_mode_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	hard_mode_btn.offset_left = -150
+	hard_mode_btn.offset_right = 150
+	hard_mode_btn.offset_top = 0
+	hard_mode_btn.offset_bottom = 42
+	add_child(hard_mode_btn)
 	update_hard_mode_btn_style()
 	hard_mode_btn.pressed.connect(func():
 		Global.hard_mode_enabled = not Global.hard_mode_enabled
@@ -390,18 +396,29 @@ func setup_ui() -> void:
 		update_stage_selection(false)
 	)
 	
-	tips_btn = Button.new()
-	var unread_cnt = Global.get_unread_tips_count()
-	tips_btn.text = "TIPS [NEW]" if unread_cnt > 0 else "TIPS戦術"
-	tips_btn.custom_minimum_size = Vector2(140, 52)
-	tips_btn.add_theme_font_size_override("font_size", 20)
-	action_hbox.add_child(tips_btn)
-	style_btn(tips_btn, Color(0.2, 0.9, 0.5) if unread_cnt == 0 else Color(1.0, 0.35, 0.35), Color(0.4, 1.0, 0.7) if unread_cnt == 0 else Color(1.0, 0.6, 0.6))
-	tips_btn.pressed.connect(_on_tips_pressed)
+	# Action buttons at the absolute bottom
+	var action_hbox = HBoxContainer.new()
+	action_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	action_hbox.add_theme_constant_override("separation", 18)
+	action_hbox.anchor_left = 0.0
+	action_hbox.anchor_right = 1.0
+	action_hbox.anchor_top = 0.90
+	action_hbox.anchor_bottom = 0.90
+	action_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	action_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+	add_child(action_hbox)
+	
+	menu_btn = Button.new()
+	menu_btn.text = "戻る"
+	menu_btn.custom_minimum_size = Vector2(130, 52)
+	menu_btn.add_theme_font_size_override("font_size", 20)
+	action_hbox.add_child(menu_btn)
+	style_btn(menu_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
+	menu_btn.pressed.connect(_on_menu_pressed)
 	
 	archive_btn = Button.new()
 	archive_btn.text = "解析図鑑"
-	archive_btn.custom_minimum_size = Vector2(130, 52)
+	archive_btn.custom_minimum_size = Vector2(160, 52)
 	archive_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(archive_btn)
 	style_btn(archive_btn, Color(0.85, 0.45, 1.0), Color(1.0, 0.6, 1.0))
@@ -409,7 +426,7 @@ func setup_ui() -> void:
 	
 	tech_lab_btn = Button.new()
 	tech_lab_btn.text = "機体強化"
-	tech_lab_btn.custom_minimum_size = Vector2(130, 52)
+	tech_lab_btn.custom_minimum_size = Vector2(160, 52)
 	tech_lab_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(tech_lab_btn)
 	style_btn(tech_lab_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
@@ -417,7 +434,7 @@ func setup_ui() -> void:
 	
 	select_btn = Button.new()
 	select_btn.text = "出撃準備"
-	select_btn.custom_minimum_size = Vector2(160, 52)
+	select_btn.custom_minimum_size = Vector2(180, 52)
 	select_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(select_btn)
 	style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
@@ -512,16 +529,16 @@ func update_hard_mode_btn_style() -> void:
 	var is_hard_unlocked = Global.is_stage_hard_unlocked(active_stage.id) if active_stage else false
 	
 	if not is_hard_unlocked:
-		hard_mode_btn.text = "HARD: 未解放\n[要クリア]"
+		hard_mode_btn.text = "HARD MODE: 未解放 [クリアで解放]"
 		hard_mode_btn.disabled = true
 		style_btn(hard_mode_btn, Color(0.35, 0.35, 0.4), Color(0.45, 0.45, 0.5))
 	else:
 		hard_mode_btn.disabled = false
 		if Global.hard_mode_enabled:
-			hard_mode_btn.text = "HARD [ON]"
+			hard_mode_btn.text = "★ HARD MODE [ON] (HP 2x / 攻撃 1.3x)"
 			style_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
 		else:
-			hard_mode_btn.text = "MODE: NORMAL"
+			hard_mode_btn.text = "MODE: NORMAL [標準難易度]"
 			style_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
 
 
