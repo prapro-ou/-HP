@@ -110,10 +110,10 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 			turrets.append(turret)
 
 
-func defeat() -> void:
+func destroy_boss() -> void:
 	# ボス撃破時に残存ファンネルも一斉消滅
 	for f in active_funnels:
-		if is_instance_valid(f):
+		if is_instance_valid(f) and f.has_method("destroy_funnel"):
 			f.destroy_funnel()
 	active_funnels.clear()
-	super.defeat()
+	super.destroy_boss()
