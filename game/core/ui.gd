@@ -266,39 +266,43 @@ func create_shield_heat_bar() -> void:
 var slot_cards: Array = []
 var active_analysis_label: Label
 var active_analysis_bar: ProgressBar
+var active_analysis_percent_label: Label
+var last_analysis_progress_val: float = 0.0
 
 func create_analysis_matrix_ui() -> void:
 	var trait_panel = PanelContainer.new()
 	trait_panel.name = "TraitSlotsPanel"
-	trait_panel.position = Vector2(490, 10)
-	trait_panel.custom_minimum_size = Vector2(290, 105)
+	trait_panel.position = Vector2(440, 10)
+	trait_panel.custom_minimum_size = Vector2(340, 130)
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.03, 0.05, 0.08, 0.70)
-	sb.border_width_left = 1
-	sb.border_width_top = 1
-	sb.border_width_right = 1
-	sb.border_width_bottom = 1
-	sb.border_color = Color(0.25, 0.4, 0.65, 0.8)
-	sb.corner_radius_top_left = 4
-	sb.corner_radius_top_right = 4
-	sb.corner_radius_bottom_left = 4
-	sb.corner_radius_bottom_right = 4
+	sb.bg_color = Color(0.02, 0.04, 0.08, 0.85)
+	sb.border_width_left = 2
+	sb.border_width_top = 2
+	sb.border_width_right = 2
+	sb.border_width_bottom = 2
+	sb.border_color = Color(0.25, 0.55, 0.85, 0.9)
+	sb.corner_radius_top_left = 6
+	sb.corner_radius_top_right = 6
+	sb.corner_radius_bottom_left = 6
+	sb.corner_radius_bottom_right = 6
 	trait_panel.add_theme_stylebox_override("panel", sb)
 	add_child(trait_panel)
 	
 	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
+	vbox.add_theme_constant_override("separation", 6)
 	trait_panel.add_child(vbox)
 	
-	# タイトル
+	# タイトルヘッダー
 	var title = Label.new()
-	title.text = "【変異スロット (MAX 3)】"
+	title.text = "【変異兵装スロット (MAX 2・固定強化)】"
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_set.font = PIXEL_FONT
 	t_set.font_size = 15
 	t_set.font_color = Color.CYAN
+	t_set.outline_size = 3
+	t_set.outline_color = Color.BLACK
 	title.label_settings = t_set
 	vbox.add_child(title)
 	
@@ -310,14 +314,14 @@ func create_analysis_matrix_ui() -> void:
 	slot_cards.clear()
 	for i in range(2):
 		var card = PanelContainer.new()
-		card.custom_minimum_size = Vector2(130, 46)
+		card.custom_minimum_size = Vector2(158, 52)
 		var c_sb = StyleBoxFlat.new()
-		c_sb.bg_color = Color(0.08, 0.1, 0.14, 0.9)
+		c_sb.bg_color = Color(0.06, 0.09, 0.14, 0.95)
 		c_sb.border_width_left = 2
 		c_sb.border_width_top = 2
 		c_sb.border_width_right = 2
 		c_sb.border_width_bottom = 2
-		c_sb.border_color = Color(0.2, 0.25, 0.35, 0.8)
+		c_sb.border_color = Color(0.2, 0.3, 0.45, 0.85)
 		c_sb.corner_radius_top_left = 4
 		c_sb.corner_radius_top_right = 4
 		c_sb.corner_radius_bottom_left = 4
@@ -325,43 +329,63 @@ func create_analysis_matrix_ui() -> void:
 		card.add_theme_stylebox_override("panel", c_sb)
 		
 		var lbl = Label.new()
-		lbl.text = "SLOT %d\n[解析で固定装備]" % (i + 1)
+		lbl.text = "SLOT %d\n[敵弾解析で固定装備]" % (i + 1)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		var l_set = LabelSettings.new()
 		if PIXEL_FONT:
 			l_set.font = PIXEL_FONT
-		l_set.font_size = 13
-		l_set.font_color = Color(0.4, 0.45, 0.55)
+		l_set.font_size = 14
+		l_set.font_color = Color(0.45, 0.5, 0.6)
+		l_set.outline_size = 3
+		l_set.outline_color = Color.BLACK
 		lbl.label_settings = l_set
 		card.add_child(lbl)
 		
 		hbox.add_child(card)
 		slot_cards.append({ "panel": card, "style": c_sb, "label": lbl })
 		
-	# 直近の解析・集中強化進行バー (1行)
-	var prog_row = HBoxContainer.new()
-	prog_row.add_theme_constant_override("separation", 6)
-	vbox.add_child(prog_row)
+	# 直近の解析・集中強化進行バー (大きく目立つ高輝度バー)
+	var prog_vbox = VBoxContainer.new()
+	prog_vbox.add_theme_constant_override("separation", 3)
+	vbox.add_child(prog_vbox)
+	
+	var prog_header = HBoxContainer.new()
+	prog_header.alignment = BoxContainer.ALIGNMENT_BEGIN
+	prog_vbox.add_child(prog_header)
 	
 	active_analysis_label = Label.new()
-	active_analysis_label.text = "解析待機中"
-	active_analysis_label.custom_minimum_size = Vector2(120, 18)
+	active_analysis_label.text = "解析: 敵弾パリィで吸収蓄積"
+	active_analysis_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var a_set = LabelSettings.new()
 	if PIXEL_FONT:
 		a_set.font = PIXEL_FONT
-	a_set.font_size = 13
-	a_set.font_color = Color.LIGHT_GRAY
+	a_set.font_size = 14
+	a_set.font_color = Color.WHITE
+	a_set.outline_size = 3
+	a_set.outline_color = Color.BLACK
 	active_analysis_label.label_settings = a_set
-	prog_row.add_child(active_analysis_label)
+	prog_header.add_child(active_analysis_label)
+	
+	active_analysis_percent_label = Label.new()
+	active_analysis_percent_label.text = "0%"
+	var p_set = LabelSettings.new()
+	if PIXEL_FONT:
+		p_set.font = PIXEL_FONT
+	p_set.font_size = 14
+	p_set.font_color = Color.GOLD
+	p_set.outline_size = 3
+	p_set.outline_color = Color.BLACK
+	active_analysis_percent_label.label_settings = p_set
+	prog_header.add_child(active_analysis_percent_label)
 	
 	active_analysis_bar = ProgressBar.new()
 	active_analysis_bar.show_percentage = false
-	active_analysis_bar.custom_minimum_size = Vector2(150, 10)
+	active_analysis_bar.custom_minimum_size = Vector2(324, 16)
 	active_analysis_bar.max_value = 100
 	active_analysis_bar.value = 0
 	style_analysis_bar(active_analysis_bar, Color.CYAN)
-	prog_row.add_child(active_analysis_bar)
+	prog_vbox.add_child(active_analysis_bar)
 
 
 func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
@@ -374,14 +398,14 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 				var data = patterns[t_key]
 				var lvl = data.get("level", 1)
 				var max_lvl = data.get("max_level", 5)
-				var lvl_str = "Lv.%d" % lvl if lvl < max_lvl else "Lv.MAX"
+				var lvl_str = "Lv.%d (強化融合)" % lvl if lvl < max_lvl else "Lv.MAX (極限)"
 				card["label"].text = "%s %s\n%s" % [data.get("icon", ""), data.get("name", "属性"), lvl_str]
-				card["label"].label_settings.font_color = Color.GOLD if lvl >= 3 else Color.WHITE
+				card["label"].label_settings.font_color = Color(1.0, 0.88, 0.2) if lvl >= 3 else Color.WHITE
 				card["style"].border_color = data.get("color", Color.CYAN)
 				card["style"].bg_color = Color(0.1, 0.16, 0.24, 0.95)
 		else:
-			card["label"].text = "SLOT %d\n[解析で固定装備]" % (i + 1)
-			card["label"].label_settings.font_color = Color(0.4, 0.45, 0.55)
+			card["label"].text = "SLOT %d\n[敵弾解析で固定装備]" % (i + 1)
+			card["label"].label_settings.font_color = Color(0.45, 0.5, 0.6)
 			card["style"].border_color = Color(0.2, 0.25, 0.35, 0.8)
 			card["style"].bg_color = Color(0.06, 0.08, 0.1, 0.85)
 			
@@ -405,19 +429,32 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 			
 	if latest_pattern and highest_progress > 0:
 		var name_str = latest_pattern.get("name", "未知")
+		var icon_str = latest_pattern.get("icon", "⚡")
 		var is_locked_mode = active_traits.size() >= 2
-		active_analysis_label.text = ("集中強化: %s" if is_locked_mode else "解析中: %s") % name_str
+		active_analysis_label.text = ("集中強化: %s %s" if is_locked_mode else "解析中: %s %s") % [icon_str, name_str]
 		active_analysis_label.label_settings.font_color = latest_pattern.get("color", Color.CYAN)
+		active_analysis_percent_label.text = "%d%%" % int(highest_progress)
+		active_analysis_percent_label.label_settings.font_color = Color.GOLD if highest_progress >= 70.0 else Color.WHITE
+		
+		# バー進行のアニメーション＆発光
+		if highest_progress > last_analysis_progress_val:
+			active_analysis_bar.modulate = Color(1.8, 1.8, 2.0)
+			var t = create_tween()
+			t.tween_property(active_analysis_bar, "modulate", Color.WHITE, 0.25)
+		last_analysis_progress_val = highest_progress
+		
 		active_analysis_bar.value = highest_progress
 		style_analysis_bar(active_analysis_bar, latest_pattern.get("color", Color.CYAN))
 	else:
 		if active_traits.size() >= 2:
-			active_analysis_label.text = "全パリィで集中強化"
-			active_analysis_label.label_settings.font_color = Color.GOLD
+			active_analysis_label.text = "【スロット固定中】全パリィで集中強化！"
+			active_analysis_label.label_settings.font_color = Color(1.0, 0.85, 0.3)
 		else:
-			active_analysis_label.text = "解析: パリィで吸収"
+			active_analysis_label.text = "解析: 敵弾パリィで吸収蓄積"
 			active_analysis_label.label_settings.font_color = Color.GRAY
+		active_analysis_percent_label.text = "0%"
 		active_analysis_bar.value = 0
+		last_analysis_progress_val = 0.0
 
 
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
