@@ -433,6 +433,8 @@ func get_fusion_info(trait_a: String, trait_b: String) -> Dictionary:
 
 func get_fusion_name(trait_a: String, trait_b: String) -> String:
 	return get_fusion_info(trait_a, trait_b).get("name", "複合融合兵装")
+
+func is_stage_unlocked(stage_num: int) -> bool:
 	return stage_num == 1 or unlocked_stages.has(stage_num)
 
 func unlock_stage(stage_num: int) -> bool:

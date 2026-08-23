@@ -1848,12 +1848,13 @@ func activate_counter_system_tint(duration: float) -> void:
 	if is_instance_valid(counter_system_banner):
 		counter_system_banner.visible = true
 		counter_system_banner.modulate.a = 0.0
-		counter_system_banner.position = Vector2(get_viewport_rect().size.x / 2.0 - 150.0, 75.0)
+		var vp_width = get_viewport().get_visible_rect().size.x if get_viewport() else 800.0
+		counter_system_banner.position = Vector2(vp_width / 2.0 - 150.0, 75.0)
 		var b_tween = create_tween()
 		b_tween.tween_property(counter_system_banner, "modulate:a", 1.0, 0.25)
 		
 	# 3. 画面フラッシュ
-	trigger_screen_flash(Color(p_accent.r, p_accent.g, p_accent.b, 0.45))
+	trigger_flash(Color(p_accent.r, p_accent.g, p_accent.b, 0.45))
 
 func create_counter_system_banner(p_accent: Color) -> void:
 	counter_system_banner = PanelContainer.new()

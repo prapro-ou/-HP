@@ -523,6 +523,9 @@ func style_action_btn(btn: Button, accent_color: Color) -> void:
 		tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.08)
 	)
 
+func style_neon_button(btn: Button, border: Color, hover_border: Color) -> void:
+	style_btn(btn, border, hover_border)
+
 func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
 	if PIXEL_FONT:
 		btn.add_theme_font_override("font", PIXEL_FONT)

@@ -20,6 +20,9 @@ const HitSpark = preload("res://game/bullets/hit_spark.gd")
 
 @export var turret_type: TurretType = TurretType.BEAM_MACHINEGUN
 @export var max_hp: int = 800
+@export var custom_texture: Texture2D = null
+@export var custom_rotation_deg: float = 90.0
+@export var custom_scale: Vector2 = Vector2.ZERO
 
 var current_hp: int = 800
 var is_alive: bool = true
@@ -44,6 +47,18 @@ var shield_effect_instance: BossWideShield = null
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
+func setup_custom_visual(p_texture: Texture2D, p_rotation_deg: float = 90.0, p_scale: Vector2 = Vector2.ZERO) -> void:
+	custom_texture = p_texture
+	custom_rotation_deg = p_rotation_deg
+	custom_scale = p_scale
+	if is_instance_valid(sprite):
+		sprite.texture = custom_texture
+		sprite.rotation_degrees = custom_rotation_deg
+		if custom_scale != Vector2.ZERO:
+			sprite.scale = custom_scale
+	update_type_visuals()
+
+
 func get_stage_difficulty_mult() -> float:
 	var stage_num = 1
 	var main = get_node_or_null("/root/Main")
@@ -66,9 +81,15 @@ func _ready() -> void:
 	is_active = false
 	hover_offset = randf_range(0.0, TAU)
 	
-	# スプライト調整 (プレイヤーと同等の大型サイズ ~152x65px)
+	# スプライト調整 (プレイヤーと同等の大型サイズ ~152x65px またはカスタム設定)
 	if sprite:
-		sprite.scale = Vector2(0.65, 0.65)
+		if custom_texture != null:
+			sprite.texture = custom_texture
+			sprite.rotation_degrees = custom_rotation_deg
+			if custom_scale != Vector2.ZERO:
+				sprite.scale = custom_scale
+		else:
+			sprite.scale = Vector2(0.65, 0.65)
 		
 	if turret_type == TurretType.SHIELD_GENERATOR:
 		is_shield_active = true
@@ -81,6 +102,9 @@ func _ready() -> void:
 
 
 func update_type_visuals() -> void:
+	if custom_texture != null:
+		modulate = Color.WHITE
+		return
 	match turret_type:
 		TurretType.BEAM_MACHINEGUN:
 			modulate = Color(0.3, 0.85, 1.0) # シアン
