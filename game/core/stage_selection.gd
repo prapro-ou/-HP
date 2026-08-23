@@ -508,17 +508,28 @@ func navigate_to_index(idx: int) -> void:
 func update_hard_mode_btn_style() -> void:
 	if not is_instance_valid(hard_mode_btn):
 		return
-	if Global.hard_mode_enabled:
-		hard_mode_btn.text = "HARD [ON]"
-		style_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
+	var active_stage = stages[current_index] if current_index < stages.size() else null
+	var is_hard_unlocked = Global.is_stage_hard_unlocked(active_stage.id) if active_stage else false
+	
+	if not is_hard_unlocked:
+		hard_mode_btn.text = "HARD: 未解放\n[要クリア]"
+		hard_mode_btn.disabled = true
+		style_btn(hard_mode_btn, Color(0.35, 0.35, 0.4), Color(0.45, 0.45, 0.5))
 	else:
-		hard_mode_btn.text = "MODE: NORMAL"
-		style_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
+		hard_mode_btn.disabled = false
+		if Global.hard_mode_enabled:
+			hard_mode_btn.text = "HARD [ON]"
+			style_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
+		else:
+			hard_mode_btn.text = "MODE: NORMAL"
+			style_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
 
 
 func update_stage_selection(instant: bool) -> void:
 	var active_stage = stages[current_index]
 	var is_unlocked = Global.is_stage_unlocked(active_stage.id)
+	var is_hard_unlocked = Global.is_stage_hard_unlocked(active_stage.id)
+	update_hard_mode_btn_style()
 	
 	# Update active detail card details
 	if is_unlocked:
@@ -526,7 +537,7 @@ func update_stage_selection(instant: bool) -> void:
 		detail_codename.text = active_stage.codename
 		detail_desc.text = active_stage.description
 		var diff_str = active_stage.difficulty
-		if Global.hard_mode_enabled:
+		if is_hard_unlocked and Global.hard_mode_enabled:
 			diff_str += " 【HARD: HP 2.0x / 攻撃 1.3x】"
 			detail_diff.label_settings.font_color = Color(1.0, 0.35, 0.35)
 		else:
@@ -1226,6 +1237,10 @@ func _on_select_pressed() -> void:
 	var active_stage = stages[current_index]
 	if not Global.is_stage_unlocked(active_stage.id):
 		return
+		
+	# ハードモード未解放ステージの場合はハードモードを自動解除
+	if not Global.is_stage_hard_unlocked(active_stage.id):
+		Global.hard_mode_enabled = false
 		
 	Global.is_continue = false
 	

@@ -18,6 +18,7 @@ var unlocked_shields: Array = ["counter"] # Available shield frameworks
 var unlocked_weapons: Array = ["machine_gun", "burst_rifle", "pulse_gun"] # Available primary weapon frameworks
 var unlocked_counter_weapons: Array = [] # Boss weapons unlocked for COUNTER SYSTEM
 var unlocked_stages: Array = [1] # Unlocked stages (Stage 1 is unlocked by default)
+var cleared_stages: Array = [] # Stages cleared at least once (unlocks hard mode for that stage)
 var discovered_analysis_weapons: Array = [] # Discovered analysis mutation patterns
 var upgrade_levels: Dictionary = {
 	"hp": 0,
@@ -454,6 +455,26 @@ func unlock_stage(stage_num: int) -> bool:
 		return true
 	return false
 
+func is_stage_cleared(stage_num: int) -> bool:
+	if cleared_stages.has(stage_num):
+		return true
+	# 後続のステージが解放済みの場合は前ステージをクリア済みと判定
+	for s in unlocked_stages:
+		if s > stage_num:
+			return true
+	return false
+
+func mark_stage_cleared(stage_num: int) -> bool:
+	if not cleared_stages.has(stage_num):
+		cleared_stages.append(stage_num)
+		cleared_stages.sort()
+		save_game()
+		return true
+	return false
+
+func is_stage_hard_unlocked(stage_num: int) -> bool:
+	return is_stage_cleared(stage_num)
+
 func get_stage_difficulty_multiplier(stage_num: int) -> float:
 	# ステージが進むごとの敵の強さ（HP・攻撃力）の上昇率を大幅に緩和
 	# Stage 1: 1.000x, Stage 2: 1.080x, Stage 3: 1.166x, Stage 4: 1.260x, Stage 5: 1.360x
@@ -587,6 +608,7 @@ func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -
 	config.set_value("game", "unlocked_weapons", unlocked_weapons)
 	config.set_value("game", "unlocked_counter_weapons", unlocked_counter_weapons)
 	config.set_value("game", "unlocked_stages", unlocked_stages)
+	config.set_value("game", "cleared_stages", cleared_stages)
 	config.set_value("game", "discovered_analysis_weapons", discovered_analysis_weapons)
 	config.set_value("game", "upgrade_levels", upgrade_levels)
 	config.set_value("game", "shield_radius_upgrades", shield_radius_upgrades)
@@ -617,6 +639,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"unlocked_weapons": unlocked_weapons,
 		"unlocked_counter_weapons": unlocked_counter_weapons,
 		"unlocked_stages": unlocked_stages,
+		"cleared_stages": cleared_stages,
 		"discovered_analysis_weapons": discovered_analysis_weapons,
 		"upgrade_levels": upgrade_levels,
 		"shield_radius_upgrades": shield_radius_upgrades,
@@ -643,6 +666,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["unlocked_weapons"] = config.get_value("game", "unlocked_weapons", ["machine_gun", "burst_rifle", "pulse_gun"])
 		data["unlocked_counter_weapons"] = config.get_value("game", "unlocked_counter_weapons", [])
 		data["unlocked_stages"] = config.get_value("game", "unlocked_stages", [1])
+		data["cleared_stages"] = config.get_value("game", "cleared_stages", [])
 		data["discovered_analysis_weapons"] = config.get_value("game", "discovered_analysis_weapons", [])
 		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0})
 		data["shield_radius_upgrades"] = config.get_value("game", "shield_radius_upgrades", {"counter": 0, "gauge": 0, "power": 0})
@@ -674,6 +698,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			if not unlocked_stages.has(1):
 				unlocked_stages.append(1)
 				unlocked_stages.sort()
+			cleared_stages = data["cleared_stages"]
 			discovered_analysis_weapons = data["discovered_analysis_weapons"]
 			upgrade_levels = data["upgrade_levels"]
 			shield_radius_upgrades = data["shield_radius_upgrades"]
@@ -709,6 +734,7 @@ func reset_development_progress() -> void:
 	equipped_shield = "counter"
 	equipped_weapon = "machine_gun"
 	unlocked_stages = [1]
+	cleared_stages = []
 	shield_radius_upgrades = {"counter": 0, "gauge": 0, "power": 0}
 	just_guard_focus_mode = 0
 	counter_system_duration_lvl = 0
@@ -716,6 +742,7 @@ func reset_development_progress() -> void:
 	stage5_clears_count = 0
 	counter_only_mode_unlocked = false
 	counter_only_mode_enabled = false
+	hard_mode_enabled = false
 	tutorial_flags = {
 		"controls": false,
 		"weapon_analysis": false,

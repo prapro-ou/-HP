@@ -612,6 +612,11 @@ func on_boss_destroyed() -> void:
 		Global.tech_points += reward.tech_points
 		spawn_popup("強化ポイント +%d 獲得！" % reward.tech_points)
 		
+	# 現在ステージのクリア記録（ハードモード解放）
+	var is_first_clear = Global.mark_stage_cleared(current_stage_num)
+	if is_first_clear:
+		spawn_popup("【HARD MODE 解放！】STAGE %d のハードモードが解放されました！" % current_stage_num)
+		
 	# 次ステージの開放（アンロック）処理
 	var next_stage_num = current_stage_num + 1
 	if reward.unlocked_stage > 0:

@@ -399,12 +399,22 @@ func setup_ui() -> void:
 func update_hard_mode_btn_style() -> void:
 	if not is_instance_valid(hard_mode_btn):
 		return
-	if Global.hard_mode_enabled:
-		hard_mode_btn.text = "HARD MODE [ON]\n(HP 2.0x / 攻撃 1.3x)"
-		style_action_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
+	var cur_data = Global.load_game_data(false)
+	var stage_id = cur_data.get("stage_num", 1)
+	var is_hard_unlocked = Global.is_stage_hard_unlocked(stage_id)
+	
+	if not is_hard_unlocked:
+		hard_mode_btn.text = "HARD: 未解放\n(要1回クリア)"
+		hard_mode_btn.disabled = true
+		style_action_btn(hard_mode_btn, Color(0.35, 0.35, 0.4), Color(0.45, 0.45, 0.5))
 	else:
-		hard_mode_btn.text = "MODE: NORMAL\n(標準難易度)"
-		style_action_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
+		hard_mode_btn.disabled = false
+		if Global.hard_mode_enabled:
+			hard_mode_btn.text = "HARD MODE [ON]\n(HP 2.0x / 攻撃 1.3x)"
+			style_action_btn(hard_mode_btn, Color(1.0, 0.25, 0.25), Color(1.0, 0.6, 0.6))
+		else:
+			hard_mode_btn.text = "MODE: NORMAL\n(標準難易度)"
+			style_action_btn(hard_mode_btn, Color(0.3, 0.6, 0.8), Color(0.5, 0.85, 1.0))
 
 func create_section_vbox(title_text: String, parent: Node) -> VBoxContainer:
 	var vbox = VBoxContainer.new()
