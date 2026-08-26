@@ -629,118 +629,95 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 	var global_dmg = get_global_analysis_damage_bonus() + int(power_shield_damage_buff)
 	
 	match pair_key:
-		"meteor+spread":
-			# クラスター・メテオバースト: 扇状多弾頭大爆砕弾
-			var count = 3 + min(4, max_lvl)
-			var start_ang = -22.0
-			var step_ang = 44.0 / max(1, count - 1)
-			for i in range(count):
-				var ang = start_ang + i * step_ang
+		"blade+cyclone":
+			# ツイスター・スラッシャー: 巨大旋回回転斬撃
+			for a in [-12.0, 12.0]:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_meteor_cluster"
-				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -20.0)
-				bullet.speed = 800.0 + max_lvl * 30.0
-				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 22 + max_lvl * 4 + global_dmg
-				bullet.explosion_radius = 80.0 + max_lvl * 10.0
-				bullet.explosion_dmg = 14 + max_lvl * 3 + global_dmg
-				target_parent.add_child(bullet)
-				
-		"rapid+spread":
-			# ガトリング・ストーム: 超高密度扇状弾幕
-			var count = 5 + max_lvl
-			var start_ang = -18.0
-			var step_ang = 36.0 / max(1, count - 1)
-			for i in range(count):
-				var ang = start_ang + i * step_ang
-				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_gatling_storm"
-				bullet.global_position = global_position + Vector2((i - count / 2.0) * 6.0, -18.0)
-				bullet.speed = 1750.0 + max_lvl * 50.0
-				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 10 + max_lvl * 2 + global_dmg
-				target_parent.add_child(bullet)
-				
-		"homing+spread":
-			# マルチロック・スウォーム: 多目標追尾ミサイル群
-			var count = 4 + max_lvl * 2
-			for i in range(count):
-				var ang = randf_range(-35.0, 35.0)
-				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_swarm"
-				bullet.global_position = global_position + Vector2(randf_range(-18.0, 18.0), -15.0)
-				bullet.speed = 700.0 + max_lvl * 30.0
-				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 14 + max_lvl * 2 + global_dmg
-				bullet.homing_strength = 9.0 + max_lvl * 1.0
-				target_parent.add_child(bullet)
-				
-		"pierce+spread":
-			# クロス・ペネトレーター: 扇状多重装甲貫通弾
-			var count = 4 + max_lvl
-			var start_ang = -20.0
-			var step_ang = 40.0 / max(1, count - 1)
-			for i in range(count):
-				var ang = start_ang + i * step_ang
-				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_cross_penetrator"
-				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -20.0)
-				bullet.speed = 1700.0 + max_lvl * 40.0
-				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 18 + max_lvl * 3 + global_dmg
+				bullet.bullet_type = "fusion_twister_slasher"
+				bullet.global_position = global_position + Vector2(a * 1.5, -24.0)
+				bullet.speed = 1000.0 + max_lvl * 30.0
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(a)) * bullet.speed
+				bullet.damage = 22 + max_lvl * 3 + global_dmg
+				bullet.is_blade = true
+				bullet.blade_lvl = max_lvl
+				bullet.wave_amp = 85.0 + max_lvl * 10.0
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
-				
-		"laser+spread":
-			# プリズム・ビームアレイ: 広角拡散集束光線
-			var count = 3 + min(4, max_lvl)
-			var start_ang = -24.0
-			var step_ang = 48.0 / max(1, count - 1)
+
+		"blade+homing":
+			# ファントム・スラッシャー: 敵追尾型真空斬撃刃
+			var count = 2 if max_lvl < 3 else 3
 			for i in range(count):
-				var ang = start_ang + i * step_ang
+				var off_x = (i - count / 2.0) * 16.0
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_prism_laser"
-				bullet.global_position = global_position + Vector2((i - count / 2.0) * 7.0, -22.0)
-				bullet.speed = 2300.0 + max_lvl * 60.0
-				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 16 + max_lvl * 3 + global_dmg
+				bullet.bullet_type = "fusion_phantom_slasher"
+				bullet.global_position = global_position + Vector2(off_x, -22.0)
+				bullet.speed = 900.0 + max_lvl * 30.0
+				bullet.velocity = Vector2.UP.rotated(randf_range(-0.2, 0.2)) * bullet.speed
+				bullet.damage = 20 + max_lvl * 3 + global_dmg
+				bullet.is_blade = true
+				bullet.blade_lvl = max_lvl
+				bullet.homing_strength = 8.0 + max_lvl * 0.8
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
-				
-		"spread+thunder":
-			# エレクトリック・スプレッド: 広角放電連鎖ボルト
-			var count = 4 + max_lvl
-			var start_ang = -20.0
-			var step_ang = 40.0 / max(1, count - 1)
-			for i in range(count):
-				var ang = start_ang + i * step_ang
+
+		"blade+laser":
+			# 光子断絶ブレード: 光速超切断レーザー刃
+			for off_x in [-14.0, 14.0] if max_lvl >= 3 else [0.0]:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_electric_spread"
-				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -18.0)
-				bullet.speed = 1100.0 + max_lvl * 40.0
-				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 14 + max_lvl * 2 + global_dmg
-				bullet.chain_count = 3 + max_lvl
-				bullet.chain_damage = 10 + max_lvl * 2 + global_dmg
+				bullet.bullet_type = "fusion_photon_blade"
+				bullet.global_position = global_position + Vector2(off_x, -28.0)
+				bullet.speed = 1700.0 + max_lvl * 50.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 26 + max_lvl * 4 + global_dmg
+				bullet.is_blade = true
+				bullet.blade_lvl = max_lvl
+				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
-				
-		"spread+vortex":
-			# マルチ・グラビティフィールド: 広域特異点重力網
-			var count = 3 + min(3, max_lvl)
-			var start_ang = -16.0
-			var step_ang = 32.0 / max(1, count - 1)
-			for i in range(count):
-				var ang = start_ang + i * step_ang
+
+		"blade+meteor":
+			# ギガント・ブレードバースト: 重爆破砕巨大真空斬撃
+			for off_x in [-12.0, 12.0] if max_lvl >= 4 else [0.0]:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_gravity_vortex"
-				bullet.global_position = global_position + Vector2((i - count / 2.0) * 10.0, -20.0)
-				bullet.speed = 850.0 + max_lvl * 30.0
-				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
-				bullet.damage = 14 + max_lvl * 2 + global_dmg
-				bullet.vortex_radius = 75.0 + max_lvl * 10.0
-				bullet.vortex_dmg = 8 + max_lvl * 2
+				bullet.bullet_type = "fusion_gigant_blade"
+				bullet.global_position = global_position + Vector2(off_x, -26.0)
+				bullet.speed = 850.0 + max_lvl * 25.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 30 + max_lvl * 5 + global_dmg
+				bullet.is_blade = true
+				bullet.blade_lvl = max_lvl
+				bullet.explosion_radius = 90.0 + max_lvl * 12.0
+				bullet.explosion_dmg = 16 + max_lvl * 3 + global_dmg
+				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
-				
+
+		"blade+pierce":
+			# 真・破断グランドセイバー: 超極限装甲貫通斬撃波
+			var bullet = PLAYER_BULLET_SCENE.instantiate()
+			bullet.bullet_type = "fusion_grand_saber"
+			bullet.global_position = global_position + Vector2(0.0, -32.0)
+			bullet.speed = 1800.0 + max_lvl * 50.0
+			bullet.velocity = Vector2.UP * bullet.speed
+			bullet.damage = 34 + max_lvl * 6 + global_dmg
+			bullet.is_blade = true
+			bullet.blade_lvl = max_lvl
+			bullet.pierce_limit = 99
+			target_parent.add_child(bullet)
+
+		"blade+rapid":
+			# フラッシュ・スラッシュラッシュ: 超高速連射真空刃
+			for off_x in [-10.0, 10.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_flash_slash"
+				bullet.global_position = global_position + Vector2(off_x, -20.0)
+				bullet.speed = 1900.0 + max_lvl * 60.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 15 + max_lvl * 2 + global_dmg
+				bullet.is_blade = true
+				bullet.blade_lvl = max_lvl
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
 		"blade+spread":
 			# テンペスト・スラッシュ: 扇状三日月真空刃 (弾消し+貫通)
 			var count = 3 + min(3, max_lvl)
@@ -758,7 +735,105 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				bullet.blade_lvl = max_lvl
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
-				
+
+		"blade+thunder":
+			# 紫電一閃・ライキリ: 放電連鎖プラズマ斬撃
+			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_raikiri"
+				bullet.global_position = global_position + Vector2(off_x, -24.0)
+				bullet.speed = 1200.0 + max_lvl * 40.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 22 + max_lvl * 3 + global_dmg
+				bullet.is_blade = true
+				bullet.blade_lvl = max_lvl
+				bullet.chain_count = 3 + max_lvl
+				bullet.chain_damage = 12 + max_lvl * 2 + global_dmg
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
+		"blade+vortex":
+			# ディメンション・リッパー: 空間裂断重力斬撃
+			for off_x in [-10.0, 10.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_dimension_ripper"
+				bullet.global_position = global_position + Vector2(off_x, -24.0)
+				bullet.speed = 950.0 + max_lvl * 30.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 24 + max_lvl * 4 + global_dmg
+				bullet.is_blade = true
+				bullet.blade_lvl = max_lvl
+				bullet.vortex_radius = 85.0 + max_lvl * 10.0
+				bullet.vortex_dmg = 10 + max_lvl * 2
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
+		"cyclone+homing":
+			# スパイラル・チェイサー: 螺旋旋回追尾弾
+			var count = 3 + (1 if max_lvl >= 3 else 0)
+			for i in range(count):
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_spiral_chaser"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 10.0, -18.0)
+				bullet.speed = 850.0 + max_lvl * 30.0
+				bullet.velocity = Vector2.UP.rotated(randf_range(-0.3, 0.3)) * bullet.speed
+				bullet.damage = 16 + max_lvl * 2 + global_dmg
+				bullet.wave_amp = 60.0 + max_lvl * 8.0
+				bullet.homing_strength = 7.5 + max_lvl * 0.8
+				target_parent.add_child(bullet)
+
+		"cyclone+laser":
+			# ヘリカル・フォトンストリーム: 螺旋集束光線砲
+			for off_x in [-12.0, 12.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_helical_stream"
+				bullet.global_position = global_position + Vector2(off_x, -26.0)
+				bullet.speed = 2200.0 + max_lvl * 60.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 20 + max_lvl * 3 + global_dmg
+				bullet.wave_amp = 50.0 + max_lvl * 8.0
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
+		"cyclone+meteor":
+			# ボルテックス・メテオストーム: 旋回重爆碎弾
+			for off_x in [-14.0, 14.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_vortex_meteor"
+				bullet.global_position = global_position + Vector2(off_x, -22.0)
+				bullet.speed = 750.0 + max_lvl * 25.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 26 + max_lvl * 4 + global_dmg
+				bullet.wave_amp = 70.0 + max_lvl * 10.0
+				bullet.explosion_radius = 75.0 + max_lvl * 10.0
+				bullet.explosion_dmg = 14 + max_lvl * 3 + global_dmg
+				target_parent.add_child(bullet)
+
+		"cyclone+pierce":
+			# ギガ・スパイラルドリル: 超螺旋削岩徹甲弾
+			for off_x in [-10.0, 10.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_spiral_drill"
+				bullet.global_position = global_position + Vector2(off_x, -26.0)
+				bullet.speed = 1300.0 + max_lvl * 40.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 25 + max_lvl * 4 + global_dmg
+				bullet.wave_amp = 40.0 + max_lvl * 6.0
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
+		"cyclone+rapid":
+			# サイクロン・ガトリング: 超連射旋回弾幕
+			for i in range(2 + (1 if max_lvl >= 3 else 0)):
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_cyclone_gatling"
+				bullet.global_position = global_position + Vector2(randf_range(-12.0, 12.0), -18.0)
+				bullet.speed = 1600.0 + max_lvl * 50.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 12 + max_lvl * 2 + global_dmg
+				bullet.wave_amp = 55.0 + max_lvl * 8.0
+				target_parent.add_child(bullet)
+
 		"cyclone+spread":
 			# スパイラル・ボルテックス: 広域螺旋波状弾幕
 			var count = 4 + max_lvl
@@ -772,31 +847,78 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				bullet.damage = 15 + max_lvl * 2 + global_dmg
 				bullet.wave_amp = 60.0 + max_lvl * 10.0
 				target_parent.add_child(bullet)
-				
-		"laser+rapid":
-			# フォトン・リピーター: 光速超連射ビーム
-			for off_x in [-10.0, 10.0]:
+
+		"cyclone+thunder":
+			# 雷神テンペスト: 旋回放電プラズマ嵐
+			var count = 2 if max_lvl < 3 else 3
+			for i in range(count):
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_photon_repeater"
-				bullet.global_position = global_position + Vector2(off_x, -24.0)
-				bullet.speed = 2500.0 + max_lvl * 80.0
+				bullet.bullet_type = "fusion_thunder_tempest"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 12.0, -18.0)
+				bullet.speed = 900.0 + max_lvl * 35.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 14 + max_lvl * 2 + global_dmg
-				bullet.pierce_limit = 99
+				bullet.damage = 17 + max_lvl * 2 + global_dmg
+				bullet.wave_amp = 60.0 + max_lvl * 8.0
+				bullet.chain_count = 3 + max_lvl
+				bullet.chain_damage = 10 + max_lvl * 2 + global_dmg
 				target_parent.add_child(bullet)
-				
-		"pierce+rapid":
-			# ハイパー・ニードラー: 高速超装甲貫通弾
-			for off_x in [-8.0, 0.0, 8.0] if max_lvl >= 3 else [-6.0, 6.0]:
+
+		"cyclone+vortex":
+			# グラビティ・サイクロン: 大回転重力特異点
+			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_hyper_needler"
+				bullet.bullet_type = "fusion_gravity_cyclone"
 				bullet.global_position = global_position + Vector2(off_x, -22.0)
-				bullet.speed = 2000.0 + max_lvl * 60.0
+				bullet.speed = 800.0 + max_lvl * 25.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 13 + max_lvl * 2 + global_dmg
+				bullet.damage = 20 + max_lvl * 3 + global_dmg
+				bullet.wave_amp = 65.0 + max_lvl * 10.0
+				bullet.vortex_radius = 80.0 + max_lvl * 10.0
+				bullet.vortex_dmg = 9 + max_lvl * 2
+				target_parent.add_child(bullet)
+
+		"homing+laser":
+			# スマート・フォトンビーム: 高誘導集束レーザー
+			var count = 2 if max_lvl < 3 else 3
+			for i in range(count):
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_smart_photon"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 14.0, -24.0)
+				bullet.speed = 2000.0 + max_lvl * 60.0
+				bullet.velocity = Vector2.UP.rotated(randf_range(-0.15, 0.15)) * bullet.speed
+				bullet.damage = 18 + max_lvl * 3 + global_dmg
+				bullet.homing_strength = 8.0 + max_lvl * 0.8
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
-				
+
+		"homing+meteor":
+			# メガトン・クラスターロケット: 超重量誘導重爆弾
+			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_megaton_rocket"
+				bullet.global_position = global_position + Vector2(off_x, -20.0)
+				bullet.speed = 650.0 + max_lvl * 25.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 30 + max_lvl * 4 + global_dmg
+				bullet.homing_strength = 7.5 + max_lvl * 0.7
+				bullet.explosion_radius = 90.0 + max_lvl * 12.0
+				bullet.explosion_dmg = 18 + max_lvl * 3 + global_dmg
+				target_parent.add_child(bullet)
+
+		"homing+pierce":
+			# 徹甲スマートニードル: 索敵追尾装甲貫通槍
+			var count = 2 + (1 if max_lvl >= 3 else 0)
+			for i in range(count):
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_smart_needle"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 10.0, -22.0)
+				bullet.speed = 1800.0 + max_lvl * 50.0
+				bullet.velocity = Vector2.UP.rotated(randf_range(-0.15, 0.15)) * bullet.speed
+				bullet.damage = 16 + max_lvl * 3 + global_dmg
+				bullet.homing_strength = 8.0 + max_lvl * 0.8
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
 		"homing+rapid":
 			# マイクロ・ホーミングガトリング: 超高速追尾弾幕
 			for i in range(2 + max_lvl):
@@ -808,34 +930,21 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				bullet.damage = 12 + max_lvl * 2 + global_dmg
 				bullet.homing_strength = 8.5 + max_lvl * 0.8
 				target_parent.add_child(bullet)
-				
-		"meteor+rapid":
-			# ボンバー・バルカン: 連続重爆裂装填弾
-			for off_x in [-10.0, 10.0]:
+
+		"homing+spread":
+			# マルチロック・スウォーム: 多目標追尾ミサイル群
+			var count = 4 + max_lvl * 2
+			for i in range(count):
+				var ang = randf_range(-35.0, 35.0)
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_bomber_vulcan"
-				bullet.global_position = global_position + Vector2(off_x, -20.0)
-				bullet.speed = 1400.0 + max_lvl * 40.0
-				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 15 + max_lvl * 2 + global_dmg
-				bullet.explosion_radius = 55.0 + max_lvl * 8.0
-				bullet.explosion_dmg = 10 + max_lvl * 2 + global_dmg
+				bullet.bullet_type = "fusion_swarm"
+				bullet.global_position = global_position + Vector2(randf_range(-18.0, 18.0), -15.0)
+				bullet.speed = 700.0 + max_lvl * 30.0
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
+				bullet.damage = 14 + max_lvl * 2 + global_dmg
+				bullet.homing_strength = 9.0 + max_lvl * 1.0
 				target_parent.add_child(bullet)
-				
-		"meteor+pierce":
-			# ドリル・メガトンバスター: 貫通体内起爆重弾
-			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
-				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_megaton_drill"
-				bullet.global_position = global_position + Vector2(off_x, -26.0)
-				bullet.speed = 950.0 + max_lvl * 30.0
-				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 28 + max_lvl * 4 + global_dmg
-				bullet.pierce_limit = 99
-				bullet.explosion_radius = 85.0 + max_lvl * 10.0
-				bullet.explosion_dmg = 16 + max_lvl * 3 + global_dmg
-				target_parent.add_child(bullet)
-				
+
 		"homing+thunder":
 			# テスラ・シーカー: 必中連鎖電磁ボルト
 			for i in range(2 + min(3, max_lvl)):
@@ -849,7 +958,7 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				bullet.chain_count = 4 + max_lvl
 				bullet.chain_damage = 12 + max_lvl * 2 + global_dmg
 				target_parent.add_child(bullet)
-				
+
 		"homing+vortex":
 			# シンギュラリティ・ミサイル: 誘導特異点弾頭
 			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
@@ -863,21 +972,148 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 				bullet.vortex_radius = 90.0 + max_lvl * 10.0
 				bullet.vortex_dmg = 10 + max_lvl * 2
 				target_parent.add_child(bullet)
-				
-		"blade+laser":
-			# 光子断絶ブレード: 光速超切断レーザー刃
-			for off_x in [-14.0, 14.0] if max_lvl >= 3 else [0.0]:
+
+		"laser+meteor":
+			# フォトン・ブラスターキャノン: 爆裂集束フォトン砲
+			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_photon_blade"
-				bullet.global_position = global_position + Vector2(off_x, -28.0)
-				bullet.speed = 1700.0 + max_lvl * 50.0
+				bullet.bullet_type = "fusion_photon_blaster"
+				bullet.global_position = global_position + Vector2(off_x, -30.0)
+				bullet.speed = 2600.0 + max_lvl * 70.0
 				bullet.velocity = Vector2.UP * bullet.speed
-				bullet.damage = 26 + max_lvl * 4 + global_dmg
-				bullet.is_blade = true
-				bullet.blade_lvl = max_lvl
+				bullet.damage = 28 + max_lvl * 4 + global_dmg
+				bullet.pierce_limit = 99
+				bullet.explosion_radius = 70.0 + max_lvl * 10.0
+				bullet.explosion_dmg = 14 + max_lvl * 3 + global_dmg
+				target_parent.add_child(bullet)
+
+		"laser+pierce":
+			# リニア・レールキャノン: 極限貫通フォトン砲
+			for off_x in [-10.0, 10.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_rail_cannon"
+				bullet.global_position = global_position + Vector2(off_x, -32.0)
+				bullet.speed = 3000.0 + max_lvl * 80.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 32 + max_lvl * 5 + global_dmg
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
-				
+
+		"laser+rapid":
+			# フォトン・リピーター: 光速超連射ビーム
+			for off_x in [-10.0, 10.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_photon_repeater"
+				bullet.global_position = global_position + Vector2(off_x, -24.0)
+				bullet.speed = 2500.0 + max_lvl * 80.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 14 + max_lvl * 2 + global_dmg
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
+		"laser+spread":
+			# プリズム・ビームアレイ: 広角拡散集束光線
+			var count = 3 + min(4, max_lvl)
+			var start_ang = -24.0
+			var step_ang = 48.0 / max(1, count - 1)
+			for i in range(count):
+				var ang = start_ang + i * step_ang
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_prism_laser"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 7.0, -22.0)
+				bullet.speed = 2300.0 + max_lvl * 60.0
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
+				bullet.damage = 16 + max_lvl * 3 + global_dmg
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
+		"laser+thunder":
+			# プラズマ・アークキャノン: 電磁連鎖高出力レーザー
+			for off_x in [-10.0, 10.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_plasma_arc"
+				bullet.global_position = global_position + Vector2(off_x, -28.0)
+				bullet.speed = 2400.0 + max_lvl * 60.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 22 + max_lvl * 3 + global_dmg
+				bullet.pierce_limit = 99
+				bullet.chain_count = 3 + max_lvl
+				bullet.chain_damage = 12 + max_lvl * 2 + global_dmg
+				target_parent.add_child(bullet)
+
+		"laser+vortex":
+			# 特異点フォトンバスター: 重力収束貫通光線
+			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_singularity_buster"
+				bullet.global_position = global_position + Vector2(off_x, -28.0)
+				bullet.speed = 2200.0 + max_lvl * 50.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 24 + max_lvl * 4 + global_dmg
+				bullet.pierce_limit = 99
+				bullet.vortex_radius = 85.0 + max_lvl * 10.0
+				bullet.vortex_dmg = 10 + max_lvl * 2
+				target_parent.add_child(bullet)
+
+		"meteor+pierce":
+			# ドリル・メガトンバスター: 貫通体内起爆重弾
+			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_megaton_drill"
+				bullet.global_position = global_position + Vector2(off_x, -26.0)
+				bullet.speed = 950.0 + max_lvl * 30.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 28 + max_lvl * 4 + global_dmg
+				bullet.pierce_limit = 99
+				bullet.explosion_radius = 85.0 + max_lvl * 10.0
+				bullet.explosion_dmg = 16 + max_lvl * 3 + global_dmg
+				target_parent.add_child(bullet)
+
+		"meteor+rapid":
+			# ボンバー・バルカン: 連続重爆裂装填弾
+			for off_x in [-10.0, 10.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_bomber_vulcan"
+				bullet.global_position = global_position + Vector2(off_x, -20.0)
+				bullet.speed = 1400.0 + max_lvl * 40.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 15 + max_lvl * 2 + global_dmg
+				bullet.explosion_radius = 55.0 + max_lvl * 8.0
+				bullet.explosion_dmg = 10 + max_lvl * 2 + global_dmg
+				target_parent.add_child(bullet)
+
+		"meteor+spread":
+			# クラスター・メテオバースト: 扇状多弾頭大爆砕弾
+			var count = 3 + min(4, max_lvl)
+			var start_ang = -22.0
+			var step_ang = 44.0 / max(1, count - 1)
+			for i in range(count):
+				var ang = start_ang + i * step_ang
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_meteor_cluster"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -20.0)
+				bullet.speed = 800.0 + max_lvl * 30.0
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
+				bullet.damage = 22 + max_lvl * 4 + global_dmg
+				bullet.explosion_radius = 80.0 + max_lvl * 10.0
+				bullet.explosion_dmg = 14 + max_lvl * 3 + global_dmg
+				target_parent.add_child(bullet)
+
+		"meteor+thunder":
+			# サンダー・メテオストライク: 爆裂放電重隕石
+			for off_x in [-12.0, 12.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_thunder_meteor"
+				bullet.global_position = global_position + Vector2(off_x, -24.0)
+				bullet.speed = 700.0 + max_lvl * 25.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 30 + max_lvl * 4 + global_dmg
+				bullet.explosion_radius = 95.0 + max_lvl * 12.0
+				bullet.explosion_dmg = 18 + max_lvl * 3 + global_dmg
+				bullet.chain_count = 4 + max_lvl
+				bullet.chain_damage = 14 + max_lvl * 2 + global_dmg
+				target_parent.add_child(bullet)
+
 		"meteor+vortex":
 			# スーパーノヴァ・イグニッション: 引力爆砕ブラックホール
 			var bullet = PLAYER_BULLET_SCENE.instantiate()
@@ -891,34 +1127,153 @@ func fire_fusion_weapon(target_parent: Node, pair_key: String, lvl_a: int, lvl_b
 			bullet.explosion_radius = 120.0 + max_lvl * 15.0
 			bullet.explosion_dmg = 20 + max_lvl * 4 + global_dmg
 			target_parent.add_child(bullet)
-			
-		"blade+cyclone":
-			# ツイスター・スラッシャー: 巨大旋回回転斬撃
-			for a in [-10.0, 10.0]:
+
+		"pierce+rapid":
+			# ハイパー・ニードラー: 高速超装甲貫通弾
+			for off_x in [-8.0, 0.0, 8.0] if max_lvl >= 3 else [-6.0, 6.0]:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_twister_slasher"
-				bullet.global_position = global_position + Vector2(a * 1.5, -24.0)
-				bullet.speed = 1000.0 + max_lvl * 30.0
-				bullet.velocity = Vector2.UP.rotated(deg_to_rad(a)) * bullet.speed
-				bullet.damage = 22 + max_lvl * 3 + global_dmg
-				bullet.is_blade = true
-				bullet.blade_lvl = max_lvl
-				bullet.wave_amp = 85.0 + max_lvl * 10.0
+				bullet.bullet_type = "fusion_hyper_needler"
+				bullet.global_position = global_position + Vector2(off_x, -22.0)
+				bullet.speed = 2000.0 + max_lvl * 60.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 13 + max_lvl * 2 + global_dmg
 				bullet.pierce_limit = 99
 				target_parent.add_child(bullet)
-				
-		"laser+pierce":
-			# リニア・レールキャノン: 極限貫通フォトン砲
+
+		"pierce+spread":
+			# クロス・ペネトレーター: 扇状多重装甲貫通弾
+			var count = 4 + max_lvl
+			var start_ang = -20.0
+			var step_ang = 40.0 / max(1, count - 1)
+			for i in range(count):
+				var ang = start_ang + i * step_ang
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_cross_penetrator"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -20.0)
+				bullet.speed = 1700.0 + max_lvl * 40.0
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
+				bullet.damage = 18 + max_lvl * 3 + global_dmg
+				bullet.pierce_limit = 99
+				target_parent.add_child(bullet)
+
+		"pierce+thunder":
+			# ボルト・ペネトレーター: 電磁装甲貫通ボルト
 			for off_x in [-10.0, 10.0] if max_lvl >= 3 else [0.0]:
 				var bullet = PLAYER_BULLET_SCENE.instantiate()
-				bullet.bullet_type = "fusion_rail_cannon"
-				bullet.global_position = global_position + Vector2(off_x, -32.0)
-				bullet.speed = 3000.0 + max_lvl * 80.0
+				bullet.bullet_type = "fusion_bolt_penetrator"
+				bullet.global_position = global_position + Vector2(off_x, -24.0)
+				bullet.speed = 2200.0 + max_lvl * 60.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 20 + max_lvl * 3 + global_dmg
+				bullet.pierce_limit = 99
+				bullet.chain_count = 3 + max_lvl
+				bullet.chain_damage = 12 + max_lvl * 2 + global_dmg
+				target_parent.add_child(bullet)
+
+		"pierce+vortex":
+			# グラビティ・パイルバンカー: 特異点生成超徹甲杭
+			for off_x in [-10.0, 10.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_gravity_bunker"
+				bullet.global_position = global_position + Vector2(off_x, -26.0)
+				bullet.speed = 1600.0 + max_lvl * 50.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 26 + max_lvl * 4 + global_dmg
+				bullet.pierce_limit = 99
+				bullet.vortex_radius = 90.0 + max_lvl * 10.0
+				bullet.vortex_dmg = 11 + max_lvl * 2
+				target_parent.add_child(bullet)
+
+		"rapid+spread":
+			# ガトリング・ストーム: 超高密度扇状弾幕
+			var count = 5 + max_lvl
+			var start_ang = -18.0
+			var step_ang = 36.0 / max(1, count - 1)
+			for i in range(count):
+				var ang = start_ang + i * step_ang
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_gatling_storm"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 6.0, -18.0)
+				bullet.speed = 1750.0 + max_lvl * 50.0
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
+				bullet.damage = 10 + max_lvl * 2 + global_dmg
+				target_parent.add_child(bullet)
+
+		"rapid+thunder":
+			# ライトニング・バルカン: 超連射放電ボルト
+			for i in range(2 + (1 if max_lvl >= 3 else 0)):
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_lightning_vulcan"
+				bullet.global_position = global_position + Vector2(randf_range(-10.0, 10.0), -18.0)
+				bullet.speed = 1850.0 + max_lvl * 60.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 12 + max_lvl * 2 + global_dmg
+				bullet.chain_count = 2 + max_lvl
+				bullet.chain_damage = 8 + max_lvl * 2 + global_dmg
+				target_parent.add_child(bullet)
+
+		"rapid+vortex":
+			# ラピッド・グラビティストリーム: 高速連射微小重力弾
+			for i in range(2 + (1 if max_lvl >= 3 else 0)):
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_rapid_gravity"
+				bullet.global_position = global_position + Vector2(randf_range(-12.0, 12.0), -18.0)
+				bullet.speed = 1400.0 + max_lvl * 40.0
+				bullet.velocity = Vector2.UP * bullet.speed
+				bullet.damage = 13 + max_lvl * 2 + global_dmg
+				bullet.vortex_radius = 60.0 + max_lvl * 8.0
+				bullet.vortex_dmg = 6 + max_lvl * 2
+				target_parent.add_child(bullet)
+
+		"spread+thunder":
+			# エレクトリック・スプレッド: 広角放電連鎖ボルト
+			var count = 4 + max_lvl
+			var start_ang = -20.0
+			var step_ang = 40.0 / max(1, count - 1)
+			for i in range(count):
+				var ang = start_ang + i * step_ang
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_electric_spread"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 8.0, -18.0)
+				bullet.speed = 1100.0 + max_lvl * 40.0
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
+				bullet.damage = 14 + max_lvl * 2 + global_dmg
+				bullet.chain_count = 3 + max_lvl
+				bullet.chain_damage = 10 + max_lvl * 2 + global_dmg
+				target_parent.add_child(bullet)
+
+		"spread+vortex":
+			# マルチ・グラビティフィールド: 広域特異点重力網
+			var count = 3 + min(3, max_lvl)
+			var start_ang = -16.0
+			var step_ang = 32.0 / max(1, count - 1)
+			for i in range(count):
+				var ang = start_ang + i * step_ang
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_gravity_vortex"
+				bullet.global_position = global_position + Vector2((i - count / 2.0) * 10.0, -20.0)
+				bullet.speed = 850.0 + max_lvl * 30.0
+				bullet.velocity = Vector2.UP.rotated(deg_to_rad(ang)) * bullet.speed
+				bullet.damage = 14 + max_lvl * 2 + global_dmg
+				bullet.vortex_radius = 75.0 + max_lvl * 10.0
+				bullet.vortex_dmg = 8 + max_lvl * 2
+				target_parent.add_child(bullet)
+
+		"thunder+vortex":
+			# 電磁カタストロフ・ノヴァ: 放電拘束超特異点
+			for off_x in [-14.0, 14.0] if max_lvl >= 3 else [0.0]:
+				var bullet = PLAYER_BULLET_SCENE.instantiate()
+				bullet.bullet_type = "fusion_electromagnetic_nova"
+				bullet.global_position = global_position + Vector2(off_x, -26.0)
+				bullet.speed = 600.0 + max_lvl * 20.0
 				bullet.velocity = Vector2.UP * bullet.speed
 				bullet.damage = 32 + max_lvl * 5 + global_dmg
-				bullet.pierce_limit = 99
+				bullet.vortex_radius = 120.0 + max_lvl * 15.0
+				bullet.vortex_dmg = 14 + max_lvl * 2
+				bullet.chain_count = 5 + max_lvl
+				bullet.chain_damage = 16 + max_lvl * 3 + global_dmg
 				target_parent.add_child(bullet)
-				
+
 		_:
 			# カタログ外ペアの動的ハイブリッド射撃
 			var count = 3 + min(3, max_lvl)

@@ -314,55 +314,47 @@ var analysis_catalog: Dictionary = {
 	}
 }
 
-var fusion_catalog: Dictionary = {
-	"meteor+spread": {
-		"name": "クラスター・メテオバースト",
-		"title_en": "CLUSTER METEOR BURST",
-		"summary": "扇状多弾頭大爆砕弾",
-		"description": "広角に散開する巨大隕石弾。着弾時に広範囲の誘爆衝撃波を巻き起こす。",
-		"color": Color(1.0, 0.45, 0.2)
+	"blade+cyclone": {
+		"name": "ツイスター・スラッシャー",
+		"title_en": "TWISTER SLASHER",
+		"summary": "巨大旋回回転斬撃",
+		"description": "渦を巻きながら飛翔する巨大な真空回転刃。自機前方の広大な空間の敵弾を薙ぎ払う。",
+		"color": Color(0.3, 1.0, 0.7)
 	},
-	"rapid+spread": {
-		"name": "ガトリング・ストーム",
-		"title_en": "GATLING STORM",
-		"summary": "超高密度扇状弾幕",
-		"description": "圧倒的な連射速度と広角掃射により、前方全域を覆い尽くす弾幕の嵐を形成する。",
-		"color": Color(0.25, 0.9, 0.8)
+	"blade+homing": {
+		"name": "ファントム・スラッシャー",
+		"title_en": "PHANTOM SLASHER",
+		"summary": "敵追尾型真空斬撃刃",
+		"description": "敵を自動追尾して弧を描きながら飛翔する真空刃。敵弾を切り裂きつつ目標へ必中両断する。",
+		"color": Color(0.6, 0.9, 1.0)
 	},
-	"homing+spread": {
-		"name": "マルチロック・スウォーム",
-		"title_en": "MULTI-LOCK SWARM",
-		"summary": "多目標追尾ミサイル群",
-		"description": "扇状に射出された複数の弾丸が、個別に周囲の敵を自動索敵して追尾殲滅する。",
-		"color": Color(0.7, 0.5, 1.0)
+	"blade+laser": {
+		"name": "光子断絶ブレード",
+		"title_en": "PHOTON RUPTURE BLADE",
+		"summary": "光速超切断レーザー刃",
+		"description": "光速の推進力と超位相切断力を併せ持つ長距離斬撃。敵弾を蒸発させ敵を両断する。",
+		"color": Color(0.3, 1.0, 0.95)
 	},
-	"pierce+spread": {
-		"name": "クロス・ペネトレーター",
-		"title_en": "CROSS PENETRATOR",
-		"summary": "扇状多重装甲貫通弾",
-		"description": "放射状に放たれる高密度徹甲弾。密集する敵陣と硬質装甲を一瞬で貫き通す。",
-		"color": Color(1.0, 0.65, 0.25)
+	"blade+meteor": {
+		"name": "ギガント・ブレードバースト",
+		"title_en": "GIGANT BLADE BURST",
+		"summary": "重爆破砕巨大真空斬撃",
+		"description": "灼熱の衝撃波を纏った超巨大斬撃波。接触した敵弾を消滅させ、着弾時に大爆砕を引き起こす。",
+		"color": Color(1.0, 0.45, 0.4)
 	},
-	"laser+spread": {
-		"name": "プリズム・ビームアレイ",
-		"title_en": "PRISM BEAM ARRAY",
-		"summary": "広角拡散集束光線",
-		"description": "前方広角に放たれる高密度レーザー群。高速照射で広範囲の敵を蒸発させる。",
-		"color": Color(0.35, 0.95, 1.0)
+	"blade+pierce": {
+		"name": "真・破断グランドセイバー",
+		"title_en": "GRAND BREAK SABER",
+		"summary": "超極限装甲貫通斬撃波",
+		"description": "どんな硬質装甲も一刀両断する長大な高周波ブレード。全敵と敵弾を一直線に切り裂き進む。",
+		"color": Color(0.4, 1.0, 0.7)
 	},
-	"spread+thunder": {
-		"name": "エレクトリック・スプレッド",
-		"title_en": "ELECTRIC SPREAD",
-		"summary": "広角放電連鎖ボルト",
-		"description": "拡散弾の着弾地点それぞれから高圧アーク放電が周囲の敵機へ連鎖する。",
-		"color": Color(0.95, 0.95, 0.3)
-	},
-	"spread+vortex": {
-		"name": "マルチ・グラビティフィールド",
-		"title_en": "MULTI GRAVITY FIELD",
-		"summary": "広域特異点重力網",
-		"description": "複数の着弾地点に敵を引き寄せる重力渦を同時発生させ、敵陣を拘束粉砕する。",
-		"color": Color(0.75, 0.35, 1.0)
+	"blade+rapid": {
+		"name": "フラッシュ・スラッシュラッシュ",
+		"title_en": "FLASH SLASH RUSH",
+		"summary": "超高速連射真空刃",
+		"description": "装填サイクルを極限まで早めた真空カッターの乱舞。前方の敵弾を連続で切り払いながら制圧する。",
+		"color": Color(0.3, 0.95, 0.9)
 	},
 	"blade+spread": {
 		"name": "テンペスト・スラッシュ",
@@ -371,6 +363,55 @@ var fusion_catalog: Dictionary = {
 		"description": "放射状に放たれる巨大な真空カッター。敵弾を切り裂きながら敵前線を両断する。",
 		"color": Color(0.2, 1.0, 0.8)
 	},
+	"blade+thunder": {
+		"name": "紫電一閃・ライキリ",
+		"title_en": "LIGHTNING BLADE RAIKIRI",
+		"summary": "放電連鎖プラズマ斬撃",
+		"description": "高圧電流を帯びた三日月刃。敵を切り裂いた瞬間、周囲の敵機へ青白い雷撃が電光石火で連鎖する。",
+		"color": Color(0.7, 1.0, 0.3)
+	},
+	"blade+vortex": {
+		"name": "ディメンション・リッパー",
+		"title_en": "DIMENSION RIPPER",
+		"summary": "空間裂断重力斬撃",
+		"description": "空間そのものを切り裂く歪曲刃。斬撃の軌道上にブラックホールを発生させ敵陣を拘束粉砕する。",
+		"color": Color(0.6, 0.4, 1.0)
+	},
+	"cyclone+homing": {
+		"name": "スパイラル・チェイサー",
+		"title_en": "SPIRAL CHASER",
+		"summary": "螺旋旋回追尾弾",
+		"description": "旋回しながら広域をカバーしつつ、敵を捉えると鋭角に突進する変幻自在の誘導弾。",
+		"color": Color(0.95, 0.65, 0.3)
+	},
+	"cyclone+laser": {
+		"name": "ヘリカル・フォトンストリーム",
+		"title_en": "HELICAL PHOTON STREAM",
+		"summary": "螺旋集束光線砲",
+		"description": "らせん状に交差しうねる高出力ツインレーザー。広範囲を薙ぎ払いながら光速で貫通する。",
+		"color": Color(0.6, 0.9, 1.0)
+	},
+	"cyclone+meteor": {
+		"name": "ボルテックス・メテオストーム",
+		"title_en": "VORTEX METEOR STORM",
+		"summary": "旋回重爆碎弾",
+		"description": "大きく旋回しながら飛翔する巨大隕石弾。広域の敵を巻き込み連続爆砕衝撃波を発生させる。",
+		"color": Color(1.0, 0.6, 0.2)
+	},
+	"cyclone+pierce": {
+		"name": "ギガ・スパイラルドリル",
+		"title_en": "GIGA SPIRAL DRILL",
+		"summary": "超螺旋削岩徹甲弾",
+		"description": "超高速回転する巨大な穿孔弾。あらゆる装甲を削り取りながら敵陣を貫通突破する。",
+		"color": Color(1.0, 0.8, 0.3)
+	},
+	"cyclone+rapid": {
+		"name": "サイクロン・ガトリング",
+		"title_en": "CYCLONE GATLING",
+		"summary": "超連射旋回弾幕",
+		"description": "高速連射される旋回弾の暴風雨。うねる弾道で画面全体を死角なく埋め尽くす。",
+		"color": Color(0.6, 0.9, 0.5)
+	},
 	"cyclone+spread": {
 		"name": "スパイラル・ボルテックス",
 		"title_en": "SPIRAL VORTEX",
@@ -378,19 +419,40 @@ var fusion_catalog: Dictionary = {
 		"description": "扇状に広がった弾丸が各々うねるように旋回飛翔し、逃げ場のない弾幕網を作る。",
 		"color": Color(1.0, 0.85, 0.2)
 	},
-	"laser+rapid": {
-		"name": "フォトン・リピーター",
-		"title_en": "PHOTON REPEATER",
-		"summary": "光速超連射ビーム",
-		"description": "装填サイクルを極限まで短縮した光速レーザーの乱射。途切れぬ光線が敵を穿つ。",
-		"color": Color(0.4, 0.9, 1.0)
+	"cyclone+thunder": {
+		"name": "雷神テンペスト",
+		"title_en": "THUNDER TEMPEST",
+		"summary": "旋回放電プラズマ嵐",
+		"description": "螺旋を描いて飛翔する球電弾。敵に触れるたびに放電アークが四方八方へ跳ね回る。",
+		"color": Color(1.0, 0.95, 0.2)
 	},
-	"pierce+rapid": {
-		"name": "ハイパー・ニードラー",
-		"title_en": "HYPER NEEDLER",
-		"summary": "高速超装甲貫通弾",
-		"description": "極限連射される極細徹甲弾の奔流。どれほど硬い敵装甲も瞬時に穴だらけにする。",
-		"color": Color(1.0, 0.7, 0.3)
+	"cyclone+vortex": {
+		"name": "グラビティ・サイクロン",
+		"title_en": "GRAVITY CYCLONE",
+		"summary": "大回転重力特異点",
+		"description": "巨大な渦巻きを描きながら進む重力球。周囲の敵を巻き込みながら圧縮・破砕する。",
+		"color": Color(0.85, 0.35, 0.9)
+	},
+	"homing+laser": {
+		"name": "スマート・フォトンビーム",
+		"title_en": "SMART PHOTON BEAM",
+		"summary": "高誘導集束レーザー",
+		"description": "急旋回して敵の急所へ直角に屈折誘導する光速ビーム。死角からの精密狙撃を実現する。",
+		"color": Color(0.6, 0.7, 1.0)
+	},
+	"homing+meteor": {
+		"name": "メガトン・クラスターロケット",
+		"title_en": "MEGATON CLUSTER ROCKET",
+		"summary": "超重量誘導重爆弾",
+		"description": "敵をロックオンして飛翔する巨大誘導爆弾。直撃時に超広範囲の爆風で群がる敵を吹き飛ばす。",
+		"color": Color(1.0, 0.4, 0.5)
+	},
+	"homing+pierce": {
+		"name": "徹甲スマートニードル",
+		"title_en": "ARMOR SMART NEEDLE",
+		"summary": "索敵追尾装甲貫通槍",
+		"description": "敵を追尾して装甲の薄い部分を次々に貫通していく精密誘導徹甲ランス。",
+		"color": Color(0.9, 0.6, 0.8)
 	},
 	"homing+rapid": {
 		"name": "マイクロ・ホーミングガトリング",
@@ -399,19 +461,12 @@ var fusion_catalog: Dictionary = {
 		"description": "高速連射される小型追尾弾の群れ。俊敏な敵もロックオンから逃れることはできない。",
 		"color": Color(0.85, 0.45, 1.0)
 	},
-	"meteor+rapid": {
-		"name": "ボンバー・バルカン",
-		"title_en": "BOMBER VULCAN",
-		"summary": "連続重爆裂装填弾",
-		"description": "小型爆砕弾を高速連射。着弾地点で連続誘爆が発生し敵陣を制圧する。",
-		"color": Color(1.0, 0.4, 0.2)
-	},
-	"meteor+pierce": {
-		"name": "ドリル・メガトンバスター",
-		"title_en": "DRILL MEGATON BUSTER",
-		"summary": "貫通体内起爆重弾",
-		"description": "装甲を貫通しながら内部で超爆発を引き起こす破壊力特化の超重量徹甲爆弾。",
-		"color": Color(1.0, 0.5, 0.1)
+	"homing+spread": {
+		"name": "マルチロック・スウォーム",
+		"title_en": "MULTI-LOCK SWARM",
+		"summary": "多目標追尾ミサイル群",
+		"description": "扇状に射出された複数の弾丸が、個別に周囲の敵を自動索敵して追尾殲滅する。",
+		"color": Color(0.7, 0.5, 1.0)
 	},
 	"homing+thunder": {
 		"name": "テスラ・シーカー",
@@ -427,12 +482,75 @@ var fusion_catalog: Dictionary = {
 		"description": "敵を自動追尾して直撃。直撃地点に局所ブラックホールを生成し敵を閉じ込める。",
 		"color": Color(0.7, 0.3, 0.95)
 	},
-	"blade+laser": {
-		"name": "光子断絶ブレード",
-		"title_en": "PHOTON RUPTURE BLADE",
-		"summary": "光速超切断レーザー刃",
-		"description": "光速の推進力と超位相切断力を併せ持つ長距離斬撃。敵弾を蒸発させ敵を両断する。",
-		"color": Color(0.3, 1.0, 0.95)
+	"laser+meteor": {
+		"name": "フォトン・ブラスターキャノン",
+		"title_en": "PHOTON BLASTER CANNON",
+		"summary": "爆裂集束フォトン砲",
+		"description": "極太の貫通光線が敵を貫き、通過した軌道上すべてで連続大爆発を誘発する。",
+		"color": Color(1.0, 0.55, 0.3)
+	},
+	"laser+pierce": {
+		"name": "リニア・レールキャノン",
+		"title_en": "LINEAR RAIL CANNON",
+		"summary": "極限貫通フォトン砲",
+		"description": "射線上のあらゆる敵と障害物を完全に貫通・融解させる究極の直線火砲。",
+		"color": Color(0.4, 0.85, 1.0)
+	},
+	"laser+rapid": {
+		"name": "フォトン・リピーター",
+		"title_en": "PHOTON REPEATER",
+		"summary": "光速超連射ビーム",
+		"description": "装填サイクルを極限まで短縮した光速レーザーの乱射。途切れぬ光線が敵を穿つ。",
+		"color": Color(0.4, 0.9, 1.0)
+	},
+	"laser+spread": {
+		"name": "プリズム・ビームアレイ",
+		"title_en": "PRISM BEAM ARRAY",
+		"summary": "広角拡散集束光線",
+		"description": "前方広角に放たれる高密度レーザー群。高速照射で広範囲の敵を蒸発させる。",
+		"color": Color(0.35, 0.95, 1.0)
+	},
+	"laser+thunder": {
+		"name": "プラズマ・アークキャノン",
+		"title_en": "PLASMA ARC CANNON",
+		"summary": "電磁連鎖高出力レーザー",
+		"description": "射線上の敵を貫通しつつ、命中点から周囲の敵へ怒涛の電撃アークを放射連鎖させる。",
+		"color": Color(0.5, 1.0, 0.9)
+	},
+	"laser+vortex": {
+		"name": "特異点フォトンバスター",
+		"title_en": "SINGULARITY PHOTON BUSTER",
+		"summary": "重力収束貫通光線",
+		"description": "敵を貫通しながら中心軸へ敵を引き寄せる重力レーザー。敵を一列に拘束して融解させる。",
+		"color": Color(0.7, 0.5, 1.0)
+	},
+	"meteor+pierce": {
+		"name": "ドリル・メガトンバスター",
+		"title_en": "DRILL MEGATON BUSTER",
+		"summary": "貫通体内起爆重弾",
+		"description": "装甲を貫通しながら内部で超爆発を引き起こす破壊力特化の超重量徹甲爆弾。",
+		"color": Color(1.0, 0.5, 0.1)
+	},
+	"meteor+rapid": {
+		"name": "ボンバー・バルカン",
+		"title_en": "BOMBER VULCAN",
+		"summary": "連続重爆裂装填弾",
+		"description": "小型爆砕弾を高速連射。着弾地点で連続誘爆が発生し敵陣を制圧する。",
+		"color": Color(1.0, 0.4, 0.2)
+	},
+	"meteor+spread": {
+		"name": "クラスター・メテオバースト",
+		"title_en": "CLUSTER METEOR BURST",
+		"summary": "扇状多弾頭大爆砕弾",
+		"description": "広角に散開する巨大隕石弾。着弾時に広範囲の誘爆衝撃波を巻き起こす。",
+		"color": Color(1.0, 0.45, 0.2)
+	},
+	"meteor+thunder": {
+		"name": "サンダー・メテオストライク",
+		"title_en": "THUNDER METEOR STRIKE",
+		"summary": "爆裂放電重隕石",
+		"description": "着弾時に巨大爆発と同時に猛烈な雷撃ストームを放出し、画面内の敵を一網打尽にする。",
+		"color": Color(1.0, 0.7, 0.1)
 	},
 	"meteor+vortex": {
 		"name": "スーパーノヴァ・イグニッション",
@@ -441,19 +559,75 @@ var fusion_catalog: Dictionary = {
 		"description": "周囲の敵を重力特異点に一気に吸引拘束し、中心で超新星大爆発を引き起こす。",
 		"color": Color(1.0, 0.3, 0.6)
 	},
-	"blade+cyclone": {
-		"name": "ツイスター・スラッシャー",
-		"title_en": "TWISTER SLASHER",
-		"summary": "巨大旋回回転斬撃",
-		"description": "渦を巻きながら飛翔する巨大な真空回転刃。自機前方の広大な空間の敵弾を薙ぎ払う。",
-		"color": Color(0.3, 1.0, 0.7)
+	"pierce+rapid": {
+		"name": "ハイパー・ニードラー",
+		"title_en": "HYPER NEEDLER",
+		"summary": "高速超装甲貫通弾",
+		"description": "極限連射される極細徹甲弾の奔流。どれほど硬い敵装甲も瞬時に穴だらけにする。",
+		"color": Color(1.0, 0.7, 0.3)
 	},
-	"laser+pierce": {
-		"name": "リニア・レールキャノン",
-		"title_en": "LINEAR RAIL CANNON",
-		"summary": "極限貫通フォトン砲",
-		"description": "射線上のあらゆる敵と障害物を完全に貫通・融解させる究極の直線火砲。",
-		"color": Color(0.4, 0.85, 1.0)
+	"pierce+spread": {
+		"name": "クロス・ペネトレーター",
+		"title_en": "CROSS PENETRATOR",
+		"summary": "扇状多重装甲貫通弾",
+		"description": "放射状に放たれる高密度徹甲弾。密集する敵陣と硬質装甲を一瞬で貫き通す。",
+		"color": Color(1.0, 0.65, 0.25)
+	},
+	"pierce+thunder": {
+		"name": "ボルト・ペネトレーター",
+		"title_en": "BOLT PENETRATOR",
+		"summary": "電磁装甲貫通ボルト",
+		"description": "敵装甲を軽々と貫通しながら、貫通したすべての敵機へ同時に雷撃を流し込む超電磁弾。",
+		"color": Color(0.9, 0.9, 0.3)
+	},
+	"pierce+vortex": {
+		"name": "グラビティ・パイルバンカー",
+		"title_en": "GRAVITY PILE BUNKER",
+		"summary": "特異点生成超徹甲杭",
+		"description": "敵の奥深くまで貫通し、深部で重力特異点を炸裂させて内部から敵を圧壊させる。",
+		"color": Color(0.85, 0.5, 0.9)
+	},
+	"rapid+spread": {
+		"name": "ガトリング・ストーム",
+		"title_en": "GATLING STORM",
+		"summary": "超高密度扇状弾幕",
+		"description": "圧倒的な連射速度と広角掃射により、前方全域を覆い尽くす弾幕の嵐を形成する。",
+		"color": Color(0.25, 0.9, 0.8)
+	},
+	"rapid+thunder": {
+		"name": "ライトニング・バルカン",
+		"title_en": "LIGHTNING VULCAN",
+		"summary": "超連射放電ボルト",
+		"description": "超高速で連射されるプラズマ電撃弾。連続ヒットで途切れない放電網を形成する。",
+		"color": Color(0.6, 0.95, 0.3)
+	},
+	"rapid+vortex": {
+		"name": "ラピッド・グラビティストリーム",
+		"title_en": "RAPID GRAVITY STREAM",
+		"summary": "高速連射微小重力弾",
+		"description": "高連射される微小ブラックホール弾。無数の小型重力場で敵の動きを封じ込める。",
+		"color": Color(0.6, 0.6, 1.0)
+	},
+	"spread+thunder": {
+		"name": "エレクトリック・スプレッド",
+		"title_en": "ELECTRIC SPREAD",
+		"summary": "広角放電連鎖ボルト",
+		"description": "拡散弾の着弾地点それぞれから高圧アーク放電が周囲の敵機へ連鎖する。",
+		"color": Color(0.95, 0.95, 0.3)
+	},
+	"spread+vortex": {
+		"name": "マルチ・グラビティフィールド",
+		"title_en": "MULTI GRAVITY FIELD",
+		"summary": "広域特異点重力網",
+		"description": "複数の着弾地点に敵を引き寄せる重力渦を同時発生させ、敵陣を拘束粉砕する。",
+		"color": Color(0.75, 0.35, 1.0)
+	},
+	"thunder+vortex": {
+		"name": "電磁カタストロフ・ノヴァ",
+		"title_en": "ELECTROMAGNETIC CATASTROPHE",
+		"summary": "放電拘束超特異点",
+		"description": "敵を強力な重力場へ吸い寄せ、高圧電流を連続で流し込んで完全消滅させる究極の電磁兵装。",
+		"color": Color(0.85, 0.8, 1.0)
 	}
 }
 

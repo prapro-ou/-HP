@@ -236,6 +236,132 @@ func update_visual() -> void:
 			modulate = Color(0.45, 0.9, 1.0) # 極限貫通レール砲
 			damage = 70
 			speed = 3000.0
+		# --- 新規25種の固有融合兵装弾 ---
+		"fusion_phantom_slasher":
+			scale = Vector2(3.0, 1.6)
+			modulate = Color(0.6, 0.9, 1.0) # 誘導真空刃
+			damage = 32
+			speed = 900.0
+		"fusion_gigant_blade":
+			scale = Vector2(4.2, 2.2)
+			modulate = Color(1.0, 0.45, 0.4) # 重爆巨大真空刃
+			damage = 58
+			speed = 850.0
+		"fusion_grand_saber":
+			scale = Vector2(4.0, 5.0)
+			modulate = Color(0.4, 1.0, 0.7) # 極限破断グランドセイバー
+			damage = 64
+			speed = 1800.0
+		"fusion_flash_slash":
+			scale = Vector2(2.4, 1.2)
+			modulate = Color(0.3, 0.95, 0.9) # 超高速連射真空刃
+			damage = 22
+			speed = 1900.0
+		"fusion_raikiri":
+			scale = Vector2(3.4, 1.8)
+			modulate = Color(0.7, 1.0, 0.3) # 紫電一閃雷撃刃
+			damage = 40
+			speed = 1200.0
+		"fusion_dimension_ripper":
+			scale = Vector2(3.6, 2.0)
+			modulate = Color(0.6, 0.4, 1.0) # 空間裂断重力刃
+			damage = 46
+			speed = 950.0
+		"fusion_spiral_chaser":
+			scale = Vector2(1.3, 1.3)
+			modulate = Color(0.95, 0.65, 0.3) # 螺旋追尾弾
+			damage = 26
+			speed = 850.0
+		"fusion_helical_stream":
+			scale = Vector2(1.6, 6.0)
+			modulate = Color(0.6, 0.9, 1.0) # 螺旋フォトン光線
+			damage = 38
+			speed = 2200.0
+		"fusion_vortex_meteor":
+			scale = Vector2(2.8, 2.8)
+			modulate = Color(1.0, 0.6, 0.2) # 旋回重爆碎弾
+			damage = 54
+			speed = 750.0
+		"fusion_spiral_drill":
+			scale = Vector2(2.2, 4.0)
+			modulate = Color(1.0, 0.8, 0.3) # 超螺旋削岩徹甲弾
+			damage = 50
+			speed = 1300.0
+		"fusion_cyclone_gatling":
+			scale = Vector2(0.9, 1.6)
+			modulate = Color(0.6, 0.9, 0.5) # 超連射旋回弾幕
+			damage = 18
+			speed = 1600.0
+		"fusion_thunder_tempest":
+			scale = Vector2(1.6, 1.6)
+			modulate = Color(1.0, 0.95, 0.2) # 旋回放電プラズマ嵐
+			damage = 30
+			speed = 900.0
+		"fusion_gravity_cyclone":
+			scale = Vector2(2.2, 2.2)
+			modulate = Color(0.85, 0.35, 0.9) # 大回転重力特異点
+			damage = 36
+			speed = 800.0
+		"fusion_smart_photon":
+			scale = Vector2(1.2, 4.5)
+			modulate = Color(0.6, 0.7, 1.0) # 高誘導集束レーザー
+			damage = 32
+			speed = 2000.0
+		"fusion_megaton_rocket":
+			scale = Vector2(2.4, 2.4)
+			modulate = Color(1.0, 0.4, 0.5) # 超重量誘導重爆弾
+			damage = 60
+			speed = 650.0
+		"fusion_smart_needle":
+			scale = Vector2(0.8, 3.2)
+			modulate = Color(0.9, 0.6, 0.8) # 索敵追尾徹甲槍
+			damage = 28
+			speed = 1800.0
+		"fusion_photon_blaster":
+			scale = Vector2(2.2, 7.0)
+			modulate = Color(1.0, 0.55, 0.3) # 爆裂集束フォトン砲
+			damage = 56
+			speed = 2600.0
+		"fusion_plasma_arc":
+			scale = Vector2(1.8, 6.0)
+			modulate = Color(0.5, 1.0, 0.9) # 電磁連鎖レーザー
+			damage = 42
+			speed = 2400.0
+		"fusion_singularity_buster":
+			scale = Vector2(2.0, 6.5)
+			modulate = Color(0.7, 0.5, 1.0) # 重力収束貫通光線
+			damage = 48
+			speed = 2200.0
+		"fusion_thunder_meteor":
+			scale = Vector2(2.6, 2.6)
+			modulate = Color(1.0, 0.7, 0.1) # 爆裂放電重隕石
+			damage = 62
+			speed = 700.0
+		"fusion_bolt_penetrator":
+			scale = Vector2(1.0, 4.0)
+			modulate = Color(0.9, 0.9, 0.3) # 電磁装甲貫通ボルト
+			damage = 36
+			speed = 2200.0
+		"fusion_gravity_bunker":
+			scale = Vector2(1.8, 4.2)
+			modulate = Color(0.85, 0.5, 0.9) # 特異点生成超徹甲杭
+			damage = 52
+			speed = 1600.0
+		"fusion_lightning_vulcan":
+			scale = Vector2(0.8, 1.8)
+			modulate = Color(0.6, 0.95, 0.3) # 超連射放電ボルト
+			damage = 20
+			speed = 1850.0
+		"fusion_rapid_gravity":
+			scale = Vector2(1.2, 1.4)
+			modulate = Color(0.6, 0.6, 1.0) # 高速連射微小重力弾
+			damage = 22
+			speed = 1400.0
+		"fusion_electromagnetic_nova":
+			scale = Vector2(3.2, 3.2)
+			modulate = Color(0.85, 0.8, 1.0) # 放電拘束超特異点
+			damage = 68
+			speed = 600.0
 			
 	# 通常攻撃弾の透明度を上げて少しだけ目立ちにくく調整（ジャストガードと敵弾の視認性を重視）
 	modulate.a = 0.55

@@ -52,17 +52,17 @@ func _setup_waves() -> void:
 	w3.wave_id = "wave3"
 	w3.display_title = "PHASE 3: 要塞警戒宙域・直衛エリート部隊"
 	w3.start_message = "[ASSIST AI]: 要塞直衛部隊が全方位展開！\n誘導ミサイルと集中弾幕をパリィし、最大変異Lv.2を覚醒せよ！"
-	w3.replenish_types = ["missile", "charge", "laser", "irregular", "wave", "straight"]
+	w3.replenish_types = ["missile", "charge", "laser", "blade", "irregular", "wave", "straight"]
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 180.0
 	
 	w3.initial_spawns = [
 		WaveSpawnConfig.new("missile", 0.10, -60.0, false),
-		WaveSpawnConfig.new("charge", 0.28, -90.0, true),
+		WaveSpawnConfig.new("blade", 0.28, -90.0, true),
 		WaveSpawnConfig.new("laser", 0.46, -60.0, false),
 		WaveSpawnConfig.new("wave", 0.64, -90.0, true),
 		WaveSpawnConfig.new("irregular", 0.80, -60.0, false),
-		WaveSpawnConfig.new("missile", 0.92, -90.0, true)
+		WaveSpawnConfig.new("charge", 0.92, -90.0, true)
 	]
 	waves.append(w3)
 
