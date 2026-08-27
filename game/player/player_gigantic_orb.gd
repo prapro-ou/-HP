@@ -119,7 +119,7 @@ func _on_area_entered(area: Area2D) -> void:
 			area.recycle_bullet()
 
 
-func _on_body_entered(body: Node2D) -> void:
+func _on_body_entered(_body: Node2D) -> void:
 	pass
 
 
