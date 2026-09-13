@@ -17,7 +17,7 @@ func _setup_waves() -> void:
 	var w1 = WaveData.new()
 	w1.wave_id = "wave1_sky"
 	w1.display_title = "PHASE 1: 惑星地上上空・成層圏突入"
-	w1.start_message = "【MISSION 02: 成層圏防衛突破戦】\n制限時間（90秒）まで高速迎撃部隊を撃破＆パリィせよ！\n変異スロットを強化してボス戦に備えてください！"
+	w1.start_message = "90秒間、迎撃せよ\n変異兵装を強化せよ"
 	w1.replenish_types = ["wave", "irregular", "laser", "charge"]
 	w1.min_active_drones = 5
 	w1.drone_speed_override = 180.0
@@ -34,7 +34,7 @@ func _setup_waves() -> void:
 	var w2 = WaveData.new()
 	w2.wave_id = "wave2_sky_ace"
 	w2.display_title = "PHASE 2: 成層圏中部・局地迎撃エース編隊"
-	w2.start_message = "[ASSIST AI]: 地上防衛アレイからの高速ミサイル群接近！\nパリィ反射で敵部隊を殲滅せよ！"
+	w2.start_message = "高速ミサイル接近\nパリィで反撃せよ"
 	w2.replenish_types = ["missile", "charge", "laser", "irregular"]
 	w2.min_active_drones = 5
 	w2.drone_speed_override = 210.0
@@ -51,7 +51,7 @@ func _setup_waves() -> void:
 	var w3 = WaveData.new()
 	w3.wave_id = "wave3_sky_carrier"
 	w3.display_title = "PHASE 3: 雲海深部・制空重爆撃大隊"
-	w3.start_message = "[ASSIST AI]: 敵重爆撃護衛大隊が集結！\n全方位波状攻撃をパリィで制圧し、要塞キャリアを引きずり出せ！"
+	w3.start_message = "全方位攻撃を検知\nパリィして突破せよ"
 	w3.replenish_types = ["charge", "missile", "laser", "wave", "irregular"]
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 230.0
@@ -70,7 +70,7 @@ func _setup_interlude() -> void:
 	interlude.subtitle = "成層圏重爆撃キャリア・ストーム出現！"
 	interlude.flash_color = Color(0.2, 1.0, 0.4, 0.5)
 	interlude.secondary_flash_color = Color(1.0, 0.5, 0.0, 0.6)
-	interlude.assist_message = "【空中要塞接近】拡散爆撃と追尾ミサイルをパリィで反撃せよ！"
+	interlude.assist_message = "爆撃と追尾弾をパリィせよ"
 	interlude.duration = 4.0
 
 func _setup_boss() -> void:
@@ -89,4 +89,4 @@ func _setup_boss() -> void:
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_missile"
 	reward_config.tech_points = 20
-	reward_config.unlock_message = "【AIアシスト】ボス技術の回収成功！\n『ハイパーミサイル』がカウンター兵装で装備可能です。"
+	reward_config.unlock_message = "ハイパーミサイル解放\n装備画面で選択可能"

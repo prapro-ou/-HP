@@ -17,7 +17,7 @@ func _setup_waves() -> void:
 	var w1 = WaveData.new()
 	w1.wave_id = "wave1"
 	w1.display_title = "PHASE 1: 惑星外縁・デブリ帯前哨"
-	w1.start_message = "【MISSION 01: デブリ帯防衛・解析戦】\n制限時間（90秒）まで敵部隊を撃破＆パリィせよ！\n敵弾データを解析・反射して自機兵装を覚醒させてください！"
+	w1.start_message = "90秒間、生き残れ\n敵弾をパリィして解析せよ"
 	w1.replenish_types = ["straight", "wave", "irregular"]
 	w1.min_active_drones = 4
 	
@@ -33,7 +33,7 @@ func _setup_waves() -> void:
 	var w2 = WaveData.new()
 	w2.wave_id = "wave2"
 	w2.display_title = "PHASE 2: デブリ帯深部・重装哨戒編隊"
-	w2.start_message = "[ASSIST AI]: 軌道哨戒編隊が接近！\nチャージ射撃・レーザーをパリィして変異兵装を解放せよ！"
+	w2.start_message = "チャージ弾・レーザー接近\nパリィして解析せよ"
 	w2.replenish_types = ["charge", "laser", "irregular", "straight", "wave"]
 	w2.min_active_drones = 5
 	w2.drone_speed_override = 160.0
@@ -51,7 +51,7 @@ func _setup_waves() -> void:
 	var w3 = WaveData.new()
 	w3.wave_id = "wave3"
 	w3.display_title = "PHASE 3: 要塞警戒宙域・直衛エリート部隊"
-	w3.start_message = "[ASSIST AI]: 要塞直衛部隊が全方位展開！\n誘導ミサイルと集中弾幕をパリィし、最大変異Lv.2を覚醒せよ！"
+	w3.start_message = "追尾弾が増加\n変異兵装をLv.2へ"
 	w3.replenish_types = ["missile", "charge", "laser", "irregular", "wave", "straight"]
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 180.0
@@ -71,7 +71,7 @@ func _setup_interlude() -> void:
 	interlude.subtitle = "軌道防衛要塞ガーディアン接近！"
 	interlude.flash_color = Color(0.2, 0.8, 1.0, 0.5)
 	interlude.secondary_flash_color = Color(1.0, 0.2, 0.2, 0.6)
-	interlude.assist_message = "【要塞コア接近】サブ砲台を破壊し、コアの暴走弾幕を跳ね返せ！"
+	interlude.assist_message = "砲台を先に破壊せよ"
 	interlude.duration = 5.0
 
 func _setup_boss() -> void:
@@ -87,4 +87,4 @@ func _setup_boss() -> void:
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_beam"
 	reward_config.tech_points = 15
-	reward_config.unlock_message = "【AIアシスト】要塞解析データの回収成功！\n『ギガレーザー』がカウンター兵装で装備可能です。"
+	reward_config.unlock_message = "ギガレーザー解放\n装備画面で選択可能"
