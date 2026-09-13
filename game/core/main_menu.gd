@@ -161,7 +161,7 @@ func setup_layout() -> void:
 	
 	# 4. Sci-Fi Title
 	title_label = Label.new()
-	title_label.text = "PARRY SHOOTER"
+	title_label.text = "COUNTER CORE"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
 	if PIXEL_FONT:
