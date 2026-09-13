@@ -1,4 +1,6 @@
 extends CanvasLayer
+
+const COMBAT_POPUP_SCENE: PackedScene = preload("res://game/ui/components/combat_popup.tscn")
 ## UI 表示スクリプト（CanvasLayerを継承し、シーン ui.tscn のノードとバインド）
 ## - HP バー（Player・Boss）
 ## - ガード・パリィ・武器解析率表示
@@ -1725,83 +1727,17 @@ func show_game_over(result: String) -> void:
 
 
 func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false, is_critical: bool = false) -> void:
-	var label = Label.new()
-	label.text = str(amount) + ("!" if is_critical else "")
-	
-	var settings = LabelSettings.new()
-	if PIXEL_FONT:
-		settings.font = PIXEL_FONT
-	if is_finish:
-		settings.font_size = 22
-		settings.font_color = Color(1.0, 0.6, 0.2)
-		settings.outline_size = 3
-		settings.outline_color = Color.BLACK
-	elif is_critical:
-		settings.font_size = 20
-		settings.font_color = Color(1.0, 0.88, 0.15) # 鮮烈なクリティカルゴールド
-		settings.outline_size = 4
-		settings.outline_color = Color(0.35, 0.05, 0.0) # 深紅アウトライン
-	else:
-		settings.font_size = 15
-		if amount > 15:
-			settings.font_color = Color(1.0, 0.9, 0.3)
-		else:
-			settings.font_color = Color(0.9, 0.95, 1.0, 0.9)
-		settings.outline_size = 2
-		settings.outline_color = Color.BLACK
-		
-	label.label_settings = settings
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.pivot_offset = Vector2(40, 15)
-	
-	label.global_position = pos + Vector2(randf_range(-15, 15), randf_range(-15, 5))
-	add_child(label)
-	
-	var start_scale = Vector2(0.8, 0.8) if is_critical else Vector2(0.5, 0.5)
-	var end_scale = Vector2(1.3, 1.3) if is_critical else Vector2(1.0, 1.0)
-	label.scale = start_scale
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(label, "scale", end_scale, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var target_pos = label.global_position + Vector2(randf_range(-15, 15), -45 if is_critical else -35)
-	tween.tween_property(label, "global_position", target_pos, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	
-	var fade_tween = create_tween()
-	fade_tween.tween_interval(0.18)
-	fade_tween.tween_property(label, "modulate:a", 0.0, 0.20)
-	
-	tween.chain().tween_callback(label.queue_free)
+	var popup := COMBAT_POPUP_SCENE.instantiate() as CombatPopup
+	popup.global_position = pos + Vector2(randf_range(-15, 15), randf_range(-15, 5))
+	add_child(popup)
+	popup.show_damage(amount, is_finish, is_critical)
 
 
 func spawn_kill_popup(pos: Vector2, text: String = "撃破！") -> void:
-	var label = Label.new()
-	label.text = text
-	
-	var settings = LabelSettings.new()
-	if PIXEL_FONT:
-		settings.font = PIXEL_FONT
-	settings.font_size = 24
-	settings.font_color = Color(1.0, 0.85, 0.2)
-	settings.outline_size = 3
-	settings.outline_color = Color(0.1, 0.05, 0.0, 1.0)
-	
-	label.label_settings = settings
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.pivot_offset = Vector2(60, 20)
-	label.global_position = pos + Vector2(-60, -20)
-	
-	add_child(label)
-	
-	label.scale = Vector2(0.4, 0.4)
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(label, "global_position", pos + Vector2(-60, -50), 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	
-	var fade = create_tween()
-	fade.tween_interval(0.25)
-	fade.tween_property(label, "modulate:a", 0.0, 0.2)
-	
-	tween.chain().tween_callback(label.queue_free)
+	var popup := COMBAT_POPUP_SCENE.instantiate() as CombatPopup
+	popup.global_position = pos + Vector2(-60, -20)
+	add_child(popup)
+	popup.show_kill(text)
 
 
 func format_score(value: int) -> String:

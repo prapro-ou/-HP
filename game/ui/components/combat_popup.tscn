@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/ui/components/combat_popup.gd" id="1_popup"]
+
+[node name="CombatPopup" type="Label"]
+custom_minimum_size = Vector2(120, 40)
+mouse_filter = 2
+horizontal_alignment = 1
+script = ExtResource("1_popup")

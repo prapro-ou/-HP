@@ -1,7 +1,7 @@
 extends Node
 
-const SAVE_PATH = "user://savegame.cfg"
-const SETTINGS_PATH = "user://settings.cfg"
+const SAVE_PATH = "user://savegame_v3.cfg"
+const SETTINGS_PATH = "user://settings_v3.cfg"
 
 # Save Game variables
 var is_continue: bool = false
