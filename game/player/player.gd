@@ -13,6 +13,8 @@ extends CharacterBody2D
 # 定数：フォント定義
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 
+@onready var parry_component: ParryComponent = $ParryComponent
+
 # 定数：武器タイプ定義
 const WEAPON_MACHINE_GUN = "machine_gun"
 const WEAPON_BURST_RIFLE = "burst_rifle"
@@ -195,6 +197,7 @@ func reset_state() -> void:
 	
 	# COUNTER SYSTEM 状態・支援砲台の完全初期化
 	set_meta("is_counter_system_used", false)
+	set_meta("counter_key_was_pressed", false)
 	for t in counter_system_turrets:
 		if is_instance_valid(t):
 			t.queue_free()
@@ -407,22 +410,6 @@ func _process(delta: float) -> void:
 	var space_just_pressed = shield_pressed and not space_was_pressed
 	space_was_pressed = shield_pressed
 
-	# --- 兵装のリアルタイム切替 ---
-	var prev_pressed = Input.is_key_pressed(Global.key_weapon_prev)
-	var next_pressed = Input.is_key_pressed(Global.key_weapon_next) or Input.is_key_pressed(KEY_TAB)
-	
-	if prev_pressed and not get_meta("q_was_pressed", false):
-		set_meta("q_was_pressed", true)
-		cycle_equipped_weapon(-1)
-	elif not prev_pressed:
-		set_meta("q_was_pressed", false)
-		
-	if next_pressed and not get_meta("e_was_pressed", false):
-		set_meta("e_was_pressed", true)
-		cycle_equipped_weapon(1)
-	elif not next_pressed:
-		set_meta("e_was_pressed", false)
-	
 	# --- シールド展開処理 ---
 	if space_just_pressed:
 		if Global.equipped_shield == SHIELD_GAUGE:
@@ -498,9 +485,14 @@ func _process(delta: float) -> void:
 	# COUNTER SYSTEM 手動発動 (設定キー)
 	if not is_full_burst and not get_meta("is_counter_system_used", false):
 		var cs_pressed = Input.is_key_pressed(Global.key_counter_system)
-		if cs_pressed or Input.is_action_just_pressed("ui_focus_next"):
-			set_meta("is_counter_system_used", true)
-			activate_counter_system()
+		var cs_just_pressed = cs_pressed and not get_meta("counter_key_was_pressed", false)
+		set_meta("counter_key_was_pressed", cs_pressed)
+		if cs_just_pressed or Input.is_action_just_pressed("ui_focus_next"):
+			var manager = get_node_or_null("/root/Main/GameManager")
+			if manager and manager.has_method("request_counter_activation"):
+				manager.request_counter_activation()
+			elif manager == null:
+				activate_counter_system()
 
 	# ジャストガード有効範囲リングの常時プロット再描画
 	queue_redraw()
@@ -1220,15 +1212,8 @@ func check_parry() -> void:
 						Global.save_game(current_stage, 0, {})
 				
 				var b_type = bullet.bullet_type if "bullet_type" in bullet else "missile"
-				var analysis_pts = 4.0
-				if b_type.contains("meteor"):
-					analysis_pts = 16.0 # 巨大隕石ジャストガードは+16%
-				elif b_type.contains("decel") or b_type.contains("boss_missile"):
-					analysis_pts = 10.0 # 追尾ミサイルジャストガードは+10%
-				elif b_type.contains("boss_laser") or b_type.contains("beam"):
-					analysis_pts = 8.0  # ビームマシンガンジャストガードは+8%
-					
-				advance_analysis(b_type, analysis_pts)
+				if is_instance_valid(parry_component):
+					parry_component.report_success(b_type, bullet.global_position, consecutive_parries + 1)
 				
 				if shield_type == SHIELD_POWER:
 					# パワーシールド: 弾を吸収し主兵装ダメージ永続加算
@@ -1240,11 +1225,6 @@ func check_parry() -> void:
 						bullet.queue_free()
 					power_shield_damage_buff = min(power_shield_damage_buff + 3.0 * focus_dmg_mult, 20.0)
 					
-					var main = get_node_or_null("/root/Main")
-					if main:
-						var manager = main.get_node_or_null("GameManager")
-						if manager and manager.has_method("register_parry"):
-							manager.register_parry()
 				elif shield_type == SHIELD_GAUGE:
 					# 吸収マトリクス: 弾丸を直接吸収消滅
 					if bullet.has_method("recycle_bullet"):
@@ -1254,11 +1234,6 @@ func check_parry() -> void:
 					else:
 						bullet.queue_free()
 					
-					var main = get_node_or_null("/root/Main")
-					if main:
-						var manager = main.get_node_or_null("GameManager")
-						if manager and manager.has_method("register_parry"):
-							manager.register_parry()
 				else:
 					# カウンターシールド / 通常シールド: 弾丸を友軍弾に変換して反射
 					if bullet.has_method("convert_to_friendly"):
