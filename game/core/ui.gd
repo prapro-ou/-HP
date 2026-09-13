@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 const COMBAT_POPUP_SCENE: PackedScene = preload("res://game/ui/components/combat_popup.tscn")
+const PAUSE_SETTINGS_SCENE: PackedScene = preload("res://game/ui/components/pause_settings_panel.tscn")
 ## UI 表示スクリプト（CanvasLayerを継承し、シーン ui.tscn のノードとバインド）
 ## - HP バー（Player・Boss）
 ## - ガード・パリィ・武器解析率表示
@@ -1139,7 +1140,7 @@ func toggle_pause_menu() -> void:
 	if Global.available_weapons.has(w_name):
 		w_name = Global.available_weapons[w_name].get("name", w_name)
 	var status_lbl = Label.new()
-	status_lbl.text = "装備主兵装: %s [Q/E切替可能] | シールド: %s" % [w_name, Global.equipped_shield]
+	status_lbl.text = "装備主兵装: %s [出撃中固定] | シールド: %s" % [w_name, Global.equipped_shield]
 	status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	setup_label_style(status_lbl, 16, Color.GOLD, 4)
 	vbox.add_child(status_lbl)
@@ -1168,7 +1169,16 @@ func toggle_pause_menu() -> void:
 		for k in active_keys:
 			var card = create_pause_weapon_card(k, player_node.analysis_patterns.get(k, {}))
 			vbox.add_child(card)
-			
+
+	var settings_title = Label.new()
+	settings_title.text = "─── クイック設定 ───"
+	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(settings_title, 20, Color.WHITE, 6)
+	vbox.add_child(settings_title)
+
+	var pause_settings = PAUSE_SETTINGS_SCENE.instantiate()
+	vbox.add_child(pause_settings)
+
 	# Action buttons
 	var btns_vbox = VBoxContainer.new()
 	btns_vbox.add_theme_constant_override("separation", 10)
