@@ -27,6 +27,9 @@ const FONT_SIZE_WARNING_SUBTITLE: int = 24
 
 @onready var parry_count_label: Label = $ParryCountLabel
 @onready var guard_status_label: Label = $GuardStatusLabel
+@onready var v3_counter_panel: PanelContainer = $V3CounterPanel
+@onready var v3_counter_bar: ProgressBar = $V3CounterPanel/Margin/Stack/Gauge
+@onready var v3_counter_label: Label = $V3CounterPanel/Margin/Stack/Label
 
 # 警告・フラッシュ演出UI
 @onready var warning_title: Label = $WarningTitle
@@ -52,6 +55,7 @@ func _ready() -> void:
 	setup_label_style(boss_hp_label, 18, Color.GOLD, 4)
 	setup_label_style(parry_count_label, 16, Color.CYAN, 4)
 	setup_label_style(guard_status_label, 16, Color.GREEN, 4)
+	setup_label_style(v3_counter_label, 18, Color(0.35, 0.9, 1.0), 4)
 	setup_label_style(warning_title, FONT_SIZE_WARNING_TITLE, Color.RED, 10)
 	setup_label_style(warning_subtitle, FONT_SIZE_WARNING_SUBTITLE, Color.GOLD, 6)
 	
@@ -93,7 +97,14 @@ func update_equipped_weapon_hud(weapon_id: String) -> void:
 		var w_name = weapon_id
 		if Global.available_weapons.has(weapon_id):
 			w_name = Global.available_weapons[weapon_id].get("name", weapon_id)
-		equipped_weapon_label.text = "WEAPON  %s  [Q/E]" % w_name
+		equipped_weapon_label.text = "LOCKED WEAPON  %s" % w_name
+
+
+func update_v3_counter_gauge(value: float, ready: bool) -> void:
+	v3_counter_panel.visible = value > 0.0 or ready
+	v3_counter_bar.value = value
+	v3_counter_label.text = "COUNTER READY — 発動キー！" if ready else "COUNTER CHARGE  %d%%" % int(value)
+	v3_counter_label.label_settings.font_color = Color.GOLD if ready else Color(0.35, 0.9, 1.0)
 
 
 var top_warning_overlay: ColorRect
