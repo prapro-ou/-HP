@@ -7,6 +7,7 @@ enum State {
 	WAVE,
 	WAVE_TRANSITION,
 	INTERLUDE,
+	LOADOUT_SELECT,
 	BOSS,
 	VICTORY_TRANSITION,
 	VICTORY,
@@ -18,6 +19,9 @@ var player: CharacterBody2D
 var boss: Node2D
 var ui: CanvasLayer
 var bullet_pool: Node2D
+@onready var analysis_system: AnalysisSystem = $AnalysisSystem
+@onready var counter_system: CounterSystem = $CounterSystem
+@onready var loadout_draft: LoadoutDraft = get_node("../LoadoutDraft")
 
 @onready var stage_container: Node2D = get_node("../StageContainer")
 var current_stage: BaseStage = null
@@ -30,9 +34,9 @@ var current_wave_index: int = 0
 var current_wave_level: int = 1
 var total_wave_kills: int = 0
 
-# 90秒防衛＆育成タイマー定数
-const WAVE_PHASE_MAX_DURATION: float = 90.0
-var wave_phase_timer: float = 90.0
+# 75秒の解析フェーズ
+const WAVE_PHASE_MAX_DURATION: float = 75.0
+var wave_phase_timer: float = WAVE_PHASE_MAX_DURATION
 
 # 戦績データ
 var parry_count: int = 0
@@ -56,15 +60,20 @@ func _ready() -> void:
 	player = get_node_or_null("../Player")
 	ui = get_node_or_null("../UI")
 	bullet_pool = get_node_or_null("../BulletPool")
+	if is_instance_valid(player) and player.get_node_or_null("ParryComponent"):
+		player.get_node("ParryComponent").parry_succeeded.connect(_on_parry_succeeded)
+	analysis_system.progress_changed.connect(_on_analysis_progress_changed)
+	analysis_system.analysis_completed.connect(_on_analysis_completed)
+	counter_system.gauge_changed.connect(_on_counter_gauge_changed)
+	counter_system.counter_activated.connect(_on_counter_activated)
+	loadout_draft.loadout_confirmed.connect(_on_loadout_confirmed)
 	
 	if bullet_pool and is_instance_valid(player):
 		player.enemy_bullets = bullet_pool.active_bullets
 		
 	var save_data = Global.load_game_data(false)
-	if Global.is_first_launch:
-		current_stage_num = 1
-	else:
-		current_stage_num = save_data.get("stage_num", 1)
+	# v3 vertical slice: one authored run until the core loop is proven fun.
+	current_stage_num = 1
 		
 	total_damage_score = save_data.get("score", 0)
 	
@@ -104,6 +113,8 @@ func clean_stage_entities() -> void:
 		current_stage = null
 		
 	parry_count = 0
+	analysis_system.reset_run()
+	counter_system.reset_run()
 	state_timer = 0.0
 	boss_drone_timer = 0.0
 	total_wave_kills = 0
@@ -175,7 +186,7 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	if Global.hard_mode_enabled:
 		st_name += " [HARD MODE]"
 	var codename = ""
-	var goal = "90秒間防衛＆敵弾解析 -> ボス要塞を撃破せよ"
+	var goal = "75秒で3属性を解析 -> 2兵装を選択 -> COUNTERで撃破せよ"
 	match current_stage_num:
 		1:
 			codename = "第1エリア: 惑星到達前・デブリ宙域"
@@ -295,14 +306,14 @@ func _process(delta: float) -> void:
 
 
 func process_wave_state(delta: float) -> void:
-	# 90秒制限時間タイマーの減算
+	# 解析フェーズ制限時間の減算
 	wave_phase_timer -= delta
 	
 	if wave_phase_timer <= 0.0:
 		wave_phase_timer = 0.0
 		clear_drones()
 		if ui and ui.has_method("show_wave_announcement"):
-			ui.show_wave_announcement("90秒防衛達成！", "強大な敵反応を検知！ボス迎撃態勢に移行せよ！", 3.8)
+			ui.show_wave_announcement("解析フェーズ完了！", "2つの解析兵装を選び、ボス迎撃へ移行せよ！", 3.8)
 		trigger_interlude()
 		return
 		
@@ -311,7 +322,7 @@ func process_wave_state(delta: float) -> void:
 		if ui and ui.has_method("show_tutorial_guide_modal"):
 			ui.show_tutorial_guide_modal("time_limit")
 		
-	# 90秒間の時間経過に合わせて、ステージのWave段階を自動ステップアップ！
+	# 経過時間に合わせて3つの解析対象を段階的に提示する
 	if current_stage and current_stage.waves.size() > 0:
 		var total_waves = current_stage.waves.size()
 		var elapsed_time = WAVE_PHASE_MAX_DURATION - wave_phase_timer
@@ -444,9 +455,13 @@ func on_drone_destroyed(drone) -> void:
 
 
 func trigger_interlude() -> void:
-	current_state = State.INTERLUDE
-	state = "interlude"
+	current_state = State.LOADOUT_SELECT
+	state = "loadout_select"
 	state_timer = 0.0
+	clear_all_bullets()
+	clear_drones()
+	if is_instance_valid(player):
+		player.is_control_locked = true
 	
 	if ui and ui.has_method("hide_wave_phase_hud"):
 		ui.hide_wave_phase_hud()
@@ -466,9 +481,14 @@ func trigger_interlude() -> void:
 		
 	if inter_data.assist_message != "":
 		get_tree().create_timer(1.2).timeout.connect(func():
-			if current_state == State.INTERLUDE:
+			if current_state == State.LOADOUT_SELECT:
 				spawn_popup(inter_data.assist_message)
 		)
+
+	get_tree().create_timer(1.6).timeout.connect(func():
+		if current_state == State.LOADOUT_SELECT:
+			loadout_draft.show_draft(analysis_system.ensure_minimum_choices(2))
+	)
 
 
 func start_boss_battle() -> void:
@@ -482,7 +502,9 @@ func start_boss_battle() -> void:
 		audio_mgr.play_bgm(boss_bgm_key, 0.8)
 	
 	if is_instance_valid(player):
+		player.is_control_locked = false
 		player.is_attack_unlocked = true
+	counter_system.reset_run()
 	
 	if ui and ui.has_method("hide_wave_phase_hud"):
 		ui.hide_wave_phase_hud()
@@ -586,6 +608,64 @@ func update_ui() -> void:
 
 func register_parry() -> void:
 	parry_count += 1
+
+
+func _on_parry_succeeded(bullet_type: String, _hit_position: Vector2, streak: int) -> void:
+	parry_count += 1
+	if current_state == State.WAVE:
+		analysis_system.register_parry(bullet_type, streak)
+	elif current_state == State.BOSS:
+		counter_system.register_parry(streak)
+
+
+func _on_analysis_progress_changed(weapon_id: StringName, value: float) -> void:
+	if not is_instance_valid(player) or not player.analysis_patterns.has(String(weapon_id)):
+		return
+	player.analysis_patterns[String(weapon_id)]["progress"] = value
+	player.analysis_patterns[String(weapon_id)]["analyzed"] = value >= 100.0
+
+
+func _on_analysis_completed(weapon: AnalysisWeapon) -> void:
+	spawn_popup("ANALYSIS COMPLETE  %s" % weapon.display_name)
+	Global.play_upgrade_success()
+	if not Global.discovered_analysis_weapons.has(String(weapon.id)):
+		Global.discovered_analysis_weapons.append(String(weapon.id))
+		Global.save_game()
+
+
+func _on_loadout_confirmed(selected_ids: Array[StringName]) -> void:
+	if not is_instance_valid(player):
+		return
+	player.active_traits.clear()
+	for weapon_id in selected_ids:
+		var key := String(weapon_id)
+		player.active_traits.append(key)
+		if player.analysis_patterns.has(key):
+			player.analysis_patterns[key]["progress"] = 0.0
+			player.analysis_patterns[key]["analyzed"] = true
+			player.analysis_patterns[key]["level"] = 1
+	player.apply_equipped_weapon_settings()
+	spawn_popup("LOADOUT LOCKED  %s + %s" % [selected_ids[0], selected_ids[1]])
+	start_boss_battle()
+
+
+func _on_counter_gauge_changed(value: float, ready: bool) -> void:
+	if is_instance_valid(ui) and ui.is_node_ready() and ui.has_method("update_v3_counter_gauge"):
+		ui.update_v3_counter_gauge(value, ready)
+
+
+func request_counter_activation() -> void:
+	if current_state != State.BOSS:
+		return
+	if not counter_system.try_activate():
+		spawn_popup("COUNTER CHARGE  %d%% — ボス弾をパリィせよ" % int(counter_system.gauge))
+
+
+func _on_counter_activated() -> void:
+	if not is_instance_valid(player):
+		return
+	player.set_meta("is_counter_system_used", true)
+	player.activate_counter_system()
 
 
 func register_analysis_upgrade() -> void:
