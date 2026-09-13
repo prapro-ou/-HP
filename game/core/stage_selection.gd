@@ -760,7 +760,7 @@ func update_archive_content() -> void:
 		if discovered.has(k):
 			unlocked_count += 1
 			
-	archive_summary_label.text = "解析解放状況: %d / %d 系統完了 （敵弾をジャストガードして解析）" % [unlocked_count, total_count]
+	archive_summary_label.text = "解析済み: %d / %d（敵弾をパリィして解析）" % [unlocked_count, total_count]
 	
 	for key in Global.analysis_catalog.keys():
 		var data = Global.analysis_catalog[key]
@@ -817,7 +817,7 @@ func update_archive_content() -> void:
 			src_lbl.text = "【出現敵】 %s （%s）" % [data["enemy_color"], data["enemy_type"]]
 			src_set.font_color = Color(0.85, 0.95, 1.0)
 		else:
-			src_lbl.text = "【入手条件】 %sの敵弾（%s）をジャストガードして解析ゲージを100%%にすると解放" % [data["enemy_color"], data["enemy_type"]]
+			src_lbl.text = "入手条件: %sの敵弾（%s）をパリィし、解析率を100%%にする" % [data["enemy_color"], data["enemy_type"]]
 			src_set.font_color = Color.GOLD
 		src_lbl.label_settings = src_set
 		cv.add_child(src_lbl)
@@ -839,7 +839,7 @@ func update_archive_content() -> void:
 		d_set.font_size = 14
 		d_set.font_color = Color(0.8, 0.85, 0.9) if is_disc else Color(0.4, 0.45, 0.5)
 		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.text = data["description"] if is_disc else "「戦闘宙域で当該敵機の弾丸をジャストガードすることで解析が進行します。」"
+		desc_lbl.text = data["description"] if is_disc else "この敵の弾をパリィすると解析が進みます。"
 		desc_lbl.label_settings = d_set
 		cv.add_child(desc_lbl)
 		
