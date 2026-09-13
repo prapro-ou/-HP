@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AnalysisWeapon" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/data/analysis_weapon.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rapid"
+display_name = "RAPID / 連射"
+description = "青い直進弾を解析。主兵装の連射間隔を短縮する。"
+color = Color(0.25, 0.75, 1, 1)
+bullet_types = Array[StringName]([&"straight", &"rapid", &"rapid_sniper"])

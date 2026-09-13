@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AnalysisWeapon" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/data/analysis_weapon.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"spread"
+display_name = "SPREAD / 拡散"
+description = "緑の波状弾を解析。射線を横へ広げる。"
+color = Color(0.2, 1, 0.5, 1)
+bullet_types = Array[StringName]([&"wave", &"spread", &"pulse"])
