@@ -314,6 +314,7 @@ var analysis_catalog: Dictionary = {
 	}
 }
 
+var fusion_catalog: Dictionary = {
 	"blade+cyclone": {
 		"name": "ツイスター・スラッシャー",
 		"title_en": "TWISTER SLASHER",

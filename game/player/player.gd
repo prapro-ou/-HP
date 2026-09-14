@@ -480,7 +480,7 @@ func _process(delta: float) -> void:
 	if Global.is_first_launch and not is_attack_unlocked:
 		var near_bullet_found = false
 		for bullet in enemy_bullets:
-			if is_instance_valid(bullet) and not bullet.is_friendly:
+			if is_instance_valid(bullet) and not bullet.get("is_friendly", false):
 				var dist = global_position.distance_to(bullet.global_position)
 				if dist <= parry_window_radius * 2.2 and dist > parry_window_radius * 0.4:
 					near_bullet_found = true
@@ -1550,7 +1550,7 @@ func check_parry() -> void:
 	
 	var last_parry_pos = global_position
 	for bullet in all_targets:
-		if is_instance_valid(bullet) and not bullet.is_friendly:
+		if is_instance_valid(bullet) and not bullet.get("is_friendly", false):
 			# ジャストガード不可弾は跳ね返し判定を完全にスキップ
 			var is_unparryable = bullet.get("is_unparryable") == true or (bullet.get("bullet_type") != null and String(bullet.get("bullet_type")).contains("unparryable"))
 			if is_unparryable:
