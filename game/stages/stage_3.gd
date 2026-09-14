@@ -17,8 +17,13 @@ func _setup_waves() -> void:
 	var w1 = WaveData.new()
 	w1.wave_id = "wave1_facility"
 	w1.display_title = "PHASE 1: 惑星内部・軍事工廠前衛"
+<<<<<<< HEAD
 	w1.start_message = "【MISSION 03: 惑星内部工廠・制圧戦】\n制限時間（90秒）まで工廠警備部隊を殲滅せよ！\n重力特異点弾と高出力ビームをパリィで制圧せよ！"
 	w1.replenish_types = ["laser", "charge", "vortex", "wave", "irregular"]
+=======
+	w1.start_message = "90秒間、工廠を制圧せよ\nプラズマをパリィせよ"
+	w1.replenish_types = ["laser", "charge", "wave", "irregular"]
+>>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
 	w1.min_active_drones = 5
 	w1.drone_speed_override = 200.0
 	
@@ -34,8 +39,13 @@ func _setup_waves() -> void:
 	var w2 = WaveData.new()
 	w2.wave_id = "wave2_facility_core"
 	w2.display_title = "PHASE 2: 高度軍事プラント・警備大隊"
+<<<<<<< HEAD
 	w2.start_message = "[ASSIST AI]: 惑星中枢防衛セキュリティが最大稼働！\n重力歪曲フィールドと誘導弾の嵐をパリィで制圧せよ！"
 	w2.replenish_types = ["charge", "vortex", "missile", "laser", "irregular", "wave"]
+=======
+	w2.start_message = "チャージ弾・追尾弾が増加\nパリィして突破せよ"
+	w2.replenish_types = ["charge", "missile", "laser", "irregular", "wave"]
+>>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
 	w2.min_active_drones = 5
 	w2.drone_speed_override = 220.0
 	
@@ -51,8 +61,13 @@ func _setup_waves() -> void:
 	var w3 = WaveData.new()
 	w3.wave_id = "wave3_facility_overdrive"
 	w3.display_title = "PHASE 3: コア直轄・ヘビーセキュリティ総動員"
+<<<<<<< HEAD
 	w3.start_message = "[ASSIST AI]: 最終迎撃セキュリティが限界突破！\n重力特異点と全方位重弾幕をパリィ反射し、コロッサスコアを解放せよ！"
 	w3.replenish_types = ["laser", "vortex", "charge", "missile", "thunder", "wave"]
+=======
+	w3.start_message = "最終防衛網を検知\n重弾幕をパリィせよ"
+	w3.replenish_types = ["laser", "charge", "missile", "wave", "irregular"]
+>>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 240.0
 	
@@ -70,7 +85,7 @@ func _setup_interlude() -> void:
 	interlude.subtitle = "中枢防衛プラント・コロッサスコア起動！"
 	interlude.flash_color = Color(1.0, 0.7, 0.2, 0.5)
 	interlude.secondary_flash_color = Color(1.0, 0.1, 0.1, 0.6)
-	interlude.assist_message = "【中枢要塞接近】超高出力電磁砲門をパリィで破砕せよ！"
+	interlude.assist_message = "電磁砲をパリィせよ"
 	interlude.duration = 4.0
 
 func _setup_boss() -> void:
@@ -84,4 +99,4 @@ func _setup_boss() -> void:
 func _setup_rewards() -> void:
 	reward_config.tech_points = 25
 	reward_config.unlocked_stage = 4
-	reward_config.unlock_message = "【作戦完了】STAGE 4: 惑星内部からの脱出が解放されました！"
+	reward_config.unlock_message = "STAGE 4 解放\n脱出作戦へ"

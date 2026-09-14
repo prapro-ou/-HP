@@ -490,7 +490,7 @@ func _process(delta: float) -> void:
 			Engine.time_scale = 0.15
 			if not has_meta("slow_alert_shown"):
 				set_meta("slow_alert_shown", true)
-				spawn_popup_message("危険: SPACEでジャストガードを実行！")
+				spawn_popup_message("SPACEでパリィ！")
 		else:
 			if Engine.time_scale < 0.5 and not is_guarding:
 				Engine.time_scale = 1.0
@@ -1564,7 +1564,7 @@ func check_parry() -> void:
 					if Global.is_first_launch:
 						Global.is_first_launch = false
 						Engine.time_scale = 1.0
-						spawn_popup_message("ジャストガード成功！武装システムオンライン！")
+						spawn_popup_message("パリィ成功 — WEAPON起動")
 						
 						var current_stage = 1
 						var main = get_node_or_null("/root/Main")
@@ -1786,7 +1786,7 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 		Global.play_upgrade_success()
 		
 		# 画面中央＆頭上に [ANALYSIS COMPLETE] メッセージ
-		spawn_popup_message("[ANALYSIS COMPLETE] 『%s』Lv.%d 獲得・主兵装融合" % [data.get("name", "兵装"), data["level"]])
+		spawn_popup_message("解析完了  %s Lv.%d" % [data.get("name", "兵装"), data["level"]])
 		
 		# 初めて入手・解放された解析兵装のチェック
 		var is_first_discovery = false
@@ -1811,12 +1811,12 @@ func add_pattern_analysis(pattern_key: String, amount: float) -> void:
 
 func spawn_analysis_progress_popup(p_name: String, added: float, current_prog: float, p_color: Color) -> void:
 	var label = Label.new()
-	label.text = "[ANALYSIS] %s +%d%% (%d%%)" % [p_name, int(added), int(current_prog)]
+	label.text = "%s  +%d%%  (%d%%)" % [p_name, int(added), int(current_prog)]
 	
 	var settings = LabelSettings.new()
 	if PIXEL_FONT:
 		settings.font = PIXEL_FONT
-	settings.font_size = 14
+	settings.font_size = 18
 	settings.font_color = p_color
 	settings.outline_size = 3
 	settings.outline_color = Color(0.05, 0.08, 0.12, 0.95)
@@ -1842,7 +1842,7 @@ func apply_pattern_trait(pattern_key: String) -> void:
 			active_traits.append(pattern_key)
 			if active_traits.size() == 2:
 				var f_info = Global.get_fusion_info(active_traits[0], active_traits[1])
-				spawn_popup_message("[FUSION COMPLETE] 融合兵装: 『%s』完成" % f_info.get("name", "融合兵装"))
+				spawn_popup_message("融合完了  %s" % f_info.get("name", "融合兵装"))
 			else:
 				spawn_popup_message("[SLOT %d] %s Lv.%d" % [active_traits.size(), data["name"], lvl])
 		else:
@@ -1902,7 +1902,7 @@ func trigger_level_up_burst(data: Dictionary, lvl: int) -> void:
 
 func spawn_big_levelup_banner(trait_name: String, lvl: int, icon: String) -> void:
 	var label = Label.new()
-	label.text = "LEVEL UP!\n%s 【%s Lv.%d】 解放！" % [icon, trait_name, lvl]
+	label.text = "LEVEL UP\n%s %s Lv.%d" % [icon, trait_name, lvl]
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var label_settings = LabelSettings.new()
@@ -2034,7 +2034,7 @@ func add_parry_heal_progress() -> void:
 		parry_heal_counter = 0
 		heal(PARRY_HEAL_AMOUNT)
 		trigger_screen_flash(Color(0.2, 1.0, 0.5, 0.45))
-		spawn_popup_message("PARRY HEAL! 機体修復 +%d HP" % PARRY_HEAL_AMOUNT)
+		spawn_popup_message("機体修復  +%d HP" % PARRY_HEAL_AMOUNT)
 		Global.play_upgrade_success()
 		if main:
 			var ui_node = main.get_node_or_null("UI")

@@ -81,7 +81,7 @@ func create_equipped_weapon_hud() -> void:
 	equipped_weapon_label = Label.new()
 	equipped_weapon_label.name = "EquippedWeaponLabel"
 	equipped_weapon_label.position = Vector2(20, 108)
-	setup_label_style(equipped_weapon_label, 16, Color(1.0, 0.85, 0.3), 4)
+	setup_label_style(equipped_weapon_label, 20, Color(1.0, 0.85, 0.3), 4)
 	add_child(equipped_weapon_label)
 	update_equipped_weapon_hud(Global.equipped_weapon)
 
@@ -91,7 +91,7 @@ func update_equipped_weapon_hud(weapon_id: String) -> void:
 		var w_name = weapon_id
 		if Global.available_weapons.has(weapon_id):
 			w_name = Global.available_weapons[weapon_id].get("name", weapon_id)
-		equipped_weapon_label.text = "主兵装: %s [Q/E切替]" % w_name
+		equipped_weapon_label.text = "WEAPON  %s  [Q/E]" % w_name
 
 
 var top_warning_overlay: ColorRect
@@ -116,11 +116,11 @@ func create_top_warning_ui() -> void:
 	top_warning_label.offset_top = 18.0
 	top_warning_label.offset_bottom = 55.0
 	top_warning_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	top_warning_label.text = "DANGER: ガード不可攻撃警告 【GUARD IMPOSSIBLE - EVADE!】"
+	top_warning_label.text = "ガード不可 — 回避！"
 	var l_set = LabelSettings.new()
 	if PIXEL_FONT:
 		l_set.font = PIXEL_FONT
-	l_set.font_size = 14
+	l_set.font_size = 20
 	l_set.font_color = Color(1.0, 0.4, 0.4)
 	l_set.outline_size = 3
 	l_set.outline_color = Color(0.1, 0.0, 0.0)
@@ -135,7 +135,7 @@ func show_top_unparryable_warning(duration: float = 2.0, message: String = "") -
 	if message != "":
 		top_warning_label.text = message
 	else:
-		top_warning_label.text = "DANGER: ガード不可攻撃警告 【GUARD IMPOSSIBLE - EVADE!】"
+		top_warning_label.text = "ガード不可 — 回避！"
 		
 	if is_instance_valid(top_warning_tween):
 		top_warning_tween.kill()
@@ -197,7 +197,7 @@ func create_wave_phase_ui() -> void:
 	var w_set = LabelSettings.new()
 	if PIXEL_FONT:
 		w_set.font = PIXEL_FONT
-	w_set.font_size = 14
+	w_set.font_size = 18
 	w_set.font_color = Color.GOLD
 	w_set.outline_size = 4
 	w_set.outline_color = Color.BLACK
@@ -223,7 +223,7 @@ func create_wave_phase_ui() -> void:
 	var k_set = LabelSettings.new()
 	if PIXEL_FONT:
 		k_set.font = PIXEL_FONT
-	k_set.font_size = 13
+	k_set.font_size = 18
 	k_set.font_color = Color(0.9, 0.9, 0.9)
 	k_set.outline_size = 4
 	k_set.outline_color = Color.BLACK
@@ -303,7 +303,7 @@ func create_analysis_matrix_ui() -> void:
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_set.font = PIXEL_FONT
-	t_set.font_size = 15
+	t_set.font_size = 18
 	t_set.font_color = Color.CYAN
 	t_set.outline_size = 3
 	t_set.outline_color = Color.BLACK
@@ -339,7 +339,7 @@ func create_analysis_matrix_ui() -> void:
 		var l_set = LabelSettings.new()
 		if PIXEL_FONT:
 			l_set.font = PIXEL_FONT
-		l_set.font_size = 14
+		l_set.font_size = 18
 		l_set.font_color = Color(0.45, 0.5, 0.6)
 		l_set.outline_size = 3
 		l_set.outline_color = Color.BLACK
@@ -359,12 +359,12 @@ func create_analysis_matrix_ui() -> void:
 	prog_vbox.add_child(prog_header)
 	
 	active_analysis_label = Label.new()
-	active_analysis_label.text = "解析: 敵弾ジャストガードで吸収蓄積"
+	active_analysis_label.text = "パリィで解析"
 	active_analysis_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var a_set = LabelSettings.new()
 	if PIXEL_FONT:
 		a_set.font = PIXEL_FONT
-	a_set.font_size = 14
+	a_set.font_size = 18
 	a_set.font_color = Color.WHITE
 	a_set.outline_size = 3
 	a_set.outline_color = Color.BLACK
@@ -376,7 +376,7 @@ func create_analysis_matrix_ui() -> void:
 	var p_set = LabelSettings.new()
 	if PIXEL_FONT:
 		p_set.font = PIXEL_FONT
-	p_set.font_size = 14
+	p_set.font_size = 18
 	p_set.font_color = Color.GOLD
 	p_set.outline_size = 3
 	p_set.outline_color = Color.BLACK
@@ -462,10 +462,10 @@ func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) ->
 		style_analysis_bar(active_analysis_bar, latest_pattern.get("color", Color.CYAN))
 	else:
 		if active_traits.size() >= 2:
-			active_analysis_label.text = "【スロット固定中】全ジャストガードで集中強化！"
+			active_analysis_label.text = "スロット固定 — 強化中"
 			active_analysis_label.label_settings.font_color = Color(1.0, 0.85, 0.3)
 		else:
-			active_analysis_label.text = "解析: 敵弾ジャストガードで吸収蓄積"
+			active_analysis_label.text = "パリィで解析"
 			active_analysis_label.label_settings.font_color = Color.GRAY
 		active_analysis_percent_label.text = "0%"
 		active_analysis_bar.value = 0
@@ -832,7 +832,7 @@ func show_analysis_unlock_modal(pattern_key: String, data: Dictionary) -> void:
 	desc_vbox.add_child(stat_lbl)
 	
 	var body_lbl = Label.new()
-	body_lbl.text = cat_info.get("description", "") + "\n\n※変異スロットに固定装備されました（最大2枠・上書きなし）。\n以降のジャストガード解析でLvアップ集中強化されます！"
+	body_lbl.text = cat_info.get("description", "") + "\n\n変異スロットに装備しました（最大2枠・上書きなし）。\n以降のパリィでレベルアップします。"
 	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_label_style(body_lbl, 15, Color.WHITE, 4)
 	desc_vbox.add_child(body_lbl)
@@ -918,9 +918,9 @@ func show_tutorial_guide_modal(topic: String) -> void:
 					"desc": "【常時フルオート自動連射】\n主兵装は常時自動で連射されます。攻撃キーの長押しは不要で、回避とシールド防御に集中できます。"
 				},
 				{
-					"title": "シールド ＆ ジャストガード",
+					"title": "ガード ＆ パリィ",
 					"color": Color.GOLD,
-					"desc": "%s / [右クリック]\nシールドを展開。敵弾着弾の直前に展開すると【ジャストガード】発動！敵弾を反射弾に変換して大ダメージ＆機体修復！" % shield_k_str
+					"desc": "%s / [右クリック]\nシールドを展開。着弾直前ならパリィとなり、敵弾を反射して機体を修復します。" % shield_k_str
 				},
 				{
 					"title": "COUNTER SYSTEM (必殺支援部隊)",
@@ -936,7 +936,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "敵弾の解析",
 					"color": Color.CYAN,
-					"desc": "敵弾をガードまたはジャストガードすると、画面左下の解析マトリクスに敵の兵装データがスキャン・蓄積されます。"
+					"desc": "敵弾をガードまたはパリィすると、画面左下に解析率が蓄積されます。"
 				},
 				{
 					"title": "変異兵装の解放",
@@ -983,7 +983,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "攻略手順",
 					"color": Color(0.3, 0.9, 1.0),
-					"desc": "まずは左右のサブ砲台を集中攻撃して破壊するか、砲台の弾幕をジャストガードしてボスに反射ダメージを与えましょう！"
+					"desc": "左右の砲台を先に破壊します。砲台の弾をパリィして、ボスへ反射することもできます。"
 				},
 				{
 					"title": "【ガード不可】真紅の警告",
@@ -1143,7 +1143,7 @@ func toggle_pause_menu() -> void:
 	
 	if active_keys.size() == 0:
 		var empty_lbl = Label.new()
-		empty_lbl.text = "※ 現在装備中の変異兵装はありません。\n（敵弾をジャストガードして解析ゲージを100%にすると最大2つまで固定装備されます）"
+		empty_lbl.text = "変異兵装なし\n敵弾をパリィし、解析率を100%にすると装備されます（最大2枠）。"
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		setup_label_style(empty_lbl, 15, Color.GRAY, 3)
 		vbox.add_child(empty_lbl)
@@ -1526,7 +1526,7 @@ func show_game_over(result: String) -> void:
 		if "total_damage_score" in game_manager:
 			score = game_manager.total_damage_score
 			
-	stats_label.text = "総ジャストガード数: %d 回\n技術回収: 100%%" % parries
+	stats_label.text = "総パリィ数: %d回\n技術回収: 100%%" % parries
 	container.add_child(stats_label)
 	
 	if result == "VICTORY":

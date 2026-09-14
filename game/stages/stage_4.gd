@@ -18,8 +18,13 @@ func _setup_waves() -> void:
 	var w1 = WaveData.new()
 	w1.wave_id = "wave1_escape"
 	w1.display_title = "PHASE 1: 崩壊地底・緊急脱出ルート"
+<<<<<<< HEAD
 	w1.start_message = "【MISSION 04: 崩壊地底脱出サバイバル】\n制限時間（90秒）まで追撃部隊を振り切れ！\n高速真空スラッシュと破砕弾をパリィで突破せよ！"
 	w1.replenish_types = ["missile", "blade", "irregular", "laser", "charge"]
+=======
+	w1.start_message = "90秒間、追撃をしのげ\nミサイルをパリィせよ"
+	w1.replenish_types = ["missile", "irregular", "laser", "charge"]
+>>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
 	w1.min_active_drones = 5
 	w1.drone_speed_override = 220.0
 	
@@ -35,8 +40,13 @@ func _setup_waves() -> void:
 	var w2 = WaveData.new()
 	w2.wave_id = "wave2_pursuit"
 	w2.display_title = "PHASE 2: 地底脱出中間点・自律殲滅包囲網"
+<<<<<<< HEAD
 	w2.start_message = "[ASSIST AI]: 追撃自律部隊の挟撃を検知！\n真空斬撃と重力特異点の重弾幕をパリィして地表へ脱出せよ！"
 	w2.replenish_types = ["blade", "charge", "missile", "vortex", "laser", "wave"]
+=======
+	w2.start_message = "挟撃を検知\n重弾幕をパリィせよ"
+	w2.replenish_types = ["charge", "missile", "laser", "wave", "irregular"]
+>>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
 	w2.min_active_drones = 5
 	w2.drone_speed_override = 240.0
 	
@@ -53,8 +63,13 @@ func _setup_waves() -> void:
 	var w3 = WaveData.new()
 	w3.wave_id = "wave3_dread_escort"
 	w3.display_title = "PHASE 3: 脱出ルート出口・最終追撃大編隊"
+<<<<<<< HEAD
 	w3.start_message = "[ASSIST AI]: ドレッドノート直属の追撃大隊が襲来！\n全兵装の最大火力を解放し、地表へ抜け出せ！"
 	w3.replenish_types = ["blade", "thunder", "missile", "charge", "laser", "vortex"]
+=======
+	w3.start_message = "最終追撃部隊が接近\n全兵装で突破せよ"
+	w3.replenish_types = ["missile", "charge", "laser", "irregular", "wave"]
+>>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
 	w3.min_active_drones = 6
 	w3.drone_speed_override = 260.0
 	
@@ -72,7 +87,7 @@ func _setup_interlude() -> void:
 	interlude.subtitle = "追撃自律ドレッドノート・ヘルハウンド出現！"
 	interlude.flash_color = Color(0.9, 0.3, 1.0, 0.5)
 	interlude.secondary_flash_color = Color(1.0, 0.1, 0.2, 0.6)
-	interlude.assist_message = "【逃走阻止型要塞接近】猛烈な追撃弾幕をパリィで粉砕せよ！"
+	interlude.assist_message = "追撃弾幕をパリィせよ"
 	interlude.duration = 4.0
 
 func _setup_boss() -> void:
@@ -87,4 +102,4 @@ func _setup_rewards() -> void:
 	reward_config.tech_points = 30
 	reward_config.counter_weapon_unlock = "gigantic_orb"
 	reward_config.unlocked_stage = 5
-	reward_config.unlock_message = "【新兵装解析完了】COUNTER SYSTEM兵装『ギガエネルギー弾』が解放されました！"
+	reward_config.unlock_message = "ギガエネルギー弾 解放\n装備画面で選択可能"

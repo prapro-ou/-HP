@@ -161,7 +161,7 @@ func setup_layout() -> void:
 	
 	# 4. Sci-Fi Title
 	title_label = Label.new()
-	title_label.text = "PARRY SHOOTER"
+	title_label.text = "COUNTER CORE"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var title_set = LabelSettings.new()
 	if PIXEL_FONT:
@@ -176,7 +176,7 @@ func setup_layout() -> void:
 	
 	# Subtitle
 	subtitle_label = Label.new()
-	subtitle_label.text = "ジャストガードで解析・カウンターで撃破"
+	subtitle_label.text = "パリィで解析、カウンターで撃破"
 	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var sub_set = LabelSettings.new()
 	if PIXEL_FONT:
@@ -794,7 +794,7 @@ func setup_settings_container() -> void:
 	
 	# 1. 強化内容のみリセット
 	var reset_upgrades_btn = Button.new()
-	reset_upgrades_btn.text = "強化内容のみリセット (HP/ジャストガード/CD -> 0)"
+	reset_upgrades_btn.text = "強化内容のみリセット (HP/パリィ/CD -> 0)"
 	reset_upgrades_btn.custom_minimum_size = Vector2(0, 48)
 	reset_upgrades_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:

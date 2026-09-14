@@ -683,7 +683,7 @@ func create_focus_tuning_ui(parent: Control) -> void:
 	focus_mode_desc_lbl = Label.new()
 	focus_mode_desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	focus_mode_desc_lbl.custom_minimum_size = Vector2(0, 40)
-	focus_mode_desc_lbl.text = "安定した標準範囲でのジャストガード。"
+		focus_mode_desc_lbl.text = "標準範囲でパリィする安定型。"
 	var fd_set = LabelSettings.new()
 	fd_set.font = Global.get_readable_font()
 	fd_set.font_size = 15
