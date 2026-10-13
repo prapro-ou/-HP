@@ -6,7 +6,7 @@
 
 [node name="Stage5" instance=ExtResource("1_base")]
 script = ExtResource("2_script")
-stage_name = "APEX OVERLORD"
+stage_name = "PLANETARY EXTINCTION"
 stage_number = 5
 
 [node name="Boss" parent="." index="0" instance=ExtResource("3_boss")]
