@@ -42,6 +42,7 @@ func setup_funnel(p_player: Node2D, p_index: int, p_total: int, p_duration: floa
 
 
 func _ready() -> void:
+	add_to_group("counter_effects")
 	z_index = 25
 	
 	sprite = Sprite2D.new()
@@ -100,31 +101,19 @@ func _process(delta: float) -> void:
 
 
 func find_target() -> Node2D:
-	var turrets = get_tree().get_nodes_in_group("boss_turrets")
-	var valid_turrets = []
-	for t in turrets:
-		if is_instance_valid(t) and t.visible and ("is_alive" not in t or t.is_alive):
-			valid_turrets.append(t)
-	if valid_turrets.size() > 0:
-		return valid_turrets.pick_random()
-		
-	var main = get_node_or_null("/root/Main")
-	if main:
-		var boss = main.get_node_or_null("Boss")
-		if is_instance_valid(boss) and boss.visible:
-			return boss
-			
-	var enemies = get_tree().get_nodes_in_group("enemy")
 	var closest: Node2D = null
-	var min_dist = 99999.0
-	for e in enemies:
-		if is_instance_valid(e) and e.visible and not e.is_in_group("boss_turrets"):
-			var dist = global_position.distance_to(e.global_position)
-			if dist < min_dist:
-				min_dist = dist
-				closest = e
+	var distance := INF
+	var targets := CombatTargets.enemies(get_tree())
+	var turrets: Array[Node2D] = []
+	for target in targets:
+		if target.is_in_group("boss_turrets"):
+			turrets.append(target)
+	for target in turrets if not turrets.is_empty() else targets:
+		var value := global_position.distance_squared_to(target.global_position)
+		if value < distance:
+			distance = value
+			closest = target
 	return closest
-
 
 func fire_funnel_beam() -> void:
 	if not PLAYER_BULLET_SCENE:
@@ -149,6 +138,7 @@ func fire_funnel_beam() -> void:
 	b.damage = int(28 * damage_multiplier)
 	b.pierce_limit = 2
 	b.modulate = sprite.modulate if sprite else Color(0.3, 0.9, 1.0)
+	b.add_to_group("counter_projectiles")
 	parent_node.add_child(b)
 	
 	Global.play_laser(randf_range(1.3, 1.6))
@@ -169,6 +159,7 @@ func _draw() -> void:
 
 
 func deactivate_and_free() -> void:
+	set_process(false)
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector2.ZERO, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	tween.chain().tween_callback(queue_free)

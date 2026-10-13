@@ -13,6 +13,7 @@ const TYPE_MISSILE = "missile"
 const TYPE_THUNDER = "thunder"
 const TYPE_VORTEX = "vortex"
 const TYPE_BLADE = "blade"
+const TYPE_METEOR = "meteor"
 
 # タイプ別表示色
 const COLOR_CHARGE = Color(1.0, 0.3, 0.2)
@@ -47,6 +48,11 @@ var time_since_last_shot: float = 0.0
 var move_direction: Vector2 = Vector2.RIGHT
 var flight_time: float = 0.0
 var wave_offset: float = 0.0
+var wave_lane_enabled: bool = false
+var wave_lane_origin: Vector2
+var wave_lane_sway: float = 0.0
+var wave_entry_speed: float = 180.0
+var wave_lane_time: float = 0.0
 var y_amplitude: float = 80.0
 var y_frequency: float = 1.5
 var diagonal_velocity: Vector2 = Vector2.ZERO
@@ -55,6 +61,12 @@ var bullet_pool: Node2D
 var player: CharacterBody2D
 var is_charging: bool = false
 var charge_timer: float = 0.0
+var charge_flash_remaining: float = 0.0
+const ROLE_TEXTURES: Dictionary = {
+	"straight": preload("res://game/assets/design/enemies/enemy_straight_pixel_v2.png"),
+	"wave": preload("res://game/assets/design/enemies/enemy_wave_pixel_v2.png"),
+	"charge": preload("res://game/assets/design/enemies/enemy_charge_pixel_v2.png")
+}
 
 var contact_damage_timer: float = 0.0
 const CONTACT_DAMAGE_INTERVAL: float = 1.0
@@ -183,6 +195,11 @@ func _ready_enemy() -> void:
 		
 	# ハードモード攻撃スパン短縮 (攻撃頻度 1.3倍)
 	shoot_interval = max(0.4, shoot_interval * Global.get_enemy_attack_interval_multiplier())
+	if ROLE_TEXTURES.has(drone_type):
+		var role_sprite := get_node("Sprite2D") as Sprite2D
+		role_sprite.texture = ROLE_TEXTURES[drone_type]
+		role_sprite.scale = Vector2.ONE * (0.85 if drone_type == TYPE_STRAIGHT else 0.65)
+		modulate = Color.WHITE
 	target_y = base_y
 	time_since_last_shot = randf_range(0.0, shoot_interval * 0.75)
 	
@@ -205,13 +222,30 @@ func set_override_speed(base_spd: float) -> void:
 	if drone_type == TYPE_STRAIGHT and diagonal_velocity != Vector2.ZERO:
 		diagonal_velocity = diagonal_velocity.normalized() * (base_spd * speed_multiplier)
 
+func set_wave_lane(y: float, sway: float, entry_speed: float) -> void:
+	wave_lane_enabled = true
+	wave_lane_origin = Vector2(position.x, y)
+	wave_lane_sway = sway
+	wave_entry_speed = entry_speed
+	wave_lane_time = 0.0
+	time_since_last_shot = 0.0
+
 
 func _process(delta: float) -> void:
+	if not is_alive:
+		return
+	if charge_flash_remaining > 0.0:
+		charge_flash_remaining = maxf(0.0, charge_flash_remaining - delta)
+		queue_redraw()
 	flight_time += delta
 	var viewport_w = get_viewport_rect().size.x
 	
 	# 出現時の初期降下
-	if position.y < target_y and flight_time < 1.5:
+	if wave_lane_enabled:
+		wave_lane_time += delta
+		position.y = move_toward(position.y, wave_lane_origin.y, wave_entry_speed * delta)
+		position.x = clampf(wave_lane_origin.x + sin(wave_lane_time * 0.8) * wave_lane_sway, SCREEN_MARGIN_X, viewport_w - SCREEN_MARGIN_X)
+	elif position.y < target_y and flight_time < 1.5:
 		position.y += speed * 1.6 * delta
 	else:
 		# タイプ別の広域・ダイナミック移動処理
@@ -316,10 +350,11 @@ func _process(delta: float) -> void:
 			
 	if is_charging:
 		charge_timer -= delta
-		modulate.a = 0.4 + 0.6 * sin(charge_timer * 40.0)
+		queue_redraw()
 		if charge_timer <= 0.0:
 			is_charging = false
 			modulate.a = 1.0
+			charge_flash_remaining = 0.10
 			fire_charged_shot()
 		return
 		
@@ -358,12 +393,13 @@ func shoot() -> void:
 		TYPE_CHARGE:
 			is_charging = true
 			charge_timer = 0.40
+			queue_redraw()
 		TYPE_STRAIGHT:
 			var dir = Vector2.DOWN
 			if is_instance_valid(player):
 				dir = (player.global_position - global_position).normalized()
 			for i in range(3):
-				get_tree().create_timer(i * 0.1).timeout.connect(func():
+				get_tree().create_timer(i * 0.1, false).timeout.connect(func():
 					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 						var bullet = bullet_pool.get_bullet("straight")
 						if bullet:
@@ -385,7 +421,7 @@ func shoot() -> void:
 		TYPE_IRREGULAR:
 			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
 			for i in range(4):
-				get_tree().create_timer(i * 0.08).timeout.connect(func():
+				get_tree().create_timer(i * 0.08, false).timeout.connect(func():
 					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 						var angle_offset = randf_range(-0.35, 0.35)
 						var dir = base_dir.rotated(angle_offset)
@@ -406,7 +442,7 @@ func shoot() -> void:
 		TYPE_THUNDER:
 			var base_dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
 			for i in range(3):
-				get_tree().create_timer(i * 0.12).timeout.connect(func():
+				get_tree().create_timer(i * 0.12, false).timeout.connect(func():
 					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 						var bullet = bullet_pool.get_bullet("thunder")
 						if bullet:
@@ -429,12 +465,18 @@ func shoot() -> void:
 					bullet.global_position = global_position + Vector2(0.0, 20.0)
 					bullet.damage = int(14 * mult)
 					bullet.set_direction(dir.rotated(a), 320.0)
+		TYPE_METEOR:
+			var dir = (player.global_position - global_position).normalized() if is_instance_valid(player) else Vector2.DOWN
+			var bullet = bullet_pool.get_bullet("meteor")
+			bullet.global_position = global_position + Vector2(0, 20)
+			bullet.damage = int(20 * mult)
+			bullet.set_direction(dir, 190.0)
 		TYPE_MISSILE, _:
 			var dir = Vector2.DOWN
 			if is_instance_valid(player):
 				dir = (player.global_position - global_position).normalized()
 			for i in range(2):
-				get_tree().create_timer(i * 0.15).timeout.connect(func():
+				get_tree().create_timer(i * 0.15, false).timeout.connect(func():
 					if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 						var bullet = bullet_pool.get_bullet("missile")
 						if bullet:
@@ -454,7 +496,7 @@ func fire_charged_shot() -> void:
 		dir = (player.global_position - global_position).normalized()
 	var mult = get_stage_mult()
 	for i in range(2):
-		get_tree().create_timer(i * 0.15).timeout.connect(func():
+		get_tree().create_timer(i * 0.15, false).timeout.connect(func():
 			if is_instance_valid(self) and current_hp > 0 and is_alive and is_instance_valid(bullet_pool):
 				var bullet = bullet_pool.get_bullet("charge")
 				if bullet:
@@ -464,26 +506,27 @@ func fire_charged_shot() -> void:
 		)
 
 
-const DATA_ORB_SCENE: PackedScene = preload("res://game/core/data_orb.tscn")
-
 func die() -> void:
-	# 技研ポイント獲得: 雑魚敵撃破で確率ドロップ (15%の確率で +1 TP)
 	if randf() <= 0.15:
-		Global.tech_points += 1
-	
-	# 吸収マトリクス（GAUGE SHIELD）装備時のみ解析データオーブを放出して高速吸引！
-	var parent_node = get_parent()
-	if Global.equipped_shield == "gauge" and DATA_ORB_SCENE and parent_node:
-		var num_orbs = randi_range(1, 2)
-		for _i in range(num_orbs):
-			var orb = DATA_ORB_SCENE.instantiate()
-			orb.setup_orb(drone_type, global_position, player)
-			parent_node.call_deferred("add_child", orb)
-		
-	var main = get_node_or_null("/root/Main")
-	if main:
-		var manager = main.get_node_or_null("GameManager")
-		if manager and manager.has_method("on_drone_destroyed"):
-			manager.on_drone_destroyed(self)
-			
+		if not Global.practice_active:
+			Global.tech_points += 1
+	var manager = get_node_or_null("/root/Main/GameManager")
+	if manager:
+		manager.on_drone_destroyed(self)
+
+
 	super.die()
+
+func _draw() -> void:
+	if drone_type != TYPE_CHARGE or not is_alive:
+		return
+	if is_charging:
+		var progress := clampf(1.0 - charge_timer / 0.40, 0.0, 1.0)
+		var tint := Color.CYAN.lerp(Color(1.0, 0.9, 0.65), progress)
+		draw_circle(Vector2(0, -10), 3.0 + progress * 2.0, tint)
+		if progress >= 0.5:
+			draw_arc(Vector2(0, -10), 8.0, 0, TAU, 16, Color(0.6, 1.0, 1.0, 0.65), 1.5)
+		if progress >= 0.8:
+			draw_arc(Vector2(0, 30), 7.0, 0, TAU, 16, Color(1.0, 0.9, 0.65), 2.0)
+	if charge_flash_remaining > 0.0:
+		draw_circle(Vector2(0, 34), 5.0, Color(1.0, 0.93, 0.7, charge_flash_remaining * 10.0))

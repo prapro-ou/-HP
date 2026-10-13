@@ -68,6 +68,8 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 func execute_fortress_attack() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
+	if try_expanded_attack():
+		return
 		
 	var mult = get_stage_difficulty_mult()
 	var vp_w = get_viewport_rect().size.x
@@ -114,8 +116,8 @@ func execute_twin_thick_beam_attack(mult: float) -> void:
 		# ビームラインに沿った高速衝突弾の連射
 		var dir = (target_pos - b_pos).normalized()
 		for i in range(8):
-			get_tree().create_timer(i * 0.04).timeout.connect(func():
-				if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+			get_tree().create_timer(i * 0.04, false).timeout.connect(func():
+				if is_instance_valid(self) and is_alive and is_active and is_instance_valid(bullet_pool):
 					var bullet = bullet_pool.get_bullet("laser")
 					if bullet:
 						bullet.global_position = b_pos + dir * (i * 35.0)
@@ -145,8 +147,8 @@ func execute_sweeping_thick_beam_attack(mult: float) -> void:
 		var dir = Vector2.DOWN.rotated(cur_angle)
 		var end_p = center_pos + dir * 900.0
 		
-		get_tree().create_timer(step * 0.07).timeout.connect(func():
-			if is_instance_valid(self) and is_alive:
+		get_tree().create_timer(step * 0.07, false).timeout.connect(func():
+			if is_instance_valid(self) and is_alive and is_active:
 				if MEGA_BEAM_SCENE and get_parent():
 					var beam = MEGA_BEAM_SCENE.instantiate()
 					beam.setup_beam(center_pos, end_p, Color(1.0, 0.45, 0.15), 44.0, 0.35)
@@ -176,8 +178,8 @@ func execute_triple_mega_beam_salvo(mult: float) -> void:
 			get_parent().add_child(beam)
 			
 		for i in range(10):
-			get_tree().create_timer(i * 0.05).timeout.connect(func():
-				if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+			get_tree().create_timer(i * 0.05, false).timeout.connect(func():
+				if is_instance_valid(self) and is_alive and is_active and is_instance_valid(bullet_pool):
 					var bullet = bullet_pool.get_bullet("laser")
 					if bullet:
 						bullet.global_position = o_pos + Vector2(randf_range(-10, 10), i * 30.0)

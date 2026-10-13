@@ -12,7 +12,7 @@ config_version=5
 
 config/name="shooting-v3"
 run/main_scene="res://game/core/main_menu.tscn"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
 [audio]
@@ -23,6 +23,7 @@ driver/output_latency=50
 
 AudioManager="*res://game/core/audio_manager.tscn"
 Global="*res://game/core/global.gd"
+DebugTools="*res://game/core/debug_tools.gd"
 
 [display]
 
@@ -34,7 +35,7 @@ window/stretch/mode="canvas_items"
 
 theme/default_font_antialiasing=0
 theme/default_font_subpixel_positioning=0
-theme/default_font="res://game/assets/fonts/DotGothic16-Regular.ttf"
+theme/default_font="res://game/assets/design/fonts/MPLUS1Code-Variable.ttf"
 
 [physics]
 

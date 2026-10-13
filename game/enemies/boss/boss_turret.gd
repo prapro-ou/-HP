@@ -230,7 +230,7 @@ func _process(delta: float) -> void:
 				if pool:
 					var final_dmg = int(18 * get_stage_difficulty_mult() * get_boss_phase_info()["damage_mult"])
 					for i in range(2):
-						get_tree().create_timer(i * 0.09).timeout.connect(func():
+						get_tree().create_timer(i * 0.09, false).timeout.connect(func():
 							if is_instance_valid(self) and is_alive and is_instance_valid(pool):
 								var bullet = pool.get_bullet("boss_laser")
 								if bullet:
@@ -457,7 +457,7 @@ func start_chain_sweep_bomber_sequence() -> void:
 	
 	# 右から左へ移動中に5つの起爆弾を投下
 	for i in range(5):
-		get_tree().create_timer(i * 0.45).timeout.connect(func():
+		get_tree().create_timer(i * 0.45, false).timeout.connect(func():
 			if is_instance_valid(self) and is_alive:
 				drop_chain_fuse_bullet(Vector2(global_position.x, global_position.y + 20.0))
 		)
@@ -476,9 +476,10 @@ func drop_chain_fuse_bullet(spawn_pos: Vector2) -> void:
 		bullet.set_direction(Vector2.DOWN, 110.0)
 		Global.play_laser(1.3)
 		
+		var generation: int = bullet.spawn_generation
 		# 0.75秒後に爆発（事前に弾をはじき返していれば爆発キャンセル）
-		get_tree().create_timer(0.75).timeout.connect(func():
-			if is_instance_valid(bullet):
+		get_tree().create_timer(0.75, false).timeout.connect(func():
+			if is_instance_valid(self) and is_alive and is_instance_valid(bullet) and bullet.visible and bullet.spawn_generation == generation:
 				if not bullet.is_friendly:
 					# 弾をはじき返せなかったため爆発発生！
 					trigger_hazard_chain_explosion(bullet.global_position)
@@ -563,7 +564,7 @@ func execute_attack() -> void:
 			if pool:
 				var delay_step = 0.08 / spd_mult
 				for i in range(beam_count):
-					get_tree().create_timer(i * delay_step).timeout.connect(func():
+					get_tree().create_timer(i * delay_step, false).timeout.connect(func():
 						if is_instance_valid(self) and is_alive and is_instance_valid(pool):
 							var bullet = pool.get_bullet("boss_laser")
 							if bullet:
@@ -633,7 +634,7 @@ func execute_attack() -> void:
 					bullet.set_direction(shoot_dir, 320.0 * spd_mult)
 					
 				if phase >= 2:
-					get_tree().create_timer(0.4).timeout.connect(func():
+					get_tree().create_timer(0.4, false).timeout.connect(func():
 						if is_instance_valid(self) and is_alive and is_instance_valid(pool):
 							var b2 = pool.get_bullet("cluster_bomb")
 							if b2:
@@ -869,7 +870,8 @@ func destroy_turret() -> void:
 			p.modulate = Color(1.0, randf_range(0.3, 0.9), 0.1)
 			get_parent().add_child(p)
 			
-	Global.tech_points += 2
+	if not Global.practice_active:
+		Global.tech_points += 2
 	
 	var main = get_node_or_null("/root/Main")
 	if main:
@@ -878,7 +880,7 @@ func destroy_turret() -> void:
 			if player.has_method("heal"):
 				player.heal(50)
 			if player.has_method("spawn_popup_message"):
-				player.spawn_popup_message("サブ砲台撃破！ +2 TP / 機体修復 +50 HP")
+				player.spawn_popup_message("サブ砲台撃破！ 機体修復 +50 HP" if Global.practice_active else "サブ砲台撃破！ +2 TP / 機体修復 +50 HP")
 
 	# ボスへ撃破を通知して弱点露出（BREAK）を発動
 	if main:

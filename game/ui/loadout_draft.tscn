@@ -1,130 +1,49 @@
-[gd_scene load_steps=5 format=3]
-
+[gd_scene load_steps=2 format=3]
 [ext_resource type="Script" path="res://game/ui/loadout_draft.gd" id="1"]
-
-[sub_resource type="StyleBoxFlat" id="Panel"]
-bg_color = Color(0.018, 0.035, 0.07, 0.97)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.2, 0.85, 1, 0.9)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="Card"]
-bg_color = Color(0.04, 0.08, 0.14, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.25, 0.55, 0.7, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="CardPressed"]
-bg_color = Color(0.05, 0.25, 0.32, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.3, 1, 0.8, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
 [node name="LoadoutDraft" type="CanvasLayer"]
 layer = 90
 script = ExtResource("1")
-
 [node name="Dim" type="ColorRect" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.78)
-
+color = Color(0, 0, 0, 0.88)
 [node name="Panel" type="PanelContainer" parent="."]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -340.0
-offset_top = -300.0
-offset_right = 340.0
-offset_bottom = 300.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("Panel")
-
+anchor_left = 0.04
+anchor_top = 0.08
+anchor_right = 0.96
+anchor_bottom = 0.92
 [node name="Margin" type="MarginContainer" parent="Panel"]
-theme_override_constants/margin_left = 30
-theme_override_constants/margin_top = 26
-theme_override_constants/margin_right = 30
-theme_override_constants/margin_bottom = 26
-
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
 [node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
-theme_override_constants/separation = 18
-
+theme_override_constants/separation = 14
 [node name="Title" type="Label" parent="Panel/Margin/VBox"]
-text = "ANALYSIS LOADOUT"
+text = "変異兵装を2つ選択"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 34
-
+theme_override_font_sizes/font_size = 28
 [node name="Guide" type="Label" parent="Panel/Margin/VBox"]
-text = "解析した兵装から2つを選択。ボス戦では選択を変更できません。"
+text = "選んだ2つはボス戦中固定。パリィでさらに強化できます。"
+autowrap_mode = 3
 horizontal_alignment = 1
-
-[node name="Cards" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="Scroll" type="ScrollContainer" parent="Panel/Margin/VBox"]
 size_flags_vertical = 3
-theme_override_constants/separation = 12
-
-[node name="RapidCard" type="Button" parent="Panel/Margin/VBox/Cards"]
+horizontal_scroll_mode = 0
+[node name="Cards" type="GridContainer" parent="Panel/Margin/VBox/Scroll"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(195, 240)
 size_flags_horizontal = 3
-toggle_mode = true
-text = "BLUE\nRAPID\n\n連射間隔を短縮\n青い直進弾から解析"
-theme_override_styles/normal = SubResource("Card")
-theme_override_styles/pressed = SubResource("CardPressed")
-metadata/weapon_id = "rapid"
-
-[node name="SpreadCard" type="Button" parent="Panel/Margin/VBox/Cards"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(195, 240)
-size_flags_horizontal = 3
-toggle_mode = true
-text = "GREEN\nSPREAD\n\n射線を横へ拡張\n緑の波状弾から解析"
-theme_override_styles/normal = SubResource("Card")
-theme_override_styles/pressed = SubResource("CardPressed")
-metadata/weapon_id = "spread"
-
-[node name="PierceCard" type="Button" parent="Panel/Margin/VBox/Cards"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(195, 240)
-size_flags_horizontal = 3
-toggle_mode = true
-text = "RED\nPIERCE\n\n大型貫通弾へ変換\n赤い突進弾から解析"
-theme_override_styles/normal = SubResource("Card")
-theme_override_styles/pressed = SubResource("CardPressed")
-metadata/weapon_id = "pierce"
-
+columns = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 [node name="SelectionLabel" type="Label" parent="Panel/Margin/VBox"]
 unique_name_in_owner = true
 text = "装着スロット  0 / 2"
 horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.3, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 22
-
 [node name="ConfirmButton" type="Button" parent="Panel/Margin/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
-text = "LOADOUT CONFIRM  →  BOSS"
+text = "この兵装でボス戦へ"
 theme_override_font_sizes/font_size = 22

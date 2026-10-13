@@ -20,6 +20,7 @@ const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_part
 
 
 func _ready() -> void:
+	add_to_group("counter_effects")
 	z_index = 50
 	z_as_relative = false
 	start_chain_sequence()
@@ -37,26 +38,14 @@ func setup_sweep(p_player: Node2D, p_dur: float, p_mult: float) -> void:
 		start_chain_sequence()
 
 
-func start_chain_sequence() -> void:
-	var tree = get_tree()
-	if not tree:
-		return
-		
-	var base_y = 480.0
-	if is_instance_valid(player_ref):
-		base_y = clamp(player_ref.global_position.y - 140.0, 220.0, 680.0)
-		
-	# 右から左へ5箇所の座標を定義 (x: 680 -> 120)
-	var x_coords = [680.0, 540.0, 400.0, 260.0, 120.0]
-	
-	for i in range(TOTAL_EXPLOSIONS):
-		var x_pos = x_coords[i]
-		var spawn_pos = Vector2(x_pos, base_y + sin(i * 1.2) * 20.0)
-		tree.create_timer(i * EXPLOSION_INTERVAL).timeout.connect(func():
-			if is_instance_valid(self):
-				trigger_single_chain_explosion(spawn_pos, i)
-		)
+var sweep_positions: Array[Vector2] = []
 
+func start_chain_sequence() -> void:
+	sweep_positions.clear()
+	var size := get_viewport_rect().size
+	var base_y := clampf(player_ref.global_position.y - 140.0, 160.0, size.y - 160.0)
+	for index in range(TOTAL_EXPLOSIONS):
+		sweep_positions.append(Vector2(size.x * (0.85 - index * 0.175), base_y + sin(index * 1.2) * 20.0))
 
 func trigger_single_chain_explosion(pos: Vector2, _idx: int) -> void:
 	var radius = 135.0
@@ -75,38 +64,20 @@ func trigger_single_chain_explosion(pos: Vector2, _idx: int) -> void:
 		return
 		
 	# 1. 範囲内の敵弾を検知し、通常の3倍の威力でジャストガード反射！
-	var bullets = get_tree().get_nodes_in_group("enemy_bullets")
-	var reflected_count = 0
-	for b in bullets:
-		if is_instance_valid(b) and "is_friendly" in b and not b.is_friendly:
-			if pos.distance_to(b.global_position) <= radius:
-				b.is_friendly = true
-				b.damage = int(b.damage * 3.0 * damage_multiplier)
-				b.modulate = Color(1.0, 0.9, 0.25) # 3倍威力の黄金の反射弾
-				
-				# ボス方向へ超高速反射
-				var target_dir = Vector2.UP
-				var bosses = get_tree().get_nodes_in_group("boss")
-				if bosses.size() > 0 and is_instance_valid(bosses[0]):
-					target_dir = (bosses[0].global_position - b.global_position).normalized()
-				b.velocity = target_dir * 950.0
-				
-				reflected_count += 1
-				HitSpark.create_spark(parent_node, b.global_position, "heavy", Color(1.0, 0.85, 0.2))
-				
-	if reflected_count > 0:
-		var main = get_node_or_null("/root/Main")
-		if main:
-			var manager = main.get_node_or_null("GameManager")
-			if manager and manager.has_method("register_parry"):
-				manager.register_parry()
-				
+	for bullet in CombatTargets.projectiles(get_tree()):
+		if pos.distance_to(bullet.global_position) <= radius and CombatTargets.can_parry(bullet) and bullet.has_method("convert_to_friendly"):
+			bullet.convert_to_friendly()
+			bullet.damage = int(bullet.damage * 3.0 * damage_multiplier)
+			bullet.modulate = Color(1.0, 0.9, 0.25)
+			# Counter reflections do not count as player parries or recharge COUNTER.
+			bullet.add_to_group("counter_projectiles")
+
 	# 2. 範囲内のボス・砲台・敵機に450の直接大ダメージ
 	var direct_dmg = int(450.0 * damage_multiplier)
-	var targets = get_tree().get_nodes_in_group("boss") + get_tree().get_nodes_in_group("boss_turrets") + get_tree().get_nodes_in_group("enemy")
+	var targets = CombatTargets.in_radius(self, pos, radius)
 	for t in targets:
 		if is_instance_valid(t) and "global_position" in t:
-			if pos.distance_to(t.global_position) <= radius + 30.0:
+			if not t.is_queued_for_deletion():
 				if t.has_method("take_damage"):
 					t.take_damage(direct_dmg, pos, true)
 				elif t.has_method("take_damage_on_part"):
@@ -127,6 +98,10 @@ func trigger_single_chain_explosion(pos: Vector2, _idx: int) -> void:
 
 func _process(delta: float) -> void:
 	time_alive += delta
+	var interval := maxf((duration - 0.45) / 4.0, 0.1)
+	while explosion_index < TOTAL_EXPLOSIONS and time_alive >= explosion_index * interval:
+		trigger_single_chain_explosion(sweep_positions[explosion_index], explosion_index)
+		explosion_index += 1
 	
 	# 爆発アニメーション更新
 	var active_events: Array[Dictionary] = []

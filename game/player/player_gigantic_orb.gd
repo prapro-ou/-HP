@@ -13,13 +13,16 @@ var is_active: bool = true
 var time_alive: float = 0.0
 
 var tick_timer: float = 0.0
-const DAMAGE_TICK_INTERVAL: float = 0.08
+const DAMAGE_TICK_INTERVAL: float = 0.12
 const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_particle.tscn")
 
 var hit_radius: float = 64.0
 
 
 func _ready() -> void:
+	add_to_group("counter_effects")
+	collision_layer = 0
+	collision_mask = 0
 	z_index = 60
 	z_as_relative = false
 	add_to_group("player_bullets")
@@ -72,7 +75,7 @@ func absorb_nearby_enemy_bullets() -> void:
 	if not main:
 		return
 		
-	var bullets = get_tree().get_nodes_in_group("enemy_bullets")
+	var bullets = CombatTargets.projectiles(get_tree())
 	for b in bullets:
 		if is_instance_valid(b) and "is_friendly" in b and not b.is_friendly:
 			if global_position.distance_to(b.global_position) <= hit_radius + 20.0:
@@ -88,13 +91,13 @@ func deal_tick_damage() -> void:
 	if not parent_node:
 		return
 		
-	var base_dmg = int(95.0 * damage_multiplier)
-	var targets = get_tree().get_nodes_in_group("boss") + get_tree().get_nodes_in_group("boss_turrets") + get_tree().get_nodes_in_group("enemy")
+	var base_dmg = int(48.0 * damage_multiplier)
+	var targets = CombatTargets.in_radius(self, global_position, hit_radius)
 	
 	var hit_count = 0
 	for t in targets:
 		if is_instance_valid(t) and t != self and "global_position" in t:
-			if global_position.distance_to(t.global_position) <= hit_radius + 35.0:
+			if not t.is_queued_for_deletion():
 				hit_count += 1
 				var dmg = base_dmg
 				if t.is_in_group("boss_turrets"):

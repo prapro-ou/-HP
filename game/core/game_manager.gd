@@ -7,7 +7,6 @@ enum State {
 	WAVE,
 	WAVE_TRANSITION,
 	INTERLUDE,
-	LOADOUT_SELECT,
 	BOSS,
 	VICTORY_TRANSITION,
 	VICTORY,
@@ -19,9 +18,7 @@ var player: CharacterBody2D
 var boss: Node2D
 var ui: CanvasLayer
 var bullet_pool: Node2D
-@onready var analysis_system: AnalysisSystem = $AnalysisSystem
 @onready var counter_system: CounterSystem = $CounterSystem
-@onready var loadout_draft: LoadoutDraft = get_node("../LoadoutDraft")
 
 @onready var stage_container: Node2D = get_node("../StageContainer")
 var current_stage: BaseStage = null
@@ -34,9 +31,13 @@ var current_wave_index: int = 0
 var current_wave_level: int = 1
 var total_wave_kills: int = 0
 
-# 75秒の解析フェーズ
-const WAVE_PHASE_MAX_DURATION: float = 75.0
+# 有限ウェーブ全体の時計（ウェーブ間の待ちも含む）
+const WAVE_PHASE_MAX_DURATION: float = 60.0
 var wave_phase_timer: float = WAVE_PHASE_MAX_DURATION
+var wave_clock_started: bool = false
+var wave_elapsed: float = 0.0
+var pending_wave_spawns: Array = []
+var rewarded_wave_indices: Array[int] = []
 
 # 戦績データ
 var parry_count: int = 0
@@ -44,6 +45,7 @@ var total_damage_score: int = 0
 var spawned_drones: Array = []
 var state_timer: float = 0.0
 var boss_drone_timer: float = 0.0
+var stage_generation: int = 0
 
 # プリロード
 const DRONE_SCENE: PackedScene = preload("res://game/enemies/drone/enemy_drone.tscn")
@@ -62,18 +64,16 @@ func _ready() -> void:
 	bullet_pool = get_node_or_null("../BulletPool")
 	if is_instance_valid(player) and player.get_node_or_null("ParryComponent"):
 		player.get_node("ParryComponent").parry_succeeded.connect(_on_parry_succeeded)
-	analysis_system.progress_changed.connect(_on_analysis_progress_changed)
-	analysis_system.analysis_completed.connect(_on_analysis_completed)
 	counter_system.gauge_changed.connect(_on_counter_gauge_changed)
 	counter_system.counter_activated.connect(_on_counter_activated)
-	loadout_draft.loadout_confirmed.connect(_on_loadout_confirmed)
+	counter_system.counter_finished.connect(_on_counter_finished)
+	counter_system.state_changed.connect(_on_counter_state_changed)
 	
 	if bullet_pool and is_instance_valid(player):
 		player.enemy_bullets = bullet_pool.active_bullets
 		
-	var save_data = Global.load_game_data(false)
-	# v3 vertical slice: one authored run until the core loop is proven fun.
-	current_stage_num = 1
+	var save_data = {"stage_num": Global.practice_config.get("stage", 1), "score": 0} if Global.practice_active else Global.load_game_data(false)
+	current_stage_num = clampi(int(save_data.get("stage_num", 1)), 1, 5)
 		
 	total_damage_score = save_data.get("score", 0)
 	
@@ -87,13 +87,18 @@ func _ready() -> void:
 
 func clean_stage_entities() -> void:
 	"""前ステージの残存敵・ボス・弾幕・タイマーを完全に削除・初期化する"""
+	stage_generation += 1
+	cancel_wave_spawns()
 	get_tree().paused = false
+	Engine.time_scale = 1.0
 	
 	clear_all_bullets()
 	clear_drones()
 	
 	for node in get_tree().get_nodes_in_group("enemy"):
 		if is_instance_valid(node) and node != player:
+			if node.get("is_alive") != null:
+				node.set("is_alive", false)
 			node.queue_free()
 			
 	for node in get_tree().get_nodes_in_group("boss"):
@@ -113,7 +118,6 @@ func clean_stage_entities() -> void:
 		current_stage = null
 		
 	parry_count = 0
-	analysis_system.reset_run()
 	counter_system.reset_run()
 	state_timer = 0.0
 	boss_drone_timer = 0.0
@@ -121,6 +125,7 @@ func clean_stage_entities() -> void:
 	current_wave_index = 0
 	current_wave_level = 1
 	wave_phase_timer = WAVE_PHASE_MAX_DURATION
+	rewarded_wave_indices.clear()
 	current_state = State.START
 	state = "start"
 	
@@ -148,7 +153,6 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 		
 	current_stage = stage_scene.instantiate()
 	stage_container.add_child(current_stage)
-	
 	# 自機状態・位置の再確認（ステージ開始地点へ確実に配置）
 	if is_instance_valid(player) and player.has_method("reset_state"):
 		player.reset_state()
@@ -170,10 +174,13 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 			if ResourceLoader.exists(bg_path):
 				bg_node.set_background_texture(load(bg_path))
 		
+	if Global.practice_active:
+		start_practice_session()
+		return
 	Global.save_game(current_stage_num, total_damage_score, {})
 	
-	current_state = State.WAVE
-	state = "wave1"
+	current_state = State.START
+	state = "start"
 	current_wave_index = 0
 	
 	# ステージBGM再生
@@ -186,11 +193,11 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	if Global.hard_mode_enabled:
 		st_name += " [HARD MODE]"
 	var codename = ""
-	var goal = "75秒で3属性を解析 -> 2兵装を選択 -> COUNTERで撃破せよ"
+	var goal = "敵弾を捕まえて追撃し、COUNTERでボスを撃破せよ"
 	match current_stage_num:
 		1:
 			codename = "第1エリア: 惑星到達前・デブリ宙域"
-			goal = "敵部隊の攻撃をジャストガード解析し、防衛要塞を突破せよ！"
+			goal = "敵部隊の弾を捕まえ、追撃で防衛要塞を突破せよ！"
 		2:
 			codename = "第2エリア: 惑星地上上空・成層圏"
 			goal = "雲海防衛網を突破し、空中要塞キャリアを撃墜せよ！"
@@ -202,25 +209,26 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 			goal = "崩壊トラップを回避し、追撃部隊を振り切って脱出せよ！"
 		5:
 			codename = "最終エリア: 終焉の支配者・オメガ"
-			goal = "全兵装を同期解放し、覚醒惑星オメガを殲滅せよ！"
+			goal = "敵弾を捕まえて追撃し、COUNTERでボスを撃破せよ"
 			
 	if Global.hard_mode_enabled:
 		codename += " 【HARD: HP 2倍 / 攻撃 1.3倍】"
 			
+	goal += "\n全ウェーブ撃破で突破 / 道中は最大60秒"
 	if ui and ui.has_method("show_stage_intro_banner"):
 		ui.show_stage_intro_banner(current_stage_num, st_name, codename, goal)
 	
 	# 1. チュートリアル: 機体操作・射撃・パリィの説明（初回出撃時）
 	if not Global.tutorial_flags.get("controls", false):
-		get_tree().create_timer(0.6).timeout.connect(func():
+		schedule_stage(0.6, func():
 			if ui and ui.has_method("show_tutorial_guide_modal"):
 				ui.show_tutorial_guide_modal("controls")
 		)
 	
 	var first_wave = current_stage.get_wave(0)
 	if first_wave:
-		get_tree().create_timer(3.8).timeout.connect(func():
-			if current_state == State.WAVE:
+		schedule_stage(3.8, func():
+			if current_state == State.START:
 				if ui and ui.has_method("show_wave_announcement") and first_wave.start_message != "":
 					ui.show_wave_announcement(first_wave.display_title, first_wave.start_message, 4.0)
 				start_wave(0)
@@ -228,6 +236,13 @@ func load_stage(stage_path: String, stage_num: int = 1) -> void:
 	else:
 		start_boss_battle()
 
+
+func schedule_stage(delay: float, callback: Callable) -> void:
+	var generation := stage_generation
+	get_tree().create_timer(delay, false).timeout.connect(func():
+		if is_inside_tree() and generation == stage_generation:
+			callback.call()
+	)
 
 func load_next_stage() -> void:
 	var next_num = current_stage_num + 1
@@ -242,30 +257,59 @@ func load_next_stage() -> void:
 
 
 func start_wave(index: int) -> void:
+	if not is_instance_valid(current_stage) or get_tree().paused:
+		return
+	if wave_clock_started and current_state == State.WAVE and current_wave_index == index:
+		return
 	current_wave_index = index
+	current_wave_level = index + 1
 	current_state = State.WAVE
 	state = "wave" + str(index + 1)
-	
 	var wave_data = current_stage.get_wave(index)
 	if not wave_data:
 		trigger_interlude()
 		return
-		
-	var viewport_w = get_viewport_rect().size.x
-	for config in wave_data.initial_spawns:
-		var pos = Vector2(viewport_w * config.pos_ratio_x, config.pos_y)
-		var is_slow_val = config.is_slow if "is_slow" in config else null
-		var drone = spawn_drone(config.drone_type, pos, is_slow_val)
-		if drone and wave_data.drone_speed_override > 0.0:
-			if drone.has_method("set_override_speed"):
-				drone.set_override_speed(wave_data.drone_speed_override)
-			else:
-				drone.speed = wave_data.drone_speed_override
-			if config.drone_type == "beam" and wave_data.drone_shoot_interval_beam > 0.0:
-				drone.shoot_interval = wave_data.drone_shoot_interval_beam
-			elif config.drone_type == "missile" and wave_data.drone_shoot_interval_missile > 0.0:
-				drone.shoot_interval = wave_data.drone_shoot_interval_missile
+	wave_clock_started = true
+	wave_elapsed = 0.0
+	pending_wave_spawns = wave_data.initial_spawns.duplicate()
+	pending_wave_spawns.sort_custom(func(a, b): return a.spawn_delay < b.spawn_delay)
+	spawn_due_wave_drones()
+	if index > 0 and ui:
+		ui.show_wave_announcement("WAVE %d: %s" % [current_wave_level, wave_data.display_title], wave_data.start_message)
 
+func cancel_wave_spawns() -> void:
+	pending_wave_spawns.clear()
+	wave_clock_started = false
+	wave_elapsed = 0.0
+
+func spawn_due_wave_drones() -> void:
+	while not pending_wave_spawns.is_empty() and pending_wave_spawns[0].spawn_delay <= wave_elapsed:
+		var config: BaseStage.WaveSpawnConfig = pending_wave_spawns.pop_front()
+		var drone := spawn_drone(config.drone_type, Vector2(get_viewport_rect().size.x * config.pos_ratio_x, config.pos_y), config.is_slow)
+		if drone != null and config.lane_y >= 0.0:
+			drone.set_wave_lane(config.lane_y, config.lane_sway, config.entry_speed)
+
+func alive_wave_drones() -> int:
+	var alive := 0
+	for drone in spawned_drones:
+		if is_instance_valid(drone) and not drone.is_queued_for_deletion() and drone.is_alive:
+			alive += 1
+	return alive
+
+func wave_remaining() -> int:
+	return pending_wave_spawns.size() + alive_wave_drones()
+
+func advance_wave_clock(delta: float) -> bool:
+	if get_tree().paused or not wave_clock_started:
+		return false
+	check_win_lose()
+	if current_state == State.DEFEAT:
+		return false
+	wave_phase_timer = maxf(0.0, wave_phase_timer - delta)
+	if wave_phase_timer <= 0.0:
+		trigger_interlude()
+		return false
+	return true
 
 func spawn_drone(type: String, pos: Vector2, p_is_slow: Variant = null) -> Node2D:
 	if not DRONE_SCENE:
@@ -281,141 +325,59 @@ func spawn_drone(type: String, pos: Vector2, p_is_slow: Variant = null) -> Node2
 
 
 func _process(delta: float) -> void:
+	if get_tree().paused:
+		return
+	if Global.practice_active:
+		process_practice(delta)
+		update_ui()
+		return
 	match current_state:
+		State.START:
+			check_win_lose()
 		State.WAVE:
 			process_wave_state(delta)
-			
 		State.WAVE_TRANSITION:
+			if not advance_wave_clock(delta):
+				update_ui()
+				return
 			state_timer += delta
 			var wave_data = current_stage.get_wave(current_wave_index - 1)
-			var delay = wave_data.transition_delay if wave_data else 2.2
+			var delay = wave_data.transition_delay if wave_data else 0.65
 			if state_timer >= delay:
 				start_wave(current_wave_index)
-				
 		State.INTERLUDE:
 			state_timer += delta
-			if state_timer >= current_stage.interlude.duration:
+			if state_timer >= 2.0:
 				start_boss_battle()
-				
 		State.BOSS:
 			check_win_lose()
 			if current_stage and current_stage.boss_config.enable_support_drones:
 				process_boss_support_drones(delta)
-				
 	update_ui()
 
-
 func process_wave_state(delta: float) -> void:
-	# 解析フェーズ制限時間の減算
-	wave_phase_timer -= delta
-	
-	if wave_phase_timer <= 0.0:
-		wave_phase_timer = 0.0
-		clear_drones()
-		if ui and ui.has_method("show_wave_announcement"):
-			ui.show_wave_announcement("解析フェーズ完了！", "2つの解析兵装を選び、ボス迎撃へ移行せよ！", 3.8)
-		trigger_interlude()
+	if not advance_wave_clock(delta):
 		return
-		
-	# 3. チュートリアル: 制限時間（1分経過・残り30秒時）
 	if wave_phase_timer <= 30.0 and not Global.tutorial_flags.get("time_limit", false):
 		if ui and ui.has_method("show_tutorial_guide_modal"):
 			ui.show_tutorial_guide_modal("time_limit")
-		
-	# 経過時間に合わせて3つの解析対象を段階的に提示する
-	if current_stage and current_stage.waves.size() > 0:
-		var total_waves = current_stage.waves.size()
-		var elapsed_time = WAVE_PHASE_MAX_DURATION - wave_phase_timer
-		var step_duration = WAVE_PHASE_MAX_DURATION / float(total_waves)
-		var target_wave_idx = clamp(int(elapsed_time / step_duration), 0, total_waves - 1)
-		
-		if target_wave_idx > current_wave_index:
-			current_wave_index = target_wave_idx
-			current_wave_level = current_wave_index + 1
-			state = "wave" + str(current_wave_level)
-			
-			# ウェーブ移行ボーナス：機体修復 (+30 HP) & ボーナスTP (+10 TP)
-			if is_instance_valid(player) and player.has_method("heal"):
-				player.heal(30)
-			Global.tech_points += 10
-			
-			var new_wave_data = current_stage.get_wave(current_wave_index)
-			if new_wave_data:
-				var title_str = new_wave_data.display_title
-				if title_str == "":
-					title_str = "WAVE %d 突入！敵増援！" % current_wave_level
-				if ui and ui.has_method("show_wave_announcement"):
-					ui.show_wave_announcement(title_str, new_wave_data.start_message, 3.8)
-				
-	var wave_data = current_stage.get_wave(current_wave_index) if current_stage else null
-	if wave_data:
-		check_drone_replenish(wave_data)
-
-
-func get_boosted_replenish_type(wave_data: BaseStage.WaveData = null) -> String:
-	# プレイヤーが装備中（Lv.2未満）または解析進行中の属性に対応する敵を優先抽出
-	var target_drone_types: Array[String] = []
-	
-	if is_instance_valid(player) and "analysis_patterns" in player:
-		var trait_to_drone = {
-			"rapid": "straight",
-			"spread": "wave",
-			"pierce": "charge",
-			"homing": "missile",
-			"laser": "laser",
-			"cyclone": "irregular",
-			"thunder": "thunder",
-			"vortex": "vortex",
-			"blade": "blade"
-		}
-		
-		# 1. スロット装備中の属性でLv.5未満のものを最優先
-		var active = player.active_traits if "active_traits" in player else []
-		for t_key in active:
-			if player.analysis_patterns.has(t_key):
-				var data = player.analysis_patterns[t_key]
-				if data.get("level", 0) < data.get("max_level", 5):
-					if trait_to_drone.has(t_key):
-						target_drone_types.append(trait_to_drone[t_key])
-						
-		# 2. 直近でパリィ・解析中の属性も対象に追加
-		for t_key in player.analysis_patterns.keys():
-			var data = player.analysis_patterns[t_key]
-			if data.get("progress", 0.0) > 0.0 and data.get("level", 0) < data.get("max_level", 5):
-				if trait_to_drone.has(t_key) and not target_drone_types.has(trait_to_drone[t_key]):
-					target_drone_types.append(trait_to_drone[t_key])
-					
-	# 75%の確率で育成対象の敵タイプを集中出現！
-	if target_drone_types.size() > 0 and randf() < 0.75:
-		return target_drone_types.pick_random()
-		
-	# 通常フォールバック
-	if wave_data and wave_data.replenish_types.size() > 0:
-		return wave_data.replenish_types.pick_random()
-	return "straight"
-
-
-func check_drone_replenish(wave_data: BaseStage.WaveData) -> void:
-	var active = 0
-	for d in spawned_drones:
-		if is_instance_valid(d):
-			active += 1
-			
-	# 目標撃破数による停止は行わず、制限時間いっぱいまで常時敵を補充！
-	if active < wave_data.min_active_drones:
-		var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
-		var chosen_type = get_boosted_replenish_type(wave_data)
-		var drone = spawn_drone(chosen_type, Vector2(rx, -50))
-		if drone and wave_data.drone_speed_override > 0.0:
-			if drone.has_method("set_override_speed"):
-				drone.set_override_speed(wave_data.drone_speed_override)
-			else:
-				drone.speed = wave_data.drone_speed_override
-			if chosen_type == "laser" and wave_data.drone_shoot_interval_beam > 0.0:
-				drone.shoot_interval = wave_data.drone_shoot_interval_beam
-			elif chosen_type == "missile" and wave_data.drone_shoot_interval_missile > 0.0:
-				drone.shoot_interval = wave_data.drone_shoot_interval_missile
-
+			return
+	wave_elapsed += delta
+	spawn_due_wave_drones()
+	if wave_remaining() > 0:
+		return
+	if current_wave_index + 1 >= current_stage.waves.size():
+		trigger_interlude()
+		return
+	if not rewarded_wave_indices.has(current_wave_index):
+		rewarded_wave_indices.append(current_wave_index)
+		player.heal(30)
+		Global.tech_points += 10
+	clear_all_bullets()
+	current_wave_index += 1
+	current_state = State.WAVE_TRANSITION
+	state = "wave_transition"
+	state_timer = 0.0
 
 func process_boss_support_drones(delta: float) -> void:
 	boss_drone_timer += delta
@@ -427,7 +389,7 @@ func process_boss_support_drones(delta: float) -> void:
 			if is_instance_valid(d):
 				active += 1
 		if active < 2:
-			var type = get_boosted_replenish_type(null)
+			var type = "straight"
 			var rx = randf_range(100.0, get_viewport_rect().size.x - 100.0)
 			var drone = spawn_drone(type, Vector2(rx, -50))
 			if drone:
@@ -441,6 +403,7 @@ func process_boss_support_drones(delta: float) -> void:
 func clear_drones() -> void:
 	for d in spawned_drones:
 		if is_instance_valid(d):
+			d.is_alive = false
 			d.queue_free()
 	spawned_drones.clear()
 
@@ -451,47 +414,29 @@ func on_drone_destroyed(drone) -> void:
 		total_wave_kills += 1
 		
 		if ui and ui.has_method("update_wave_phase_hud"):
-			ui.update_wave_phase_hud(current_wave_level, wave_phase_timer, total_wave_kills)
+			update_ui()
 
 
 func trigger_interlude() -> void:
-	current_state = State.LOADOUT_SELECT
-	state = "loadout_select"
+	if not current_state in [State.WAVE, State.WAVE_TRANSITION, State.START]:
+		return
+	stage_generation += 1
+	cancel_wave_spawns()
+	current_state = State.INTERLUDE
+	state = "interlude"
 	state_timer = 0.0
 	clear_all_bullets()
 	clear_drones()
 	if is_instance_valid(player):
-		player.is_control_locked = true
-	
-	if ui and ui.has_method("hide_wave_phase_hud"):
+		player.lock_controls()
+	if is_instance_valid(ui):
 		ui.hide_wave_phase_hud()
-	
-	var inter_data = current_stage.interlude
-	if ui and ui.has_method("show_warning"):
-		ui.show_warning(inter_data.title, inter_data.subtitle)
-		
-	if player and player.has_method("trigger_screen_flash"):
-		player.trigger_screen_flash(inter_data.flash_color)
-		
-	if inter_data.secondary_flash_color != Color.TRANSPARENT:
-		get_tree().create_timer(1.8).timeout.connect(func():
-			if current_state == State.INTERLUDE and player and player.has_method("trigger_screen_flash"):
-				player.trigger_screen_flash(inter_data.secondary_flash_color)
-		)
-		
-	if inter_data.assist_message != "":
-		get_tree().create_timer(1.2).timeout.connect(func():
-			if current_state == State.LOADOUT_SELECT:
-				spawn_popup(inter_data.assist_message)
-		)
-
-	get_tree().create_timer(1.6).timeout.connect(func():
-		if current_state == State.LOADOUT_SELECT:
-			loadout_draft.show_draft(analysis_system.ensure_minimum_choices(2))
-	)
-
+		ui.show_warning("BOSS APPROACHING", "パリィ追撃と、一度きりのCOUNTERで迎撃せよ")
 
 func start_boss_battle() -> void:
+	if current_state in [State.BOSS, State.DEFEAT, State.VICTORY, State.VICTORY_TRANSITION]:
+		return
+	cancel_wave_spawns()
 	current_state = State.BOSS
 	state = "boss"
 	
@@ -504,7 +449,7 @@ func start_boss_battle() -> void:
 	if is_instance_valid(player):
 		player.is_control_locked = false
 		player.is_attack_unlocked = true
-	counter_system.reset_run()
+	counter_system.begin_battle(Global.counter_only_mode_enabled)
 	
 	if ui and ui.has_method("hide_wave_phase_hud"):
 		ui.hide_wave_phase_hud()
@@ -523,38 +468,62 @@ func start_boss_battle() -> void:
 		var cfg = current_stage.boss_config if current_stage else null
 		if cfg:
 			var mult = Global.get_stage_difficulty_multiplier(current_stage_num)
-			boss.max_hp = int(cfg.max_hp * mult)
+			boss.max_hp = int(cfg.max_hp * mult * Global.get_enemy_hp_multiplier())
 			if "current_hp" in boss:
 				boss.current_hp = boss.max_hp
 		
+		if Global.practice_active:
+			boss.current_hp = int(boss.max_hp * (0.3 if Global.practice_config.get("intense", false) else 1.0))
 		if boss.has_method("start_intro_sequence"):
-			boss.start_intro_sequence(5.0)
+			boss.start_intro_sequence(0.6 if Global.practice_active else 5.0)
 		
 		var b_name = cfg.name if cfg else "古代防衛要塞"
-		if ui and ui.has_method("show_wave_announcement"):
+		if not Global.practice_active and ui and ui.has_method("show_wave_announcement"):
 			ui.show_wave_announcement("BOSS WARNING", "要塞ボス接近: 【" + b_name + "】", 4.0)
 			
 		# 4. チュートリアル: ボスについて（ボス戦移行時・砲台の防御特性・パリィ不可攻撃の警告）
-		if not Global.tutorial_flags.get("boss_info", false):
-			get_tree().create_timer(1.2).timeout.connect(func():
-				if ui and ui.has_method("show_tutorial_guide_modal"):
+		if not Global.practice_active and not Global.tutorial_flags.get("boss_info", false):
+			schedule_stage(1.2, func():
+				if current_state == State.BOSS and ui and ui.has_method("show_tutorial_guide_modal"):
 					ui.show_tutorial_guide_modal("boss_info")
 			)
 
 
 func check_win_lose() -> void:
 	if is_instance_valid(player) and player.current_hp <= 0:
+		stage_generation += 1
+		cancel_wave_spawns()
+		counter_system.reset_run()
+		clear_drones()
+		for enemy in get_tree().get_nodes_in_group("enemy"):
+			enemy.set_process(false)
+			if enemy.get("is_alive") != null:
+				enemy.set("is_alive", false)
+		player.is_control_locked = true
+		player.is_attack_unlocked = false
 		current_state = State.DEFEAT
 		state = "defeat"
 		clear_all_bullets()
 		show_game_over("DEFEAT")
-	elif not is_instance_valid(boss) or (boss.has_method("get_current_hp") and boss.get_current_hp() <= 0):
+	elif current_state == State.BOSS and (not is_instance_valid(boss) or (boss.has_method("get_current_hp") and boss.get_current_hp() <= 0)):
 		if current_state != State.VICTORY_TRANSITION and current_state != State.VICTORY:
+			stage_generation += 1
+			cancel_wave_spawns()
+			counter_system.reset_run()
+			clear_drones()
 			current_state = State.VICTORY_TRANSITION
 			state = "victory_transition"
 
 
 func clear_all_bullets() -> void:
+	if is_instance_valid(player) and is_instance_valid(player.capture_volley):
+		player.capture_volley.clear()
+	for group in ["plasma_heat_fields", "gravity_vortex_fields"]:
+		for effect in get_tree().get_nodes_in_group(group):
+			effect.queue_free()
+	for node in get_tree().get_nodes_in_group("enemy_projectiles"):
+		if not node.has_method("recycle_bullet"):
+			node.queue_free()
 	if is_instance_valid(bullet_pool) and "active_bullets" in bullet_pool:
 		var active_copies = bullet_pool.active_bullets.duplicate()
 		for b in active_copies:
@@ -574,9 +543,11 @@ func update_ui() -> void:
 		
 	ui.update_player_hp(player.current_hp, player.max_hp)
 	
-	if current_state == State.WAVE:
+	if Global.practice_active and current_state == State.WAVE:
+		ui.update_practice_hud()
+	elif current_state in [State.WAVE, State.WAVE_TRANSITION]:
 		if ui.has_method("update_wave_phase_hud"):
-			ui.update_wave_phase_hud(current_wave_level, wave_phase_timer, total_wave_kills)
+			ui.update_wave_phase_hud(current_wave_index + 1, wave_phase_timer, total_wave_kills, wave_remaining(), current_stage.waves.size(), current_state == State.WAVE_TRANSITION)
 	else:
 		if ui.has_method("hide_wave_phase_hud"):
 			ui.hide_wave_phase_hud()
@@ -595,10 +566,8 @@ func update_ui() -> void:
 		var max_gct = player.gauge_shield_cooldown if "gauge_shield_cooldown" in player else 3.0
 		ui.update_guard_heat(player.shield_heat, player.max_shield_heat, player.is_overheated, player.overheat_timer, player.is_guarding, Global.equipped_shield, gauge_ct, max_gct)
 		
-	if ui.has_method("update_pattern_analysis"):
-		var traits = player.active_traits if "active_traits" in player else []
-		ui.update_pattern_analysis(player.analysis_patterns, traits)
-		
+	ui.update_capture_hud(player.capture_volley.shots, player.power_boost_remaining)
+
 	if (current_state == State.BOSS or current_state == State.VICTORY_TRANSITION) and is_instance_valid(boss) and "energy_laser" in boss and ui.has_method("update_boss_energy"):
 		ui.update_boss_energy(boss.energy_laser, boss.energy_missile, boss.energy_core)
 	else:
@@ -611,42 +580,33 @@ func register_parry() -> void:
 
 
 func _on_parry_succeeded(bullet_type: String, _hit_position: Vector2, streak: int) -> void:
-	parry_count += 1
-	if current_state == State.WAVE:
-		analysis_system.register_parry(bullet_type, streak)
-	elif current_state == State.BOSS:
-		counter_system.register_parry(streak)
-
-
-func _on_analysis_progress_changed(weapon_id: StringName, value: float) -> void:
-	if not is_instance_valid(player) or not player.analysis_patterns.has(String(weapon_id)):
+	if current_state != State.WAVE and current_state != State.BOSS:
 		return
-	player.analysis_patterns[String(weapon_id)]["progress"] = value
-	player.analysis_patterns[String(weapon_id)]["analyzed"] = value >= 100.0
-
-
-func _on_analysis_completed(weapon: AnalysisWeapon) -> void:
-	spawn_popup("ANALYSIS COMPLETE  %s" % weapon.display_name)
-	Global.play_upgrade_success()
-	if not Global.discovered_analysis_weapons.has(String(weapon.id)):
-		Global.discovered_analysis_weapons.append(String(weapon.id))
+	parry_count += 1
+	if current_state == State.BOSS:
+		counter_system.register_parry(streak, 1.5 if Global.equipped_shield == "gauge" else 1.0)
+	if Global.practice_active:
+		return
+	var kinds: Array[String] = [WeaponCatalog.capture_kind(bullet_type)]
+	for shot in player.capture_volley.shots:
+		if not kinds.has(shot["kind"]):
+			kinds.append(shot["kind"])
+	var discovered := false
+	for kind in kinds:
+		if not Global.discovered_analysis_weapons.has(kind):
+			Global.discovered_analysis_weapons.append(kind)
+			discovered = true
+	if discovered:
 		Global.save_game()
 
 
-func _on_loadout_confirmed(selected_ids: Array[StringName]) -> void:
-	if not is_instance_valid(player):
-		return
-	player.active_traits.clear()
-	for weapon_id in selected_ids:
-		var key := String(weapon_id)
-		player.active_traits.append(key)
-		if player.analysis_patterns.has(key):
-			player.analysis_patterns[key]["progress"] = 0.0
-			player.analysis_patterns[key]["analyzed"] = true
-			player.analysis_patterns[key]["level"] = 1
-	player.apply_equipped_weapon_settings()
-	spawn_popup("LOADOUT LOCKED  %s + %s" % [selected_ids[0], selected_ids[1]])
-	start_boss_battle()
+
+
+
+
+
+
+
 
 
 func _on_counter_gauge_changed(value: float, ready: bool) -> void:
@@ -655,40 +615,60 @@ func _on_counter_gauge_changed(value: float, ready: bool) -> void:
 
 
 func request_counter_activation() -> void:
-	if current_state != State.BOSS:
+	if current_state != State.BOSS or not is_instance_valid(player) or player.current_hp <= 0:
 		return
-	if not counter_system.try_activate():
-		spawn_popup("COUNTER CHARGE  %d%% — ボス弾をパリィせよ" % int(counter_system.gauge))
-
+	if not counter_system.try_activate(player.get_counter_duration()):
+		if counter_system.phase == CounterSystem.Phase.CHARGING:
+			spawn_popup("COUNTER %d%%" % int(counter_system.gauge))
+		elif counter_system.phase == CounterSystem.Phase.SPENT:
+			spawn_popup("COUNTER 使用済み")
 
 func _on_counter_activated() -> void:
-	if not is_instance_valid(player):
-		return
-	player.set_meta("is_counter_system_used", true)
-	player.activate_counter_system()
+	if is_instance_valid(player):
+		player.activate_counter_system(counter_system.remaining)
 
+func _on_counter_finished() -> void:
+	if is_instance_valid(player):
+		player.stop_counter_system()
+
+func _on_counter_state_changed(phase: CounterSystem.Phase) -> void:
+	if is_instance_valid(ui) and ui.is_node_ready():
+		ui.update_v3_counter_status(phase, counter_system.gauge)
+	if phase == CounterSystem.Phase.READY:
+		spawn_popup("COUNTER READY")
+		if is_instance_valid(player):
+			player.trigger_parry_ring_effect(Color.GOLD)
 
 func register_analysis_upgrade() -> void:
 	pass
 
 
 func add_damage_score(amount: int) -> void:
+	if Global.practice_active:
+		return
 	total_damage_score += amount
 
 
 func add_tech_points(amount: int) -> void:
+	if Global.practice_active:
+		return
 	Global.tech_points += amount
 	if is_instance_valid(player):
-		Global.save_game(current_stage_num, total_damage_score, player.weapons)
+		Global.save_game(current_stage_num, total_damage_score, {})
 
 
 func on_boss_destroyed() -> void:
+	if Global.practice_active:
+		return
+	if current_state != State.BOSS and current_state != State.VICTORY_TRANSITION:
+		return
+	counter_system.reset_run()
 	current_state = State.VICTORY
 	state = "victory"
 	clear_all_bullets()
 	
 	if is_instance_valid(player):
-		player.is_full_burst = false
+		player.stop_counter_system()
 		
 	# ステージ報酬処理
 	var reward = current_stage.reward_config
@@ -733,6 +713,9 @@ func spawn_popup(text: String) -> void:
 
 
 func show_game_over(result: String) -> void:
+	if Global.practice_active:
+		ui.show_practice_end()
+		return
 	# 出撃完了（クリアまたは撃破）ごとにTIPSアーカイブを1つ解放
 	var unlocked_tip_title = Global.unlock_next_tip()
 	if unlocked_tip_title != "":
@@ -749,3 +732,83 @@ func show_game_over(result: String) -> void:
 func restart() -> void:
 	clean_stage_entities()
 	get_tree().reload_current_scene()
+
+func debug_jump_to_boss() -> bool:
+	if not Global.development_debug_active() or not current_state in [State.WAVE, State.WAVE_TRANSITION, State.INTERLUDE]:
+		return false
+	stage_generation += 1
+	cancel_wave_spawns()
+	counter_system.reset_run()
+	player.stop_counter_system()
+	player.lock_controls()
+	clear_all_bullets()
+	for drone in spawned_drones:
+		if is_instance_valid(drone): drone.is_alive = false
+	clear_drones()
+	ui.warning_title.hide()
+	ui.warning_subtitle.hide()
+	start_boss_battle()
+	return true
+
+var practice_spawn_timer: float = 0.0
+var practice_spawned_once: bool = false
+
+func start_practice_session() -> void:
+	practice_spawn_timer = 0.0
+	practice_spawned_once = false
+	total_damage_score = 0
+	if Global.practice_config.get("kind") == "boss":
+		start_boss_battle()
+	else:
+		current_state = State.WAVE
+		state = "practice"
+		spawn_practice_drone()
+	ui.show_practice_hint(str(Global.practice_config.get("drone", "boss")))
+
+func spawn_practice_drone() -> void:
+	var width := get_viewport_rect().size.x
+	# Offset from the automatic forward fire so the first capture can be observed.
+	spawn_drone(str(Global.practice_config.get("drone", "straight")), Vector2(width * 0.28, 160.0))
+	practice_spawned_once = true
+
+func process_practice(delta: float) -> void:
+	if current_state == State.DEFEAT:
+		return
+	if player.current_hp <= 0:
+		check_practice_defeat()
+		return
+	if current_state == State.BOSS:
+		if current_stage.boss_config.enable_support_drones:
+			process_boss_support_drones(delta)
+	elif current_state == State.WAVE:
+		practice_spawn_timer -= delta
+		var alive := 0
+		for drone in spawned_drones:
+			if is_instance_valid(drone) and drone.is_alive and not drone.is_queued_for_deletion():
+				alive += 1
+		if Global.practice_config.get("repeat", false) and alive < 3 and practice_spawn_timer <= 0.0:
+			spawn_practice_drone()
+			practice_spawn_timer = 2.0
+
+func check_practice_defeat() -> void:
+	stage_generation += 1
+	cancel_wave_spawns()
+	counter_system.reset_run()
+	player.stop_counter_system()
+	player.lock_controls()
+	clear_all_bullets()
+	for enemy in get_tree().get_nodes_in_group("enemy"):
+		if enemy.get("is_alive") != null:
+			enemy.set("is_alive", false)
+		enemy.process_mode = PROCESS_MODE_DISABLED
+	current_state = State.DEFEAT
+	state = "defeat"
+	Engine.time_scale = 1.0
+	ui.show_practice_end()
+
+func exit_practice(to_options: bool = false) -> void:
+	clean_stage_entities()
+	player.stop_counter_system()
+	Global.end_practice()
+	Global.return_to_options = to_options
+	get_tree().change_scene_to_file("res://game/core/main_menu.tscn" if to_options else "res://game/core/practice_setup.tscn")

@@ -1,71 +1,77 @@
-# COUNTER CORE v3 — Vertical Slice
+# 基本戦闘の回帰検証
 
-## Experience target
+更新: 2026-10-10
 
-The prototype is one short run:
+対象は「自動射撃 → パリィで捕獲 → 次の射撃で追撃 → ボス戦のCOUNTER」。この検証に使う短いシナリオは、5ステージの製品構成を変更しない。現行仕様は[DESIGN.md](DESIGN.md)。旧仕様の解析2枠・変異レベル選択を合格条件に含めない。
 
-1. Read three visually distinct enemy bullets.
-2. Move toward the bullet type players want and parry it.
-3. Decode analysis weapons through successful parries.
-4. Lock exactly two decoded weapons before the boss.
-5. Parry boss bullets to fill COUNTER CHARGE.
-6. Manually fire one decisive COUNTER SYSTEM attack.
+## 基本シナリオ
 
-The primary playtest question is: **Did the player voluntarily approach danger to decode the weapon they wanted?**
+1. 装備して出撃する。最初のパリィ以前から主兵装が自動射撃する。
+2. 通常の敵弾へシールドを展開する。捕獲した種類が自機周囲とHUDへ現れる。
+3. 短い表示の後、次の射撃で追撃が出る。同じ捕獲弾を二度放出しない。
+4. ガード不可弾を回避する。捕獲上限でも通常弾の防御は働く。
+5. ボス前の警告を経て戦闘へ進む。2枠選択の操作は現試作では発生しない。
+6. ボス戦のパリィでCOUNTERを準備し、手動発動する。通常出撃では使用済みのままになる。
+7. ポーズ・敗北・再挑戦で、保持弾とCOUNTERの時間・支援機・HUDが適切に戻る。
+8. 同じシールド操作で外側の通常捕獲と内側の精密捕獲を行い、1.25倍が捕獲時に1回だけ適用される。
+9. オプションからシミュレーターへ入り、単発・無限補充・クリア済みボス・HP設定を切り替える。報酬や進行を変えず、再挑戦と退出で状態を戻す。
+10. 全5ステージの有限出現を処理して早期ボスへ進む。間隔を含む上限60秒、ポーズ/説明停止、時間切れ清掃と中間境界1回だけのHP/TP報酬を確認する。初期装備で敵の実弾を捕まえ、隊列に適した主兵装を当てる。
 
-## Prototype scope
+## テスト対象
 
-- One stage and one boss
-- One preselected main weapon and shield
-- Three analysis weapons: RAPID, SPREAD, PIERCE
-- Two locked analysis slots
-- One COUNTER SYSTEM activation per boss attempt
-- No combat-time main-weapon switching
-- No random level-up choices or experience drops
-- No permanent-stat dependency
+| テスト | 確認すること |
+| --- | --- |
+| test_v3_core.gd | 主兵装の初期起動、CaptureVolleyとCounterSystemの接続、ボス戦での手動発動 |
+| test_campaign_combat.gd | 5ステージ、捕獲10種、主兵装5種、シールド3種、6COUNTER、新強化、旧セーブ、ポーズ、敗北、再挑戦、弾プール再利用 |
+| test_combat_runtime.gd | 全主兵装の自動追撃、実ボスへの命中、6COUNTERの実動作、9:16の全解放装備画面 |
+| test_pause_settings.gd | ポーズ内の設定変更と表示 |
+| test_boss_shield_prototype.gd | 5ボスの攻撃予告・予約発射停止・固定照準・熱返却・広域捕獲・衝撃波・独立BOOST表示 |
+| test_simulator_precision.gd | 11ドローン・同時3体制限・クリア済みボス判定・ボスHP固定・被弾反応・進行と保存の抑止・9通りのシールド/フォーカス・通常/精密混在・最大強化・接触判定・敗北/再挑戦/退出 |
+| render_simulator_hud.gd | 実背景・実テクスチャで設定/HUD/警告/ポーズを3比率と60%寸法へ描画。長いキー名の収まりも検証 |
+| test_finite_waves.gd | 全5ステージの有限出現/早期終了/上限60秒/間隔とポーズ時計/同フレーム境界/報酬1回/ONLY/敗北・退出・再挑戦・デバッグ直行の予約清掃。進行時間を直接送る構造試験 |
+| test_wave_motion.gd | 全5ステージの予定隊列を実際に移動/射撃。高度と横幅の維持、通常AIへの非適用、分離保存の不変 |
+| test_wave_weapons.gd | 初期MGの自動射撃中に実ドローン弾を入力で捕獲・精密捕獲・自動追撃。移動単体/縦列/横分散/密集への実命中 |
+| test_debug_tools.gd | デバッグの許可条件・一時値/保存抑止・合法COUNTER充填・道中からのボス直行・練習との復元 |
+| render_finite_waves.gd | 3比率の道中HUD/隊列/間隔/開始演出/説明/装備/TIPS。固定状態の描画 |
 
-## Readability contract
+## セーブを分離して実行する
 
-| Bullet | Analysis | Combat identity |
-|---|---|---|
-| Blue straight | RAPID | More frequent fire |
-| Green wave | SPREAD | Wider control area |
-| Red charge | PIERCE | High-risk, heavy penetration |
+ゲーム一式を別ディレクトリへ複製する。そのコピーのGlobalでSAVE_PATHを`res://verification_save.cfg`、SETTINGS_PATHを`res://verification_settings.cfg`へ変更する。実際のプレイヤーのuser://セーブを使わない。
 
-Color is reinforced by trajectory and card text; color alone must not carry the distinction.
-
-## Initial tuning
-
-- Analysis: 24 points per parry, plus 2 per current streak step (maximum +8)
-- Four clean parries complete one weapon
-- Wave duration: 75 seconds across three escalating scan phases
-- COUNTER: 22 points per boss parry, with the same streak bonus
-- Four clean boss parries ready COUNTER
-- Boss core HP: 4,200
-- Boss support-drone interval: 12 seconds
-
-At the boss gate, the two most advanced scans are safely decoded if fewer than two were completed. This keeps an imperfect learning run moving without making parries irrelevant: player intent still determines which scans receive priority.
-
-## Playtest observations
-
-Record behavior, not only opinions:
-
-- Which bullet did the player deliberately leave alive?
-- Could they name blue/green/red effects after one run?
-- Did they move toward a dangerous bullet to finish a scan?
-- How long did the two-slot decision take?
-- Could they explain both selected effects during the boss?
-- Did they understand COUNTER only charges from boss parries?
-- Did they choose a different pair for a second attempt?
-
-Stop adding content if players cannot answer these through play. Improve telegraphing, timing, impact, or choice balance first.
-
-## Automated check
-
-Run with Godot 4.7:
+コピーをGodot 4.7.1でインポートした後、各テストを順番に実行する。
 
 ```powershell
-Godot_v4.7.1-stable_win64.exe --headless --path . --script res://game/tests/test_v3_core.gd
+Godot_v4.7.1-stable_win64.exe --headless --path <検証コピー> --editor --import --quit
+Godot_v4.7.1-stable_win64.exe --headless --path <検証コピー> --script res://game/tests/test_v3_core.gd
 ```
 
-Expected output: `V3_CORE_TEST_OK`.
+基本テストの期待出力は`V3_CORE_TEST_OK`。その他もそれぞれの`TEST_OK`と終了コード0を確認し、`SCRIPT ERROR`・`ERROR`・Assertionがあれば失敗として扱う。保存を扱う試験は検証用の保存先に一致しない場合、状態を変更する前に終了する。描画試験はヘッドレスではなく、ウィンドウを非表示にしてGL Compatibilityで順番に実行する。
+
+## 2026-10-09の検証記録
+
+上記6本の動作試験と1本の描画試験は成功。描画は675×1200・800×1200・900×1200の7状態、および405×720・480×720・540×720の戦闘画面、計24枚。敵3種は実際の背景と本番倍率・回転・Nearestフィルタで表示した。描画試験は状態を固定した比較であり、人間によるプレイや弾幕密度を伴うFPS測定ではない。
+
+Windows DesktopプリセットのPCK出力と別の空プロジェクトでの読み込みが成功。M PLUS 1 Code・OFL・敵3種のpixel_v2画像を確認し、旧候補PNGと独立プレビューを除外した。実行ファイルの出力・Windows配布物の起動確認は今回の結果に含めない。
+
+分離した試験内ではセーブと設定のバイト列が不変。実プレイヤーのセーブ・設定も読取専用のSHA-256照合で不変を確認した。証拠の場所と変更範囲は[実装報告](SIMULATOR_PRECISION_20261009.md)を参照。
+
+## 2026-10-10の検証記録
+
+有限ウェーブ・実移動/射撃・実弾捕獲/命中の3試験と、既存7本の動作回帰がEXIT=0/TEST_OK。新しい描画試験も成功し、675/800/900×1200の10状態を計30枚確認した。間隔中の番号の修正後、有限進行と描画を再確認した。
+
+構造試験の時間送り、実際の移動/弾接触、自動生成した捕獲入力、固定状態の描画、人間試遊を区別する。通常30〜45秒は未測定。HP無限を使った確認を通常の生存率の証明にしない。詳細・成功/失敗ログと既存の狭幅TIPS残件は[道中改善の報告](FINITE_WAVES_20261010.md)を参照する。
+
+## 試遊で確認すること
+
+- 捕獲した敵弾と、発射された追撃のつながりを見て説明できるか。
+- 赤い危険弾と、自機の周囲に保持している弾を混同しないか。
+- 主兵装とシールドを変えた時、狙い方や反撃の違いを感じるか。
+- 主兵装だけでも進められ、捕獲すると分かりやすく得をするか。
+- 一度きりのCOUNTERを使うタイミングが判断できるか。
+- 音声なしでも成功と失敗が伝わるか。
+- 精密捕獲を待つ危険と追加威力が納得でき、外側捕獲も使いやすいか。
+- 自動射撃で練習対象を先に倒しすぎず、敵弾を観察できるか。
+- 小さい表示で二重リング・3種の外形・シールド使用可否を見分けられるか。
+- 全5ステージの有限道中を初期装備で通常30〜45秒に突破できるか。早期突破と時間切れを理解でき、必須の捕獲待ちや長い空白時間を感じないか。
+
+観察結果を記録してから、捕獲表示時間・上限・火力・敵密度を調整する。自動テストの成功だけで手触りやバランスを確認済みとしない。

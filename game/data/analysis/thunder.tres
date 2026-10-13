@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AnalysisWeapon" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/data/analysis_weapon.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"thunder"
+display_name = "THUNDER / 電撃"
+description = "金色の電撃弾を解析。命中した敵から近くの敵へ電撃を連鎖する。"
+color = Color(0.95, 0.9, 0.2, 1)
+bullet_types = Array[StringName]([&"thunder", &"spark", &"electric", &"storm"])
+

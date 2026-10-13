@@ -13,58 +13,11 @@ func _ready_stage() -> void:
 	_setup_rewards()
 
 func _setup_waves() -> void:
-	# Wave 1: 地底プラント防衛ライン
-	var w1 = WaveData.new()
-	w1.wave_id = "wave1_facility"
-	w1.display_title = "PHASE 1: 惑星内部・軍事工廠前衛"
-	w1.start_message = "90秒間、工廠を制圧せよ\nプラズマをパリィせよ"
-	w1.replenish_types = ["laser", "charge", "wave", "irregular"]
-	w1.min_active_drones = 5
-	w1.drone_speed_override = 200.0
-	
-	w1.initial_spawns = [
-		WaveSpawnConfig.new("laser", 0.15, -50.0),
-		WaveSpawnConfig.new("charge", 0.35, -80.0),
-		WaveSpawnConfig.new("laser", 0.65, -50.0),
-		WaveSpawnConfig.new("charge", 0.85, -80.0)
+	waves = [
+		patrol_wave(["laser", "thunder", "blade"]),
+		column_wave(["charge", "laser", "blade", "straight"]),
+		spread_cluster_wave(["wave", "thunder", "wave"], ["charge", "laser", "blade"])
 	]
-	waves.append(w1)
-	
-	# Wave 2: プラズマ工廠警備部隊
-	var w2 = WaveData.new()
-	w2.wave_id = "wave2_facility_core"
-	w2.display_title = "PHASE 2: 高度軍事プラント・警備大隊"
-	w2.start_message = "チャージ弾・追尾弾が増加\nパリィして突破せよ"
-	w2.replenish_types = ["charge", "missile", "laser", "irregular", "wave"]
-	w2.min_active_drones = 5
-	w2.drone_speed_override = 220.0
-	
-	w2.initial_spawns = [
-		WaveSpawnConfig.new("charge", 0.15, -60.0),
-		WaveSpawnConfig.new("missile", 0.35, -90.0),
-		WaveSpawnConfig.new("laser", 0.60, -60.0),
-		WaveSpawnConfig.new("charge", 0.85, -90.0)
-	]
-	waves.append(w2)
-
-	# Wave 3: 中枢ヘビーセキュリティ総動員
-	var w3 = WaveData.new()
-	w3.wave_id = "wave3_facility_overdrive"
-	w3.display_title = "PHASE 3: コア直轄・ヘビーセキュリティ総動員"
-	w3.start_message = "最終防衛網を検知\n重弾幕をパリィせよ"
-	w3.replenish_types = ["laser", "charge", "missile", "wave", "irregular"]
-	w3.min_active_drones = 6
-	w3.drone_speed_override = 240.0
-	
-	w3.initial_spawns = [
-		WaveSpawnConfig.new("laser", 0.10, -60.0),
-		WaveSpawnConfig.new("missile", 0.30, -90.0),
-		WaveSpawnConfig.new("charge", 0.50, -60.0),
-		WaveSpawnConfig.new("wave", 0.70, -90.0),
-		WaveSpawnConfig.new("laser", 0.90, -60.0)
-	]
-	waves.append(w3)
-
 func _setup_interlude() -> void:
 	interlude.title = "CRITICAL WARNING"
 	interlude.subtitle = "中枢防衛プラント・コロッサスコア起動！"

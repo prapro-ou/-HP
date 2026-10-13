@@ -36,6 +36,7 @@ var credits_btn: Button
 # Settings UI inputs
 var mode_option: OptionButton
 var scale_option: OptionButton
+var scale_values: Array[float] = []
 var aspect_option: OptionButton
 var vsync_check: CheckButton
 var shake_check: CheckButton
@@ -51,8 +52,6 @@ var btn_key_up: Button
 var btn_key_down: Button
 var btn_key_left: Button
 var btn_key_right: Button
-var btn_key_w_prev: Button
-var btn_key_w_next: Button
 var custom_move_container: VBoxContainer
 var master_slider: HSlider
 var master_lbl: Label
@@ -61,12 +60,14 @@ var bgm_lbl: Label
 var sfx_slider: HSlider
 var sfx_lbl: Label
 var reset_btn: Button
+var reset_notice: Label
 var back_btn: Button
 
 # Title animation variables
 var time_passed: float = 0.0
 
 func _ready() -> void:
+	Global.end_practice()
 	# Ensure the global settings are loaded
 	Global.load_settings()
 	Global.check_save_game()
@@ -86,6 +87,10 @@ func _ready() -> void:
 	
 	# Animation entry
 	animate_menu_entry()
+	Global.apply_body_font(self)
+	if Global.return_to_options:
+		Global.return_to_options = false
+		_on_settings_pressed()
 
 func _process(delta: float) -> void:
 	update_starfield(delta)
@@ -176,7 +181,7 @@ func setup_layout() -> void:
 	
 	# Subtitle
 	subtitle_label = Label.new()
-	subtitle_label.text = "パリィで解析、カウンターで撃破"
+	subtitle_label.text = "捕まえて、撃ち返す"
 	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var sub_set = LabelSettings.new()
 	if PIXEL_FONT:
@@ -260,7 +265,7 @@ func setup_menu_container() -> void:
 func setup_settings_container() -> void:
 	settings_container = PanelContainer.new()
 	settings_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	settings_container.custom_minimum_size = Vector2(740, 920)
+	settings_container.custom_minimum_size = Vector2(minf(740.0, get_viewport_rect().size.x - 100.0), 920)
 	settings_container.hide()
 	main_vbox.add_child(settings_container)
 	
@@ -314,6 +319,13 @@ func setup_settings_container() -> void:
 	scroll_content.add_theme_constant_override("separation", 22)
 	scroll.add_child(scroll_content)
 	
+	var practice_btn := Button.new()
+	practice_btn.name = "PracticeButton"
+	practice_btn.text = "戦闘シミュレーター"
+	practice_btn.custom_minimum_size.y = 52
+	style_button(practice_btn, Color(0.08, 0.18, 0.24), Color(0.1, 0.28, 0.34))
+	scroll_content.add_child(practice_btn)
+	practice_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://game/core/practice_setup.tscn"))
 	# --- SECTION 1: DISPLAY ---
 	var d_title = Label.new()
 	d_title.text = "画面設定"
@@ -348,10 +360,7 @@ func setup_settings_container() -> void:
 	# Resolution / Scale (Vertical formats only)
 	grid_display.add_child(create_label("画面サイズ:"))
 	scale_option = OptionButton.new()
-	scale_option.add_item("400x600 (0.50x)", 0)
-	scale_option.add_item("600x900 (0.75x)", 1)
-	scale_option.add_item("800x1200 (1.00x)", 2)
-	scale_option.add_item("1000x1500 (1.25x)", 3)
+	refresh_scale_choices()
 	scale_option.custom_minimum_size = Vector2(240, 44)
 	scale_option.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
@@ -515,28 +524,6 @@ func setup_settings_container() -> void:
 	add_button_animations(btn_key_shield)
 	btn_key_shield.pressed.connect(func(): _start_rebinding("shield"))
 	
-	# 兵装切替 (前 / 次)
-	grid_ctrl.add_child(create_label("兵装切替 (前 / 次):"))
-	var w_box = HBoxContainer.new()
-	w_box.add_theme_constant_override("separation", 10)
-	
-	btn_key_w_prev = Button.new()
-	btn_key_w_prev.custom_minimum_size = Vector2(125, 44)
-	btn_key_w_prev.add_theme_font_size_override("font_size", 18)
-	if PIXEL_FONT: btn_key_w_prev.add_theme_font_override("font", PIXEL_FONT)
-	add_button_animations(btn_key_w_prev)
-	btn_key_w_prev.pressed.connect(func(): _start_rebinding("w_prev"))
-	w_box.add_child(btn_key_w_prev)
-	
-	btn_key_w_next = Button.new()
-	btn_key_w_next.custom_minimum_size = Vector2(125, 44)
-	btn_key_w_next.add_theme_font_size_override("font_size", 18)
-	if PIXEL_FONT: btn_key_w_next.add_theme_font_override("font", PIXEL_FONT)
-	add_button_animations(btn_key_w_next)
-	btn_key_w_next.pressed.connect(func(): _start_rebinding("w_next"))
-	w_box.add_child(btn_key_w_next)
-	grid_ctrl.add_child(w_box)
-
 	# カスタム移動キー設定用サブコンテナ
 	custom_move_container = VBoxContainer.new()
 	custom_move_container.add_theme_constant_override("separation", 10)
@@ -753,9 +740,17 @@ func setup_settings_container() -> void:
 	font_lbl.label_settings = font_lset
 	cr_vbox.add_child(font_lbl)
 	
-	# --- SECTION 5: DEBUG / DATA RESET ---
+	var debug := get_node_or_null("/root/DebugTools")
+	if debug != null and debug.is_allowed():
+		var debug_button := Button.new()
+		debug_button.name = "DevelopmentEntry"
+		debug_button.text = "開発専用パネル [F10]"
+		debug_button.custom_minimum_size.y = 50
+		scroll_content.add_child(debug_button)
+		debug_button.pressed.connect(debug.open_panel)
+	# Normal full reset retains its confirmation dialog.
 	var s_title = Label.new()
-	s_title.text = "【デバッグ用】個別データリセット"
+	s_title.text = "セーブデータ管理"
 	var dbg_sec_set = LabelSettings.new()
 	if PIXEL_FONT:
 		dbg_sec_set.font = PIXEL_FONT
@@ -792,51 +787,10 @@ func setup_settings_container() -> void:
 	dbg_vbox.add_theme_constant_override("separation", 12)
 	dbg_margin.add_child(dbg_vbox)
 	
-	# 1. 強化内容のみリセット
-	var reset_upgrades_btn = Button.new()
-	reset_upgrades_btn.text = "強化内容のみリセット (HP/パリィ/CD -> 0)"
-	reset_upgrades_btn.custom_minimum_size = Vector2(0, 48)
-	reset_upgrades_btn.add_theme_font_size_override("font_size", 18)
-	if PIXEL_FONT:
-		reset_upgrades_btn.add_theme_font_override("font", PIXEL_FONT)
-	style_button(reset_upgrades_btn, Color(0.9, 0.45, 0.2), Color(1.0, 0.6, 0.3))
-	dbg_vbox.add_child(reset_upgrades_btn)
-	reset_upgrades_btn.pressed.connect(func():
-		Global.reset_upgrade_levels()
-		show_debug_toast("強化内容（HP・ジャストガード判定・CD）を 0 にリセットしました")
-	)
-	
-	# 2. 開発ポイント(TP)のみリセット
-	var reset_tp_btn = Button.new()
-	reset_tp_btn.text = "獲得開発ポイント(TP)のみリセット (-> 0)"
-	reset_tp_btn.custom_minimum_size = Vector2(0, 48)
-	reset_tp_btn.add_theme_font_size_override("font_size", 18)
-	if PIXEL_FONT:
-		reset_tp_btn.add_theme_font_override("font", PIXEL_FONT)
-	style_button(reset_tp_btn, Color(0.85, 0.3, 0.55), Color(1.0, 0.45, 0.7))
-	dbg_vbox.add_child(reset_tp_btn)
-	reset_tp_btn.pressed.connect(func():
-		Global.reset_tech_points()
-		show_debug_toast("開発ポイント（TP）を 0 にリセットしました")
-	)
-	
-	# 3. 兵装開発・解析図鑑・ステージ解放リセット
-	var reset_dev_btn = Button.new()
-	reset_dev_btn.text = "兵装開発・解析図鑑・ステージ解放リセット"
-	reset_dev_btn.custom_minimum_size = Vector2(0, 48)
-	reset_dev_btn.add_theme_font_size_override("font_size", 18)
-	if PIXEL_FONT:
-		reset_dev_btn.add_theme_font_override("font", PIXEL_FONT)
-	style_button(reset_dev_btn, Color(0.75, 0.3, 0.8), Color(0.9, 0.45, 0.95))
-	dbg_vbox.add_child(reset_dev_btn)
-	reset_dev_btn.pressed.connect(func():
-		Global.reset_development_progress()
-		show_debug_toast("兵装開発・解析図鑑・ステージ解放を初期化しました")
-	)
-	
 	# 4. 全データ初期化
 	reset_btn = Button.new()
 	reset_btn.text = "全セーブデータ一括初期化 (完全消去)"
+	reset_btn.disabled = Global.development_debug_active()
 	reset_btn.custom_minimum_size = Vector2(0, 50)
 	reset_btn.add_theme_font_size_override("font_size", 18)
 	if PIXEL_FONT:
@@ -906,6 +860,8 @@ func setup_confirm_dialog() -> void:
 	confirm_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
 	confirm_dialog.offset_left = -260
 	confirm_dialog.offset_top = -145
+	confirm_dialog.offset_right = 260
+	confirm_dialog.offset_bottom = 145
 	
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.1, 0.03, 0.03, 0.98) # Dark Red pixel theme
@@ -933,7 +889,8 @@ func setup_confirm_dialog() -> void:
 	margin.add_child(box)
 	
 	var warn_title = Label.new()
-	warn_title.text = "[WARNING] セーブデータ初期化の警告"
+	warn_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	warn_title.text = "[WARNING]\nセーブデータ初期化の警告"
 	warn_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var w_lbl_set = LabelSettings.new()
 	if PIXEL_FONT:
@@ -957,6 +914,15 @@ func setup_confirm_dialog() -> void:
 	d_lbl_set.outline_color = Color.BLACK
 	warn_desc.label_settings = d_lbl_set
 	box.add_child(warn_desc)
+	reset_notice = Label.new()
+	reset_notice.name = "ResetNotice"
+	reset_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	reset_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reset_notice.add_theme_font_override("font", Global.get_readable_font())
+	reset_notice.add_theme_font_size_override("font_size", 18)
+	reset_notice.add_theme_color_override("font_color", Color.GOLD)
+	reset_notice.hide()
+	box.add_child(reset_notice)
 	
 	var btns_box = HBoxContainer.new()
 	btns_box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -981,10 +947,7 @@ func setup_confirm_dialog() -> void:
 	style_button(cancel_confirm_btn, Color.LIGHT_GRAY, Color.WHITE)
 	btns_box.add_child(cancel_confirm_btn)
 	
-	delete_confirm_btn.pressed.connect(func():
-		Global.delete_save_game()
-		confirm_dialog.hide()
-	)
+	delete_confirm_btn.pressed.connect(_on_delete_confirm_pressed)
 	cancel_confirm_btn.pressed.connect(func():
 		confirm_dialog.hide()
 	)
@@ -1006,6 +969,8 @@ func setup_tutorial_confirm_dialog() -> void:
 	tutorial_dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
 	tutorial_dialog.offset_left = -270
 	tutorial_dialog.offset_top = -150
+	tutorial_dialog.offset_right = 270
+	tutorial_dialog.offset_bottom = 150
 	
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.04, 0.06, 0.1, 0.98) # Dark blue pixel theme
@@ -1285,16 +1250,7 @@ func add_button_animations(btn: Button) -> void:
 
 func sync_settings_to_ui() -> void:
 	mode_option.selected = Global.window_mode
-	
-	# Resolving scale selection indices (0.5, 0.75, 1.0, 1.25)
-	if abs(Global.window_scale - 0.5) < 0.05:
-		scale_option.selected = 0
-	elif abs(Global.window_scale - 0.75) < 0.05:
-		scale_option.selected = 1
-	elif abs(Global.window_scale - 1.25) < 0.05:
-		scale_option.selected = 3
-	else:
-		scale_option.selected = 2 # 1.0x default
+	refresh_scale_choices()
 		
 	aspect_option.selected = Global.aspect_ratio
 	
@@ -1336,8 +1292,6 @@ func sync_settings_to_ui() -> void:
 	_update_rebind_btn(btn_key_down, "down", Global.key_down)
 	_update_rebind_btn(btn_key_left, "left", Global.key_left)
 	_update_rebind_btn(btn_key_right, "right", Global.key_right)
-	_update_rebind_btn(btn_key_w_prev, "w_prev", Global.key_weapon_prev)
-	_update_rebind_btn(btn_key_w_next, "w_next", Global.key_weapon_next)
 		
 	update_ship_preview()
 
@@ -1397,6 +1351,8 @@ func _on_play_start_pressed() -> void:
 		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
 
 func _on_settings_pressed() -> void:
+	title_label.hide()
+	subtitle_label.hide()
 	# Transition: hide menu container & modals, show settings panel
 	if is_instance_valid(credits_dialog):
 		credits_dialog.hide()
@@ -1442,24 +1398,38 @@ func _on_display_mode_changed(idx: int) -> void:
 	Global.apply_display()
 
 func _on_display_scale_changed(idx: int) -> void:
-	match idx:
-		0: Global.window_scale = 0.5
-		1: Global.window_scale = 0.75
-		2: Global.window_scale = 1.0
-		3: Global.window_scale = 1.25
+	Global.window_scale = scale_values[idx]
 	Global.apply_display()
+
+func refresh_scale_choices() -> void:
+	scale_values = Global.get_window_scale_choices()
+	scale_option.clear()
+	for i in scale_values.size():
+		scale_option.add_item("%d%%" % roundi(scale_values[i] * 100.0))
+		if is_equal_approx(scale_values[i], Global.window_scale): scale_option.select(i)
 
 func _on_display_aspect_changed(idx: int) -> void:
 	Global.aspect_ratio = idx
 	Global.apply_display()
 
 func _on_reset_btn_pressed() -> void:
+	if Global.development_debug_active() or Global.practice_active:
+		return
+	reset_notice.text = ""
+	reset_notice.hide()
 	confirm_dialog.show()
 	confirm_dialog.modulate.a = 0.0
 	confirm_dialog.scale = Vector2(0.8, 0.8)
 	var tween = create_tween().set_parallel(true)
 	tween.tween_property(confirm_dialog, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(confirm_dialog, "modulate:a", 1.0, 0.15)
+
+func _on_delete_confirm_pressed() -> void:
+	if Global.delete_save_game():
+		confirm_dialog.hide()
+	else:
+		reset_notice.text = "練習・デバッグ中は初期化できません。" if Global.development_debug_active() or Global.practice_active else "削除できませんでした。データは保持しています。"
+		reset_notice.show()
 
 func _on_back_btn_pressed() -> void:
 	Global.save_settings()
@@ -1469,6 +1439,8 @@ func _on_back_btn_pressed() -> void:
 	tween.chain().tween_callback(func():
 		settings_container.hide()
 		menu_container.show()
+		title_label.show()
+		subtitle_label.show()
 	)
 
 func show_debug_toast(text: String) -> void:

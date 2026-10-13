@@ -8,6 +8,7 @@ class_name PlayerSupportTurret
 @export var turret_slot_index: int = 0
 @export var total_turrets: int = 2
 
+var weapon_mode: String = "turret"
 var player: Node2D = null
 var duration: float = 10.0
 var damage_multiplier: float = 1.0
@@ -28,6 +29,7 @@ func setup_turret(p_player: Node2D, p_index: int, p_total: int, p_duration: floa
 	fire_timer = 0.2 + p_index * 0.15
 
 func _ready() -> void:
+	add_to_group("counter_effects")
 	z_index = 20
 	
 	# スプライト生成
@@ -74,7 +76,7 @@ func _process(delta: float) -> void:
 	fire_timer -= delta
 	if fire_timer <= 0.0:
 		fire_support_attack()
-		fire_timer = randf_range(0.22, 0.32)
+		fire_timer = 0.65 if weapon_mode == "boss_missile" else 0.28
 
 func get_formation_offset() -> Vector2:
 	# 左右または周囲に配置
@@ -85,21 +87,13 @@ func get_formation_offset() -> Vector2:
 	return Vector2(offset_x, offset_y + hover)
 
 func find_target() -> Node2D:
-	var main = get_node_or_null("/root/Main")
-	if main:
-		var boss = main.get_node_or_null("Boss")
-		if is_instance_valid(boss) and boss.visible:
-			return boss
-			
-	var enemies = get_tree().get_nodes_in_group("enemy")
 	var closest: Node2D = null
-	var min_dist = 99999.0
-	for e in enemies:
-		if is_instance_valid(e) and e.visible and not e.is_in_group("boss_turrets"):
-			var dist = global_position.distance_to(e.global_position)
-			if dist < min_dist:
-				min_dist = dist
-				closest = e
+	var distance := INF
+	for target in CombatTargets.enemies(get_tree()):
+		var value := global_position.distance_squared_to(target.global_position)
+		if value < distance:
+			distance = value
+			closest = target
 	return closest
 
 func fire_support_attack() -> void:
@@ -115,6 +109,19 @@ func fire_support_attack() -> void:
 	if is_instance_valid(target):
 		shoot_dir = (target.global_position - global_position).normalized()
 		
+	if weapon_mode == "boss_missile":
+		for index in range(3):
+			var missile = PLAYER_BULLET_SCENE.instantiate()
+			missile.bullet_type = "hyper_missile"
+			missile.global_position = global_position + Vector2((index - 1) * 12, -15)
+			missile.speed = 680.0
+			missile.velocity = shoot_dir.rotated((index - 1) * 0.22) * missile.speed
+			missile.damage = int(42 * damage_multiplier)
+			missile.explosion_radius = 72.0
+			missile.explosion_dmg = int(24 * damage_multiplier)
+			missile.add_to_group("counter_projectiles")
+			parent_node.add_child(missile)
+		return
 	var bullet_kind = turret_slot_index % 3
 	match bullet_kind:
 		0:
@@ -128,6 +135,7 @@ func fire_support_attack() -> void:
 				b.damage = int(32 * damage_multiplier)
 				b.pierce_limit = 2
 				b.modulate = sprite.modulate
+				b.add_to_group("counter_projectiles")
 				parent_node.add_child(b)
 		1:
 			# 追尾ハイパーミサイル (HOMING)
@@ -141,6 +149,7 @@ func fire_support_attack() -> void:
 			b.explosion_radius = 65.0
 			b.explosion_dmg = int(25 * damage_multiplier)
 			b.modulate = sprite.modulate
+			b.add_to_group("counter_projectiles")
 			parent_node.add_child(b)
 		2:
 			# 巨大プラズマ球 (PLASMA)
@@ -153,6 +162,7 @@ func fire_support_attack() -> void:
 			b.explosion_radius = 80.0
 			b.explosion_dmg = int(35 * damage_multiplier)
 			b.modulate = sprite.modulate
+			b.add_to_group("counter_projectiles")
 			parent_node.add_child(b)
 			
 	# 発射時の微小パルス
@@ -162,6 +172,7 @@ func fire_support_attack() -> void:
 		t.tween_property(sprite, "scale", Vector2(0.5, 0.5), 0.15)
 
 func deactivate_and_free() -> void:
+	set_process(false)
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector2.ZERO, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	tween.chain().tween_callback(queue_free)

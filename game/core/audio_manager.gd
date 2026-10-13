@@ -167,7 +167,7 @@ func get_sfx_stream(key: String) -> AudioStream:
 		"hit": return SFX_HIT
 		"guard": return SFX_GUARD
 		"parry": return SFX_PARRY
-		"heavy_hit": return SFX_HEAVY_HIT
+		"heavy_hit", "explosion", "turret_destroy": return SFX_HEAVY_HIT
 		"laser": return SFX_LASER
 		"upgrade", "upgrade_success": return SFX_UPGRADE
 		"ui_click", "click", "btn_click": return SFX_UI_CLICK

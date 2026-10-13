@@ -42,6 +42,8 @@ func spawn_sub_turrets(duration: float = 5.0, is_wave2: bool = false) -> void:
 func execute_fortress_attack() -> void:
 	if not is_instance_valid(bullet_pool):
 		return
+	if try_expanded_attack():
+		return
 		
 	var mult = get_stage_difficulty_mult()
 	var vp_w = get_viewport_rect().size.x
@@ -71,8 +73,8 @@ func execute_fortress_attack() -> void:
 			# パターン2: クラスター追尾ミサイル斉射（成層圏爆撃）
 			var missile_waves = 5 if is_enraged else 3
 			for wave in range(missile_waves):
-				get_tree().create_timer(wave * 0.20).timeout.connect(func():
-					if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+				get_tree().create_timer(wave * 0.20, false).timeout.connect(func():
+					if is_instance_valid(self) and is_alive and is_active and is_instance_valid(bullet_pool):
 						var spawn_x = randf_range(80.0, vp_w - 80.0)
 						var bullet = bullet_pool.get_bullet("missile")
 						if bullet:
@@ -92,8 +94,8 @@ func execute_fortress_attack() -> void:
 			if is_instance_valid(core_node):
 				var core_pos = core_node.global_position
 				for c_i in range(3):
-					get_tree().create_timer(c_i * 0.12).timeout.connect(func():
-						if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+					get_tree().create_timer(c_i * 0.12, false).timeout.connect(func():
+						if is_instance_valid(self) and is_alive and is_active and is_instance_valid(bullet_pool):
 							var bullet = bullet_pool.get_bullet("charge")
 							if bullet:
 								bullet.global_position = core_pos + Vector2(0.0, 30.0)
@@ -108,8 +110,8 @@ func execute_fortress_attack() -> void:
 			var storm_count = 6
 			var step_w = vp_w / float(storm_count + 1)
 			for s_i in range(storm_count):
-				get_tree().create_timer(s_i * 0.14).timeout.connect(func():
-					if is_instance_valid(self) and is_alive and is_instance_valid(bullet_pool):
+				get_tree().create_timer(s_i * 0.14, false).timeout.connect(func():
+					if is_instance_valid(self) and is_alive and is_active and is_instance_valid(bullet_pool):
 						var strike_x = step_w * (s_i + 1)
 						for side in [-12.0, 0.0, 12.0]:
 							var bullet = bullet_pool.get_bullet("thunder")

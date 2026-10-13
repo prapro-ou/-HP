@@ -15,6 +15,7 @@ class_name PauseSettingsPanel
 @onready var sfx_value: Label = %SfxValue
 
 const SCALE_VALUES: Array[float] = [0.5, 0.75, 1.0, 1.25]
+var scale_choices: Array[float] = []
 var syncing: bool = false
 var settings: Node
 
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_populate_options()
 	_connect_controls()
 	sync_from_global()
+	settings.apply_body_font(self)
 
 
 func _populate_options() -> void:
@@ -32,9 +34,7 @@ func _populate_options() -> void:
 	display_mode.add_item("ウィンドウ")
 	display_mode.add_item("フルスクリーン")
 	display_mode.add_item("ボーダーレス")
-	window_scale.clear()
-	for value in SCALE_VALUES:
-		window_scale.add_item("%d%%" % int(value * 100.0))
+	_populate_scales()
 	aspect_ratio.clear()
 	aspect_ratio.add_item("2:3")
 	aspect_ratio.add_item("3:4")
@@ -61,12 +61,7 @@ func _connect_controls() -> void:
 func sync_from_global() -> void:
 	syncing = true
 	display_mode.select(clampi(settings.window_mode, 0, 2))
-	var scale_index := 2
-	for i in SCALE_VALUES.size():
-		if is_equal_approx(settings.window_scale, SCALE_VALUES[i]):
-			scale_index = i
-			break
-	window_scale.select(scale_index)
+	_populate_scales()
 	window_scale.disabled = settings.window_mode == 1
 	aspect_ratio.select(clampi(settings.aspect_ratio, 0, 2))
 	aspect_ratio.disabled = settings.window_mode == 1
@@ -92,7 +87,7 @@ func _on_display_mode_selected(index: int) -> void:
 func _on_window_scale_selected(index: int) -> void:
 	if syncing:
 		return
-	settings.window_scale = SCALE_VALUES[clampi(index, 0, SCALE_VALUES.size() - 1)]
+	settings.window_scale = scale_choices[clampi(index, 0, scale_choices.size() - 1)]
 	_apply_display_and_save()
 
 
@@ -160,3 +155,10 @@ func _update_volume_labels() -> void:
 	master_value.text = "%d%%" % int(master_slider.value)
 	bgm_value.text = "%d%%" % int(bgm_slider.value)
 	sfx_value.text = "%d%%" % int(sfx_slider.value)
+
+func _populate_scales() -> void:
+	scale_choices = settings.get_window_scale_choices()
+	window_scale.clear()
+	for i in scale_choices.size():
+		window_scale.add_item("%d%%" % roundi(scale_choices[i] * 100.0))
+		if is_equal_approx(scale_choices[i], settings.window_scale): window_scale.select(i)
