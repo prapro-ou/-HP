@@ -243,7 +243,8 @@ func destroy_funnel() -> void:
 			p.modulate = Color(0.9, 0.4, 1.0)
 			get_parent().add_child(p)
 			
-	Global.tech_points += 2
+	if not Global.practice_active:
+		Global.tech_points += 2
 	
 	var main = get_node_or_null("/root/Main")
 	if main:
@@ -252,7 +253,7 @@ func destroy_funnel() -> void:
 			if player.has_method("heal"):
 				player.heal(40)
 			if player.has_method("spawn_popup_message"):
-				player.spawn_popup_message("ファンネル撃破！ +2 TP / +40 HP修復")
+				player.spawn_popup_message("ファンネル撃破！ +40 HP修復" if Global.practice_active else "ファンネル撃破！ +2 TP / +40 HP修復")
 				
 	var tween = create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.25)

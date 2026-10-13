@@ -20,6 +20,7 @@ var background_color: ColorRect
 var grid_overlay: Control
 var stage_container: HBoxContainer
 var stage_cards: Array[PanelContainer] = []
+var stage_scroll_tween: Tween
 var detail_title: Label
 var detail_codename: Label
 var detail_desc: Label
@@ -39,6 +40,8 @@ var archive_panel: PanelContainer
 var tips_panel: PanelContainer
 var tips_list_container: VBoxContainer
 var tips_detail_panel: PanelContainer
+var tips_left_scroll: ScrollContainer
+var tips_detail_scroll: ScrollContainer
 var tips_filter_category: String = "all"
 var selected_tip_id: String = ""
 var tips_category_buttons: Dictionary = {}
@@ -71,6 +74,8 @@ func _ready() -> void:
 	current_index = clamp(saved_stage_num - 1, 0, stages.size() - 1)
 	
 	setup_ui()
+	get_viewport().size_changed.connect(layout_responsive_panels)
+	layout_responsive_panels()
 	init_starfield()
 	update_stage_selection(true) # Initial instant update
 
@@ -96,7 +101,7 @@ func init_stages() -> void:
 	st1.id = 1
 	st1.title = "デブリ帯突破"
 	st1.codename = "第1エリア: 惑星到達前・デブリ宙域"
-	st1.description = "惑星到達前の小惑星・残骸漂流地帯。高密度なデブリと哨戒防衛網をジャストガードで解析・突破せよ。"
+	st1.description = "惑星到達前の小惑星・残骸漂流地帯。高密度なデブリと哨戒防衛網を敵弾を捕まえて追撃し、突破せよ。"
 	st1.difficulty = "難易度: ★☆☆☆☆"
 	st1.color = Color(0.2, 0.8, 1.0)
 	st1.scene_path = "res://game/stages/stage_1.tscn"
@@ -152,9 +157,9 @@ func init_stages() -> void:
 	stages.append(st5)
 
 func setup_ui() -> void:
-	# 1. Base dark background
+	# 1. Soft blue-gray background
 	background_color = ColorRect.new()
-	background_color.color = Color(0.03, 0.03, 0.06, 1.0)
+	background_color.color = Color("#1b2738")
 	background_color.anchor_right = 1.0
 	background_color.anchor_bottom = 1.0
 	background_color.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -169,9 +174,10 @@ func setup_ui() -> void:
 	header.anchor_top = 0.04
 	header.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	var head_set = LabelSettings.new()
+	head_set.font = PIXEL_FONT
 	head_set.font_size = 40
 	head_set.font_color = Color.CYAN
-	head_set.outline_size = 8
+	head_set.outline_size = 3
 	head_set.outline_color = Color.BLACK
 	header.label_settings = head_set
 	add_child(header)
@@ -191,7 +197,7 @@ func setup_ui() -> void:
 	add_child(detail_panel)
 	
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.07, 0.12, 0.9)
+	sb.bg_color = Color("#2d4057")
 	sb.border_width_left = 2
 	sb.border_width_top = 2
 	sb.border_width_right = 2
@@ -217,20 +223,21 @@ func setup_ui() -> void:
 	margin_inner.add_child(info_vbox)
 	
 	detail_title = Label.new()
+	detail_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_set.font = PIXEL_FONT
 	t_set.font_size = 40
 	t_set.font_color = Color.WHITE
-	t_set.outline_size = 6
-	t_set.outline_color = Color.BLACK
+	t_set.outline_size = 3
+	t_set.outline_color = Color("#1b2738")
 	detail_title.label_settings = t_set
 	info_vbox.add_child(detail_title)
 	
 	detail_codename = Label.new()
+	detail_codename.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var code_set = LabelSettings.new()
-	if PIXEL_FONT:
-		code_set.font = PIXEL_FONT
+	code_set.font = Global.get_readable_font()
 	code_set.font_size = 22
 	code_set.font_color = Color.GOLD
 	detail_codename.label_settings = code_set
@@ -244,22 +251,21 @@ func setup_ui() -> void:
 	
 	detail_desc = Label.new()
 	detail_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail_desc.custom_minimum_size = Vector2(400, 70)
+	detail_desc.custom_minimum_size = Vector2(0, 70)
 	var desc_set = LabelSettings.new()
-	if PIXEL_FONT:
-		desc_set.font = PIXEL_FONT
+	desc_set.font = Global.get_readable_font()
 	desc_set.font_size = 22
-	desc_set.font_color = Color(0.9, 0.95, 1.0, 0.95)
+	desc_set.font_color = Color("#edf3fa")
 	detail_desc.label_settings = desc_set
 	info_vbox.add_child(detail_desc)
 	
 	detail_diff = Label.new()
+	detail_diff.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var diff_set = LabelSettings.new()
-	if PIXEL_FONT:
-		diff_set.font = PIXEL_FONT
+	diff_set.font = Global.get_readable_font()
 	diff_set.font_size = 22
 	diff_set.font_color = Color.GREEN
-	diff_set.outline_size = 4
+	diff_set.outline_size = 1
 	diff_set.outline_color = Color.BLACK
 	detail_diff.label_settings = diff_set
 	info_vbox.add_child(detail_diff)
@@ -294,12 +300,19 @@ func setup_ui() -> void:
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	carousel_row.add_child(scroll)
 	
+	# Leave room for the focused card's scale at either end of the carousel.
+	var card_margin = MarginContainer.new()
+	card_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card_margin.add_theme_constant_override("margin_left", 28)
+	card_margin.add_theme_constant_override("margin_right", 28)
+	scroll.add_child(card_margin)
 	stage_container = HBoxContainer.new()
 	stage_container.add_theme_constant_override("separation", 24)
 	stage_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	stage_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.add_child(stage_container)
+	card_margin.add_child(stage_container)
 	
 	# Add stage cards
 	for stage in stages:
@@ -315,23 +328,22 @@ func setup_ui() -> void:
 		card_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		var lbl_set = LabelSettings.new()
-		if PIXEL_FONT:
-			lbl_set.font = PIXEL_FONT
+		lbl_set.font = Global.get_readable_font()
 		lbl_set.font_size = 18
 		lbl_set.font_color = Color.WHITE
-		lbl_set.outline_size = 4
+		lbl_set.outline_size = 1
 		lbl_set.outline_color = Color.BLACK
 		card_lbl.label_settings = lbl_set
 		card.add_child(card_lbl)
 		
 		# Styling base
 		var sb_card = StyleBoxFlat.new()
-		sb_card.bg_color = Color(0.05, 0.05, 0.08, 0.95)
+		sb_card.bg_color = Color("#25364b")
 		sb_card.border_width_left = 2
 		sb_card.border_width_top = 2
 		sb_card.border_width_right = 2
 		sb_card.border_width_bottom = 2
-		sb_card.border_color = Color(0.3, 0.3, 0.3)
+		sb_card.border_color = Color("#4e657d")
 		sb_card.corner_radius_top_left = 6
 		sb_card.corner_radius_top_right = 6
 		sb_card.corner_radius_bottom_left = 6
@@ -399,9 +411,9 @@ func setup_ui() -> void:
 	# Action buttons at the absolute bottom
 	var action_hbox = HBoxContainer.new()
 	action_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	action_hbox.add_theme_constant_override("separation", 18)
-	action_hbox.anchor_left = 0.0
-	action_hbox.anchor_right = 1.0
+	action_hbox.add_theme_constant_override("separation", 10)
+	action_hbox.anchor_left = 0.04
+	action_hbox.anchor_right = 0.96
 	action_hbox.anchor_top = 0.90
 	action_hbox.anchor_bottom = 0.90
 	action_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -410,15 +422,17 @@ func setup_ui() -> void:
 	
 	menu_btn = Button.new()
 	menu_btn.text = "戻る"
-	menu_btn.custom_minimum_size = Vector2(130, 52)
+	menu_btn.custom_minimum_size = Vector2(90, 52)
+	menu_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	menu_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(menu_btn)
 	style_btn(menu_btn, Color(0.6, 0.6, 0.6), Color(0.8, 0.8, 0.8))
 	menu_btn.pressed.connect(_on_menu_pressed)
 	
 	archive_btn = Button.new()
-	archive_btn.text = "解析図鑑"
-	archive_btn.custom_minimum_size = Vector2(160, 52)
+	archive_btn.text = "捕獲弾図鑑"
+	archive_btn.custom_minimum_size = Vector2(130, 52)
+	archive_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	archive_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(archive_btn)
 	style_btn(archive_btn, Color(0.85, 0.45, 1.0), Color(1.0, 0.6, 1.0))
@@ -426,7 +440,8 @@ func setup_ui() -> void:
 	
 	tech_lab_btn = Button.new()
 	tech_lab_btn.text = "機体強化"
-	tech_lab_btn.custom_minimum_size = Vector2(160, 52)
+	tech_lab_btn.custom_minimum_size = Vector2(120, 52)
+	tech_lab_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tech_lab_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(tech_lab_btn)
 	style_btn(tech_lab_btn, Color.GOLD, Color(1.0, 0.85, 0.3))
@@ -434,7 +449,8 @@ func setup_ui() -> void:
 	
 	select_btn = Button.new()
 	select_btn.text = "出撃準備"
-	select_btn.custom_minimum_size = Vector2(180, 52)
+	select_btn.custom_minimum_size = Vector2(120, 52)
+	select_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	select_btn.add_theme_font_size_override("font_size", 20)
 	action_hbox.add_child(select_btn)
 	style_btn(select_btn, Color.CYAN, Color(0.3, 0.9, 1.0))
@@ -446,10 +462,9 @@ func setup_ui() -> void:
 const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 
 func style_nav_button(btn: Button) -> void:
-	if PIXEL_FONT:
-		btn.add_theme_font_override("font", PIXEL_FONT)
+	btn.add_theme_font_override("font", Global.get_readable_font())
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.05, 0.08, 0.9)
+	sb.bg_color = Color("#2b3d53")
 	sb.border_width_left = 2
 	sb.border_width_top = 2
 	sb.border_width_right = 2
@@ -461,7 +476,7 @@ func style_nav_button(btn: Button) -> void:
 	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = sb.duplicate()
-	sb_hover.bg_color = Color(0.1, 0.12, 0.2, 0.95)
+	sb_hover.bg_color = Color("#3b526c")
 	sb_hover.border_color = Color.WHITE
 	
 	btn.add_theme_stylebox_override("normal", sb)
@@ -471,10 +486,9 @@ func style_nav_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
 
 func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
-	if PIXEL_FONT:
-		btn.add_theme_font_override("font", PIXEL_FONT)
+	btn.add_theme_font_override("font", Global.get_readable_font())
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+	sb.bg_color = Color("#2b3d53")
 	sb.border_width_left = 3
 	sb.border_width_top = 3
 	sb.border_width_right = 3
@@ -486,7 +500,7 @@ func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
 	sb.corner_radius_bottom_right = 0
 	
 	var sb_hover = StyleBoxFlat.new()
-	sb_hover.bg_color = Color(0.1, 0.12, 0.22, 0.95)
+	sb_hover.bg_color = Color("#3b526c")
 	sb_hover.border_width_left = 3
 	sb_hover.border_width_top = 3
 	sb_hover.border_width_right = 3
@@ -497,9 +511,36 @@ func style_btn(btn: Button, border: Color, hover_border: Color) -> void:
 	sb_hover.corner_radius_bottom_left = 0
 	sb_hover.corner_radius_bottom_right = 0
 	
+	# Reapply the primary treatment after every selection/lock-state change.
+	var is_primary: bool = btn == select_btn and not btn.disabled
+	var text_color: Color = Color("#edf3fa")
+	if is_primary:
+		sb.bg_color = Color("#66d4ec")
+		sb.border_color = Color("#66d4ec")
+		sb_hover.bg_color = Color("#8ae4f5")
+		sb_hover.border_color = Color("#8ae4f5")
+		text_color = Color("#0f2430")
+	var sb_disabled: StyleBoxFlat = sb.duplicate()
+	sb_disabled.bg_color = Color("#304156")
+	sb_disabled.border_color = Color("#4e657d")
+	var sb_focus: StyleBoxFlat = StyleBoxFlat.new()
+	sb_focus.bg_color = Color.TRANSPARENT
+	sb_focus.set_border_width_all(2)
+	sb_focus.border_color = Color.WHITE
+	sb_focus.expand_margin_left = 3
+	sb_focus.expand_margin_top = 3
+	sb_focus.expand_margin_right = 3
+	sb_focus.expand_margin_bottom = 3
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb_hover)
 	btn.add_theme_stylebox_override("pressed", sb_hover)
+	btn.add_theme_stylebox_override("disabled", sb_disabled)
+	btn.add_theme_stylebox_override("focus", sb_focus)
+	btn.add_theme_color_override("font_color", text_color)
+	btn.add_theme_color_override("font_hover_color", text_color)
+	btn.add_theme_color_override("font_pressed_color", text_color)
+	btn.add_theme_color_override("font_focus_color", text_color)
+	btn.add_theme_color_override("font_disabled_color", Color("#aab8c9"))
 	
 	# Scale animation
 	btn.mouse_entered.connect(func():
@@ -569,7 +610,7 @@ func update_stage_selection(instant: bool) -> void:
 		var prev_stage_name = stages[active_stage.id - 2].title if active_stage.id > 1 and active_stage.id - 2 < stages.size() else "前ステージ"
 		detail_desc.text = "前ステージ (STAGE %d: %s) をクリアすることで作戦宙域へのアクセス権限が解放されます。" % [active_stage.id - 1, prev_stage_name]
 		detail_diff.text = "DIFFICULTY: LOCKED"
-		detail_diff.label_settings.font_color = Color(0.6, 0.3, 0.3)
+		detail_diff.label_settings.font_color = Color("#d4aeb5")
 		select_btn.text = "未解放"
 		select_btn.disabled = true
 		style_btn(select_btn, Color(0.3, 0.3, 0.3), Color(0.4, 0.4, 0.4))
@@ -602,46 +643,49 @@ func update_stage_selection(instant: bool) -> void:
 		
 		if i == current_index:
 			# Focused Card
-			card_lbl.label_settings.font_color = Color.WHITE if item_unlocked else Color(0.8, 0.6, 0.6)
-			var border_col = stage_item.color if item_unlocked else Color(0.6, 0.3, 0.3)
+			card_lbl.label_settings.font_color = Color.WHITE if item_unlocked else Color("#d4aeb5")
+			var border_col = stage_item.color if item_unlocked else Color("#d4aeb5")
 			if instant:
 				card.scale = Vector2(1.15, 1.15)
 				card_sb.border_color = border_col
-				card_sb.bg_color = Color(0.1, 0.1, 0.16) if item_unlocked else Color(0.08, 0.05, 0.05)
+				card_sb.bg_color = Color("#38536c") if item_unlocked else Color("#343a48")
 			else:
 				var t = create_tween().set_parallel(true)
 				t.tween_property(card, "scale", Vector2(1.15, 1.15), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 				t.tween_property(card_sb, "border_color", border_col, 0.2)
-				t.tween_property(card_sb, "bg_color", Color(0.1, 0.1, 0.16) if item_unlocked else Color(0.08, 0.05, 0.05), 0.2)
+				t.tween_property(card_sb, "bg_color", Color("#38536c") if item_unlocked else Color("#343a48"), 0.2)
 		else:
 			# Unfocused Cards
-			card_lbl.label_settings.font_color = Color(0.5, 0.5, 0.5) if item_unlocked else Color(0.35, 0.3, 0.3)
+			card_lbl.label_settings.font_color = Color("#ccd6e2") if item_unlocked else Color("#aab8c9")
 			if instant:
 				card.scale = Vector2(0.9, 0.9)
-				card_sb.border_color = Color(0.2, 0.2, 0.2)
-				card_sb.bg_color = Color(0.03, 0.03, 0.05)
+				card_sb.border_color = Color("#4e657d")
+				card_sb.bg_color = Color("#25364b")
 			else:
 				var t = create_tween().set_parallel(true)
 				t.tween_property(card, "scale", Vector2(0.9, 0.9), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-				t.tween_property(card_sb, "border_color", Color(0.2, 0.2, 0.2), 0.2)
-				t.tween_property(card_sb, "bg_color", Color(0.03, 0.03, 0.05), 0.2)
+				t.tween_property(card_sb, "border_color", Color("#4e657d"), 0.2)
+				t.tween_property(card_sb, "bg_color", Color("#25364b"), 0.2)
 
-	# Scroll focusing in stage_container
-	var container_parent = stage_container.get_parent() as ScrollContainer
-	if container_parent:
-		var target_scroll_h = 0
-		if current_index > 0:
-			var card_width = 160.0
-			var sep = 35.0
-			var offset_x = current_index * (card_width + sep)
-			target_scroll_h = int(offset_x - (container_parent.size.x - card_width) / 2.0)
-			target_scroll_h = max(0, target_scroll_h)
-			
-		if instant:
-			container_parent.scroll_horizontal = target_scroll_h
-		else:
-			var t_scroll = create_tween()
-			t_scroll.tween_property(container_parent, "scroll_horizontal", target_scroll_h, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# Read real card positions after the containers have completed their layout.
+	focus_stage_card.call_deferred(instant)
+
+func focus_stage_card(instant: bool) -> void:
+	# Viewport resizing also updates the scrollbar range on the following frame.
+	await get_tree().process_frame
+	if not is_instance_valid(stage_container) or stage_cards.is_empty():
+		return
+	var scroll := stage_container.get_parent().get_parent() as ScrollContainer
+	var card := stage_cards[current_index]
+	var content_center := stage_container.position.x + card.position.x + card.size.x * 1.15 / 2.0
+	var target_scroll := maxi(0, roundi(content_center - scroll.size.x / 2.0))
+	if is_instance_valid(stage_scroll_tween):
+		stage_scroll_tween.kill()
+	if instant:
+		scroll.scroll_horizontal = target_scroll
+	else:
+		stage_scroll_tween = create_tween()
+		stage_scroll_tween.tween_property(scroll, "scroll_horizontal", target_scroll, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 func _on_menu_pressed() -> void:
 	get_tree().change_scene_to_file("res://game/core/main_menu.tscn")
@@ -690,7 +734,8 @@ func setup_archive_panel() -> void:
 	
 	# Header
 	var title = Label.new()
-	title.text = "【解析兵装アーカイブ / WEAPON ARCHIVE】"
+	title.text = "【捕獲弾アーカイブ / WEAPON ARCHIVE】"
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
@@ -760,7 +805,7 @@ func update_archive_content() -> void:
 		if discovered.has(k):
 			unlocked_count += 1
 			
-	archive_summary_label.text = "解析済み: %d / %d（敵弾をパリィして解析）" % [unlocked_count, total_count]
+	archive_summary_label.text = "捕獲済み: %d / %d（パリィで捕まえた弾を記録）" % [unlocked_count, total_count]
 	
 	for key in Global.analysis_catalog.keys():
 		var data = Global.analysis_catalog[key]
@@ -790,6 +835,7 @@ func update_archive_content() -> void:
 		cm.add_child(cv)
 		
 		var hdr_lbl = Label.new()
+		hdr_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var l_set = LabelSettings.new()
 		if PIXEL_FONT:
 			l_set.font = PIXEL_FONT
@@ -797,17 +843,18 @@ func update_archive_content() -> void:
 		l_set.outline_color = Color.BLACK
 		
 		if is_disc:
-			hdr_lbl.text = "%s 【%s】 [解析解放済み]" % [data["icon"], data["name"]]
+			hdr_lbl.text = "%s 【%s】 [捕獲済み]" % [data["icon"], data["name"]]
 			l_set.font_size = 20
 			l_set.font_color = data["color"]
 		else:
-			hdr_lbl.text = "【未解析アーカイブ】"
+			hdr_lbl.text = "【未捕獲アーカイブ】"
 			l_set.font_size = 18
 			l_set.font_color = Color(0.5, 0.5, 0.6)
 		hdr_lbl.label_settings = l_set
 		cv.add_child(hdr_lbl)
 		
 		var src_lbl = Label.new()
+		src_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var src_set = LabelSettings.new()
 		if PIXEL_FONT:
 			src_set.font = PIXEL_FONT
@@ -817,18 +864,19 @@ func update_archive_content() -> void:
 			src_lbl.text = "【出現敵】 %s （%s）" % [data["enemy_color"], data["enemy_type"]]
 			src_set.font_color = Color(0.85, 0.95, 1.0)
 		else:
-			src_lbl.text = "入手条件: %sの敵弾（%s）をパリィし、解析率を100%%にする" % [data["enemy_color"], data["enemy_type"]]
+			src_lbl.text = "記録条件: %sの敵弾をパリィで捕まえる（%s）" % [data["enemy_color"], data["enemy_type"]]
 			src_set.font_color = Color.GOLD
 		src_lbl.label_settings = src_set
 		cv.add_child(src_lbl)
 		
 		var stat_lbl = Label.new()
+		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var st_set = LabelSettings.new()
 		if PIXEL_FONT:
 			st_set.font = PIXEL_FONT
 		st_set.font_size = 14
 		st_set.font_color = Color.CYAN if is_disc else Color.DARK_GRAY
-		stat_lbl.text = "【性能】 " + (data["stats"] if is_disc else "[未解析パラメータ]")
+		stat_lbl.text = "【性能】 " + (data["stats"] if is_disc else "[未捕獲の性質]")
 		stat_lbl.label_settings = st_set
 		cv.add_child(stat_lbl)
 		
@@ -839,7 +887,7 @@ func update_archive_content() -> void:
 		d_set.font_size = 14
 		d_set.font_color = Color(0.8, 0.85, 0.9) if is_disc else Color(0.4, 0.45, 0.5)
 		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.text = data["description"] if is_disc else "この敵の弾をパリィすると解析が進みます。"
+		desc_lbl.text = data["description"] if is_disc else "この敵の弾をパリィで捕まえると性質を記録します。"
 		desc_lbl.label_settings = d_set
 		cv.add_child(desc_lbl)
 		
@@ -889,6 +937,7 @@ func setup_tips_panel() -> void:
 	
 	var title_lbl = Label.new()
 	title_lbl.text = "TIPS 戦術アーカイブ / TACTICAL ARCHIVE"
+	title_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_set.font = PIXEL_FONT
@@ -902,7 +951,7 @@ func setup_tips_panel() -> void:
 	
 	# 2. Category Filter Buttons Bar
 	var cat_scroll = ScrollContainer.new()
-	cat_scroll.custom_minimum_size = Vector2(0, 42)
+	cat_scroll.custom_minimum_size = Vector2(0, 50)
 	cat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	cat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	main_vbox.add_child(cat_scroll)
@@ -921,6 +970,7 @@ func setup_tips_panel() -> void:
 			c_btn.add_theme_font_override("font", PIXEL_FONT)
 		c_btn.add_theme_font_size_override("font_size", 16)
 		cat_hbox.add_child(c_btn)
+		c_btn.focus_entered.connect(func(): cat_scroll.ensure_control_visible(c_btn))
 		tips_category_buttons[cat_key] = c_btn
 		c_btn.pressed.connect(func():
 			tips_filter_category = cat_key
@@ -933,9 +983,9 @@ func setup_tips_panel() -> void:
 	body_hb.add_theme_constant_override("separation", 14)
 	main_vbox.add_child(body_hb)
 	
-	# Left: Scroll List Container (Width 380px)
+	# Keep both columns inside the viewport, with independent vertical scrolling.
 	var left_scroll = ScrollContainer.new()
-	left_scroll.custom_minimum_size = Vector2(380, 0)
+	tips_left_scroll = left_scroll
 	left_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	left_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
@@ -963,6 +1013,12 @@ func setup_tips_panel() -> void:
 	r_sb.corner_radius_bottom_right = 6
 	tips_detail_panel.add_theme_stylebox_override("panel", r_sb)
 	body_hb.add_child(tips_detail_panel)
+	tips_detail_scroll = ScrollContainer.new()
+	tips_detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tips_detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tips_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tips_detail_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	tips_detail_panel.add_child(tips_detail_scroll)
 	
 	# 4. Footer Close Button
 	var close_btn = Button.new()
@@ -1019,6 +1075,7 @@ func update_tips_ui() -> void:
 		
 	if unlocked_items.size() == 0:
 		var empty_lbl = Label.new()
+		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty_lbl.text = "当該カテゴリの解放済みTIPSはありません。\n（出撃ごとに1つずつ解析解放されます）"
 		var e_set = LabelSettings.new()
 		if PIXEL_FONT:
@@ -1099,6 +1156,7 @@ func update_tips_ui() -> void:
 		vb.add_child(tag_lbl)
 		
 		var item_lbl = Label.new()
+		item_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		item_lbl.text = tip.get("title", "")
 		var i_set = LabelSettings.new()
 		if PIXEL_FONT:
@@ -1145,15 +1203,17 @@ func update_tips_ui() -> void:
 		render_empty_tip_detail()
 
 func render_tip_detail(tip: Dictionary) -> void:
-	for child in tips_detail_panel.get_children():
+	for child in tips_detail_scroll.get_children():
 		child.queue_free()
 		
 	var cm = MarginContainer.new()
+	cm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cm.add_theme_constant_override("margin_left", 22)
 	cm.add_theme_constant_override("margin_top", 20)
 	cm.add_theme_constant_override("margin_right", 22)
 	cm.add_theme_constant_override("margin_bottom", 20)
-	tips_detail_panel.add_child(cm)
+	tips_detail_scroll.add_child(cm)
+	tips_detail_scroll.scroll_vertical = 0
 	
 	var vb = VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 14)
@@ -1172,6 +1232,7 @@ func render_tip_detail(tip: Dictionary) -> void:
 	
 	var title_lbl = Label.new()
 	title_lbl.text = tip.get("title", "")
+	title_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var t_set = LabelSettings.new()
 	if PIXEL_FONT:
 		t_set.font = PIXEL_FONT
@@ -1236,10 +1297,12 @@ func render_tip_detail(tip: Dictionary) -> void:
 		vb.add_child(hint_panel)
 
 func render_empty_tip_detail() -> void:
-	for child in tips_detail_panel.get_children():
+	for child in tips_detail_scroll.get_children():
 		child.queue_free()
 	var lbl = Label.new()
 	lbl.text = "左側のリストからTIPSを選択してください。"
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var l_set = LabelSettings.new()
 	if PIXEL_FONT:
 		l_set.font = PIXEL_FONT
@@ -1248,7 +1311,14 @@ func render_empty_tip_detail() -> void:
 	lbl.label_settings = l_set
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	tips_detail_panel.add_child(lbl)
+	tips_detail_scroll.add_child(lbl)
+	tips_detail_scroll.scroll_vertical = 0
+
+func layout_responsive_panels() -> void:
+	focus_stage_card.call_deferred(true)
+	if is_instance_valid(tips_left_scroll):
+		var body_width := get_viewport_rect().size.x * 0.96 - 40.0
+		tips_left_scroll.custom_minimum_size.x = clampf(body_width * 0.38, 200.0, 330.0)
 
 func _on_select_pressed() -> void:
 	var active_stage = stages[current_index]

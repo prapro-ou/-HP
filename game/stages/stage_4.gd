@@ -14,74 +14,11 @@ func _ready_stage() -> void:
 	_setup_rewards()
 
 func _setup_waves() -> void:
-	# Wave 1: 崩壊地底ルート・緊急脱出
-	var w1 = WaveData.new()
-	w1.wave_id = "wave1_escape"
-	w1.display_title = "PHASE 1: 崩壊地底・緊急脱出ルート"
-<<<<<<< HEAD
-	w1.start_message = "【MISSION 04: 崩壊地底脱出サバイバル】\n制限時間（90秒）まで追撃部隊を振り切れ！\n高速真空スラッシュと破砕弾をパリィで突破せよ！"
-	w1.replenish_types = ["missile", "blade", "irregular", "laser", "charge"]
-=======
-	w1.start_message = "90秒間、追撃をしのげ\nミサイルをパリィせよ"
-	w1.replenish_types = ["missile", "irregular", "laser", "charge"]
->>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
-	w1.min_active_drones = 5
-	w1.drone_speed_override = 220.0
-	
-	w1.initial_spawns = [
-		WaveSpawnConfig.new("missile", 0.15, -60.0),
-		WaveSpawnConfig.new("blade", 0.35, -80.0),
-		WaveSpawnConfig.new("missile", 0.65, -60.0),
-		WaveSpawnConfig.new("blade", 0.85, -80.0)
+	waves = [
+		patrol_wave(["missile", "irregular", "vortex"]),
+		column_wave(["charge", "missile", "meteor", "straight"]),
+		spread_cluster_wave(["missile", "wave", "missile"], ["meteor", "charge", "vortex"])
 	]
-	waves.append(w1)
-	
-	# Wave 2: 追撃自律殲滅包囲網
-	var w2 = WaveData.new()
-	w2.wave_id = "wave2_pursuit"
-	w2.display_title = "PHASE 2: 地底脱出中間点・自律殲滅包囲網"
-<<<<<<< HEAD
-	w2.start_message = "[ASSIST AI]: 追撃自律部隊の挟撃を検知！\n真空斬撃と重力特異点の重弾幕をパリィして地表へ脱出せよ！"
-	w2.replenish_types = ["blade", "charge", "missile", "vortex", "laser", "wave"]
-=======
-	w2.start_message = "挟撃を検知\n重弾幕をパリィせよ"
-	w2.replenish_types = ["charge", "missile", "laser", "wave", "irregular"]
->>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
-	w2.min_active_drones = 5
-	w2.drone_speed_override = 240.0
-	
-	w2.initial_spawns = [
-		WaveSpawnConfig.new("blade", 0.12, -70.0),
-		WaveSpawnConfig.new("vortex", 0.32, -90.0),
-		WaveSpawnConfig.new("laser", 0.52, -60.0),
-		WaveSpawnConfig.new("missile", 0.72, -90.0),
-		WaveSpawnConfig.new("charge", 0.90, -70.0)
-	]
-	waves.append(w2)
-
-	# Wave 3: 地表出口直前・超重追撃大編隊
-	var w3 = WaveData.new()
-	w3.wave_id = "wave3_dread_escort"
-	w3.display_title = "PHASE 3: 脱出ルート出口・最終追撃大編隊"
-<<<<<<< HEAD
-	w3.start_message = "[ASSIST AI]: ドレッドノート直属の追撃大隊が襲来！\n全兵装の最大火力を解放し、地表へ抜け出せ！"
-	w3.replenish_types = ["blade", "thunder", "missile", "charge", "laser", "vortex"]
-=======
-	w3.start_message = "最終追撃部隊が接近\n全兵装で突破せよ"
-	w3.replenish_types = ["missile", "charge", "laser", "irregular", "wave"]
->>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
-	w3.min_active_drones = 6
-	w3.drone_speed_override = 260.0
-	
-	w3.initial_spawns = [
-		WaveSpawnConfig.new("blade", 0.10, -60.0),
-		WaveSpawnConfig.new("thunder", 0.30, -90.0),
-		WaveSpawnConfig.new("laser", 0.50, -60.0),
-		WaveSpawnConfig.new("vortex", 0.70, -90.0),
-		WaveSpawnConfig.new("charge", 0.90, -60.0)
-	]
-	waves.append(w3)
-
 func _setup_interlude() -> void:
 	interlude.title = "CRITICAL WARNING"
 	interlude.subtitle = "追撃自律ドレッドノート・ヘルハウンド出現！"

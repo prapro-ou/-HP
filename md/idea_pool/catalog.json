@@ -1,0 +1,4055 @@
+{
+  "title": "COUNTER CORE — ゲーム・アイデアプール",
+  "updated": "2026-10-07",
+  "channel": "https://www.youtube.com/@sora_sakurai_jp",
+  "principles": [
+    {
+      "id": "risk",
+      "title": "リスクとリターン",
+      "url": "https://www.youtube.com/watch?v=cTSMohV3TgQ",
+      "question": "何を危険にさらし、何を得るためにプレイヤーがその行動を選ぶ？",
+      "application": "解析したい弾へ近づく理由、ガードと回避の使い分け、COUNTERを今使うかを考える。"
+    },
+    {
+      "id": "release",
+      "title": "ギュッとしてパッと解消",
+      "url": "https://www.youtube.com/watch?v=ItuZ_AZG49M",
+      "question": "どこで緊張を溜め、どの行動で気持ちよく解放する？",
+      "application": "弾幕が詰まる→狙ってパリィ→反撃で砲台破壊、という短い体験を設計する。"
+    },
+    {
+      "id": "impact",
+      "title": "大事なところはストップ!（D: 仕様1・冒頭）",
+      "url": "https://www.youtube.com/watch?v=Edmd2xs9rZ4&t=11s",
+      "question": "当たった、奪った、壊したとわかる瞬間をどう強調する？",
+      "application": "通常パリィ、重要部位破壊、COUNTERの決め手で停止・音・光の強さを分けて試す。"
+    },
+    {
+      "id": "clarity",
+      "title": "キャラクターを際立たせる",
+      "url": "https://www.youtube.com/watch?v=xkeM-NgfxMU",
+      "question": "派手な瞬間にも、自機・弾・次の判断材料を見失わない？",
+      "application": "色に加え輪郭・軌道・位置で兵装を区別し、エフェクトで弾や自機を隠さない。"
+    },
+    {
+      "id": "other",
+      "title": "ゲーム性以外の面白さ",
+      "url": "https://www.youtube.com/watch?v=OALp2UAe6V4",
+      "question": "操作感、世界観、キャラクター、発見など、駆け引き以外で何が嬉しい？",
+      "application": "可愛い機体、ホラーの予感、成長の見た目など、戦闘以外の魅力も比較する。"
+    },
+    {
+      "id": "cheese",
+      "title": "ズルを許す",
+      "url": "https://www.youtube.com/watch?v=ODmMrl_STi0",
+      "question": "賢く使うと得をする組合せや攻略を、どこまで楽しみとして残す？",
+      "application": "解析性質の相性による強い組合せを、全部平均化せず遊びとして評価する。"
+    }
+  ],
+  "games": [
+    {
+      "id": "ikaruga",
+      "title": "斑鳩 / Ikaruga",
+      "appId": 253750,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "視認性",
+        "駆け引き"
+      ],
+      "priority": 5,
+      "feature": "同属性の弾を吸収し、蓄えたエネルギーでホーミングレーザーを放つ。白黒の切替が攻撃と防御を兼ねる。",
+      "idea": "欲しい弾へ自分から近づく理由を、解析報酬と弾の輪郭で伝える。",
+      "watch": "吸える弾と危険な弾が混在する場面で、判断の根拠を観察。",
+      "prototype": "弾3種の輪郭を変え、初見で欲しい弾を選べるか確認する。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/253750/?l=japanese",
+      "media": {
+        "name": "Ikaruga",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/253750/e5e248ead738f5be576c58038add0eb613660d9a/header.jpg?t=1759736295",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/253750/ss_5bf084bd00d557db5056e922db8be3098fdd265a.600x338.jpg?t=1759736295",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/253750/ss_5bf084bd00d557db5056e922db8be3098fdd265a.1920x1080.jpg?t=1759736295"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/253750/ss_d5c2b638afd8eefeba0a58a80e083589f4b5c59f.600x338.jpg?t=1759736295",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/253750/ss_d5c2b638afd8eefeba0a58a80e083589f4b5c59f.1920x1080.jpg?t=1759736295"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/253750/ss_e7c98893ad0a17250ad50075fba6efa12fcc5f7a.600x338.jpg?t=1759736295",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/253750/ss_e7c98893ad0a17250ad50075fba6efa12fcc5f7a.1920x1080.jpg?t=1759736295"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Ikaruga Game Play",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2030758/movie.293x165.jpg?t=1447360153",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/253750/16719/6a6c07bf88d321bca7ceb88e5230e277e3f0cc75/1750489370/hls_264_master.m3u8?t=1447360153"
+          },
+          {
+            "name": "Ikaruga Tutorial",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2030894/movie.293x165.jpg?t=1447360359",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/253750/17191/34f7b7f0420eed79f5a463a9c7354cd5b0c7ed20/1750489370/hls_264_master.m3u8?t=1447360359"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "drainus",
+      "title": "DRAINUS",
+      "appId": 1975360,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "駆け引き"
+      ],
+      "priority": 5,
+      "feature": "リフレクターでエネルギー弾を吸収し、反撃に転じる横STG。防げる攻撃を見極めながら戦う。",
+      "idea": "吸収→充填→反撃の因果関係と、ガードを続けられない間の判断を研究。",
+      "watch": "吸収が終わる瞬間と、反撃が敵に届くまでを見る。",
+      "prototype": "パリィから砲台命中まで同じ光の軌跡を残して比べる。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "release",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/1975360/?l=japanese",
+      "media": {
+        "name": "DRAINUS",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1975360/header.jpg?t=1751015430",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1975360/ss_d2522dc0fc296666711b4ed41c1018917f315fd6.600x338.jpg?t=1751015430",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1975360/ss_d2522dc0fc296666711b4ed41c1018917f315fd6.1920x1080.jpg?t=1751015430"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1975360/ss_1fd0dc3b206b18aed7dcac18ff1ec4f1ab2ecec5.600x338.jpg?t=1751015430",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1975360/ss_1fd0dc3b206b18aed7dcac18ff1ec4f1ab2ecec5.1920x1080.jpg?t=1751015430"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1975360/ss_b2632aab503cd4950e73c7b2f53f801b82a50aac.600x338.jpg?t=1751015430",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1975360/ss_b2632aab503cd4950e73c7b2f53f801b82a50aac.1920x1080.jpg?t=1751015430"
+          }
+        ],
+        "movies": [
+          {
+            "name": "PV",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256886251/movie.293x165.jpg?t=1653211361",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1975360/462436/77237f75be430d2e96d105d18890d987b4d37ac2/1751063182/hls_264_master.m3u8?t=1653211361"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "graze",
+      "title": "Graze Counter GM",
+      "appId": 1486440,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "可愛い",
+        "SF",
+        "ドット絵"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "駆け引き"
+      ],
+      "priority": 5,
+      "feature": "敵弾への接近でカウンターを充填。カウンター撃破で得た星を次の強化へつなげる。",
+      "idea": "危険へ寄る→反撃→爽快な解放という流れを、現行のパリィ充填で強める。",
+      "watch": "密な弾幕が大きな反撃へ変わる前後を比較。",
+      "prototype": "COUNTER準備完了の合図を機体周囲にも出し、発動の迷いを測る。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "release"
+      ],
+      "source": "https://store.steampowered.com/app/1486440/?l=japanese",
+      "media": {
+        "name": "Graze Counter GM",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1486440/header.jpg?t=1736841850",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1486440/ss_a8771f5fb254a8cc2c946bd0020798347e8c5851.600x338.jpg?t=1736841850",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1486440/ss_a8771f5fb254a8cc2c946bd0020798347e8c5851.1920x1080.jpg?t=1736841850"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1486440/ss_f7900bb9fb7b57459d37d06e42cbfd5c6e3279e9.600x338.jpg?t=1736841850",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1486440/ss_f7900bb9fb7b57459d37d06e42cbfd5c6e3279e9.1920x1080.jpg?t=1736841850"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1486440/ss_0388e98ac3695e66a8e1bf5db8c9dba9c1bfcf5f.600x338.jpg?t=1736841850",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1486440/ss_0388e98ac3695e66a8e1bf5db8c9dba9c1bfcf5f.1920x1080.jpg?t=1736841850"
+          }
+        ],
+        "movies": [
+          {
+            "name": "PV0_EN",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256916535/movie.293x165.jpg?t=1668611012",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1486440/514358/deaeddb01b82b1714b6000d8c99b310b9cf27c4f/1750993994/hls_264_master.m3u8?t=1668611012"
+          },
+          {
+            "name": "PV1",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256862873/movie.293x165.jpg?t=1638712833",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1486440/421232/331511f8228c3dc652c54249ce344b6e85c82f93/1750993985/hls_264_master.m3u8?t=1638712833"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "reflex",
+      "title": "RefleX",
+      "appId": 281860,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "レトロ"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "ボス"
+      ],
+      "priority": 5,
+      "feature": "シールドで敵弾を反射する縦STG。防御と攻撃を一つの行動でつなぐ。",
+      "idea": "反射元の砲台を破壊する気持ちよさと、防御資源の見せ方を参考にする。",
+      "watch": "弾の反射後、どの敵に当たったかを追う。",
+      "prototype": "反射弾だけ軌跡を太くし、砲台の破壊演出と対応させる。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/281860/?l=japanese",
+      "media": {
+        "name": "RefleX",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/281860/header.jpg?t=1693591742",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/281860/ss_34faeec99e74492dac3c7890dec2093a9976e155.600x338.jpg?t=1693591742",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/281860/ss_34faeec99e74492dac3c7890dec2093a9976e155.1920x1080.jpg?t=1693591742"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/281860/ss_963009e9db5367dd8cdd48db91a5489afc2cf635.600x338.jpg?t=1693591742",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/281860/ss_963009e9db5367dd8cdd48db91a5489afc2cf635.1920x1080.jpg?t=1693591742"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/281860/ss_bee8ba082502a4f792939c79a52532214c576ce7.600x338.jpg?t=1693591742",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/281860/ss_bee8ba082502a4f792939c79a52532214c576ce7.1920x1080.jpg?t=1693591742"
+          }
+        ],
+        "movies": [
+          {
+            "name": "RefleX Teaser Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256918160/movie.293x165.jpg?t=1669564515",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/281860/517200/a0f3facee31d088db9081ffce66393d5b5199d40/1751281807/hls_264_master.m3u8?t=1669564515"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "schildmaid",
+      "title": "Schildmaid MX",
+      "appId": 2154760,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "ドット絵"
+      ],
+      "needs": [
+        "システム",
+        "UI",
+        "駆け引き"
+      ],
+      "priority": 5,
+      "feature": "シールドで敵の攻撃を吸収して強化。シールド有効時と切れた危険時間で行動を変える。",
+      "idea": "守れる時間と再展開待ちを、HUDを読まなくても理解できる表示にする。",
+      "watch": "安全時間から危険時間への切替表示を観察。",
+      "prototype": "ガード再使用可能を機体の縁の点灯でも伝える。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/2154760/?l=japanese",
+      "media": {
+        "name": "Schildmaid MX",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2154760/header.jpg?t=1728038735",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2154760/ss_3e30389425b0edd1cfae81c8e08901df3289d9a5.600x338.jpg?t=1728038735",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2154760/ss_3e30389425b0edd1cfae81c8e08901df3289d9a5.1920x1080.jpg?t=1728038735"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2154760/ss_3afb7f97e1cba5f4b6c84d60cb948f8052216223.600x338.jpg?t=1728038735",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2154760/ss_3afb7f97e1cba5f4b6c84d60cb948f8052216223.1920x1080.jpg?t=1728038735"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2154760/ss_d42da7398c8de4f6f2cdd5dcad6f6ac391087a87.600x338.jpg?t=1728038735",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2154760/ss_d42da7398c8de4f6f2cdd5dcad6f6ac391087a87.1920x1080.jpg?t=1728038735"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Schildmaid MX Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256912394/movie.293x165.jpg?t=1667375700",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2154760/507368/c7da2747383dd898c0c10ee21367b4976d87948a/1751083008/hls_264_master.m3u8?t=1667375700"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "refrain",
+      "title": "RefRain - prism memories -",
+      "appId": 435970,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "駆け引き"
+      ],
+      "priority": 5,
+      "feature": "通常射撃に加え、M.E.F.A2とConcept Reactorという特殊攻撃で敵や弾を処理する縦STG。",
+      "idea": "主兵装と決め手の用途を分け、弾幕を処理する行動自体を快感にする。",
+      "watch": "特殊攻撃の前後で画面の密度がどう変わるかを見る。",
+      "prototype": "COUNTERの前後に一瞬の静けさを置いて発動感を比べる。",
+      "effort": "低",
+      "principles": [
+        "release",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/435970/?l=japanese",
+      "media": {
+        "name": "RefRain - prism memories -",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/435970/header.jpg?t=1697768248",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/435970/ss_f18646e982580feb5854cb4d3f69840bd6f3688f.600x338.jpg?t=1697768248",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/435970/ss_f18646e982580feb5854cb4d3f69840bd6f3688f.1920x1080.jpg?t=1697768248"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/435970/ss_1b362c5b6b9ba1a6d21f7b8e4e02bb44ffe5cb94.600x338.jpg?t=1697768248",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/435970/ss_1b362c5b6b9ba1a6d21f7b8e4e02bb44ffe5cb94.1920x1080.jpg?t=1697768248"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/435970/ss_de80fa619973b1a92d28a8d08823524f0bc8786e.600x338.jpg?t=1697768248",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/435970/ss_de80fa619973b1a92d28a8d08823524f0bc8786e.1920x1080.jpg?t=1697768248"
+          }
+        ],
+        "movies": [
+          {
+            "name": "RefRain Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256663943/movie.293x165.jpg?t=1462842130",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/435970/58349/d0fa18570deb52604be86e1f0260e3ce5ef934ff/1751284725/hls_264_master.m3u8?t=1462842130"
+          },
+          {
+            "name": "RefRain Gameplay",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256664006/movie.293x165.jpg?t=1462868870",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/435970/58492/f3631a00199da1a9e5b7afe474e21e88196d5343/1751284728/hls_264_master.m3u8?t=1462868870"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "crimzon",
+      "title": "Crimzon Clover World EXplosion",
+      "appId": 1718160,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "派手"
+      ],
+      "needs": [
+        "演出",
+        "システム",
+        "ボス"
+      ],
+      "priority": 5,
+      "feature": "ロックオンとBREAK／DOUBLE BREAKで短時間の圧倒的火力を作る。初心者向けモードもある。",
+      "idea": "一回の手動COUNTERを、普段の射撃から明確に段階が上がる瞬間にする。",
+      "watch": "BREAKの入口、持続中、終了の演出差を見る。",
+      "prototype": "発動前・発動中・使用済みの表示を3段階で作って比較する。",
+      "effort": "低",
+      "principles": [
+        "release",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/1718160/?l=japanese",
+      "media": {
+        "name": "Crimzon Clover World EXplosion",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1718160/c5b67fcee59e302de293a71631dbbde3581bf208/header.jpg?t=1784866109",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1718160/ss_5c0bbb62ee905ce7d0ba77da03d108ed912fe27f.600x338.jpg?t=1784866109",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1718160/ss_5c0bbb62ee905ce7d0ba77da03d108ed912fe27f.1920x1080.jpg?t=1784866109"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1718160/ss_735d55e79e8f44a38c152774eb26ab0a361926d8.600x338.jpg?t=1784866109",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1718160/ss_735d55e79e8f44a38c152774eb26ab0a361926d8.1920x1080.jpg?t=1784866109"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1718160/ss_4a07e521048a1ae0e96754ff0746b7787d373eaa.600x338.jpg?t=1784866109",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1718160/ss_4a07e521048a1ae0e96754ff0746b7787d373eaa.1920x1080.jpg?t=1784866109"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Launch Trailer EN",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256863570/movie.293x165.jpg?t=1638922463",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1718160/422449/42b94b5d913d116e5ee82465a30e28c4e5697552/1751023348/hls_264_master.m3u8?t=1638922463"
+          },
+          {
+            "name": "Teaser EN",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256853240/movie.293x165.jpg?t=1638807185",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1718160/404361/b863de3d4268c80055702e7db411795935353ba9/1751023343/hls_264_master.m3u8?t=1638807185"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "radiant",
+      "title": "Radiant Silvergun",
+      "appId": 2450820,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "メカ"
+      ],
+      "needs": [
+        "システム",
+        "ボス",
+        "レベル設計"
+      ],
+      "priority": 4,
+      "feature": "状況ごとの武器の使い分け、成長、地形と多方向の敵が絡む攻略型STG。",
+      "idea": "ボスの部位ごとに射線や有効な性質を変え、2枠の選択理由を作る。",
+      "watch": "地形とボス部位が武器の使い道をどう変えるかを見る。",
+      "prototype": "砲台1部位だけ貫通が有効な配置にして選択理由を聞く。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/2450820/?l=japanese",
+      "media": {
+        "name": "Radiant Silvergun",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2450820/header.jpg?t=1705276203",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2450820/ss_69ada620620532c72a9bea0a3ecafd304e3e8aab.600x338.jpg?t=1705276203",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2450820/ss_69ada620620532c72a9bea0a3ecafd304e3e8aab.1920x1080.jpg?t=1705276203"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2450820/ss_fb247a7680503c8818a4c69d09af3382bf18b9ea.600x338.jpg?t=1705276203",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2450820/ss_fb247a7680503c8818a4c69d09af3382bf18b9ea.1920x1080.jpg?t=1705276203"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2450820/ss_850186facaf0be8b0d14d3b045d2a93d2165f76f.600x338.jpg?t=1705276203",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2450820/ss_850186facaf0be8b0d14d3b045d2a93d2165f76f.1920x1080.jpg?t=1705276203"
+          }
+        ],
+        "movies": [
+          {
+            "name": "RadiantSilvergun_Announcement Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256979745/movie.293x165.jpg?t=1698941814",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2450820/625260/8a6ae8cd036d5143be5fa41ffc910177078f3cec/1750815132/hls_264_master.m3u8?t=1698941814"
+          },
+          {
+            "name": "RadiantSilvergun_PromotionVideo",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256979746/movie.293x165.jpg?t=1698941818",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2450820/625262/a89b970b5d980da8de908542ddb9e690a6a8e42d/1750815133/hls_264_master.m3u8?t=1698941818"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "gunvein",
+      "title": "Gunvein",
+      "appId": 2025840,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "派手"
+      ],
+      "needs": [
+        "システム",
+        "チュートリアル",
+        "駆け引き"
+      ],
+      "priority": 4,
+      "feature": "積極的な敵の処理とボム運用が重要な弾幕STG。練習と学習を助けるモードを備える。",
+      "idea": "敵を倒すだけでなく、狙った弾を待つ遊びを短い練習課題として伝える。",
+      "watch": "説明と実戦課題が対応しているかを見る。",
+      "prototype": "最初の15秒を『欲しい弾を1回奪う』だけの課題にする。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/2025840/?l=japanese",
+      "media": {
+        "name": "Gunvein",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2025840/header.jpg?t=1670930463",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2025840/ss_f3761f9d8747ef8370846a15d1fa0be24fbbc4b6.600x338.jpg?t=1670930463",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2025840/ss_f3761f9d8747ef8370846a15d1fa0be24fbbc4b6.1920x1080.jpg?t=1670930463"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2025840/ss_5a1db234c3171c7e71116f8a2de56c5958de74a5.600x338.jpg?t=1670930463",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2025840/ss_5a1db234c3171c7e71116f8a2de56c5958de74a5.1920x1080.jpg?t=1670930463"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2025840/ss_186eeb9cc875dcb66929801d7a8fe9fd12640291.600x338.jpg?t=1670930463",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2025840/ss_186eeb9cc875dcb66929801d7a8fe9fd12640291.1920x1080.jpg?t=1670930463"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Gunvein Trailer 2",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256889820/movie.293x165.jpg?t=1657212727",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2025840/468863/b0d9b005962db47d6011c26aae9a20f2c7b260eb/1751068796/hls_264_master.m3u8?t=1657212727"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "zeroranger",
+      "title": "ZeroRanger",
+      "appId": 809020,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "レトロ",
+        "ドット絵",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "画像",
+        "演出",
+        "成長"
+      ],
+      "priority": 4,
+      "feature": "緑とオレンジを軸にした画面、段階的な武装獲得と展開が印象的な縦STG。",
+      "idea": "少ない色で弾・敵・UIの役割を統一し、奪った武装を機体にも見せる。",
+      "watch": "同じ配色が背景と弾でどう使い分けられるかを見る。",
+      "prototype": "背景の彩度を下げ、危険弾と解析済み弾だけ強調して比較する。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/809020/?l=japanese",
+      "media": {
+        "name": "ZeroRanger",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/809020/header.jpg?t=1735612758",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/809020/ss_7081dfff27428066ee1525be046afd7ea90869a6.600x338.jpg?t=1735612758",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/809020/ss_7081dfff27428066ee1525be046afd7ea90869a6.1920x1080.jpg?t=1735612758"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/809020/ss_23bcb48f34780059390e598716337b256bac790f.600x338.jpg?t=1735612758",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/809020/ss_23bcb48f34780059390e598716337b256bac790f.1920x1080.jpg?t=1735612758"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/809020/ss_786b821b1cff3d6019d2435f27d293412962c5a3.600x338.jpg?t=1735612758",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/809020/ss_786b821b1cff3d6019d2435f27d293412962c5a3.1920x1080.jpg?t=1735612758"
+          }
+        ],
+        "movies": [
+          {
+            "name": "ZeroRanger Steam Announcement",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256709887/movie.293x165.jpg?t=1523896787",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/809020/149078/b4a5dd75d0b3b44a1fb4679f0bf5f94489485b3d/1750585950/hls_264_master.m3u8?t=1523896787"
+          },
+          {
+            "name": "ZeroRanger White Vanilla",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256790833/movie.293x165.jpg?t=1593106753",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/809020/294901/0da7d1604cadf0196ae7f12b992be81a87777fc4/1750585956/hls_264_master.m3u8?t=1593106753"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "danmaku",
+      "title": "Danmaku Unlimited 3",
+      "appId": 450950,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "派手"
+      ],
+      "needs": [
+        "画像",
+        "システム",
+        "演出"
+      ],
+      "priority": 4,
+      "feature": "弾幕をGhost Bulletsへ変える仕組みを持つ縦STG。密なパターンを得点と解放へつなぐ。",
+      "idea": "危険な弾が無害になった瞬間を、色だけでなく縮小・軌跡の変化で見せる。",
+      "watch": "弾幕が残っているのに危険が消えた状態を見る。",
+      "prototype": "パリィ済み弾を細い輪郭と短い残像に変える。",
+      "effort": "低",
+      "principles": [
+        "release",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/450950/?l=japanese",
+      "media": {
+        "name": "Danmaku Unlimited 3",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/450950/header.jpg?t=1666984597",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/450950/ss_0e7d20e55d5b3a4abc3b1658899f72b84904228d.600x338.jpg?t=1666984597",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/450950/ss_0e7d20e55d5b3a4abc3b1658899f72b84904228d.1920x1080.jpg?t=1666984597"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/450950/ss_a335b42bad266f74d8a4cc993cb30c51c21cb28f.600x338.jpg?t=1666984597",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/450950/ss_a335b42bad266f74d8a4cc993cb30c51c21cb28f.1920x1080.jpg?t=1666984597"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/450950/ss_1a2039deb55ff6f1489dcf240b9b611ddb20ef8c.600x338.jpg?t=1666984597",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/450950/ss_1a2039deb55ff6f1489dcf240b9b611ddb20ef8c.1920x1080.jpg?t=1666984597"
+          }
+        ],
+        "movies": [
+          {
+            "name": "pc_trailer_short",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256688383/movie.293x165.jpg?t=1498201347",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/450950/110080/19c7ace5c4bf4511bb428d434b59bc4bc8c67893/1751287195/hls_264_master.m3u8?t=1498201347"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "mushi",
+      "title": "虫姫さま / Mushihimesama",
+      "appId": 377860,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "自然",
+        "可愛い",
+        "ファンタジー"
+      ],
+      "needs": [
+        "画像",
+        "ボス",
+        "視認性"
+      ],
+      "priority": 3,
+      "feature": "昆虫と自然をモチーフにした縦STG。巨大な生物と幾何学的な弾幕が共存する。",
+      "idea": "機械以外のボス案として、翅・触角・殻を砲台部位に見立てる。",
+      "watch": "生物の動きと弾の発生位置の関係を見る。",
+      "prototype": "敵1体の砲台を翅の形に差し替え、弾の出所が読めるか確認する。",
+      "effort": "中",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/377860/?l=japanese",
+      "media": {
+        "name": "Mushihimesama",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/377860/header.jpg?t=1765985423",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/377860/ss_dfd102a92afdb0c77d7c610bcd896708429b387d.600x338.jpg?t=1765985423",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/377860/ss_dfd102a92afdb0c77d7c610bcd896708429b387d.1920x1080.jpg?t=1765985423"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/377860/ss_57d31ca26217b1cc5db10274f2adb8f39e7a0c56.600x338.jpg?t=1765985423",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/377860/ss_57d31ca26217b1cc5db10274f2adb8f39e7a0c56.1920x1080.jpg?t=1765985423"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/377860/ss_b25dd99dec362fb032cf3f10bfa701b48804faf4.600x338.jpg?t=1765985423",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/377860/ss_b25dd99dec362fb032cf3f10bfa701b48804faf4.1920x1080.jpg?t=1765985423"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Mushihimesama Official Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256657657/movie.293x165.jpg?t=1447378626",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/377860/45452/414d61bce12ea8b0e79b6e507707a140439d6e24/1751272679/hls_264_master.m3u8?t=1447378626"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "ddp",
+      "title": "怒首領蜂大復活 / DoDonPachi Resurrection",
+      "appId": 464450,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "メカ",
+        "派手"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "スコア"
+      ],
+      "priority": 4,
+      "feature": "ショット・レーザー・ハイパーとチェーン得点を組み合わせる弾幕STG。",
+      "idea": "火力上昇を数値だけでなく射線の太さと敵処理速度で伝える。",
+      "watch": "通常時と強化時の弾・得点・敵の消え方を比較。",
+      "prototype": "解析Lv.1とLv.5の射線を同じ場面で録画し差を確認する。",
+      "effort": "低",
+      "principles": [
+        "release",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/464450/?l=japanese",
+      "media": {
+        "name": "DoDonPachi Resurrection",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/464450/header.jpg?t=1737123621",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/464450/ss_bfa7bea4459f1e89b4e24853c6bbbfd212761605.600x338.jpg?t=1737123621",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/464450/ss_bfa7bea4459f1e89b4e24853c6bbbfd212761605.1920x1080.jpg?t=1737123621"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/464450/ss_e4949412fe529fa17f8445bcd077c8669de2d489.600x338.jpg?t=1737123621",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/464450/ss_e4949412fe529fa17f8445bcd077c8669de2d489.1920x1080.jpg?t=1737123621"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/464450/ss_a17307eb2a952694c9830e9ae0935e693034b3ae.600x338.jpg?t=1737123621",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/464450/ss_a17307eb2a952694c9830e9ae0935e693034b3ae.1920x1080.jpg?t=1737123621"
+          }
+        ],
+        "movies": [
+          {
+            "name": "DoDonPachi Resurrection Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256668281/movie.293x165.jpg?t=1474068819",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/464450/67367/f59caa31022eb91c32a4ae7595a1d5599dbbb047/1751289385/hls_264_master.m3u8?t=1474068819"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "revolver",
+      "title": "REVOLVER360 RE:ACTOR",
+      "appId": 313400,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "空間"
+      ],
+      "priority": 3,
+      "feature": "空間を回転させて弾を避けたり、敵を重ねて攻撃したりする横STG。",
+      "idea": "位置移動以外の『弾を処理する発想』を広げる。別モード向けの大きな案。",
+      "watch": "回転前後で同じ弾幕の隙間がどう変わるかを見る。",
+      "prototype": "紙上で弾列を回転し、平面STGで置き換え可能なルールを考える。",
+      "effort": "高",
+      "principles": [
+        "risk",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/313400/?l=japanese",
+      "media": {
+        "name": "REVOLVER360 RE:ACTOR",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/313400/header.jpg?t=1592543719",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/313400/ss_42fd59e1638bc3b9f489b82fd95224c142723b6a.600x338.jpg?t=1592543719",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/313400/ss_42fd59e1638bc3b9f489b82fd95224c142723b6a.1920x1080.jpg?t=1592543719"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/313400/ss_16adff9270bbf10b3289dd72774deabf4a885859.600x338.jpg?t=1592543719",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/313400/ss_16adff9270bbf10b3289dd72774deabf4a885859.1920x1080.jpg?t=1592543719"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/313400/ss_307f8ec0c559ccb43fdc85e74268368ea0416571.600x338.jpg?t=1592543719",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/313400/ss_307f8ec0c559ccb43fdc85e74268368ea0416571.1920x1080.jpg?t=1592543719"
+          }
+        ],
+        "movies": [
+          {
+            "name": "English Release Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2034976/movie.293x165.jpg?t=1447364224",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/313400/26353/54b3d6827106cd0b78363b3216bc2fd384a18278/1751263409/hls_264_master.m3u8?t=1447364224"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "rtype",
+      "title": "R-Type Final 2",
+      "appId": 1442820,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "メカ",
+        "ホラー"
+      ],
+      "needs": [
+        "ボス",
+        "画像",
+        "システム"
+      ],
+      "priority": 4,
+      "feature": "フォース、波動砲、多数の機体を備える横STG。生物的な敵と機械の対比も参考になる。",
+      "idea": "支援ユニットの位置と仕事を見せ、装備による機体の輪郭変化を作る。",
+      "watch": "フォースの位置と敵の攻撃方向の関係を見る。",
+      "prototype": "ファンネルの待機位置を武装タイプ別に変えて識別できるか確認する。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/1442820/?l=japanese",
+      "media": {
+        "name": "R-Type Final 2",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1442820/header.jpg?t=1789684803",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1442820/ss_d901bd40e60a1dec6fa72e92814af6cda146a877.600x338.jpg?t=1789684803",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1442820/ss_d901bd40e60a1dec6fa72e92814af6cda146a877.1920x1080.jpg?t=1789684803"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1442820/ss_200eeaccaa2f27ee1d563ba159f7137a3194d3f4.600x338.jpg?t=1789684803",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1442820/ss_200eeaccaa2f27ee1d563ba159f7137a3194d3f4.1920x1080.jpg?t=1789684803"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1442820/ss_a289cf25a0ba7ddfb4165e005e82cfb44ba20cfa.600x338.jpg?t=1789684803",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1442820/ss_a289cf25a0ba7ddfb4165e005e82cfb44ba20cfa.1920x1080.jpg?t=1789684803"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Gameplay Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256831935/movie.293x165.jpg?t=1619216348",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1442820/364433/f7ab2ef56e542efe12d1d4c920b5e69578b1eece/1750988890/hls_264_master.m3u8?t=1619216348"
+          },
+          {
+            "name": "Announcement",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256805037/movie.293x165.jpg?t=1603371619",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1442820/319456/39a18822b8c9507f944718d67b647ec8a8ecbc22/1750988888/hls_264_master.m3u8?t=1603371619"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "skyforce",
+      "title": "Sky Force Anniversary",
+      "appId": 355050,
+      "genre": "弾幕・反撃STG",
+      "mood": [
+        "SF",
+        "明るい"
+      ],
+      "needs": [
+        "成長",
+        "UI",
+        "レベル設計"
+      ],
+      "priority": 3,
+      "feature": "救助・敵撃破・機体強化を重ねて同じステージを攻略する縦STG。",
+      "idea": "再挑戦時に『前よりできたこと』を具体的に振り返らせる。",
+      "watch": "ステージの追加目標と結果表示を見る。",
+      "prototype": "結果画面に『狙った兵装の解析完了』と『破壊部位』を並べる。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/355050/?l=japanese",
+      "media": {
+        "name": "Sky Force Anniversary",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/355050/header.jpg?t=1667208034",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/355050/ss_a320a0019b2ff718b398aef28aa58bd1790cada3.600x338.jpg?t=1667208034",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/355050/ss_a320a0019b2ff718b398aef28aa58bd1790cada3.1920x1080.jpg?t=1667208034"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/355050/ss_12276017d9f594f94006b0e6cb8951546e10003e.600x338.jpg?t=1667208034",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/355050/ss_12276017d9f594f94006b0e6cb8951546e10003e.1920x1080.jpg?t=1667208034"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/355050/ss_2ddd70d268b7e3d319b6f9b7539722585f92999b.600x338.jpg?t=1667208034",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/355050/ss_2ddd70d268b7e3d319b6f9b7539722585f92999b.1920x1080.jpg?t=1667208034"
+          }
+        ],
+        "movies": [
+          {
+            "name": "SFA_trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2037949/movie.293x165.jpg?t=1447371334",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/355050/33096/e2757e953e2a1e08edb1849ad7b64a2f43adbaf8/1751274502/hls_264_master.m3u8?t=1447371334"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "novadrift",
+      "title": "Nova Drift",
+      "appId": 858210,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "SF",
+        "抽象",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "システム",
+        "成長",
+        "画像"
+      ],
+      "priority": 5,
+      "feature": "宇宙船の武器・機体・シールドと多数の強化を組み合わせるアクションローグライト。",
+      "idea": "主兵装の発射方式を保ったまま、2つの性質が重なる見せ方を研究。",
+      "watch": "単体強化と組合せ強化で攻撃の形がどう変わるか見る。",
+      "prototype": "SPREAD＋HOMINGを数値説明なしで識別できるか試す。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "cheese"
+      ],
+      "source": "https://store.steampowered.com/app/858210/?l=japanese",
+      "media": {
+        "name": "Nova Drift",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/858210/32823a9525b5b4fdcdad9b8306e77fe52869b3af/header.jpg?t=1788876380",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/858210/ss_f09b4b090294906d42a2b7244fdc2d110ce9d29d.600x338.jpg?t=1788876380",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/858210/ss_f09b4b090294906d42a2b7244fdc2d110ce9d29d.1920x1080.jpg?t=1788876380"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/858210/ss_eef5d619610f5812aeea17091151c8b2b29631d3.600x338.jpg?t=1788876380",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/858210/ss_eef5d619610f5812aeea17091151c8b2b29631d3.1920x1080.jpg?t=1788876380"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/858210/ss_5842db4af4f9508b35254dc83aad0161c650b2fa.600x338.jpg?t=1788876380",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/858210/ss_5842db4af4f9508b35254dc83aad0161c650b2fa.1920x1080.jpg?t=1788876380"
+          }
+        ],
+        "movies": [
+          {
+            "name": "1.0 Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257045169/movie.293x165.jpg?t=1723465057",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/858210/738568/ab73f37ce8511d9d7ac4a87faf53c332904ac981/1750589691/hls_264_master.m3u8?t=1723465057"
+          },
+          {
+            "name": "Vorpal Update",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256970927/movie.293x165.jpg?t=1695656017",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/858210/609986/f72c34f56aab598e3ffcbc9153113d99116ce854/1750589667/hls_264_master.m3u8?t=1695656017"
+          }
+        ]
+      },
+      "verified": "2026-10-07",
+      "videos": [
+        {
+          "title": "公式掲載動画",
+          "url": "https://www.youtube.com/watch?v=QWQTL6-iPG8",
+          "via": "https://blog.novadrift.io/novadrift-released/"
+        }
+      ]
+    },
+    {
+      "id": "gungeon",
+      "title": "Enter the Gungeon",
+      "appId": 311690,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "可愛い",
+        "ドット絵",
+        "コミカル"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "武器"
+      ],
+      "priority": 4,
+      "feature": "弾そのものをキャラクターにした世界と、多彩な銃・アイテム、回避が特徴の弾幕ローグライト。",
+      "idea": "武器の形と弾の挙動を対応させ、装備説明を短くできるデザインを考える。",
+      "watch": "見た目だけで射撃の個性を想像できる銃を見る。",
+      "prototype": "各主兵装に射線と一致する小さなアイコンを作る。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/311690/?l=japanese",
+      "media": {
+        "name": "Enter the Gungeon",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/311690/471d245bd8a37011c16852694342e5ad2d8a4667/header.jpg?t=1779733990",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/311690/ss_bca0036bc452b872a7d9ee3de9e0c9548e8cd4f5.600x338.jpg?t=1779733990",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/311690/ss_bca0036bc452b872a7d9ee3de9e0c9548e8cd4f5.1920x1080.jpg?t=1779733990"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/311690/ss_9d3f304b18e8cd1cf6ac4a886bec474e0b677800.600x338.jpg?t=1779733990",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/311690/ss_9d3f304b18e8cd1cf6ac4a886bec474e0b677800.1920x1080.jpg?t=1779733990"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/311690/ss_de49a9579b13337e98719d39df0f5bc46b9fe886.600x338.jpg?t=1779733990",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/311690/ss_de49a9579b13337e98719d39df0f5bc46b9fe886.1920x1080.jpg?t=1779733990"
+          }
+        ],
+        "movies": [
+          {
+            "name": "A Farewell to Arms",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256747259/movie.293x165.jpg?t=1554472236",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/311690/216886/11de2f4de6ee112b0ae9c7e7669c2b3c09d56c51/1750506389/hls_264_master.m3u8?t=1554472236"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "nuclear",
+      "title": "Nuclear Throne",
+      "appId": 242680,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "ドット絵",
+        "コミカル",
+        "荒廃"
+      ],
+      "needs": [
+        "演出",
+        "システム",
+        "武器"
+      ],
+      "priority": 4,
+      "feature": "短い戦闘で多様な武器と変異を組み合わせる。小さな画面に密度の高い銃撃を作る。",
+      "idea": "反動・破片・音の強弱を、通常弾と決め手で分ける。",
+      "watch": "少数の弾でも強い射撃感が出る瞬間を見る。",
+      "prototype": "ライフルの3点バーストだけ命中音と短い反動を調整して比べる。",
+      "effort": "低",
+      "principles": [
+        "impact",
+        "release"
+      ],
+      "source": "https://store.steampowered.com/app/242680/?l=japanese",
+      "media": {
+        "name": "Nuclear Throne",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/242680/header.jpg?t=1764957456",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/242680/b1a8c68f52b8460cdbfb8034c7d36d9abaad9af2/ss_b1a8c68f52b8460cdbfb8034c7d36d9abaad9af2.600x338.jpg?t=1764957456",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/242680/b1a8c68f52b8460cdbfb8034c7d36d9abaad9af2/ss_b1a8c68f52b8460cdbfb8034c7d36d9abaad9af2.1920x1080.jpg?t=1764957456"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/242680/2772b5b75ed8bc39e8a3e8e9687641217e102f94/ss_2772b5b75ed8bc39e8a3e8e9687641217e102f94.600x338.jpg?t=1764957456",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/242680/2772b5b75ed8bc39e8a3e8e9687641217e102f94/ss_2772b5b75ed8bc39e8a3e8e9687641217e102f94.1920x1080.jpg?t=1764957456"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/242680/71a2c94508a5fd95e64298e5daaa59d365084dd2/ss_71a2c94508a5fd95e64298e5daaa59d365084dd2.600x338.jpg?t=1764957456",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/242680/71a2c94508a5fd95e64298e5daaa59d365084dd2/ss_71a2c94508a5fd95e64298e5daaa59d365084dd2.1920x1080.jpg?t=1764957456"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Nuclear Throne - Update 100",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257244132/8d540034af6af41324988260416c29385c4f388a/movie_600x337.jpg?t=1764957450",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/242680/1055850448/7c3d81dfbe0f455572bb0a323de01fce30682e6b/1764953314/hls_264_master.m3u8?t=1764957450"
+          },
+          {
+            "name": "Nuclear Throne - Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256658761/movie.293x165.jpg?t=1764957451",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/242680/47961/0265da913c7837a1c828c5612bd8196cf4bb84af/1750486360/hls_264_master.m3u8?t=1764957451"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "vampire",
+      "title": "Vampire Survivors",
+      "appId": 1794680,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "レトロ",
+        "ホラー",
+        "派手"
+      ],
+      "needs": [
+        "成長",
+        "システム",
+        "演出"
+      ],
+      "priority": 4,
+      "feature": "自動攻撃と移動、武器の成長によって大群を処理するサバイバルゲーム。",
+      "idea": "自動射撃でも選択と移動が主役になる構造、成長による攻撃範囲の変化を参考にする。",
+      "watch": "序盤と後半で『移動で考えること』がどう変わるか見る。",
+      "prototype": "経験値取得を移植せず、解析Lv.ごとの範囲差だけ比較する。",
+      "effort": "低",
+      "principles": [
+        "release",
+        "cheese"
+      ],
+      "source": "https://store.steampowered.com/app/1794680/?l=japanese",
+      "media": {
+        "name": "Vampire Survivors",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1794680/2ca07b690dde645771125ed9d9206c4c5fde4dd4/header.jpg?t=1787911678",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1794680/ss_6c55afe36be2a7784bf18cb9b3218321ae2d10e5.600x338.jpg?t=1787911678",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1794680/ss_6c55afe36be2a7784bf18cb9b3218321ae2d10e5.1920x1080.jpg?t=1787911678"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1794680/ss_6105ad3d6af52593c31d915bf39e91512611ea8e.600x338.jpg?t=1787911678",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1794680/ss_6105ad3d6af52593c31d915bf39e91512611ea8e.1920x1080.jpg?t=1787911678"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1794680/ss_054159adc52856d066d48bda02866da524c43439.600x338.jpg?t=1787911678",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1794680/ss_054159adc52856d066d48bda02866da524c43439.1920x1080.jpg?t=1787911678"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Refreshed Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256964120/movie.293x165.jpg?t=1692280956",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1794680/598026/b3a9771de005c30237b53d84932fd2e792f298c0/1750736849/hls_264_master.m3u8?t=1692280956"
+          },
+          {
+            "name": "October 2022 - v1.0 Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256911886/movie.293x165.jpg?t=1692280960",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1794680/506558/874007c71ce5016cc31f727f76b7afa65892fc61/1750736849/hls_264_master.m3u8?t=1692280960"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "brotato",
+      "title": "Brotato",
+      "appId": 1942280,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "可愛い",
+        "コミカル"
+      ],
+      "needs": [
+        "システム",
+        "UI",
+        "成長"
+      ],
+      "priority": 4,
+      "feature": "複数武器とキャラクター特性を選び、短いウェーブと買物を繰り返す。",
+      "idea": "選択肢を少ない言葉で比較できるカードと、次の戦闘へ迷わず戻る流れを研究。",
+      "watch": "武器比較画面の情報量と優先順位を見る。",
+      "prototype": "ボス前2枠カードに『広く撃つ／貫く』など結果の動詞を添える。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "risk"
+      ],
+      "source": "https://store.steampowered.com/app/1942280/?l=japanese",
+      "media": {
+        "name": "Brotato",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1942280/f98281910016f8924be37cce3d4b119f5223a358/header.jpg?t=1789029155",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1942280/ss_79be0eea0299da76bc50cef160fb669509f74e0b.600x338.jpg?t=1789029155",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1942280/ss_79be0eea0299da76bc50cef160fb669509f74e0b.1920x1080.jpg?t=1789029155"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1942280/ss_61ad3d242282311207828c1a7d87c1c9d7b4d8bf.600x338.jpg?t=1789029155",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1942280/ss_61ad3d242282311207828c1a7d87c1c9d7b4d8bf.1920x1080.jpg?t=1789029155"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1942280/ss_9d7d1532397e65d39a3b63e3b25bd3adf7a81b37.600x338.jpg?t=1789029155",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1942280/ss_9d7d1532397e65d39a3b63e3b25bd3adf7a81b37.1920x1080.jpg?t=1789029155"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Full Release Trailer - Local Co-Op Update",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257068272/b863cc9a99a69311bd096c843636f34396b67035/movie_600x337.jpg?t=1729849696",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1942280/776977/3c3b725174c83d8d873735bd5e80af3220010ed7/1750742089/hls_264_master.m3u8?t=1729849696"
+          },
+          {
+            "name": "Full Release Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256954513/movie.293x165.jpg?t=1687427491",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1942280/580841/a3b1b3b49345b7db0fb0206aea5df33819234f82/1750742088/hls_264_master.m3u8?t=1687427491"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "holocure",
+      "title": "HoloCure - Save the Fans!",
+      "appId": 2420510,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "可愛い",
+        "ドット絵",
+        "コミカル"
+      ],
+      "needs": [
+        "画像",
+        "成長",
+        "システム"
+      ],
+      "priority": 3,
+      "feature": "キャラクター固有能力や武器の組合せを持つ、ファンゲームのサバイバルアクション。",
+      "idea": "キャラらしさを攻撃の軌道・形・小さな演出に翻訳する方法を参考にする。",
+      "watch": "固有能力がキャラクターの印象とどうつながるか見る。",
+      "prototype": "支援AIごとに通知アイコンや反撃の残像の形を考える。",
+      "effort": "低",
+      "principles": [
+        "other",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/2420510/?l=japanese",
+      "media": {
+        "name": "HoloCure - Save the Fans!",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2420510/header.jpg?t=1740642230",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2420510/ss_0b4a50d12f737a522960ba3b3229546f536ff57f.600x338.jpg?t=1740642230",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2420510/ss_0b4a50d12f737a522960ba3b3229546f536ff57f.1920x1080.jpg?t=1740642230"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2420510/ss_a393d743965dc088d53d97c493ee6728d74b384d.600x338.jpg?t=1740642230",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2420510/ss_a393d743965dc088d53d97c493ee6728d74b384d.1920x1080.jpg?t=1740642230"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2420510/ss_f678c4dd81fd2c42b0682cba66317e6914bde75b.600x338.jpg?t=1740642230",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2420510/ss_f678c4dd81fd2c42b0682cba66317e6914bde75b.1920x1080.jpg?t=1740642230"
+          }
+        ],
+        "movies": [
+          {
+            "name": "0.6 Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256958389/movie.293x165.jpg?t=1689447106",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2420510/587885/b78b6bc5d5c7e4619d2b513050394e4f6a0ba624/1750917107/hls_264_master.m3u8?t=1689447106"
+          },
+          {
+            "name": "Intro Cinematic",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256948625/movie.293x165.jpg?t=1684877665",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2420510/570939/208fd51b24f76a8d669d803915da993dd538ede4/1750917107/hls_264_master.m3u8?t=1684877665"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "dawn",
+      "title": "20 Minutes Till Dawn",
+      "appId": 1966900,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "ホラー",
+        "ドット絵",
+        "限定色"
+      ],
+      "needs": [
+        "画像",
+        "システム",
+        "成長"
+      ],
+      "priority": 4,
+      "feature": "暗い限定色の画面で射撃と成長を組み合わせ、押し寄せる怪物に耐える。",
+      "idea": "暗い背景でも弾と敵の輪郭を読みやすく保つ配色を参考にする。",
+      "watch": "画面が混んだときの敵弾・自弾・背景のコントラストを見る。",
+      "prototype": "ステージ1を限定色版にし、解析弾3種の識別率を比べる。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "risk"
+      ],
+      "source": "https://store.steampowered.com/app/1966900/?l=japanese",
+      "media": {
+        "name": "20 Minutes Till Dawn",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966900/header.jpg?t=1785102761",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966900/ss_0ee0797519f432d01614ff20027ccbf4568255b7.600x338.jpg?t=1785102761",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966900/ss_0ee0797519f432d01614ff20027ccbf4568255b7.1920x1080.jpg?t=1785102761"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966900/ss_e7709844afbd28c7596f832e396e9af59cb7577b.600x338.jpg?t=1785102761",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966900/ss_e7709844afbd28c7596f832e396e9af59cb7577b.1920x1080.jpg?t=1785102761"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966900/ss_60af2304749b9e512b75265b2349d3c79eb38856.600x338.jpg?t=1785102761",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966900/ss_60af2304749b9e512b75265b2349d3c79eb38856.1920x1080.jpg?t=1785102761"
+          }
+        ],
+        "movies": [
+          {
+            "name": "1.0 Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256951536/movie.293x165.jpg?t=1686225627",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1966900/575943/359904ca0dbcbd808ac63b8bf25c37cbe63ac63b/1750743028/hls_264_master.m3u8?t=1686225627"
+          },
+          {
+            "name": "Trailer 03",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256904920/movie.293x165.jpg?t=1662706534",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1966900/494657/c30f7272f4d3b4490ef0e88cff1e0246c02bf1c3/1750743026/hls_264_master.m3u8?t=1662706534"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "gunfire",
+      "title": "Gunfire Reborn",
+      "appId": 1217060,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "可愛い",
+        "カラフル",
+        "協力"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "武器"
+      ],
+      "priority": 3,
+      "feature": "動物のヒーロー、能力、ランダム武器を組み合わせる協力型ローグライトFPS。",
+      "idea": "武器の属性を見た目と能力で一貫させる。協力は将来の別企画として参考。",
+      "watch": "キャラクターと武器の個性が重なった場面を見る。",
+      "prototype": "炎・雷・旋風の兵装をアイコンと軌跡の両方で整理する。",
+      "effort": "中",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/1217060/?l=japanese",
+      "media": {
+        "name": "Gunfire Reborn",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1217060/dd6c1906d262c38c183ccd711f192db187b5103f/header.jpg?t=1789092024",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1217060/ss_766c04e48e2c7b3d86406368c8c4b4b9cfddedcc.600x338.jpg?t=1789092024",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1217060/ss_766c04e48e2c7b3d86406368c8c4b4b9cfddedcc.1920x1080.jpg?t=1789092024"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1217060/ss_b489e3c646b594f7c1a066a4657cad1006468050.600x338.jpg?t=1789092024",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1217060/ss_b489e3c646b594f7c1a066a4657cad1006468050.1920x1080.jpg?t=1789092024"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1217060/ss_f2018a6b4525a0142e4a50776f7f06186881c185.600x338.jpg?t=1789092024",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1217060/ss_f2018a6b4525a0142e4a50776f7f06186881c185.1920x1080.jpg?t=1789092024"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Season 8 Trailer-EN",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257351312/e41e87bdcd1d3bf85b7b8f25fb0264965550f140/movie_600x337.jpg?t=1781233054",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1217060/1700525891/603bdd15e3a24589606dd56e5708f7931e510ecf/1781231674/hls_264_master.m3u8?t=1781233054"
+          },
+          {
+            "name": "视频1-英文",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256771291/c44bea94e084c26c2765e61f6c14309cf0c48e55/movie_600x337.jpg?t=1781241981",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1217060/706495040/603bdd15e3a24589606dd56e5708f7931e510ecf/1781231613/hls_264_master.m3u8?t=1781241981"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "ror",
+      "title": "Risk of Rain 2",
+      "appId": 632360,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "SF",
+        "協力",
+        "派手"
+      ],
+      "needs": [
+        "システム",
+        "成長",
+        "駆け引き"
+      ],
+      "priority": 4,
+      "feature": "時間経過で難度が上がる世界で、アイテムを重ねて戦力を増やす。",
+      "idea": "戦力を得るために寄り道するか、先へ進むかという判断を解析フェーズに置き換える。",
+      "watch": "時間と欲しい強化の間で迷う場面を見る。",
+      "prototype": "75秒内で特定弾を待つか別弾を奪うか、選択が生まれる配置を試す。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "cheese"
+      ],
+      "source": "https://store.steampowered.com/app/632360/?l=japanese",
+      "media": {
+        "name": "Risk of Rain 2",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/632360/header.jpg?t=1791233485",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/632360/ss_2bb49071317f7b241a527cf6e7aabd2cb6af055b.600x338.jpg?t=1791233485",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/632360/ss_2bb49071317f7b241a527cf6e7aabd2cb6af055b.1920x1080.jpg?t=1791233485"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/632360/ss_a3f57f281813cb51cb5d919701470acb962ff297.600x338.jpg?t=1791233485",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/632360/ss_a3f57f281813cb51cb5d919701470acb962ff297.1920x1080.jpg?t=1791233485"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/632360/ss_328d6fcb223f848c2a1047bb86702c4175d92317.600x338.jpg?t=1791233485",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/632360/ss_328d6fcb223f848c2a1047bb86702c4175d92317.1920x1080.jpg?t=1791233485"
+          }
+        ],
+        "movies": [
+          {
+            "name": "CU6 - English - No Rating",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257150713/e1151f94452c3bf926dda777a08fc01524b75612/movie_600x337.jpg?t=1751308034",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/632360/83804956/1baf9dbc3089c707258f7084315f4467e7fb3040/1750564385/hls_264_master.m3u8?t=1751308034"
+          },
+          {
+            "name": "1.0 Wide",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256795993/movie.293x165.jpg?t=1597157826",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/632360/303786/52ba441656ded379407ebbbcec837747db3c3e6b/1750564383/hls_264_master.m3u8?t=1597157826"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "roboquest",
+      "title": "Roboquest",
+      "appId": 692890,
+      "genre": "ビルド・ローグ射撃",
+      "mood": [
+        "可愛い",
+        "SF",
+        "コミック"
+      ],
+      "needs": [
+        "演出",
+        "画像",
+        "移動"
+      ],
+      "priority": 3,
+      "feature": "高速移動と銃撃を組み合わせるローグライトFPS。ロボットとコミック風の描画が特徴。",
+      "idea": "硬いメカにも親しみを持たせるシルエットと、動きに反応する画面演出を参考にする。",
+      "watch": "移動と攻撃の両立を感じる場面を見る。",
+      "prototype": "機体の傾きと推進炎だけ調整して移動の手応えを比べる。",
+      "effort": "低",
+      "principles": [
+        "impact",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/692890/?l=japanese",
+      "media": {
+        "name": "Roboquest",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/692890/6a58a633941af70c3813702c55fa23d11b964d7d/header.jpg?t=1780581844",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/692890/ss_0b34034d8b95672f3b7a61a7e96b1050a750539a.600x338.jpg?t=1780581844",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/692890/ss_0b34034d8b95672f3b7a61a7e96b1050a750539a.1920x1080.jpg?t=1780581844"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/692890/ss_b32ae626ffecd9fe70f7ea4ddbf34485662bb71d.600x338.jpg?t=1780581844",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/692890/ss_b32ae626ffecd9fe70f7ea4ddbf34485662bb71d.1920x1080.jpg?t=1780581844"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/692890/ss_a41a7c356ef81024a61e89ed877b755a2dc6757a.600x338.jpg?t=1780581844",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/692890/ss_a41a7c356ef81024a61e89ed877b755a2dc6757a.1920x1080.jpg?t=1780581844"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Roboquest Release Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256979928/movie.293x165.jpg?t=1699363950",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/692890/625583/a70ec35f7866ac38c1126afdb5753289c8204c47/1750571617/hls_264_master.m3u8?t=1699363950"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "furi",
+      "title": "Furi",
+      "appId": 423230,
+      "genre": "ボス・射撃アクション",
+      "mood": [
+        "スタイリッシュ",
+        "SF"
+      ],
+      "needs": [
+        "ボス",
+        "システム",
+        "演出"
+      ],
+      "priority": 5,
+      "feature": "射撃・剣・回避・パリィを使うボス連戦。ボスごとの攻撃を学び、反撃の機会を作る。",
+      "idea": "ボスの予兆→パリィ→反撃の間を、部位ごとの短い攻略単位にする。",
+      "watch": "予備動作の長さと反撃可能な時間を見る。",
+      "prototype": "砲台1部位に読みやすい予兆と短い反撃窓を用意する。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "impact",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/423230/?l=japanese",
+      "media": {
+        "name": "Furi",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/423230/header.jpg?t=1769717975",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/423230/ss_99a46681e5cbf7078be1e8cb22c7b885b6dcbc54.600x338.jpg?t=1769717975",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/423230/ss_99a46681e5cbf7078be1e8cb22c7b885b6dcbc54.1920x1080.jpg?t=1769717975"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/423230/ss_6df6ec0ab472fffe1d18a4dce7ec9b91f44411cc.600x338.jpg?t=1769717975",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/423230/ss_6df6ec0ab472fffe1d18a4dce7ec9b91f44411cc.1920x1080.jpg?t=1769717975"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/423230/ss_e84d81c8fd6ab25f7f91e499e9ffe728e6ea5a90.600x338.jpg?t=1769717975",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/423230/ss_e84d81c8fd6ab25f7f91e499e9ffe728e6ea5a90.1920x1080.jpg?t=1769717975"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256666510/f1f25dda18b1272188efa74607aa2700b50ed062/movie_600x337.jpg?t=1754041311",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/423230/1907602080/fefdce7b3430b1c9f04ceab8f10e4224c0572fe2/1754036499/hls_264_master.m3u8?t=1754041311"
+          },
+          {
+            "name": "Gameplay Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256662537/6f92e3437c423dc960b64e9207cde64a8dda0910/movie_600x337.jpg?t=1754041316",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/423230/597256301/ed64df2d84107a34bbfdfee86f12c5ee6cd7ceb6/1754037910/hls_264_master.m3u8?t=1754041316"
+          }
+        ]
+      },
+      "verified": "2026-10-07",
+      "videos": [
+        {
+          "title": "公式掲載動画",
+          "url": "https://www.youtube.com/watch?v=Zp7GC3JEqMY",
+          "via": "https://www.thegamebakers.com/announcing-furi-our-frenzied-duelling-game-for-ps4-and-pc/"
+        },
+        {
+          "title": "公式掲載動画",
+          "url": "https://www.youtube.com/watch?v=Np-zuXblNd0",
+          "via": "https://www.thegamebakers.com/try-again/"
+        }
+      ]
+    },
+    {
+      "id": "cuphead",
+      "title": "Cuphead",
+      "appId": 268910,
+      "genre": "ボス・射撃アクション",
+      "mood": [
+        "可愛い",
+        "手描き",
+        "レトロ",
+        "コミカル"
+      ],
+      "needs": [
+        "画像",
+        "ボス",
+        "システム"
+      ],
+      "priority": 5,
+      "feature": "1930年代カートゥーン風の手描き表現とボス戦主体のラン＆ガン。ピンクの対象へのパリィも特徴。",
+      "idea": "『奪える弾』の統一記号と、ボスの大げさな予備動作を参考にする。",
+      "watch": "攻撃前の表情・姿勢と、特別な対象の見分け方を見る。",
+      "prototype": "解析対象に共通の外枠を付け、色以外でも見分けられるか試す。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "impact",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/268910/?l=japanese",
+      "media": {
+        "name": "Cuphead",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/268910/header.jpg?t=1709068852",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/268910/ss_e3096a5555cb77d88db165c83d5ef3a24af1354a.600x338.jpg?t=1709068852",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/268910/ss_e3096a5555cb77d88db165c83d5ef3a24af1354a.1920x1080.jpg?t=1709068852"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/268910/ss_615455299355eaf552c638c7ea5b24a8b46e02dd.600x338.jpg?t=1709068852",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/268910/ss_615455299355eaf552c638c7ea5b24a8b46e02dd.1920x1080.jpg?t=1709068852"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/268910/ss_483fb089be0093beeef03525276803a9ca4f66a1.600x338.jpg?t=1709068852",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/268910/ss_483fb089be0093beeef03525276803a9ca4f66a1.1920x1080.jpg?t=1709068852"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Cuphead: The Delicious Last Course - Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256894191/movie.293x165.jpg?t=1656595223",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/268910/476013/2be829e20a796ed2e0e707fb1c747e1d15f6fb25/1750499396/hls_264_master.m3u8?t=1656595223"
+          },
+          {
+            "name": "Cuphead Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256705156/movie.293x165.jpg?t=1515128214",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/268910/140450/cb8856fab07a0d354f7fa2bfeefc3270df01ee6b/1750499390/hls_264_master.m3u8?t=1515128214"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "luna",
+      "title": "Touhou Luna Nights",
+      "appId": 851100,
+      "genre": "ボス・射撃アクション",
+      "mood": [
+        "可愛い",
+        "ドット絵",
+        "ファンタジー"
+      ],
+      "needs": [
+        "システム",
+        "駆け引き",
+        "演出"
+      ],
+      "priority": 4,
+      "feature": "時間停止と、敵や攻撃への接近を利用するグレイズが特徴の探索アクション。",
+      "idea": "危険への接近を資源獲得へ変える設計と、弾の状態変化の伝え方を参考にする。",
+      "watch": "止まった弾へ近づく場面と通常時を比較。",
+      "prototype": "安全になった弾と危険弾の外形を区別して読み違いを確認する。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/851100/?l=japanese",
+      "media": {
+        "name": "Touhou Luna Nights",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/851100/header.jpg?t=1787630377",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/851100/ss_05acd51e5212cb88738bf11346e859d83b445719.600x338.jpg?t=1787630377",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/851100/ss_05acd51e5212cb88738bf11346e859d83b445719.1920x1080.jpg?t=1787630377"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/851100/ss_4dd767b14d43ef2a7ba6fb10324b14af8d2efdbc.600x338.jpg?t=1787630377",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/851100/ss_4dd767b14d43ef2a7ba6fb10324b14af8d2efdbc.1920x1080.jpg?t=1787630377"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/851100/ss_4c6c90eb7fe06b7737ecc0d6a19178224fe5ff86.600x338.jpg?t=1787630377",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/851100/ss_4c6c90eb7fe06b7737ecc0d6a19178224fe5ff86.1920x1080.jpg?t=1787630377"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Final update PV ENG",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256753317/movie.293x165.jpg?t=1560532061",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/851100/227876/89c4219b20a859c4afeece6454171d15b9dce64c/1750589205/hls_264_master.m3u8?t=1560532061"
+          },
+          {
+            "name": "Final Update PV",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256751826/movie.293x165.jpg?t=1560532070",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/851100/225314/600cb1686f72f688cdcc26df0c5504cc07813043/1750589184/hls_264_master.m3u8?t=1560532070"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "ultrakill",
+      "title": "ULTRAKILL",
+      "appId": 1229490,
+      "genre": "ボス・射撃アクション",
+      "mood": [
+        "レトロ",
+        "ホラー",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "駆け引き"
+      ],
+      "priority": 5,
+      "feature": "高速移動、多様な武器、近接での回復や攻撃の返しを組み合わせるFPS。",
+      "idea": "危険へ踏み込む行動を強さへ変え、熟練者が狙って使う技巧を作る。",
+      "watch": "接近・射撃・返しが連続して起きる場面を見る。",
+      "prototype": "危険弾のパリィ成功だけ強い効果音にし、狙いたくなるか確認する。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "impact",
+        "cheese"
+      ],
+      "source": "https://store.steampowered.com/app/1229490/?l=japanese",
+      "media": {
+        "name": "ULTRAKILL",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1229490/header.jpg?t=1783942574",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1229490/ss_8c743b6de2d6124bd583d8764f28cafe2b7ecb3f.600x338.jpg?t=1783942574",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1229490/ss_8c743b6de2d6124bd583d8764f28cafe2b7ecb3f.1920x1080.jpg?t=1783942574"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1229490/ss_7a5692d56ec4115252980fed4ad5536d1e401e04.600x338.jpg?t=1783942574",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1229490/ss_7a5692d56ec4115252980fed4ad5536d1e401e04.1920x1080.jpg?t=1783942574"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1229490/ss_bc7a00fadbcde4a6c6dcb95d8e464ad5ffc06e3c.600x338.jpg?t=1783942574",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1229490/ss_bc7a00fadbcde4a6c6dcb95d8e464ad5ffc06e3c.1920x1080.jpg?t=1783942574"
+          }
+        ],
+        "movies": [
+          {
+            "name": "ULTRAKILL REVAMP TRAILER",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257107477/a77af570bd18647151bea78f373c453daf3e410c/movie_600x337.jpg?t=1740623811",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1229490/840639/6b0f243d19b33d414ac6778eef00ac612e0f6ba5/1750836156/hls_264_master.m3u8?t=1740623811"
+          },
+          {
+            "name": "ULTRAKILL FRAUD TRAILER",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257293432/3daba7e33eaf28eaf1b40b9d12be4e16dd780f55/movie_600x337.jpg?t=1771983908",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1229490/1523145681/cc45149a3824bd0f57e2774ba7610be780da5822/1771910655/hls_264_master.m3u8?t=1771983908"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "doom",
+      "title": "DOOM Eternal",
+      "appId": 782330,
+      "genre": "ボス・射撃アクション",
+      "mood": [
+        "ホラー",
+        "SF",
+        "派手"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "駆け引き"
+      ],
+      "priority": 4,
+      "feature": "敵へ攻め込む行動で体力・弾薬・アーマーを回収し、銃撃の流れを維持するFPS。",
+      "idea": "敵を避け続けるより働きかけたほうが状況を立て直せる循環を参考にする。",
+      "watch": "不足した資源を特定の行動で回復する場面を見る。",
+      "prototype": "解析が進まない時間を観察し、狙いやすい反撃弾を追加して比較する。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "release"
+      ],
+      "source": "https://store.steampowered.com/app/782330/?l=japanese",
+      "media": {
+        "name": "DOOM Eternal",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/782330/feaf8293bcd2d078422faa547bc0d707c08f606e/header.jpg?t=1783432602",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/782330/ss_4f93a7c5003d49cb32f6c0c6e547452b284580a0.600x338.jpg?t=1783432602",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/782330/ss_4f93a7c5003d49cb32f6c0c6e547452b284580a0.1920x1080.jpg?t=1783432602"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/782330/ss_7e6a2148321c8024285e3924903d8897cac95358.600x338.jpg?t=1783432602",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/782330/ss_7e6a2148321c8024285e3924903d8897cac95358.1920x1080.jpg?t=1783432602"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/782330/ss_af3b43c4be0029b52ceefaf55ebe1918e2cb3471.600x338.jpg?t=1783432602",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/782330/ss_af3b43c4be0029b52ceefaf55ebe1918e2cb3471.1920x1080.jpg?t=1783432602"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Mods Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257182101/842d4f0e002d40b68833ca2db0137044ba1c04bc/movie_600x337.jpg?t=1755109909",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/782330/1058653592/9f0464e095deedf33609b7717ae0390d6fa20ffb/1755007462/hls_264_master.m3u8?t=1755109909"
+          },
+          {
+            "name": "Update 6.66 Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256857551/movie.293x165.jpg?t=1635282017",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/782330/412133/b97ddfc8328609c79a7087b876f47fd735d012c3/1750583508/hls_264_master.m3u8?t=1635282017"
+          }
+        ]
+      },
+      "verified": "2026-10-07",
+      "videos": [
+        {
+          "title": "公式掲載動画",
+          "url": "https://www.youtube.com/watch?v=jqaHMGhGzGE",
+          "via": "https://slayersclub.bethesda.net/en-AU/news/doom-eternal-demon-slaying-101"
+        }
+      ]
+    },
+    {
+      "id": "superhot",
+      "title": "SUPERHOT",
+      "appId": 322500,
+      "genre": "ボス・射撃アクション",
+      "mood": [
+        "抽象",
+        "限定色",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "視認性"
+      ],
+      "priority": 4,
+      "feature": "自分の動きに応じて時間が進むFPS。白い環境、赤い敵、黒い道具で役割を絞る。",
+      "idea": "画面上の役割を少色で分離し、弾を読む時間を演出で作る案を考える。",
+      "watch": "静止時に敵・弾・安全経路がどう見えるか見る。",
+      "prototype": "パリィ成功直後だけ極短い停止を入れ、連続入力への影響も比べる。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/322500/?l=japanese",
+      "media": {
+        "name": "SUPERHOT",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/322500/header.jpg?t=1726509130",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/322500/ss_ae4a994de7b15e3cec3e56ae714cf7a44c7188cf.600x338.jpg?t=1726509130",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/322500/ss_ae4a994de7b15e3cec3e56ae714cf7a44c7188cf.1920x1080.jpg?t=1726509130"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/322500/ss_1e3ef7d9d9654c6189e6680502a0ce3068d1aef7.600x338.jpg?t=1726509130",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/322500/ss_1e3ef7d9d9654c6189e6680502a0ce3068d1aef7.1920x1080.jpg?t=1726509130"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/322500/ss_fbd718c60719f045e4e4ee1d23d159ecabb3a171.600x338.jpg?t=1726509130",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/322500/ss_fbd718c60719f045e4e4ee1d23d159ecabb3a171.1920x1080.jpg?t=1726509130"
+          }
+        ],
+        "movies": [
+          {
+            "name": "SUPERHOT is the most innovative FPS I've played in years",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256682033/movie.293x165.jpg?t=1683786486",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/322500/95873/ec0a2a897a1ee7eadb94d930eede6fbf9737c5d1/1750508348/hls_264_master.m3u8?t=1683786486"
+          },
+          {
+            "name": "SUPERHOT launch trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256661069/movie.293x165.jpg?t=1683786490",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/322500/52908/1edd31dbf70a6e9706bef6b34e9e8d645a70ba89/1750508342/hls_264_master.m3u8?t=1683786490"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "hellsinger",
+      "title": "Metal: Hellsinger",
+      "appId": 1061910,
+      "genre": "ボス・射撃アクション",
+      "mood": [
+        "ホラー",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "演出",
+        "音",
+        "システム"
+      ],
+      "priority": 2,
+      "feature": "ビートに合わせた射撃が火力と音楽の盛り上がりにつながるリズムFPS。",
+      "idea": "操作の成功に応じて音を厚くする表現を参考にする。現行仕様では拍への同期を前提にしない。",
+      "watch": "良い入力で音と演出の層が増える場面を見る。",
+      "prototype": "連続パリィで効果音の層だけ増やし、BGM非同期で手応えを確認する。",
+      "effort": "中",
+      "principles": [
+        "impact",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/1061910/?l=japanese",
+      "media": {
+        "name": "Metal: Hellsinger",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1061910/header.jpg?t=1788334430",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1061910/ss_018c8a1fecff6c98fb40c911c01aaeddcd6f6cd7.600x338.jpg?t=1788334430",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1061910/ss_018c8a1fecff6c98fb40c911c01aaeddcd6f6cd7.1920x1080.jpg?t=1788334430"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1061910/ss_8941ae01736e10329905689bbdc3242000f4fe7a.600x338.jpg?t=1788334430",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1061910/ss_8941ae01736e10329905689bbdc3242000f4fe7a.1920x1080.jpg?t=1788334430"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1061910/ss_bd727c8f5f091626637178e8eeeb3d971b8e1489.600x338.jpg?t=1788334430",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1061910/ss_bd727c8f5f091626637178e8eeeb3d971b8e1489.1920x1080.jpg?t=1788334430"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Leviathan Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256986922/movie.293x165.jpg?t=1701939529",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1061910/637086/04f1d23999f90ae8b234b71ee851823711618d88/1750610618/hls_264_master.m3u8?t=1701939529"
+          },
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256905893/movie.293x165.jpg?t=1701796893",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1061910/496339/be20b5a896b94bed6a4bad9a2a7c5f8c47a4e3f0/1750610611/hls_264_master.m3u8?t=1701796893"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "downwell",
+      "title": "Downwell",
+      "appId": 360740,
+      "genre": "ボス・射撃アクション",
+      "mood": [
+        "レトロ",
+        "ドット絵",
+        "限定色"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "移動"
+      ],
+      "priority": 4,
+      "feature": "ガンブーツで敵を撃ちながら井戸を降りる。射撃と移動、連鎖を一つの操作に重ねる。",
+      "idea": "少ない操作から複数の結果が生まれる設計と、極端に絞った色分けを参考にする。",
+      "watch": "撃つことで移動や連鎖も変わる場面を見る。",
+      "prototype": "パリィ入力1つで防御・解析・充填が起きたことを短い表示にまとめる。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "risk"
+      ],
+      "source": "https://store.steampowered.com/app/360740/?l=japanese",
+      "media": {
+        "name": "Downwell",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/360740/header.jpg?t=1769028721",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/360740/ss_96fa27e853e9513de825df4264e356066a3c5145.600x338.jpg?t=1769028721",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/360740/ss_96fa27e853e9513de825df4264e356066a3c5145.1920x1080.jpg?t=1769028721"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/360740/ss_eaab64c0e734e568912fa3ff435e7bd09a28f70b.600x338.jpg?t=1769028721",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/360740/ss_eaab64c0e734e568912fa3ff435e7bd09a28f70b.1920x1080.jpg?t=1769028721"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/360740/ss_c4f5edef3fb078d2c5483f8394cc5d500eb2e96c.600x338.jpg?t=1769028721",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/360740/ss_c4f5edef3fb078d2c5483f8394cc5d500eb2e96c.1920x1080.jpg?t=1769028721"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Gameplay Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256657199/movie.293x165.jpg?t=1447378441",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/360740/44571/7012c01f0aebc07cf11a6ce8023b13306c40786b/1750515778/hls_264_master.m3u8?t=1447378441"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "cotton",
+      "title": "COTTON REBOOT!",
+      "appId": 1656820,
+      "genre": "可愛い・表現型STG",
+      "mood": [
+        "可愛い",
+        "魔女",
+        "手描き",
+        "ファンタジー"
+      ],
+      "needs": [
+        "画像",
+        "演出",
+        "モチーフ"
+      ],
+      "priority": 4,
+      "feature": "魔女と妖精を主役にした横STG。原作モードに加え、画面と表現を更新したアレンジを持つ。",
+      "idea": "弾を魔法・お菓子・宝石に置き換えても役割が読める世界観を考える。",
+      "watch": "明るいキャラクターと敵弾の輪郭の関係を見る。",
+      "prototype": "CYCLONEを風のリボン、METEORを星の粒としてラフに描く。",
+      "effort": "低",
+      "principles": [
+        "other",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/1656820/?l=japanese",
+      "media": {
+        "name": "COTTON REBOOT!",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1656820/header.jpg?t=1725353088",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1656820/ss_267ce8ab16eb80a7281a8a4e4102c2d91a318a2d.600x338.jpg?t=1725353088",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1656820/ss_267ce8ab16eb80a7281a8a4e4102c2d91a318a2d.1920x1080.jpg?t=1725353088"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1656820/ss_ae1536196290cc4732deda32de88b65b6e746f3f.600x338.jpg?t=1725353088",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1656820/ss_ae1536196290cc4732deda32de88b65b6e746f3f.1920x1080.jpg?t=1725353088"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1656820/ss_adff1f75ce998473b50fc6c449ed28a6c5e78209.600x338.jpg?t=1725353088",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1656820/ss_adff1f75ce998473b50fc6c449ed28a6c5e78209.1920x1080.jpg?t=1725353088"
+          }
+        ],
+        "movies": [
+          {
+            "name": "COTTONREBOOT!",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256851483/movie.293x165.jpg?t=1635293325",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1656820/401087/f87780c7349029d96b9ec2a4b261988ed91c6258/1751015617/hls_264_master.m3u8?t=1635293325"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "deathsmiles",
+      "title": "Deathsmiles I・II",
+      "appId": 1884300,
+      "genre": "可愛い・表現型STG",
+      "mood": [
+        "可愛い",
+        "ホラー",
+        "ゴシック",
+        "ファンタジー"
+      ],
+      "needs": [
+        "画像",
+        "モチーフ",
+        "ボス"
+      ],
+      "priority": 4,
+      "feature": "可愛い少女とゴシックホラーの怪物を共存させる横STG。異世界の舞台と敵の意匠が豊富。",
+      "idea": "『可愛い＋不気味』という両立案。装飾は背景に寄せ、危険弾の読みやすさを保つ。",
+      "watch": "背景の怪物・主人公・弾が画面でどう分離されるか見る。",
+      "prototype": "ボスを玩具風シルエット＋不気味な内部でラフに描く。",
+      "effort": "低",
+      "principles": [
+        "other",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/1884300/?l=japanese",
+      "media": {
+        "name": "Deathsmiles I・II",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1884300/header.jpg?t=1771497286",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1884300/ss_3607fa28387e97b4b651501077528ea5813484e0.600x338.jpg?t=1771497286",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1884300/ss_3607fa28387e97b4b651501077528ea5813484e0.1920x1080.jpg?t=1771497286"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1884300/ss_542e6d59bac064c3d531aa14d50e2091ee9d6dba.600x338.jpg?t=1771497286",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1884300/ss_542e6d59bac064c3d531aa14d50e2091ee9d6dba.1920x1080.jpg?t=1771497286"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1884300/ss_5d69bdbc7a042c2b4458d70734734bd6b1b74810.600x338.jpg?t=1771497286",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1884300/ss_5d69bdbc7a042c2b4458d70734734bd6b1b74810.1920x1080.jpg?t=1771497286"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Deathsmiles I･II trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256890208/movie.293x165.jpg?t=1654590776",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1884300/469475/41a9a89a2c6324e818256e714e42e5ec978a54a3/1750739802/hls_264_master.m3u8?t=1654590776"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "witches",
+      "title": "Trouble Witches Origin",
+      "appId": 460630,
+      "genre": "可愛い・表現型STG",
+      "mood": [
+        "可愛い",
+        "魔女",
+        "ファンタジー"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "駆け引き"
+      ],
+      "priority": 4,
+      "feature": "魔法陣で弾を処理し、魔法カードなどを使う横STG。可愛い人物と弾の処理が組み合わさる。",
+      "idea": "守る領域を画面上に見せ、弾が報酬へ変わる過程を読みやすくする。",
+      "watch": "魔法陣の内側と外側で弾がどう変わるか見る。",
+      "prototype": "ガード有効範囲の輪郭を短時間だけ表示してタイミングを教える。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "release",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/460630/?l=japanese",
+      "media": {
+        "name": "Trouble Witches Origin - Episode1 Daughters of Amalgam -",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460630/header.jpg?t=1582683291",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460630/ss_c35ceb93ec471674183239626524be6ae290f585.600x338.jpg?t=1582683291",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460630/ss_c35ceb93ec471674183239626524be6ae290f585.1920x1080.jpg?t=1582683291"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460630/ss_04ddadda08325a79fdd2d2a528469896dc86b18e.600x338.jpg?t=1582683291",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460630/ss_04ddadda08325a79fdd2d2a528469896dc86b18e.1920x1080.jpg?t=1582683291"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460630/ss_06a9e3a60deee3469147c96543434a521a75f20b.600x338.jpg?t=1582683291",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460630/ss_06a9e3a60deee3469147c96543434a521a75f20b.1920x1080.jpg?t=1582683291"
+          }
+        ],
+        "movies": [
+          {
+            "name": "TWO　開発中01",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256667492/movie.293x165.jpg?t=1469413993",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/460630/65892/9ae6604aca43af92d561d83592596dd6f37fb29c/1751288708/hls_264_master.m3u8?t=1469413993"
+          },
+          {
+            "name": "TWO　開発中02",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256667493/movie.293x165.jpg?t=1469414004",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/460630/65893/954bbea13df8df583a72bf4c90406b395a6473f5/1751288708/hls_264_master.m3u8?t=1469414004"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "cactus",
+      "title": "Assault Android Cactus+",
+      "appId": 250110,
+      "genre": "可愛い・表現型STG",
+      "mood": [
+        "可愛い",
+        "SF",
+        "協力",
+        "カラフル"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "演出"
+      ],
+      "priority": 4,
+      "feature": "アンドロイドたちのツインスティック射撃。バッテリーを補いながら密な戦場を駆ける。",
+      "idea": "危機を長い停止で中断せず、次の行動へつながる短い通知にする。",
+      "watch": "ピンチから再び動き出すまでの画面と通知を見る。",
+      "prototype": "被弾後の通知を短縮し、次の弾を見失わないか比較する。",
+      "effort": "低",
+      "principles": [
+        "release",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/250110/?l=japanese",
+      "media": {
+        "name": "Assault Android Cactus+",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/250110/header.jpg?t=1744898145",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/250110/ss_c4d5d92afc80c392df1622cd94dd55ca9c88dd3e.600x338.jpg?t=1744898145",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/250110/ss_c4d5d92afc80c392df1622cd94dd55ca9c88dd3e.1920x1080.jpg?t=1744898145"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/250110/ss_15289d2a80673056374406ec6a8519e953182a93.600x338.jpg?t=1744898145",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/250110/ss_15289d2a80673056374406ec6a8519e953182a93.1920x1080.jpg?t=1744898145"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/250110/ss_51a3f81ccfd4395fdbb2d3d8024a5415f2c6e75a.600x338.jpg?t=1744898145",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/250110/ss_51a3f81ccfd4395fdbb2d3d8024a5415f2c6e75a.1920x1080.jpg?t=1744898145"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256656654/movie.293x165.jpg?t=1447378219",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/250110/43523/2405d2950fd290fd59e5eb57d7b8869367d1f5d0/1751266783/hls_264_master.m3u8?t=1447378219"
+          },
+          {
+            "name": "Mega Weapons Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256656655/movie.293x165.jpg?t=1447378219",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/250110/43525/79240df9df1f6c44d773c9423d0f3e93b8111afd/1751266783/hls_264_master.m3u8?t=1447378219"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "shapes",
+      "title": "Just Shapes & Beats",
+      "appId": 531510,
+      "genre": "可愛い・表現型STG",
+      "mood": [
+        "抽象",
+        "カラフル",
+        "協力",
+        "パーティ"
+      ],
+      "needs": [
+        "画像",
+        "演出",
+        "視認性"
+      ],
+      "priority": 3,
+      "feature": "音楽と幾何学図形の弾幕を避ける協力アクション。単純な形と色で危険を見せる。",
+      "idea": "装飾が少なくても形・動き・サイズで弾幕に個性が出ることを参考にする。",
+      "watch": "危険領域の出現予告と、図形が動く方向を見る。",
+      "prototype": "音楽同期を使わず、THUNDERの落下位置を図形予告で示す。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/531510/?l=japanese",
+      "media": {
+        "name": "Just Shapes & Beats",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/531510/header.jpg?t=1738790023",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/531510/ss_fbdbce675b47c8e48b5f44468159f57e2e3f04ba.600x338.jpg?t=1738790023",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/531510/ss_fbdbce675b47c8e48b5f44468159f57e2e3f04ba.1920x1080.jpg?t=1738790023"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/531510/ss_39376fa4ef5f3b243341801b87877257c31f3d60.600x338.jpg?t=1738790023",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/531510/ss_39376fa4ef5f3b243341801b87877257c31f3d60.1920x1080.jpg?t=1738790023"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/531510/ss_ac4192fa5c8c7b82cce66e1e7b93614fc381fba0.600x338.jpg?t=1738790023",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/531510/ss_ac4192fa5c8c7b82cce66e1e7b93614fc381fba0.1920x1080.jpg?t=1738790023"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Just Shapes & Beats Gameplay Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256717826/movie.293x165.jpg?t=1693412028",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/531510/164667/f30d7c4c446fe66980423856f4f9a9f07e070ad0/1750544922/hls_264_master.m3u8?t=1693412028"
+          },
+          {
+            "name": "CASCADE by Kubbi",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256717181/movie.293x165.jpg?t=1527185386",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/531510/163493/e5ec0d0570fbade08eaeda8de877705082d03e29/1750544904/hls_264_master.m3u8?t=1527185386"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "splatoon",
+      "title": "スプラトゥーン3",
+      "appId": null,
+      "genre": "可愛い・表現型STG",
+      "mood": [
+        "可愛い",
+        "カラフル",
+        "協力",
+        "パーティ"
+      ],
+      "needs": [
+        "画像",
+        "システム",
+        "UI"
+      ],
+      "priority": 4,
+      "feature": "インクで地面を塗ることが移動・陣取り・戦闘につながる対戦／協力シューティング。",
+      "idea": "自分の行動が背景にも痕跡を残し、攻略した実感を見せる方法を研究。",
+      "watch": "塗った領域が次の移動と判断を変える場面を見る。",
+      "prototype": "破壊した砲台の跡をボスに残し、戦いの進行を見せる。",
+      "effort": "中",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://www.nintendo.com/jp/switch/av5ja/index.html"
+    },
+    {
+      "id": "returnal",
+      "title": "Returnal",
+      "appId": 1649240,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "SF",
+        "スタイリッシュ"
+      ],
+      "needs": [
+        "画像",
+        "システム",
+        "演出"
+      ],
+      "priority": 4,
+      "feature": "3Dの弾幕戦闘とローグライト進行、孤独な異星の探索を組み合わせるTPS。",
+      "idea": "暗い舞台に明瞭な弾の幾何学模様を置き、怖さと読める戦闘を両立させる。",
+      "watch": "遺跡の暗さと弾の明るさ、戦闘前後の静けさを見る。",
+      "prototype": "ボス前の5秒だけ環境音を中心にし、登場時の緊張を比べる。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "release",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/1649240/?l=japanese",
+      "media": {
+        "name": "Returnal™",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1649240/header.jpg?t=1750956860",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1649240/ss_3c260834df0c87cfc9ac1b457d0ec0eb3b9f367c.600x338.jpg?t=1750956860",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1649240/ss_3c260834df0c87cfc9ac1b457d0ec0eb3b9f367c.1920x1080.jpg?t=1750956860"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1649240/ss_a91854c29cee0b4975862d174f03ff374ae5e26c.600x338.jpg?t=1750956860",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1649240/ss_a91854c29cee0b4975862d174f03ff374ae5e26c.1920x1080.jpg?t=1750956860"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1649240/ss_e15da2a195556b773ba8a982051f55de50d79a75.600x338.jpg?t=1750956860",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1649240/ss_e15da2a195556b773ba8a982051f55de50d79a75.1920x1080.jpg?t=1750956860"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Accolades Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256930268/movie.293x165.jpg?t=1676476629",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1649240/538628/08e41475fdd2b85c934038cda45b9edf1881a4a7/1750716874/hls_264_master.m3u8?t=1676476629"
+          }
+        ]
+      },
+      "verified": "2026-10-07",
+      "videos": [
+        {
+          "title": "公式掲載動画",
+          "url": "https://www.youtube.com/watch?v=vVy0zALF_gM",
+          "via": "https://www.playstation.com/en-ca/editorial/everything-you-need-to-know-about-returnal/"
+        },
+        {
+          "title": "公式掲載動画",
+          "url": "https://www.youtube.com/watch?v=IqIG8o1tgE8",
+          "via": "https://www.playstation.com/en-ca/editorial/everything-you-need-to-know-about-returnal/"
+        }
+      ]
+    },
+    {
+      "id": "deadspace",
+      "title": "Dead Space (2023)",
+      "appId": 1693980,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "SF",
+        "メカ"
+      ],
+      "needs": [
+        "ボス",
+        "UI",
+        "画像"
+      ],
+      "priority": 5,
+      "feature": "敵の四肢を狙う戦闘と、スーツや武器に状態表示を載せたSFホラー。",
+      "idea": "部位破壊で敵の動きと攻撃を変える。機体上の表示でHUDへの視線移動を減らす。",
+      "watch": "部位を切った前後の敵の姿と攻撃を見る。",
+      "prototype": "砲台破壊後に対応する弾幕を止め、初見で因果が伝わるか確認する。",
+      "effort": "中",
+      "principles": [
+        "clarity",
+        "risk",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/1693980/?l=japanese",
+      "media": {
+        "name": "Dead Space",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1693980/header.jpg?t=1777396576",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1693980/ss_b4b02766216117747640523bb6e258d44053e355.600x338.jpg?t=1777396576",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1693980/ss_b4b02766216117747640523bb6e258d44053e355.1920x1080.jpg?t=1777396576"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1693980/ss_179cb4f80343d464ea2d7712b5982555271ad707.600x338.jpg?t=1777396576",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1693980/ss_179cb4f80343d464ea2d7712b5982555271ad707.1920x1080.jpg?t=1777396576"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1693980/ss_06f8cc8ad27e53078b09df03c5c3fb1c75459960.600x338.jpg?t=1777396576",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1693980/ss_06f8cc8ad27e53078b09df03c5c3fb1c75459960.1920x1080.jpg?t=1777396576"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Dead Space | Official Accolades Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256929315/movie.293x165.jpg?t=1675772698",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1693980/536887/4bc39903cb1de775b3a2a9bc3b536f54da93ba32/1750726170/hls_264_master.m3u8?t=1675772698"
+          },
+          {
+            "name": "Official Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256927035/movie.293x165.jpg?t=1674835402",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1693980/532987/5952422f8fbcd652e2891f5760d0ae27ac5a215a/1750726154/hls_264_master.m3u8?t=1674835402"
+          }
+        ]
+      },
+      "verified": "2026-10-07",
+      "videos": []
+    },
+    {
+      "id": "re4",
+      "title": "バイオハザード RE:4",
+      "appId": 2050650,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "アクション"
+      ],
+      "needs": [
+        "システム",
+        "駆け引き",
+        "演出"
+      ],
+      "priority": 4,
+      "feature": "射撃、位置取り、ナイフによるパリィなどを使い、押し寄せる敵と戦うアクションホラー。",
+      "idea": "ガードの成功はわかりやすくし、すべてを同じ守り方で処理しない判断を研究。",
+      "watch": "防御と回避を使い分ける場面を見る。",
+      "prototype": "パリィ対象弾と回避すべき地形攻撃を、輪郭と予兆で分ける案を描く。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/2050650/?l=japanese",
+      "media": {
+        "name": "Resident Evil 4",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/header.jpg?t=1772502922",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_59d1b19964cc532213df92c8287b75a0bffeb33c.600x338.jpg?t=1772502922",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_59d1b19964cc532213df92c8287b75a0bffeb33c.1920x1080.jpg?t=1772502922"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_ab807f8ad9e968a620777caf483cb6020367b9ee.600x338.jpg?t=1772502922",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_ab807f8ad9e968a620777caf483cb6020367b9ee.1920x1080.jpg?t=1772502922"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_0442f7fb4327d79802c2db8ea8d23d228a28d896.600x338.jpg?t=1772502922",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_0442f7fb4327d79802c2db8ea8d23d228a28d896.1920x1080.jpg?t=1772502922"
+          }
+        ],
+        "movies": [
+          {
+            "name": "01【RE4】_GELaunchPV_Multi_JP_FullHD_CERO_好評発売中.mp4",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256998134/movie.293x165.jpg?t=1707455727",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2050650/657555/d39253e0aaaf10f6da756477add829a3cb882e66/1750745234/hls_264_master.m3u8?t=1707455727"
+          },
+          {
+            "name": "01【RE4】_PV3_Multi_JP_FullHD_CERO_AfterRelease",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256938318/movie.293x165.jpg?t=1680071377",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2050650/552825/bed76b69d0852c17501ec01f016f6d0824f02d13/1750745149/hls_264_master.m3u8?t=1680071377"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "signalis",
+      "title": "SIGNALIS",
+      "appId": 1262350,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "SF",
+        "ドット絵",
+        "限定色"
+      ],
+      "needs": [
+        "画像",
+        "UI",
+        "モチーフ"
+      ],
+      "priority": 4,
+      "feature": "少ない物資、探索、謎解きと、不穏なSFの映像表現を組み合わせるサバイバルホラー。",
+      "idea": "警告表示や装置画面の意匠を、短い文言と一貫した記号で作る。",
+      "watch": "ゲーム画面から端末画面へ切り替わるときの統一感を見る。",
+      "prototype": "ラボ画面に警告色・端末風ラベルを使った案を作る。",
+      "effort": "低",
+      "principles": [
+        "other",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/1262350/?l=japanese",
+      "media": {
+        "name": "SIGNALIS",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1262350/header.jpg?t=1773697315",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1262350/ss_a2603694154878b8260c1dd498a06168cad012a4.600x338.jpg?t=1773697315",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1262350/ss_a2603694154878b8260c1dd498a06168cad012a4.1920x1080.jpg?t=1773697315"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1262350/ss_9d602346170b19121e4baec94f5fab54cc43637c.600x338.jpg?t=1773697315",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1262350/ss_9d602346170b19121e4baec94f5fab54cc43637c.1920x1080.jpg?t=1773697315"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1262350/ss_dc87789ecfa2f83dd58ac778866fbf7fdc1ec99a.600x338.jpg?t=1773697315",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1262350/ss_dc87789ecfa2f83dd58ac778866fbf7fdc1ec99a.1920x1080.jpg?t=1773697315"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256913244/movie.293x165.jpg?t=1666887901",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1262350/508824/c82cb1f2353e146970c0255ecdf6337bdc7d4079/1750657178/hls_264_master.m3u8?t=1666887901"
+          },
+          {
+            "name": "Gameplay Overview",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256910985/movie.293x165.jpg?t=1665773311",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1262350/504958/d9becccc291a7986cadfd7863426ea3e35d64330/1750657163/hls_264_master.m3u8?t=1665773311"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "darkwood",
+      "title": "Darkwood",
+      "appId": 274520,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "自然",
+        "暗い"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "音"
+      ],
+      "priority": 3,
+      "feature": "昼に探索と準備を行い、夜は拠点で生き延びる見下ろし型サバイバルホラー。",
+      "idea": "視界と音で見えない敵を想像させる。STGでは攻撃の必要情報が読める範囲を残す。",
+      "watch": "見えていない方向の音が行動をどう変えるか見る。",
+      "prototype": "画面外砲台に方向のわかる予告音と縁のサインを付ける。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "other",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/274520/?l=japanese",
+      "media": {
+        "name": "Darkwood",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/274520/18f5a6c6452d6292ebf9e4fcc199ce0759fb9a98/header.jpg?t=1791278921",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/274520/67c867f75005a2786fcfab6741c17061dbef5e3f/ss_67c867f75005a2786fcfab6741c17061dbef5e3f.600x338.jpg?t=1791278921",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/274520/67c867f75005a2786fcfab6741c17061dbef5e3f/ss_67c867f75005a2786fcfab6741c17061dbef5e3f.1920x1080.jpg?t=1791278921"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/274520/5b6bdd5ebe2f4f0d816aa2e46c26325e88066fab/ss_5b6bdd5ebe2f4f0d816aa2e46c26325e88066fab.600x338.jpg?t=1791278921",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/274520/5b6bdd5ebe2f4f0d816aa2e46c26325e88066fab/ss_5b6bdd5ebe2f4f0d816aa2e46c26325e88066fab.1920x1080.jpg?t=1791278921"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/274520/5b92f40bd9c44c5abdd18b1d8358c7c72eba4809/ss_5b92f40bd9c44c5abdd18b1d8358c7c72eba4809.600x338.jpg?t=1791278921",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/274520/5b92f40bd9c44c5abdd18b1d8358c7c72eba4809/ss_5b92f40bd9c44c5abdd18b1d8358c7c72eba4809.1920x1080.jpg?t=1791278921"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Gameplay Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256762253/8652747a317071990b84474297b425e0bd7dc980/movie_600x337.jpg?t=1764597553",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/274520/243462/a3de8a3d7142a5b2374ebdf9d32e211cfc26934f/1750500236/hls_264_master.m3u8?t=1764597553"
+          },
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256693133/2c1eb6dbafae4860206eb296740fd983430f14f2/movie_600x337.jpg?t=1764597554",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/274520/118869/01b777b38b00d4b55f4bab90eb2b116821e70be5/1750500236/hls_264_master.m3u8?t=1764597554"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "dredge",
+      "title": "DREDGE",
+      "appId": 1562430,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "自然",
+        "雰囲気"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "駆け引き"
+      ],
+      "priority": 4,
+      "feature": "釣りと船の強化を進める一方、夜の海と異常が帰還の判断を迫る探索ゲーム。",
+      "idea": "日常的な報酬と少しずつ増す不穏さを組み合わせ、欲張るか引くかを考えさせる。",
+      "watch": "夜へ移ると同じ場所がどう怖くなるか見る。",
+      "prototype": "解析終盤の背景だけ段階的に変え、ボス接近を感じさせる。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/1562430/?l=japanese",
+      "media": {
+        "name": "DREDGE",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1562430/header.jpg?t=1780479732",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1562430/ss_70f88014423ed93eaa111c0d0daca2c500f76908.600x338.jpg?t=1780479732",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1562430/ss_70f88014423ed93eaa111c0d0daca2c500f76908.1920x1080.jpg?t=1780479732"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1562430/ss_d4d4b14c5cd071307e27b4e9737f23f28b096248.600x338.jpg?t=1780479732",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1562430/ss_d4d4b14c5cd071307e27b4e9737f23f28b096248.1920x1080.jpg?t=1780479732"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1562430/ss_9529104cde1af2ffbb715cab42bbb3012fb9b7d8.600x338.jpg?t=1780479732",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1562430/ss_9529104cde1af2ffbb715cab42bbb3012fb9b7d8.1920x1080.jpg?t=1780479732"
+          }
+        ],
+        "movies": [
+          {
+            "name": "DREDGE: Complete Edition Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257052901/movie.293x165.jpg?t=1725614790",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1562430/751913/2f166531a359b6bbad73e42bb417a30b2eb61798/1750701525/hls_264_master.m3u8?t=1725614790"
+          },
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256938596/movie.293x165.jpg?t=1680192002",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1562430/553322/db0df35acf025e6ecd0c3305a8b97ed97c0bab33/1750701500/hls_264_master.m3u8?t=1680192002"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "inscryption",
+      "title": "Inscryption",
+      "appId": 1092790,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "暗い",
+        "カード"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "UI"
+      ],
+      "priority": 3,
+      "feature": "カード対戦と部屋の探索・謎解きを結びつけたホラー。机上の道具も操作対象になる。",
+      "idea": "抽象的な選択を世界内の物体として見せる、ラボや解析カードの表現を考える。",
+      "watch": "カード以外の物がルールと結びつく場面を見る。",
+      "prototype": "解析2枠を機体へ取り付けるモジュールとして描いた案を作る。",
+      "effort": "中",
+      "principles": [
+        "other",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/1092790/?l=japanese",
+      "media": {
+        "name": "Inscryption",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1092790/header.jpg?t=1777572925",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1092790/ss_0191a69b0e94a9a7784f5b81e27f06379910645a.600x338.jpg?t=1777572925",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1092790/ss_0191a69b0e94a9a7784f5b81e27f06379910645a.1920x1080.jpg?t=1777572925"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1092790/ss_3b714682e9e0a214df1630a234e9f6764528eece.600x338.jpg?t=1777572925",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1092790/ss_3b714682e9e0a214df1630a234e9f6764528eece.1920x1080.jpg?t=1777572925"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1092790/ss_7bfe728822807d232398df1cb1a5d64addd3d8fb.600x338.jpg?t=1777572925",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1092790/ss_7bfe728822807d232398df1cb1a5d64addd3d8fb.1920x1080.jpg?t=1777572925"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Inscryption - Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256795106/movie.293x165.jpg?t=1597161792",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1092790/302287/ab0d21c6b888e99deba7fb8ca48e0f34ebba0332/1750618102/hls_264_master.m3u8?t=1597161792"
+          },
+          {
+            "name": "Release Date Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256852985/movie.293x165.jpg?t=1711536013",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1092790/403882/734d67fdb26f3a44d766eea69eb1354b5cc4e984/1750618115/hls_264_master.m3u8?t=1711536013"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "lethal",
+      "title": "Lethal Company",
+      "appId": 1966720,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "協力",
+        "パーティ",
+        "コミカル"
+      ],
+      "needs": [
+        "システム",
+        "音",
+        "駆け引き"
+      ],
+      "priority": 3,
+      "feature": "危険な施設から廃品を持ち帰り、ノルマを満たす協力ホラー。仲間との情報交換が重要。",
+      "idea": "報酬を取りに危険へ入る判断と、仲間が状況を伝える短い言葉を参考にする。",
+      "watch": "欲張って残るか帰るかを相談する場面を見る。",
+      "prototype": "支援AIの通知を『今の危険』と『狙える報酬』に絞って比較する。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/1966720/?l=japanese",
+      "media": {
+        "name": "Lethal Company",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966720/header.jpg?t=1775380053",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966720/ss_78075e9a94675823024f12fce9d69b243cca94f8.600x338.jpg?t=1775380053",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966720/ss_78075e9a94675823024f12fce9d69b243cca94f8.1920x1080.jpg?t=1775380053"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966720/ss_51860be59845771c01a3a4d9ab1ebf773f16fef5.600x338.jpg?t=1775380053",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966720/ss_51860be59845771c01a3a4d9ab1ebf773f16fef5.1920x1080.jpg?t=1775380053"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966720/ss_08fa3ef83b6eb70313119096f82285fa411f02e5.600x338.jpg?t=1775380053",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1966720/ss_08fa3ef83b6eb70313119096f82285fa411f02e5.1920x1080.jpg?t=1775380053"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Lethal Company - Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256961309/movie.293x165.jpg?t=1690909590",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1966720/593018/d94ebe61f51f602028df99031bafd2ae075b1132/1750743020/hls_264_master.m3u8?t=1690909590"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "content",
+      "title": "Content Warning",
+      "appId": 2881650,
+      "genre": "ホラー・緊張と探索",
+      "mood": [
+        "ホラー",
+        "協力",
+        "パーティ",
+        "コミカル"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "記録"
+      ],
+      "priority": 3,
+      "feature": "仲間と怖い場面を撮影し、帰還後に映像を見返す協力ホラー。失敗も共有する面白さになる。",
+      "idea": "自分の成功が短い記録として残る仕組みを、ボス戦の決め手へ応用する。",
+      "watch": "帰還して撮った映像を見返す流れを見る。",
+      "prototype": "COUNTER発動と部位破壊を結果画面で3秒の記録として残す案を作る。",
+      "effort": "高",
+      "principles": [
+        "other",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/2881650/?l=japanese",
+      "media": {
+        "name": "Content Warning",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2881650/header.jpg?t=1785137321",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2881650/ss_5df7377699e11b22ffbb604f2b3cc74d39d9bb2f.600x338.jpg?t=1785137321",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2881650/ss_5df7377699e11b22ffbb604f2b3cc74d39d9bb2f.1920x1080.jpg?t=1785137321"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2881650/ss_0639604a881c0a0c9e02960b61d108c1f643809d.600x338.jpg?t=1785137321",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2881650/ss_0639604a881c0a0c9e02960b61d108c1f643809d.1920x1080.jpg?t=1785137321"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2881650/ss_f7f450f42db587f4e143ad1178500ad786c965a3.600x338.jpg?t=1785137321",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2881650/ss_f7f450f42db587f4e143ad1178500ad786c965a3.1920x1080.jpg?t=1785137321"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Content Warning Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257012412/movie.293x165.jpg?t=1711987141",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2881650/681656/73819bb7ec815170d38d53a7c0267441852bc4c5/1750821037/hls_264_master.m3u8?t=1711987141"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "duck",
+      "title": "Duck Game",
+      "appId": 312530,
+      "genre": "パーティ・協力",
+      "mood": [
+        "パーティ",
+        "コミカル",
+        "ドット絵"
+      ],
+      "needs": [
+        "システム",
+        "武器",
+        "レベル設計"
+      ],
+      "priority": 3,
+      "feature": "アヒルが多彩な武器を拾って戦う短いラウンドの対戦アクション。",
+      "idea": "武器が変わった瞬間に行動が変わることと、短時間で再挑戦するテンポを参考にする。",
+      "watch": "同じ地形でも拾った武器で展開が変わる場面を見る。",
+      "prototype": "主兵装5種を同じ15秒の敵配置で比べ、違いを説明できるか聞く。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "release"
+      ],
+      "source": "https://store.steampowered.com/app/312530/?l=japanese",
+      "media": {
+        "name": "Duck Game",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/312530/header.jpg?t=1719772984",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/312530/ss_e0d4c29f0c6b93903916d35ec79ea5f2560932d5.600x338.jpg?t=1719772984",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/312530/ss_e0d4c29f0c6b93903916d35ec79ea5f2560932d5.1920x1080.jpg?t=1719772984"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/312530/ss_6da6723e0908f866142d69cebb5c13ec60063cab.600x338.jpg?t=1719772984",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/312530/ss_6da6723e0908f866142d69cebb5c13ec60063cab.1920x1080.jpg?t=1719772984"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/312530/ss_b20f323e1d27e4573a2afae3f4db9021da89dd3c.600x338.jpg?t=1719772984",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/312530/ss_b20f323e1d27e4573a2afae3f4db9021da89dd3c.1920x1080.jpg?t=1719772984"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Promo",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2039860/movie.293x165.jpg?t=1447375811",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/312530/37096/8e4f27547adb5618e655a5b69063433b48572e2d/1750506475/hls_264_master.m3u8?t=1447375811"
+          },
+          {
+            "name": "Trailer 1",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2036924/movie.293x165.jpg?t=1447368353",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/312530/30659/b771cada3a830522696dd69cae4e159a68c67ab0/1750506469/hls_264_master.m3u8?t=1447368353"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "stick",
+      "title": "Stick Fight: The Game",
+      "appId": 674940,
+      "genre": "パーティ・協力",
+      "mood": [
+        "パーティ",
+        "コミカル",
+        "抽象"
+      ],
+      "needs": [
+        "システム",
+        "演出",
+        "物理"
+      ],
+      "priority": 3,
+      "feature": "棒人間、物理挙動、武器、変化する足場で予想外の展開が生まれる対戦ゲーム。",
+      "idea": "小さな物理のずれや環境変化を、再挑戦したくなる出来事へつなげる。",
+      "watch": "崩れる足場と射撃が重なった場面を見る。",
+      "prototype": "破壊砲台の破片が次の弾を遮らない範囲で転がる演出を試す。",
+      "effort": "中",
+      "principles": [
+        "other",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/674940/?l=japanese",
+      "media": {
+        "name": "Stick Fight: The Game",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/674940/header.jpg?t=1730715399",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/674940/ss_890d28277bc419dad54157059735513ccc1cfaa7.600x338.jpg?t=1730715399",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/674940/ss_890d28277bc419dad54157059735513ccc1cfaa7.1920x1080.jpg?t=1730715399"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/674940/ss_6f4e51e6b1390acc89741b7d2d6e6dc50dbacf76.600x338.jpg?t=1730715399",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/674940/ss_6f4e51e6b1390acc89741b7d2d6e6dc50dbacf76.1920x1080.jpg?t=1730715399"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/674940/ss_22d090efb57d6f42187c7f8eb193713112237b8e.600x338.jpg?t=1730715399",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/674940/ss_22d090efb57d6f42187c7f8eb193713112237b8e.1920x1080.jpg?t=1730715399"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Stick Fight Release Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256694999/movie.293x165.jpg?t=1506615966",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/674940/122208/e83ec61ca718435c29506f71c428ddb18a56b8f8/1750569660/hls_264_master.m3u8?t=1506615966"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "boomerang",
+      "title": "Boomerang Fu",
+      "appId": 965680,
+      "genre": "パーティ・協力",
+      "mood": [
+        "可愛い",
+        "パーティ",
+        "コミカル"
+      ],
+      "needs": [
+        "画像",
+        "システム",
+        "視認性"
+      ],
+      "priority": 4,
+      "feature": "食べ物のキャラクターがブーメランと強化を使って戦う、短い対戦アクション。",
+      "idea": "丸い形と鮮明な色で役割を分け、飛び道具の往復を読みやすくする。",
+      "watch": "戻ってくる飛び道具とキャラクターの見分け方を見る。",
+      "prototype": "反射弾の戻り軌跡を一筆で追える形に整える。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/965680/?l=japanese",
+      "media": {
+        "name": "Boomerang Fu",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/965680/header.jpg?t=1774862745",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/965680/ss_ff8629d683e8b5b584430f7cdae568bfebb74f84.600x338.jpg?t=1774862745",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/965680/ss_ff8629d683e8b5b584430f7cdae568bfebb74f84.1920x1080.jpg?t=1774862745"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/965680/ss_98df23bc221ec49594871d7ee3c02b8288e70508.600x338.jpg?t=1774862745",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/965680/ss_98df23bc221ec49594871d7ee3c02b8288e70508.1920x1080.jpg?t=1774862745"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/965680/ss_13efe9d3857f289c19f3530672b291c78a3fe5f2.600x338.jpg?t=1774862745",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/965680/ss_13efe9d3857f289c19f3530672b291c78a3fe5f2.1920x1080.jpg?t=1774862745"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Release Date Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256792103/movie.293x165.jpg?t=1693966679",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/965680/297214/52581fad69116d20a4b67de9a67501222b45fcd6/1750602156/hls_264_master.m3u8?t=1693966679"
+          },
+          {
+            "name": "Grilling Spree Update Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256829429/movie.293x165.jpg?t=1693966684",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/965680/360053/de71187e2d3e21fffac486922a3c739892daf544/1750602184/hls_264_master.m3u8?t=1693966684"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "chicken",
+      "title": "Ultimate Chicken Horse",
+      "appId": 386940,
+      "genre": "パーティ・協力",
+      "mood": [
+        "可愛い",
+        "パーティ",
+        "コミカル"
+      ],
+      "needs": [
+        "システム",
+        "レベル設計",
+        "駆け引き"
+      ],
+      "priority": 3,
+      "feature": "足場と罠を参加者が置き、同じコースを攻略する対戦プラットフォーマー。",
+      "idea": "障害を作る側と攻略する側を一往復する、弾幕エディタの発想に使える。",
+      "watch": "小さな配置変更が難度と面白さをどう変えるか見る。",
+      "prototype": "紙上で弾源を1つずつ足し、パリィ可能な経路を描く。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/386940/?l=japanese",
+      "media": {
+        "name": "Ultimate Chicken Horse",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/386940/header.jpg?t=1765298731",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/386940/ss_37241b90656a823b63934ee996bb81efd9fc8468.600x338.jpg?t=1765298731",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/386940/ss_37241b90656a823b63934ee996bb81efd9fc8468.1920x1080.jpg?t=1765298731"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/386940/ss_808712896e499b291b913abf5cf30c736f0d6ea0.600x338.jpg?t=1765298731",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/386940/ss_808712896e499b291b913abf5cf30c736f0d6ea0.1920x1080.jpg?t=1765298731"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/386940/ss_eebaadf226741a95895e07edebab32b9416aa20b.600x338.jpg?t=1765298731",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/386940/ss_eebaadf226741a95895e07edebab32b9416aa20b.1920x1080.jpg?t=1765298731"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Ultimate Chicken Horse Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256661425/movie.293x165.jpg?t=1692053208",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/386940/53675/840a81d7bb06ec65b2ce272294a83c6d5b752b78/1750523143/hls_264_master.m3u8?t=1692053208"
+          },
+          {
+            "name": "Pandamonium Update Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257022851/movie.293x165.jpg?t=1715620802",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/386940/699537/c7d88ceb17993736ee02f85f60d6c3b0a267eef6/1750523286/hls_264_master.m3u8?t=1715620802"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "overcooked",
+      "title": "Overcooked! 2",
+      "appId": 728880,
+      "genre": "パーティ・協力",
+      "mood": [
+        "可愛い",
+        "パーティ",
+        "協力",
+        "コミカル"
+      ],
+      "needs": [
+        "システム",
+        "UI",
+        "レベル設計"
+      ],
+      "priority": 3,
+      "feature": "料理の工程を分担し、変化する厨房で協力する。操作は単純でも配置が混乱を作る。",
+      "idea": "敵弾やボス部位を増やす前に、配置の変化で判断を変える発想を参考にする。",
+      "watch": "同じ作業が地形の変化で難しくなる場面を見る。",
+      "prototype": "弾種を増やさず、砲台位置だけ変えた2パターンを比較する。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/728880/?l=japanese",
+      "media": {
+        "name": "Overcooked! 2",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/728880/9305414f49b2f7aee7f7198dc507d6b66383fdd6/header.jpg?t=1789548883",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/728880/ss_2f84a12e1fe82cca37848bf29d4b8b16e83db03b.600x338.jpg?t=1789548883",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/728880/ss_2f84a12e1fe82cca37848bf29d4b8b16e83db03b.1920x1080.jpg?t=1789548883"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/728880/ss_7f290dccbdc3c0eb9ded951717bceba5d7455764.600x338.jpg?t=1789548883",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/728880/ss_7f290dccbdc3c0eb9ded951717bceba5d7455764.1920x1080.jpg?t=1789548883"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/728880/ss_652d62549a8a5fdf4f0061e20b16a3cd9a19dc45.600x338.jpg?t=1789548883",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/728880/ss_652d62549a8a5fdf4f0061e20b16a3cd9a19dc45.1920x1080.jpg?t=1789548883"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Moon Harvest Update",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256803126/movie.293x165.jpg?t=1601561015",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/728880/316103/1b19211ee13dc4881fae850c036de885578dc15c/1750576130/hls_264_master.m3u8?t=1601561015"
+          },
+          {
+            "name": "SOBO Out Now",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256791674/movie.293x165.jpg?t=1593958372",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/728880/296457/c1f60a04f77fe98f46e5c5f219b359c648b9d670/1750576129/hls_264_master.m3u8?t=1593958372"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "moving",
+      "title": "Moving Out 2",
+      "appId": 1641700,
+      "genre": "パーティ・協力",
+      "mood": [
+        "可愛い",
+        "パーティ",
+        "協力",
+        "コミカル"
+      ],
+      "needs": [
+        "画像",
+        "システム",
+        "アクセシビリティ"
+      ],
+      "priority": 3,
+      "feature": "物理挙動を使って家具を運ぶ協力アクション。アシストや見た目の親しみやすさも参考。",
+      "idea": "失敗の見え方を軽くし、初心者も遊び続けやすい調整を選べる形を考える。",
+      "watch": "運ぶ動作の大げささとアシスト設定の説明を見る。",
+      "prototype": "ガード練習に広い受付時間の設定を仮置きし、上達を観察する。",
+      "effort": "中",
+      "principles": [
+        "other",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/1641700/?l=japanese",
+      "media": {
+        "name": "Moving Out 2",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1641700/header.jpg?t=1780480295",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1641700/ss_9f50fda0b273a54fb40372511f611c8e6697ffeb.600x338.jpg?t=1780480295",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1641700/ss_9f50fda0b273a54fb40372511f611c8e6697ffeb.1920x1080.jpg?t=1780480295"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1641700/ss_beafb5e71fb116e7068606fddf6956525b7c6811.600x338.jpg?t=1780480295",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1641700/ss_beafb5e71fb116e7068606fddf6956525b7c6811.1920x1080.jpg?t=1780480295"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1641700/ss_a7323ab055b912cc13428a4760155fd536655f2a.600x338.jpg?t=1780480295",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1641700/ss_a7323ab055b912cc13428a4760155fd536655f2a.1920x1080.jpg?t=1780480295"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256961287/movie.293x165.jpg?t=1692194237",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1641700/592975/ba06defae557b590752feffa260492377d342aa0/1750714601/hls_264_master.m3u8?t=1692194237"
+          },
+          {
+            "name": "Release Date Announce Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256952736/movie.293x165.jpg?t=1686902604",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1641700/578032/2e3ca866d572a72cbc2e1cfd64d14938b522e26b/1750714588/hls_264_master.m3u8?t=1686902604"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "drg",
+      "title": "Deep Rock Galactic",
+      "appId": 548430,
+      "genre": "パーティ・協力",
+      "mood": [
+        "SF",
+        "協力",
+        "コミカル"
+      ],
+      "needs": [
+        "システム",
+        "レベル設計",
+        "UI"
+      ],
+      "priority": 3,
+      "feature": "役割の異なるドワーフが洞窟で採掘と戦闘を行う協力FPS。地形も攻略に関わる。",
+      "idea": "異なる兵装が同じ場所に別の仕事を持つ設計や、目標の位置を伝える表示を研究。",
+      "watch": "味方の能力で経路や戦い方が変わる場面を見る。",
+      "prototype": "2枠の性質を『雑魚処理／部位狙い』の仕事で比較する。",
+      "effort": "中",
+      "principles": [
+        "risk",
+        "clarity"
+      ],
+      "source": "https://store.steampowered.com/app/548430/?l=japanese",
+      "media": {
+        "name": "Deep Rock Galactic",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/548430/d3edf99a4ae52d305ec6ddd2a8f2703499b8aae5/header_alt_assets_28.jpg?t=1790248272",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/548430/49a57d16c55b74a6f835c590421d299d417af4f8/ss_49a57d16c55b74a6f835c590421d299d417af4f8.600x338.jpg?t=1790248272",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/548430/49a57d16c55b74a6f835c590421d299d417af4f8/ss_49a57d16c55b74a6f835c590421d299d417af4f8.1920x1080.jpg?t=1790248272"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/548430/5ffa803484da48da16db9006d7f4313db8999c2a/ss_5ffa803484da48da16db9006d7f4313db8999c2a.600x338.jpg?t=1790248272",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/548430/5ffa803484da48da16db9006d7f4313db8999c2a/ss_5ffa803484da48da16db9006d7f4313db8999c2a.1920x1080.jpg?t=1790248272"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/548430/cf8c347fac940f99a9a256730aca3cb647cb563f/ss_cf8c347fac940f99a9a256730aca3cb647cb563f.600x338.jpg?t=1790248272",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/548430/cf8c347fac940f99a9a256730aca3cb647cb563f/ss_cf8c347fac940f99a9a256730aca3cb647cb563f.1920x1080.jpg?t=1790248272"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Season 06 - Release Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257274503/ec01dd9ef60548cf523dccbc407eacd472eae374/movie_600x337.jpg?t=1769688641",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/548430/1912821037/a9a4174ee3e32773076b9f64e2f27cd7627bdbed/1769597323/hls_264_master.m3u8?t=1769688641"
+          },
+          {
+            "name": "Season 06 - Narrated Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257273689/404e4a01ac75368461e139272c7c9f40859cca72/movie_600x337.jpg?t=1769510392",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/548430/1959556252/59bacc9b1b7a5b2fb26f22598cdd3ab18b2c6711/1769506161/hls_264_master.m3u8?t=1769510392"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "lovers",
+      "title": "Lovers in a Dangerous Spacetime",
+      "appId": 252110,
+      "genre": "パーティ・協力",
+      "mood": [
+        "可愛い",
+        "協力",
+        "パーティ",
+        "宇宙"
+      ],
+      "needs": [
+        "システム",
+        "画像",
+        "UI"
+      ],
+      "priority": 4,
+      "feature": "宇宙船内を走り回り、砲台・盾・操縦の持ち場を切り替える協力シューティング。",
+      "idea": "機体のどこに装備があり、今何をしているかを一目で見せる参考。",
+      "watch": "盾と砲台の向き、担当の移動を見る。",
+      "prototype": "支援砲台とファンネルの役割を機体周囲の位置で区別する。",
+      "effort": "中",
+      "principles": [
+        "clarity",
+        "risk"
+      ],
+      "source": "https://store.steampowered.com/app/252110/?l=japanese",
+      "media": {
+        "name": "Lovers in a Dangerous Spacetime",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252110/header.jpg?t=1745967822",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252110/ss_9258e46d97c5cc9a0a64228fe3aebce583bf6015.600x338.jpg?t=1745967822",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252110/ss_9258e46d97c5cc9a0a64228fe3aebce583bf6015.1920x1080.jpg?t=1745967822"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252110/ss_2c9c01c79209fa70ffbbd8f8d67690d36f3427bf.600x338.jpg?t=1745967822",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252110/ss_2c9c01c79209fa70ffbbd8f8d67690d36f3427bf.1920x1080.jpg?t=1745967822"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252110/ss_a461930faa67193f0bace5c86afcbc05ba951380.600x338.jpg?t=1745967822",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252110/ss_a461930faa67193f0bace5c86afcbc05ba951380.1920x1080.jpg?t=1745967822"
+          }
+        ],
+        "movies": [
+          {
+            "name": "4 Player Update",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256664105/movie.293x165.jpg?t=1463070921",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/252110/58816/0c330ea3c776e19ab0186dc58a8b81d8291e16d0/1750487735/hls_264_master.m3u8?t=1463070921"
+          },
+          {
+            "name": "Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256655525/movie.293x165.jpg?t=1463070927",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/252110/40866/f90b1f290a59371439b543a158d21a52c5668f49/1750487726/hls_264_master.m3u8?t=1463070927"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "hollow",
+      "title": "Hollow Knight",
+      "appId": 367520,
+      "genre": "アクション・成長・手応え",
+      "mood": [
+        "可愛い",
+        "ダーク",
+        "手描き"
+      ],
+      "needs": [
+        "画像",
+        "ボス",
+        "レベル設計"
+      ],
+      "priority": 4,
+      "feature": "手描きの昆虫世界を探索し、敵の動きと攻撃を学んで戦う。静かな背景と輪郭も参考。",
+      "idea": "予備動作と攻撃範囲の一貫性、ボスの人格が伝わる小さな動きを参考にする。",
+      "watch": "初見と再戦で読み取れる動作が増える場面を見る。",
+      "prototype": "ボス1体の待機・予備動作・破壊後の姿勢を3枚で整理する。",
+      "effort": "中",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/367520/?l=japanese",
+      "media": {
+        "name": "Hollow Knight",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/367520/3c3489495136b26b34f8a9543c7f5645b99d388c/header.jpg?t=1776125684",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/367520/ss_5384f9f8b96a0b9934b2bc35a4058376211636d2.600x338.jpg?t=1776125684",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/367520/ss_5384f9f8b96a0b9934b2bc35a4058376211636d2.1920x1080.jpg?t=1776125684"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/367520/ss_d5b6edd94e77ba6db31c44d8a3c09d807ab27751.600x338.jpg?t=1776125684",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/367520/ss_d5b6edd94e77ba6db31c44d8a3c09d807ab27751.1920x1080.jpg?t=1776125684"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/367520/ss_a81e4231cc8d55f58b51a4a938898af46503cae5.600x338.jpg?t=1776125684",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/367520/ss_a81e4231cc8d55f58b51a4a938898af46503cae5.1920x1080.jpg?t=1776125684"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Release Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256679401/movie.293x165.jpg?t=1497589417",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/367520/89922/b71b6a50e9aa2334fddca8fa2197cb26a3640832/1750517691/hls_264_master.m3u8?t=1497589417"
+          },
+          {
+            "name": "The Grimm Troupe Free Content Pack 02",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256695695/movie.293x165.jpg?t=1505700570",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/367520/123471/b9044001968838dad1ff38d1abaaaeb7547e9692/1750517739/hls_264_master.m3u8?t=1505700570"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "celeste",
+      "title": "Celeste",
+      "appId": 504230,
+      "genre": "アクション・成長・手応え",
+      "mood": [
+        "ドット絵",
+        "明るい"
+      ],
+      "needs": [
+        "システム",
+        "チュートリアル",
+        "アクセシビリティ"
+      ],
+      "priority": 4,
+      "feature": "精密な移動を短い区間で繰り返し練習するプラットフォーマー。アシスト設定も備える。",
+      "idea": "失敗直後にすぐ同じ判断を試せるテンポと、段階的に学べる配置を研究。",
+      "watch": "失敗から再操作までの時間と説明の量を見る。",
+      "prototype": "ガード練習を短い弾列に分け、同じ弾列へ素早く再挑戦できる案を作る。",
+      "effort": "中",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/504230/?l=japanese",
+      "media": {
+        "name": "Celeste",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/504230/header.jpg?t=1714089525",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/504230/ss_1ad297c2044cdcf450ee83e56350cafb590da755.600x338.jpg?t=1714089525",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/504230/ss_1ad297c2044cdcf450ee83e56350cafb590da755.1920x1080.jpg?t=1714089525"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/504230/ss_03bfe6bd5ddac7f747c8d2aa1a4f82cfd53c6dcb.600x338.jpg?t=1714089525",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/504230/ss_03bfe6bd5ddac7f747c8d2aa1a4f82cfd53c6dcb.1920x1080.jpg?t=1714089525"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/504230/ss_4b0f0222341b64a37114033aca9994551f27c161.600x338.jpg?t=1714089525",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/504230/ss_4b0f0222341b64a37114033aca9994551f27c161.1920x1080.jpg?t=1714089525"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Launch",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256706951/movie.293x165.jpg?t=1516898311",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/504230/143846/608cb7d60c10278f3107baf57a528e483a7cbc7b/1750539057/hls_264_master.m3u8?t=1516898311"
+          }
+        ]
+      },
+      "verified": "2026-10-07",
+      "videos": []
+    },
+    {
+      "id": "hades",
+      "title": "Hades",
+      "appId": 1145360,
+      "genre": "アクション・成長・手応え",
+      "mood": [
+        "スタイリッシュ",
+        "神話",
+        "カラフル"
+      ],
+      "needs": [
+        "成長",
+        "システム",
+        "演出"
+      ],
+      "priority": 4,
+      "feature": "武器と恩恵を組み合わせ、繰り返す挑戦が会話や成長にもつながるアクションローグライト。",
+      "idea": "再挑戦を数値強化だけに頼らず、発見と反応で支える。射線と性質の相性も参考。",
+      "watch": "失敗後の拠点が次の挑戦への動機になる流れを見る。",
+      "prototype": "初めて解析した兵装にアーカイブの短い発見メモを付ける。",
+      "effort": "低",
+      "principles": [
+        "other",
+        "cheese",
+        "risk"
+      ],
+      "source": "https://store.steampowered.com/app/1145360/?l=japanese",
+      "media": {
+        "name": "Hades",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1145360/header.jpg?t=1758127023",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1145360/ss_c0fed447426b69981cf1721756acf75369801b31.600x338.jpg?t=1758127023",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1145360/ss_c0fed447426b69981cf1721756acf75369801b31.1920x1080.jpg?t=1758127023"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1145360/ss_8a9f0953e8a014bd3df2789c2835cb787cd3764d.600x338.jpg?t=1758127023",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1145360/ss_8a9f0953e8a014bd3df2789c2835cb787cd3764d.1920x1080.jpg?t=1758127023"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1145360/ss_68300459a8c3daacb2ec687adcdbf4442fcc4f47.600x338.jpg?t=1758127023",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1145360/ss_68300459a8c3daacb2ec687adcdbf4442fcc4f47.1920x1080.jpg?t=1758127023"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Hades - v1.0 Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256801252/movie.293x165.jpg?t=1600353465",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1145360/312686/b0312c49135823cc34946e98148abfb8da71f0fb/1750627549/hls_264_master.m3u8?t=1600353465"
+          },
+          {
+            "name": "Hades - v1.0 Gameplay Showcase",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256801288/movie.293x165.jpg?t=1600353474",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/1145360/312747/37b96035b5c9c7b12455eadc7bbc7d2b3afbd2fd/1750627553/hls_264_master.m3u8?t=1600353474"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "katana",
+      "title": "Katana ZERO",
+      "appId": 460950,
+      "genre": "アクション・成長・手応え",
+      "mood": [
+        "スタイリッシュ",
+        "ドット絵",
+        "ネオン"
+      ],
+      "needs": [
+        "演出",
+        "システム",
+        "記録"
+      ],
+      "priority": 4,
+      "feature": "時間操作と一撃の戦闘を短い場面で繰り返す。成功した一連の動きを映像として見せる。",
+      "idea": "成功までの試行と、成功時の鮮明な記録を分ける表現を参考にする。",
+      "watch": "やり直しと成功後の見え方の差を見る。",
+      "prototype": "部位を連続破壊した瞬間に短い記録カードを出す案を作る。",
+      "effort": "中",
+      "principles": [
+        "impact",
+        "release"
+      ],
+      "source": "https://store.steampowered.com/app/460950/?l=japanese",
+      "media": {
+        "name": "Katana ZERO",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460950/header.jpg?t=1761066027",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460950/ss_c269a57182b021d2aac2bb8d42421d0ef301360d.600x338.jpg?t=1761066027",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460950/ss_c269a57182b021d2aac2bb8d42421d0ef301360d.1920x1080.jpg?t=1761066027"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460950/ss_d4f8ef350ac44c096f8137208c381cac31e68242.600x338.jpg?t=1761066027",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460950/ss_d4f8ef350ac44c096f8137208c381cac31e68242.1920x1080.jpg?t=1761066027"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460950/ss_fce2aae6d24fbca70a8196e04f66c51d49a353b0.600x338.jpg?t=1761066027",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460950/ss_fce2aae6d24fbca70a8196e04f66c51d49a353b0.1920x1080.jpg?t=1761066027"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256748374/movie.293x165.jpg?t=1555596684",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/460950/218947/bba8c4e016866bae99d0059e424a63997092ec6d/1750533916/hls_264_master.m3u8?t=1555596684"
+          },
+          {
+            "name": "Release Date Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256679092/movie.293x165.jpg?t=1555596690",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/460950/89164/9027144027cd307c0a2d80be7dc4951a71300fb0/1750533833/hls_264_master.m3u8?t=1555596690"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "deadcells",
+      "title": "Dead Cells",
+      "appId": 588650,
+      "genre": "アクション・成長・手応え",
+      "mood": [
+        "ドット絵",
+        "ダーク",
+        "派手"
+      ],
+      "needs": [
+        "演出",
+        "成長",
+        "システム"
+      ],
+      "priority": 4,
+      "feature": "多様な武器、素早い移動、回避やパリィを使う探索型ローグライトアクション。",
+      "idea": "武器ごとの速度・範囲・手応えを揃えすぎず、装備の選択理由を残す。",
+      "watch": "重い武器と軽い武器の攻撃開始から復帰までを見る。",
+      "prototype": "主兵装5種を発射頻度・射線・命中演出の3軸で整理する。",
+      "effort": "低",
+      "principles": [
+        "impact",
+        "risk"
+      ],
+      "source": "https://store.steampowered.com/app/588650/?l=japanese",
+      "media": {
+        "name": "Dead Cells",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/588650/header.jpg?t=1779086887",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/588650/ss_ac28000ade40cc2fe5c128f32ac98ba33c008a7a.600x338.jpg?t=1779086887",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/588650/ss_ac28000ade40cc2fe5c128f32ac98ba33c008a7a.1920x1080.jpg?t=1779086887"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/588650/ss_7bde51ea6c8f6289e85ea1d8c1c941e1f8bfee91.600x338.jpg?t=1779086887",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/588650/ss_7bde51ea6c8f6289e85ea1d8c1c941e1f8bfee91.1920x1080.jpg?t=1779086887"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/588650/ss_e87e72a247918d8493892e035d5e1b4b84470d2f.600x338.jpg?t=1779086887",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/588650/ss_e87e72a247918d8493892e035d5e1b4b84470d2f.1920x1080.jpg?t=1779086887"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Dead Cells - Accolade Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256755089/movie.293x165.jpg?t=1581426951",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/588650/231061/8fe407db503493211097e9898f58ae600559a2a3/1750557235/hls_264_master.m3u8?t=1581426951"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "kirby",
+      "title": "星のカービィ ディスカバリー",
+      "appId": null,
+      "genre": "アクション・成長・手応え",
+      "mood": [
+        "可愛い",
+        "カラフル",
+        "ファンタジー"
+      ],
+      "needs": [
+        "画像",
+        "モチーフ",
+        "成長"
+      ],
+      "priority": 4,
+      "feature": "コピー能力とほおばりヘンケイで身近な物を遊びへ変える3Dアクション。能力の進化もある。",
+      "idea": "敵の能力を取り込む楽しさを、解析後の姿と挙動の変化で明確にする。",
+      "watch": "能力を得る前後で見た目と行動がどう変わるか見る。",
+      "prototype": "2つの解析性質を機体上の別々のパーツとして表示するラフを描く。",
+      "effort": "中",
+      "principles": [
+        "other",
+        "clarity"
+      ],
+      "source": "https://www.nintendo.com/jp/switch/arzga/index.html",
+      "videos": [
+        {
+          "title": "公式掲載動画",
+          "url": "https://www.youtube.com/watch?v=QxfKBGlhksM",
+          "via": "https://www.nintendo.com/jp/interview/arzga/03.html"
+        }
+      ]
+    },
+    {
+      "id": "smash",
+      "title": "大乱闘スマッシュブラザーズ SPECIAL",
+      "appId": null,
+      "genre": "アクション・成長・手応え",
+      "mood": [
+        "パーティ",
+        "カラフル",
+        "派手"
+      ],
+      "needs": [
+        "演出",
+        "システム",
+        "視認性"
+      ],
+      "priority": 4,
+      "feature": "攻撃で相手をふっとばす対戦アクション。蓄積ダメージと決定的な一撃の見せ方が特徴。",
+      "idea": "小さな成功と決め手を別の強さで演出し、派手な場面でも自機を読みやすくする。",
+      "watch": "普通の命中と決着の一撃、エフェクトの重なりを見る。",
+      "prototype": "通常パリィとボス最終部位破壊で停止・音・ズームの差を作る。",
+      "effort": "低",
+      "principles": [
+        "impact",
+        "clarity"
+      ],
+      "source": "https://www.smashbros.com/ja_JP/"
+    },
+    {
+      "id": "breach",
+      "title": "Into the Breach",
+      "appId": 590380,
+      "genre": "戦略・カード・ルール",
+      "mood": [
+        "SF",
+        "ドット絵",
+        "戦略"
+      ],
+      "needs": [
+        "システム",
+        "UI",
+        "駆け引き"
+      ],
+      "priority": 5,
+      "feature": "敵の次の攻撃が示される小さな盤面で、押す・守る・倒すを選ぶターン制戦術ゲーム。",
+      "idea": "予告があっても判断は深くなる。ボスの攻撃先や部位の仕事をはっきり見せる参考。",
+      "watch": "攻撃予告を知ったうえで複数の手がある場面を見る。",
+      "prototype": "次に撃つ砲台だけ予告を強くし、狙う部位を選べるか確認する。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "risk"
+      ],
+      "source": "https://store.steampowered.com/app/590380/?l=japanese",
+      "media": {
+        "name": "Into the Breach",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/590380/header.jpg?t=1755610784",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/590380/ss_6113590509c195f98fa64cd738df534762e0c358.600x338.jpg?t=1755610784",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/590380/ss_6113590509c195f98fa64cd738df534762e0c358.1920x1080.jpg?t=1755610784"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/590380/ss_edc919f964fd053441967b89592bc930a65f4171.600x338.jpg?t=1755610784",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/590380/ss_edc919f964fd053441967b89592bc930a65f4171.1920x1080.jpg?t=1755610784"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/590380/ss_82cfc5241c4a093091fbd7d2e124a52a57930527.600x338.jpg?t=1755610784",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/590380/ss_82cfc5241c4a093091fbd7d2e124a52a57930527.1920x1080.jpg?t=1755610784"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Into The Breach - Announcement Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256679224/movie.293x165.jpg?t=1519738417",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/590380/89558/de5e87f7edee39b31eb3f4810d5a04f9cbe2aaf0/1750557552/hls_264_master.m3u8?t=1519738417"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "slay",
+      "title": "Slay the Spire",
+      "appId": 646570,
+      "genre": "戦略・カード・ルール",
+      "mood": [
+        "カード",
+        "ファンタジー",
+        "戦略"
+      ],
+      "needs": [
+        "システム",
+        "UI",
+        "成長"
+      ],
+      "priority": 4,
+      "feature": "カード、レリック、敵の行動予告を組み合わせて、毎回異なるデッキを作る。",
+      "idea": "2枠の選択で『今の主兵装に合うか』を判断できる比較と説明を研究。",
+      "watch": "敵の予定と自分の手札が同時に見える画面を見る。",
+      "prototype": "解析カードの説明を単体効果と主兵装との相性の2行にする案を作る。",
+      "effort": "低",
+      "principles": [
+        "risk",
+        "clarity",
+        "cheese"
+      ],
+      "source": "https://store.steampowered.com/app/646570/?l=japanese",
+      "media": {
+        "name": "Slay the Spire",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/646570/header.jpg?t=1774015376",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/646570/ss_c171816f7ecd35b5b46d2fa27532f4c5b8ca3cc5.600x338.jpg?t=1774015376",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/646570/ss_c171816f7ecd35b5b46d2fa27532f4c5b8ca3cc5.1920x1080.jpg?t=1774015376"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/646570/ss_01aa3e7759e457bfbf2422f31c325d7b3ba8a6eb.600x338.jpg?t=1774015376",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/646570/ss_01aa3e7759e457bfbf2422f31c325d7b3ba8a6eb.1920x1080.jpg?t=1774015376"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/646570/ss_b757436d08ba08292796bfed9c60e7cc99d5f2c3.600x338.jpg?t=1774015376",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/646570/ss_b757436d08ba08292796bfed9c60e7cc99d5f2c3.1920x1080.jpg?t=1774015376"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Launch Trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256740869/movie.293x165.jpg?t=1548258737",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/646570/205320/640196deb3169b2a1667340ab45f229af73caba7/1750566635/hls_264_master.m3u8?t=1548258737"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "balatro",
+      "title": "Balatro",
+      "appId": 2379780,
+      "genre": "戦略・カード・ルール",
+      "mood": [
+        "カード",
+        "レトロ",
+        "抽象"
+      ],
+      "needs": [
+        "システム",
+        "成長",
+        "演出"
+      ],
+      "priority": 4,
+      "feature": "ポーカーの役とジョーカー効果を組み合わせ、点数の相乗効果を作るローグライト。",
+      "idea": "小さな性質の組合せが大きな結果になる快感を、順番に理解できる表示へ変える。",
+      "watch": "倍率が積み上がる順番と結果の見せ方を見る。",
+      "prototype": "2つの解析効果を発射軌道上の別の段階で見せ、寄与を確認する。",
+      "effort": "中",
+      "principles": [
+        "cheese",
+        "impact"
+      ],
+      "source": "https://store.steampowered.com/app/2379780/?l=japanese",
+      "media": {
+        "name": "Balatro",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2379780/7a85430784e4d613cdb0547414d8cf16ffa45747/header.jpg?t=1790693638",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2379780/96208723dbedef49d71bf1b0a74aee1689018c50/ss_96208723dbedef49d71bf1b0a74aee1689018c50.600x338.jpg?t=1790693638",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2379780/96208723dbedef49d71bf1b0a74aee1689018c50/ss_96208723dbedef49d71bf1b0a74aee1689018c50.1920x1080.jpg?t=1790693638"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2379780/ss_4862112e5030f74a5818cd4c31347d699ac5adf3.600x338.jpg?t=1790693638",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2379780/ss_4862112e5030f74a5818cd4c31347d699ac5adf3.1920x1080.jpg?t=1790693638"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2379780/ss_3be65a7dd3be072d567e11883d208861a7e959fa.600x338.jpg?t=1790693638",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2379780/ss_3be65a7dd3be072d567e11883d208861a7e959fa.1920x1080.jpg?t=1790693638"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Accolades Gameplay Video",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257198110/8a0ee295b28d9650b4176336600ef70c204209a0/movie_600x337.jpg?t=1759138871",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/2379780/581550014/e9a47276c1efe4165c2e25e35a06d417d78e1724/1758033766/hls_264_master.m3u8?t=1759138871"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "baba",
+      "title": "Baba Is You",
+      "appId": 736260,
+      "genre": "戦略・カード・ルール",
+      "mood": [
+        "可愛い",
+        "ドット絵",
+        "パズル"
+      ],
+      "needs": [
+        "システム",
+        "UI",
+        "ルール"
+      ],
+      "priority": 3,
+      "feature": "単語ブロックを動かし、何が自分で何が壁かといったルール自体を書き換えるパズル。",
+      "idea": "装備の組合せを短い言葉で読めるルールにする。奇抜な案を考える発想源。",
+      "watch": "少数の単語を入れ替えて結果が大きく変わる場面を見る。",
+      "prototype": "主兵装＋性質2枠を『連射＋誘導＋貫通』の一文にまとめる。",
+      "effort": "低",
+      "principles": [
+        "clarity",
+        "other"
+      ],
+      "source": "https://store.steampowered.com/app/736260/?l=japanese",
+      "media": {
+        "name": "Baba Is You",
+        "header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/736260/header.jpg?t=1760102539",
+        "screenshots": [
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/736260/ss_908c8a4fd0ffec9f29341eb50eb7f074c105342f.600x338.jpg?t=1760102539",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/736260/ss_908c8a4fd0ffec9f29341eb50eb7f074c105342f.1920x1080.jpg?t=1760102539"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/736260/ss_9eadb1cdc09f574d49d32a722d7bda5813c96a64.600x338.jpg?t=1760102539",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/736260/ss_9eadb1cdc09f574d49d32a722d7bda5813c96a64.1920x1080.jpg?t=1760102539"
+          },
+          {
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/736260/ss_c535fc337bdb15bfe35a164cc13db7ec92fd1f44.600x338.jpg?t=1760102539",
+            "full": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/736260/ss_c535fc337bdb15bfe35a164cc13db7ec92fd1f44.1920x1080.jpg?t=1760102539"
+          }
+        ],
+        "movies": [
+          {
+            "name": "Release date trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256743354/movie.293x165.jpg?t=1550681204",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/736260/209884/a4399e94a570a08ed4332fb7e95b0182b8dd2ff1/1750576739/hls_264_master.m3u8?t=1550681204"
+          },
+          {
+            "name": "Reveal trailer",
+            "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/256698065/movie.293x165.jpg?t=1513088546",
+            "mp4": null,
+            "webm": null,
+            "hls": "https://video.akamai.steamstatic.com/store_trailers/736260/128015/867e4cbcde69109f5259a601a29d8a6af8240b6e/1750576737/hls_264_master.m3u8?t=1513088546"
+          }
+        ]
+      },
+      "verified": "2026-10-07"
+    }
+  ]
+}

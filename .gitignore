@@ -1,6 +1,9 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+/export/
+*.exe
+*.pck
 
 # Windows-specific files
 
@@ -8,4 +11,3 @@
 [Tt]humbs.db.import
 $RECYCLE.BIN/
 *.lnk
-

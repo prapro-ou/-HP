@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://game/core/ui.tscn" id="4_ui"]
 [ext_resource type="Script" uid="uid://b6t1x3undf74f" path="res://game/core/bullet_pool.gd" id="5_bulletpool"]
 [ext_resource type="Script" uid="uid://c062tor6ycsv4" path="res://game/audio_stream_player_2d.gd" id="6_dgpao"]
+[ext_resource type="Script" path="res://game/systems/counter_system.gd" id="8_counter"]
 
 [node name="Main" type="Node2D" unique_id=1066061339]
 position = Vector2(-1, 0)
@@ -17,6 +18,9 @@ position = Vector2(397, 869)
 
 [node name="GameManager" type="Node2D" parent="." unique_id=1905154916]
 script = ExtResource("3_gamemanager")
+
+[node name="CounterSystem" type="Node" parent="GameManager"]
+script = ExtResource("8_counter")
 
 [node name="UI" parent="." unique_id=1027253514 instance=ExtResource("4_ui")]
 

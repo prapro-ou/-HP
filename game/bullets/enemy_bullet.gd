@@ -41,6 +41,7 @@ var is_friendly: bool = false
 var is_unparryable: bool = false # パリィ不可フラグ
 var bullet_type: String = BULLET_TYPE_BEAM
 var target_node: Node2D = null
+var spawn_generation: int = 0
 
 # 減速追尾ミサイル用変数
 var initial_speed: float = 350.0
@@ -65,7 +66,23 @@ const PARRY_PARTICLE_SCENE: PackedScene = preload("res://game/bullets/parry_part
 func _ready() -> void:
 	z_index = 70
 	z_as_relative = false
+	add_to_group("enemy_bullets")
+	body_entered.connect(_on_body_entered)
+	area_entered.connect(_on_area_entered)
+
+func reset_for_spawn(type: String) -> void:
+	spawn_generation += 1
+	position = Vector2.ZERO
+	velocity = Vector2.ZERO
+	speed = 200.0
+	damage = 16
+	initial_speed = speed
+	if is_in_group("counter_projectiles"):
+		remove_from_group("counter_projectiles")
+	bullet_type = type
 	is_friendly = false
+	is_unparryable = type.contains("unparryable")
+	target_node = null
 	decel_timer = 0.0
 	decel_phase = 0
 	accel_line_timer = 1.0
@@ -73,12 +90,21 @@ func _ready() -> void:
 	cluster_timer = 0.85
 	lifetime = 0.0
 	is_dissolving = false
-	target_node = null
+	rotation = 0.0
+	modulate = Color.WHITE
 	update_bullet_color()
-	
-	body_entered.connect(_on_body_entered)
-	area_entered.connect(_on_area_entered)
 
+func set_active(active: bool) -> void:
+	visible = active
+	set_process(active)
+	set_deferred("monitoring", active)
+	set_deferred("monitorable", active)
+	if not active:
+		if is_in_group("counter_projectiles"):
+			remove_from_group("counter_projectiles")
+		position = Vector2(-2000.0, -2000.0)
+		velocity = Vector2.ZERO
+		target_node = null
 
 func update_bullet_color() -> void:
 	if is_unparryable or bullet_type.contains("unparryable"):
@@ -102,6 +128,9 @@ func update_bullet_color() -> void:
 			"straight":
 				modulate = Color(0.3, 0.75, 1.0) # 直進シアン
 				if sprite: sprite.scale = Vector2(0.45, 0.7)
+			"meteor":
+				modulate = Color(1.0, 0.5, 0.15)
+				if sprite: sprite.scale = Vector2(1.2, 1.2)
 			"charge":
 				modulate = Color(1.0, 0.35, 0.15) # チャージ赤橙
 				if sprite: sprite.scale = Vector2(0.8, 1.2)
@@ -164,8 +193,15 @@ func _draw() -> void:
 
 
 func _on_body_entered(body: Node2D) -> void:
+	if not visible:
+		return
 	if not is_friendly:
 		if body.name == "Player" or body.has_method("take_damage"):
+			# Physics contact can precede Player._process. Use the same capture path.
+			if not is_unparryable and body.get("is_guarding") == true and body.has_method("check_parry"):
+				body.check_parry(self)
+				if not visible:
+					return
 			var is_gb = false
 			if is_unparryable and "is_guarding" in body and body.is_guarding:
 				is_gb = true
@@ -175,6 +211,8 @@ func _on_body_entered(body: Node2D) -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
+	if not visible:
+		return
 	if is_friendly:
 		if area.is_in_group("boss") or area.is_in_group("boss_turrets") or area.is_in_group("enemy") or area.is_in_group("drones") or area.name == "BossDamageShape" or area.name == "Core":
 			var damage_target: Node = area
@@ -195,6 +233,8 @@ func _on_area_entered(area: Area2D) -> void:
 
 
 func _process(delta: float) -> void:
+	if not visible:
+		return
 	if is_friendly:
 		# パリィ後追尾処理
 		if not is_instance_valid(target_node) or not target_node.visible:
@@ -318,26 +358,16 @@ func trigger_cluster_split() -> void:
 
 
 func find_new_friendly_target() -> void:
-	var turrets = get_tree().get_nodes_in_group("boss_turrets")
-	var valid_turrets = []
-	for t in turrets:
-		if is_instance_valid(t) and t.visible:
-			valid_turrets.append(t)
-			
-	# 8割砲台、2割ボス
-	if valid_turrets.size() > 0 and randf() < 0.8:
-		target_node = valid_turrets.pick_random()
-	else:
-		var main = get_node_or_null("/root/Main")
-		if main:
-			var boss = main.get_node_or_null("Boss")
-			if is_instance_valid(boss) and boss.visible:
-				target_node = boss
-			else:
-				var drones = get_tree().get_nodes_in_group("drones")
-				if drones.size() > 0:
-					target_node = drones.pick_random()
-
+	target_node = null
+	var targets := CombatTargets.enemies(get_tree())
+	var distance := INF
+	for target in targets:
+		var value := global_position.distance_squared_to(target.global_position)
+		if target.is_in_group("boss_turrets"):
+			value *= 0.25
+		if value < distance:
+			distance = value
+			target_node = target
 
 func recycle_bullet() -> void:
 	var main = get_node_or_null("/root/Main")
@@ -378,12 +408,6 @@ func convert_to_friendly() -> void:
 		particle.modulate = Color(0.3, 0.95, 1.0)
 		get_parent().add_child(particle)
 	
-	var main = get_node_or_null("/root/Main")
-	if main:
-		var manager = main.get_node_or_null("GameManager")
-		if manager and manager.has_method("register_parry"):
-			manager.register_parry()
-
 
 func is_owned_by_player() -> bool:
 	return is_friendly

@@ -1,7 +1,7 @@
 extends Node
 
-const SAVE_PATH = "user://savegame.cfg"
-const SETTINGS_PATH = "user://settings.cfg"
+const SAVE_PATH = "user://savegame_v3.cfg"
+const SETTINGS_PATH = "user://settings_v3.cfg"
 
 # Save Game variables
 var is_continue: bool = false
@@ -17,14 +17,16 @@ var equipped_shield: String = "counter" # "counter" (damage/rebound), "gauge" (f
 var equipped_counter_weapon: String = "turret" # "turret" (支援砲台部隊), "funnel" (サイバーファンネル部隊), "boss_beam", "boss_missile"
 var unlocked_shields: Array = ["counter"] # Available shield frameworks
 var unlocked_weapons: Array = ["machine_gun", "burst_rifle", "pulse_gun"] # Available primary weapon frameworks
-var unlocked_counter_weapons: Array = ["turret", "funnel", "gigantic_orb", "chain_explosions"] # Boss & support weapons unlocked for COUNTER SYSTEM
+var unlocked_counter_weapons: Array = ["turret", "funnel"] # Boss & support weapons unlocked for COUNTER SYSTEM
 var unlocked_stages: Array = [1] # Unlocked stages (Stage 1 is unlocked by default)
 var cleared_stages: Array = [] # Stages cleared at least once (unlocks hard mode for that stage)
 var discovered_analysis_weapons: Array = [] # Discovered analysis mutation patterns
 var upgrade_levels: Dictionary = {
 	"hp": 0,
 	"parry_window": 0,
-	"cooldown": 0
+	"cooldown": 0,
+	"shot_power": 0,
+	"capture_power": 0
 }
 
 # 各シールド固有のジャストガード範囲強化レベル (Lv.0〜5)
@@ -83,6 +85,10 @@ func get_key_display_name(keycode: int) -> String:
 func get_counter_system_key_name() -> String:
 	return get_key_display_name(key_counter_system)
 
+func get_combat_key_name(keycode: int) -> String:
+	var name := get_key_display_name(keycode)
+	return {"BACKSPACE": "Bksp", "PAGEDOWN": "PgDn", "PAGEUP": "PgUp", "CAPSLOCK": "Caps", "PRINTSCREEN": "PrtSc", "SCROLLLOCK": "ScrLk"}.get(name.to_upper(), name)
+
 func get_enemy_hp_multiplier() -> float:
 	return 2.0 if hard_mode_enabled else 1.0
 
@@ -109,64 +115,72 @@ var tips_catalog: Array[Dictionary] = [
 		"category": "basic",
 		"category_name": "基本操作",
 		"title": "機体の基本移動と回避",
-		"desc": "方向キーまたはWASDキーで機体を360度自在に移動できます。マウス移動にも対応しており、状況に応じた直感的な回避行動が可能です。",
-		"hint": "操作: [WASD] / [方向キー] / [マウス移動]"
+		"desc": "方向キーまたはWASDキーで機体を360度自在に移動できます。設定画面で移動キーを変更できます。",
+		"hint": "操作: [WASD] / [方向キー]"
 	},
 	{
 		"id": "tip_shoot",
 		"category": "basic",
 		"category_name": "基本操作",
 		"title": "主兵装の常時フルオート射撃",
-		"desc": "主兵装は常時自動で連射されます。攻撃ボタンの押しっぱなしは不要なため、敵弾の回避やシールドでのジャストガード、Xキーでの必殺技発動に集中して立ち回ることができます。",
+		"desc": "出撃直後から主兵装が自動で連射されます。捕まえた敵弾は、次の射撃に追撃として加わります。攻撃ボタンの押しっぱなしは不要なため、敵弾の回避やシールドでのパリィ、設定したキーでのCOUNTER発動に集中して立ち回ることができます。",
 		"hint": "仕様: 常時フルオート自動連射 (攻撃操作不要)"
+	},
+	{
+		"id": "tip_wave_route",
+		"category": "basic",
+		"category_name": "基本操作",
+		"title": "敵部隊を倒して道中突破",
+		"desc": "道中は3〜4組の有限ウェーブ。予定の出現と生存敵の処理が終わると次へ進み、全部隊の撃破で早くボスへ到達します。道中全体の上限は60秒で、ウェーブ間の待ちも含みます。ポーズと操作説明中は時計が止まります。",
+		"hint": "突破: 次ウェーブへ+30HP/+10TP。時間切れで未突破分の報酬は入りません。"
 	},
 	{
 		"id": "tip_guard_basic",
 		"category": "shield",
 		"category_name": "シールド",
 		"title": "シールドの展開と熱管理",
-		"desc": "スペースキーまたは右クリックでシールドを展開し、敵弾を完全に遮断します。連続展開を行うとシールド熱量が上昇し、オーバーヒート時に一時的な防御不能と装甲脆弱化が発生します。",
-		"hint": "操作: [SPACE] または [右クリック] (熱ゲージに注意)"
+		"desc": "設定したシールドキーまたは右クリックで展開し、通常の敵弾を捕まえます。ガード不可の攻撃は回避が必要です。カウンターシールドと増幅ブースターは熱で管理し、連続展開でオーバーヒートします。吸収マトリクスは熱を使わず、再展開までの待ち時間で管理します。",
+		"hint": "操作: シールドキー / 右クリック。熱または再展開時間に注意"
 	},
 	{
 		"id": "tip_just_guard",
 		"category": "shield",
 		"category_name": "シールド",
-		"title": "ジャストガードと反射反撃",
-		"desc": "敵弾が自機周囲の有効範囲に入った瞬間にシールドを展開するとジャストガードが発動します。敵弾を強力な味方反射弾へと変換し、機体耐久値の修復も行われます。",
+		"title": "パリィと捕獲追撃",
+		"desc": "敵弾が自機周囲の有効範囲に入った瞬間にシールドを展開するとパリィが発動します。敵弾を捕まえて機体周囲に並べ、短く保持した後、次の射撃で追撃します。成功5回で機体を修復します。",
 		"hint": "判定: 自機周囲のサイバーリング内に敵弾侵入時"
 	},
 	{
 		"id": "tip_focus_tuning",
 		"category": "shield",
 		"category_name": "シールド",
-		"title": "ジャストガードのフォーカス設定",
-		"desc": "技術研究所にて判定範囲を縮小する代わりに反射威力を最大2.2倍まで引き上げることが可能です。リスクは高まりますが、強敵相手に圧倒的なカウンターダメージを与えられます。",
+		"title": "パリィのフォーカス設定",
+		"desc": "技術研究所にて判定範囲を縮小する代わりに追撃威力を最大1.4倍まで引き上げることが可能です。リスクは高まりますが、強敵相手に圧倒的なカウンターダメージを与えられます。",
 		"hint": "設定場所: 技術研究所 (STANDARD / FOCUS / PINPOINT)"
 	},
 	{
 		"id": "tip_analysis_slot",
 		"category": "attack",
 		"category_name": "攻撃",
-		"title": "敵弾解析とスロット固定",
-		"desc": "敵弾をジャストガードすることで解析が進み、100%に達すると変異兵装が解放されます。最大2つまでスロットに固定装備され、以降の解析でLvアップ集中強化されます。",
-		"hint": "仕様: 最大2スロット固定 / 上書きなし集中強化"
+		"title": "捕まえた弾の追撃",
+		"desc": "パリィで捕まえた弾が次の自動射撃に加わります。保持上限は12発。ミサイルは誘導、拡散弾は3方向、重弾は爆発の追撃になります。",
+		"hint": "仕様: 最大12発 / 次の自動射撃で追撃"
 	},
 	{
 		"id": "tip_fusion_weapon",
 		"category": "attack",
 		"category_name": "攻撃",
-		"title": "2属性融合兵装の完成",
-		"desc": "2つの変異兵装スロットが埋まると自動的に固有の融合兵装が完成します。拡散×3連射やメテオ×拡散など、2つの兵装特性を兼ね備えた強力な複合効果を発揮します。",
-		"hint": "発動条件: 変異スロット2枠の解放完了"
+		"title": "主兵装と追撃の役割",
+		"desc": "動く単体はマシンガンで射線を合わせ、縦列はバーストの貫通、横分散はパルスの広角、密集はプラズマの熱場で攻められます。捕まえた敵弾は、その弾の性質を持つ追撃になります。",
+		"hint": "仕様: 主兵装は固定 / 追撃は捕まえた弾次第"
 	},
 	{
 		"id": "tip_counter_system",
 		"category": "attack",
 		"category_name": "攻撃",
-		"title": "COUNTER SYSTEM (必殺支援砲台部隊)",
-		"desc": "Xキー（またはEキー/Cキー）を押すことで、自機カラーのボスタレット支援部隊が一定時間出撃します。敵を自動索敵して圧倒的高火力で支援射撃を行い、全画面が機体カラーのサイバーティントで包まれます。",
-		"hint": "操作: [Xキー] / [E] / [C] (支援タレット部隊の召喚)"
+		"title": "COUNTER SYSTEM",
+		"desc": "ボス戦中のパリィでゲージを満たし、設定した発動キーで装備中のカウンター兵装を使用します。通常出撃ではボス戦につき1回です。装備した兵装によって射線・狙い・範囲が異なります。準備完了を確認して、砲台や敵弾が集まる瞬間を狙って使いましょう。",
+		"hint": "操作: 設定した発動キー / ボス戦中に充填"
 	},
 	{
 		"id": "tip_boss_turret",
@@ -197,7 +211,7 @@ var tips_catalog: Array[Dictionary] = [
 		"category": "upgrade",
 		"category_name": "強化要素",
 		"title": "特殊シールドフレームの換装",
-		"desc": "標準のカウンターシールドに加え、エナジーオーブを磁力吸引する吸収マトリクスや攻撃力をスタック強化する増幅ブースターが開発可能です。作戦に合わせて自由に換装できます。",
+		"desc": "カウンターシールドは捕獲成功で熱を8返し、強い追撃へつなげます。吸収マトリクスは広い弾幕をまとめて捕まえ、再展開まで基本3秒。増幅ブースターは成功時に近距離衝撃波を放ち、2秒間の主兵装強化で攻め込めます。",
 		"hint": "開発: 技術研究所にて各30 TPで開発"
 	},
 	{
@@ -205,450 +219,24 @@ var tips_catalog: Array[Dictionary] = [
 		"category": "other",
 		"category_name": "その他",
 		"title": "極秘作戦：COUNTER ONLY出撃",
-		"desc": "ステージ5を5回クリアし150 TPを消費することで解放される特殊作戦です。自機射撃を停止し、常駐する4基の支援砲台部隊が敵を自動殲滅します。",
+		"desc": "ステージ5を5回クリアし150 TPを消費することで解放される特殊作戦です。主兵装と捕獲追撃を停止し、選択したCOUNTER兵装を繰り返し使用できます。毎回、パリィで再充填して手動発動します。",
 		"hint": "解放条件: STAGE 5を5回クリア ＆ 150 TP"
 	}
 ]
 
 # Catalog of all 10 Enemy Analysis Mutation Patterns
-var analysis_catalog: Dictionary = {
-	"rapid": {
-		"name": "高速連射",
-		"icon": "[RAPID]",
-		"color": Color(0.3, 0.8, 1.0),
-		"enemy_color": "青色",
-		"enemy_type": "直進フォトン弾ドローン",
-		"effect": "主兵装の連射速度を+30%〜+50%短縮＆弾速を大幅加速",
-		"stats": "連射速度: ＋30%〜50% | 弾速: ＋200〜450",
-		"description": "青色ドローンの高速演算機構を解析。主兵装のエネルギー装填サイクルを極限まで短縮し、圧倒的な高速弾速と連射密度を実現する。"
-	},
-	"spread": {
-		"name": "拡散射撃",
-		"icon": "[SPREAD]",
-		"color": Color(0.2, 1.0, 0.6),
-		"enemy_color": "緑色",
-		"enemy_type": "拡散ウェイブ弾ドローン",
-		"effect": "主兵装の同時発射ライン数を増加（2連装->3連装->多方向拡散）",
-		"stats": "同時発射数: ＋1〜3発 | 攻撃範囲: 扇状広域",
-		"description": "緑色ドローンの広角プラズマ照射機構を解析。主兵装の射撃ラインを前方扇状に拡張し、複数の敵を一網打尽にする。"
-	},
-	"pierce": {
-		"name": "貫通重弾",
-		"icon": "[PIERCE]",
-		"color": Color(1.0, 0.6, 0.2),
-		"enemy_color": "赤色",
-		"enemy_type": "重装甲チャージ砲巡洋艦",
-		"effect": "主兵装の弾丸に装甲貫通属性を付与し、単発威力を大幅強化",
-		"stats": "単発威力: ＋6〜14 | 貫通数: 1体〜全貫通",
-		"description": "赤色大型艦の高密度エネルギー充填コアを解析。主兵装に強力な貫通重力を付与し、硬い敵や後方の敵をまとめて貫通粉砕する。"
-	},
-	"homing": {
-		"name": "誘導弾道",
-		"icon": "[HOMING]",
-		"color": Color(0.85, 0.45, 1.0),
-		"enemy_color": "紫色",
-		"enemy_type": "クラスター追尾ミサイル艦",
-		"effect": "主兵装の弾道に索敵誘導補正を付与し、敵を自動追尾",
-		"stats": "追尾誘導力: ＋2.0〜4.5 | 命中率: 大幅向上",
-		"description": "紫色ミサイル艦の生体誘導センサーを解析。主兵装の弾道が最寄りの敵へ向かって弧を描いて自動追尾し、敏捷な敵も逃さず仕留める。"
-	},
-	"laser": {
-		"name": "集束光線",
-		"icon": "[LASER]",
-		"color": Color(0.4, 0.9, 1.0),
-		"enemy_color": "シアン色",
-		"enemy_type": "高出力ビーム砲台／要塞光線部",
-		"effect": "主兵装をエネルギー集束光線ボルト化（弾速加速＆追加威力を付与）",
-		"stats": "光線追加威力: ＋6〜14 | 弾速: ＋150",
-		"description": "要塞レーザー砲台の集束照射技術を解析。主兵装の弾丸を高密度エネルギー光線ボルトへ変換し、高い貫通破壊力をもたらす。"
-	},
-	"cyclone": {
-		"name": "旋回スピン",
-		"icon": "[CYCLONE]",
-		"color": Color(1.0, 0.85, 0.2),
-		"enemy_color": "黄色",
-		"enemy_type": "不規則旋回ドローン／サイクロンポッド",
-		"effect": "主兵装の弾道に螺旋スピン波動を付与し、攻撃幅を大幅拡張",
-		"stats": "波動振幅: 80〜160px | 制圧面積: 広域",
-		"description": "黄色不規則ドローンのジャイロ運動機構を解析。主兵装の弾道が螺旋状にうねりながら飛翔し、広範囲の敵機を巻き込んで攻撃する。"
-	},
-	"meteor": {
-		"name": "重爆装填",
-		"icon": "[METEOR]",
-		"color": Color(1.0, 0.35, 0.2),
-		"enemy_color": "橙色",
-		"enemy_type": "要塞迎撃ギガメテオランチャー",
-		"effect": "主兵装の弾丸に着弾時爆裂衝撃波を付与",
-		"stats": "爆発半径: 45〜80px | 爆風威力: ＋6〜14",
-		"description": "要塞メテオ射出砲の重力破砕技術を解析。主兵装が敵に着弾した瞬間、周囲へ爆発衝撃波が広がり周囲の敵ごと吹き飛ばす。"
-	},
-	"thunder": {
-		"name": "電撃連鎖",
-		"icon": "[THUNDER]",
-		"color": Color(0.95, 0.9, 0.2),
-		"enemy_color": "金色・放電色",
-		"enemy_type": "成層圏超放電ストーム／放電ドローン",
-		"effect": "主兵装に着弾時連鎖雷撃を付与。周囲の敵・砲台へ最大3〜5連鎖放電！",
-		"stats": "連鎖数: 3〜5体 | 雷撃威力: ＋8〜18",
-		"description": "成層圏超放電ストームの高圧プラズマアークを解析。弾丸が敵に命中した瞬間、周囲の敵機や砲台へ雷撃が電光石火で連鎖し一網打尽にする。"
-	},
-	"vortex": {
-		"name": "重力特異点",
-		"icon": "[VORTEX]",
-		"color": Color(0.75, 0.3, 1.0),
-		"enemy_color": "深紫色",
-		"enemy_type": "特異点重力弾／空間歪曲ユニット",
-		"effect": "着弾地点に敵を引き寄せるブラックホール重力場（1.5秒）を生成",
-		"stats": "引力半径: 80〜160px | 持続ダメージ: ＋10〜25",
-		"description": "深宇宙重力歪曲フィールドを解析。着弾地点に微小ブラックホールを発生させ、周囲の敵やドローンを吸引拘束しながら粉砕する。"
-	},
-	"blade": {
-		"name": "真空斬撃",
-		"icon": "[BLADE]",
-		"color": Color(0.2, 1.0, 0.85),
-		"enemy_color": "青緑色",
-		"enemy_type": "超振動カッター／真空スラッシャー",
-		"effect": "主兵装を巨大な三日月斬撃波へ変換。敵弾を切り裂きながら多段貫通！",
-		"stats": "斬撃幅: 80〜140px | 弾消し性能: 有効",
-		"description": "超高周波ブレードの位相切断波を解析。巨大な三日月状の真空カッターを放ち、進行ルート上の敵弾を切り払いながら敵陣を両断する。"
-	}
-}
+var analysis_catalog: Dictionary = WeaponCatalog.analysis_info()
 
-var fusion_catalog: Dictionary = {
-	"blade+cyclone": {
-		"name": "ツイスター・スラッシャー",
-		"title_en": "TWISTER SLASHER",
-		"summary": "巨大旋回回転斬撃",
-		"description": "渦を巻きながら飛翔する巨大な真空回転刃。自機前方の広大な空間の敵弾を薙ぎ払う。",
-		"color": Color(0.3, 1.0, 0.7)
-	},
-	"blade+homing": {
-		"name": "ファントム・スラッシャー",
-		"title_en": "PHANTOM SLASHER",
-		"summary": "敵追尾型真空斬撃刃",
-		"description": "敵を自動追尾して弧を描きながら飛翔する真空刃。敵弾を切り裂きつつ目標へ必中両断する。",
-		"color": Color(0.6, 0.9, 1.0)
-	},
-	"blade+laser": {
-		"name": "光子断絶ブレード",
-		"title_en": "PHOTON RUPTURE BLADE",
-		"summary": "光速超切断レーザー刃",
-		"description": "光速の推進力と超位相切断力を併せ持つ長距離斬撃。敵弾を蒸発させ敵を両断する。",
-		"color": Color(0.3, 1.0, 0.95)
-	},
-	"blade+meteor": {
-		"name": "ギガント・ブレードバースト",
-		"title_en": "GIGANT BLADE BURST",
-		"summary": "重爆破砕巨大真空斬撃",
-		"description": "灼熱の衝撃波を纏った超巨大斬撃波。接触した敵弾を消滅させ、着弾時に大爆砕を引き起こす。",
-		"color": Color(1.0, 0.45, 0.4)
-	},
-	"blade+pierce": {
-		"name": "真・破断グランドセイバー",
-		"title_en": "GRAND BREAK SABER",
-		"summary": "超極限装甲貫通斬撃波",
-		"description": "どんな硬質装甲も一刀両断する長大な高周波ブレード。全敵と敵弾を一直線に切り裂き進む。",
-		"color": Color(0.4, 1.0, 0.7)
-	},
-	"blade+rapid": {
-		"name": "フラッシュ・スラッシュラッシュ",
-		"title_en": "FLASH SLASH RUSH",
-		"summary": "超高速連射真空刃",
-		"description": "装填サイクルを極限まで早めた真空カッターの乱舞。前方の敵弾を連続で切り払いながら制圧する。",
-		"color": Color(0.3, 0.95, 0.9)
-	},
-	"blade+spread": {
-		"name": "テンペスト・スラッシュ",
-		"title_en": "TEMPEST SLASH",
-		"summary": "扇状三日月真空刃",
-		"description": "放射状に放たれる巨大な真空カッター。敵弾を切り裂きながら敵前線を両断する。",
-		"color": Color(0.2, 1.0, 0.8)
-	},
-	"blade+thunder": {
-		"name": "紫電一閃・ライキリ",
-		"title_en": "LIGHTNING BLADE RAIKIRI",
-		"summary": "放電連鎖プラズマ斬撃",
-		"description": "高圧電流を帯びた三日月刃。敵を切り裂いた瞬間、周囲の敵機へ青白い雷撃が電光石火で連鎖する。",
-		"color": Color(0.7, 1.0, 0.3)
-	},
-	"blade+vortex": {
-		"name": "ディメンション・リッパー",
-		"title_en": "DIMENSION RIPPER",
-		"summary": "空間裂断重力斬撃",
-		"description": "空間そのものを切り裂く歪曲刃。斬撃の軌道上にブラックホールを発生させ敵陣を拘束粉砕する。",
-		"color": Color(0.6, 0.4, 1.0)
-	},
-	"cyclone+homing": {
-		"name": "スパイラル・チェイサー",
-		"title_en": "SPIRAL CHASER",
-		"summary": "螺旋旋回追尾弾",
-		"description": "旋回しながら広域をカバーしつつ、敵を捉えると鋭角に突進する変幻自在の誘導弾。",
-		"color": Color(0.95, 0.65, 0.3)
-	},
-	"cyclone+laser": {
-		"name": "ヘリカル・フォトンストリーム",
-		"title_en": "HELICAL PHOTON STREAM",
-		"summary": "螺旋集束光線砲",
-		"description": "らせん状に交差しうねる高出力ツインレーザー。広範囲を薙ぎ払いながら光速で貫通する。",
-		"color": Color(0.6, 0.9, 1.0)
-	},
-	"cyclone+meteor": {
-		"name": "ボルテックス・メテオストーム",
-		"title_en": "VORTEX METEOR STORM",
-		"summary": "旋回重爆碎弾",
-		"description": "大きく旋回しながら飛翔する巨大隕石弾。広域の敵を巻き込み連続爆砕衝撃波を発生させる。",
-		"color": Color(1.0, 0.6, 0.2)
-	},
-	"cyclone+pierce": {
-		"name": "ギガ・スパイラルドリル",
-		"title_en": "GIGA SPIRAL DRILL",
-		"summary": "超螺旋削岩徹甲弾",
-		"description": "超高速回転する巨大な穿孔弾。あらゆる装甲を削り取りながら敵陣を貫通突破する。",
-		"color": Color(1.0, 0.8, 0.3)
-	},
-	"cyclone+rapid": {
-		"name": "サイクロン・ガトリング",
-		"title_en": "CYCLONE GATLING",
-		"summary": "超連射旋回弾幕",
-		"description": "高速連射される旋回弾の暴風雨。うねる弾道で画面全体を死角なく埋め尽くす。",
-		"color": Color(0.6, 0.9, 0.5)
-	},
-	"cyclone+spread": {
-		"name": "スパイラル・ボルテックス",
-		"title_en": "SPIRAL VORTEX",
-		"summary": "広域螺旋波状弾幕",
-		"description": "扇状に広がった弾丸が各々うねるように旋回飛翔し、逃げ場のない弾幕網を作る。",
-		"color": Color(1.0, 0.85, 0.2)
-	},
-	"cyclone+thunder": {
-		"name": "雷神テンペスト",
-		"title_en": "THUNDER TEMPEST",
-		"summary": "旋回放電プラズマ嵐",
-		"description": "螺旋を描いて飛翔する球電弾。敵に触れるたびに放電アークが四方八方へ跳ね回る。",
-		"color": Color(1.0, 0.95, 0.2)
-	},
-	"cyclone+vortex": {
-		"name": "グラビティ・サイクロン",
-		"title_en": "GRAVITY CYCLONE",
-		"summary": "大回転重力特異点",
-		"description": "巨大な渦巻きを描きながら進む重力球。周囲の敵を巻き込みながら圧縮・破砕する。",
-		"color": Color(0.85, 0.35, 0.9)
-	},
-	"homing+laser": {
-		"name": "スマート・フォトンビーム",
-		"title_en": "SMART PHOTON BEAM",
-		"summary": "高誘導集束レーザー",
-		"description": "急旋回して敵の急所へ直角に屈折誘導する光速ビーム。死角からの精密狙撃を実現する。",
-		"color": Color(0.6, 0.7, 1.0)
-	},
-	"homing+meteor": {
-		"name": "メガトン・クラスターロケット",
-		"title_en": "MEGATON CLUSTER ROCKET",
-		"summary": "超重量誘導重爆弾",
-		"description": "敵をロックオンして飛翔する巨大誘導爆弾。直撃時に超広範囲の爆風で群がる敵を吹き飛ばす。",
-		"color": Color(1.0, 0.4, 0.5)
-	},
-	"homing+pierce": {
-		"name": "徹甲スマートニードル",
-		"title_en": "ARMOR SMART NEEDLE",
-		"summary": "索敵追尾装甲貫通槍",
-		"description": "敵を追尾して装甲の薄い部分を次々に貫通していく精密誘導徹甲ランス。",
-		"color": Color(0.9, 0.6, 0.8)
-	},
-	"homing+rapid": {
-		"name": "マイクロ・ホーミングガトリング",
-		"title_en": "MICRO HOMING GATLING",
-		"summary": "超高速追尾弾幕",
-		"description": "高速連射される小型追尾弾の群れ。俊敏な敵もロックオンから逃れることはできない。",
-		"color": Color(0.85, 0.45, 1.0)
-	},
-	"homing+spread": {
-		"name": "マルチロック・スウォーム",
-		"title_en": "MULTI-LOCK SWARM",
-		"summary": "多目標追尾ミサイル群",
-		"description": "扇状に射出された複数の弾丸が、個別に周囲の敵を自動索敵して追尾殲滅する。",
-		"color": Color(0.7, 0.5, 1.0)
-	},
-	"homing+thunder": {
-		"name": "テスラ・シーカー",
-		"title_en": "TESLA SEEKER",
-		"summary": "必中連鎖電磁ボルト",
-		"description": "確実に敵を捉える誘導弾が命中した瞬間、周囲の敵機へ強烈な電撃が自動連鎖する。",
-		"color": Color(0.9, 0.85, 0.25)
-	},
-	"homing+vortex": {
-		"name": "シンギュラリティ・ミサイル",
-		"title_en": "SINGULARITY MISSILE",
-		"summary": "誘導特異点弾頭",
-		"description": "敵を自動追尾して直撃。直撃地点に局所ブラックホールを生成し敵を閉じ込める。",
-		"color": Color(0.7, 0.3, 0.95)
-	},
-	"laser+meteor": {
-		"name": "フォトン・ブラスターキャノン",
-		"title_en": "PHOTON BLASTER CANNON",
-		"summary": "爆裂集束フォトン砲",
-		"description": "極太の貫通光線が敵を貫き、通過した軌道上すべてで連続大爆発を誘発する。",
-		"color": Color(1.0, 0.55, 0.3)
-	},
-	"laser+pierce": {
-		"name": "リニア・レールキャノン",
-		"title_en": "LINEAR RAIL CANNON",
-		"summary": "極限貫通フォトン砲",
-		"description": "射線上のあらゆる敵と障害物を完全に貫通・融解させる究極の直線火砲。",
-		"color": Color(0.4, 0.85, 1.0)
-	},
-	"laser+rapid": {
-		"name": "フォトン・リピーター",
-		"title_en": "PHOTON REPEATER",
-		"summary": "光速超連射ビーム",
-		"description": "装填サイクルを極限まで短縮した光速レーザーの乱射。途切れぬ光線が敵を穿つ。",
-		"color": Color(0.4, 0.9, 1.0)
-	},
-	"laser+spread": {
-		"name": "プリズム・ビームアレイ",
-		"title_en": "PRISM BEAM ARRAY",
-		"summary": "広角拡散集束光線",
-		"description": "前方広角に放たれる高密度レーザー群。高速照射で広範囲の敵を蒸発させる。",
-		"color": Color(0.35, 0.95, 1.0)
-	},
-	"laser+thunder": {
-		"name": "プラズマ・アークキャノン",
-		"title_en": "PLASMA ARC CANNON",
-		"summary": "電磁連鎖高出力レーザー",
-		"description": "射線上の敵を貫通しつつ、命中点から周囲の敵へ怒涛の電撃アークを放射連鎖させる。",
-		"color": Color(0.5, 1.0, 0.9)
-	},
-	"laser+vortex": {
-		"name": "特異点フォトンバスター",
-		"title_en": "SINGULARITY PHOTON BUSTER",
-		"summary": "重力収束貫通光線",
-		"description": "敵を貫通しながら中心軸へ敵を引き寄せる重力レーザー。敵を一列に拘束して融解させる。",
-		"color": Color(0.7, 0.5, 1.0)
-	},
-	"meteor+pierce": {
-		"name": "ドリル・メガトンバスター",
-		"title_en": "DRILL MEGATON BUSTER",
-		"summary": "貫通体内起爆重弾",
-		"description": "装甲を貫通しながら内部で超爆発を引き起こす破壊力特化の超重量徹甲爆弾。",
-		"color": Color(1.0, 0.5, 0.1)
-	},
-	"meteor+rapid": {
-		"name": "ボンバー・バルカン",
-		"title_en": "BOMBER VULCAN",
-		"summary": "連続重爆裂装填弾",
-		"description": "小型爆砕弾を高速連射。着弾地点で連続誘爆が発生し敵陣を制圧する。",
-		"color": Color(1.0, 0.4, 0.2)
-	},
-	"meteor+spread": {
-		"name": "クラスター・メテオバースト",
-		"title_en": "CLUSTER METEOR BURST",
-		"summary": "扇状多弾頭大爆砕弾",
-		"description": "広角に散開する巨大隕石弾。着弾時に広範囲の誘爆衝撃波を巻き起こす。",
-		"color": Color(1.0, 0.45, 0.2)
-	},
-	"meteor+thunder": {
-		"name": "サンダー・メテオストライク",
-		"title_en": "THUNDER METEOR STRIKE",
-		"summary": "爆裂放電重隕石",
-		"description": "着弾時に巨大爆発と同時に猛烈な雷撃ストームを放出し、画面内の敵を一網打尽にする。",
-		"color": Color(1.0, 0.7, 0.1)
-	},
-	"meteor+vortex": {
-		"name": "スーパーノヴァ・イグニッション",
-		"title_en": "SUPERNOVA IGNITION",
-		"summary": "引力爆砕ブラックホール",
-		"description": "周囲の敵を重力特異点に一気に吸引拘束し、中心で超新星大爆発を引き起こす。",
-		"color": Color(1.0, 0.3, 0.6)
-	},
-	"pierce+rapid": {
-		"name": "ハイパー・ニードラー",
-		"title_en": "HYPER NEEDLER",
-		"summary": "高速超装甲貫通弾",
-		"description": "極限連射される極細徹甲弾の奔流。どれほど硬い敵装甲も瞬時に穴だらけにする。",
-		"color": Color(1.0, 0.7, 0.3)
-	},
-	"pierce+spread": {
-		"name": "クロス・ペネトレーター",
-		"title_en": "CROSS PENETRATOR",
-		"summary": "扇状多重装甲貫通弾",
-		"description": "放射状に放たれる高密度徹甲弾。密集する敵陣と硬質装甲を一瞬で貫き通す。",
-		"color": Color(1.0, 0.65, 0.25)
-	},
-	"pierce+thunder": {
-		"name": "ボルト・ペネトレーター",
-		"title_en": "BOLT PENETRATOR",
-		"summary": "電磁装甲貫通ボルト",
-		"description": "敵装甲を軽々と貫通しながら、貫通したすべての敵機へ同時に雷撃を流し込む超電磁弾。",
-		"color": Color(0.9, 0.9, 0.3)
-	},
-	"pierce+vortex": {
-		"name": "グラビティ・パイルバンカー",
-		"title_en": "GRAVITY PILE BUNKER",
-		"summary": "特異点生成超徹甲杭",
-		"description": "敵の奥深くまで貫通し、深部で重力特異点を炸裂させて内部から敵を圧壊させる。",
-		"color": Color(0.85, 0.5, 0.9)
-	},
-	"rapid+spread": {
-		"name": "ガトリング・ストーム",
-		"title_en": "GATLING STORM",
-		"summary": "超高密度扇状弾幕",
-		"description": "圧倒的な連射速度と広角掃射により、前方全域を覆い尽くす弾幕の嵐を形成する。",
-		"color": Color(0.25, 0.9, 0.8)
-	},
-	"rapid+thunder": {
-		"name": "ライトニング・バルカン",
-		"title_en": "LIGHTNING VULCAN",
-		"summary": "超連射放電ボルト",
-		"description": "超高速で連射されるプラズマ電撃弾。連続ヒットで途切れない放電網を形成する。",
-		"color": Color(0.6, 0.95, 0.3)
-	},
-	"rapid+vortex": {
-		"name": "ラピッド・グラビティストリーム",
-		"title_en": "RAPID GRAVITY STREAM",
-		"summary": "高速連射微小重力弾",
-		"description": "高連射される微小ブラックホール弾。無数の小型重力場で敵の動きを封じ込める。",
-		"color": Color(0.6, 0.6, 1.0)
-	},
-	"spread+thunder": {
-		"name": "エレクトリック・スプレッド",
-		"title_en": "ELECTRIC SPREAD",
-		"summary": "広角放電連鎖ボルト",
-		"description": "拡散弾の着弾地点それぞれから高圧アーク放電が周囲の敵機へ連鎖する。",
-		"color": Color(0.95, 0.95, 0.3)
-	},
-	"spread+vortex": {
-		"name": "マルチ・グラビティフィールド",
-		"title_en": "MULTI GRAVITY FIELD",
-		"summary": "広域特異点重力網",
-		"description": "複数の着弾地点に敵を引き寄せる重力渦を同時発生させ、敵陣を拘束粉砕する。",
-		"color": Color(0.75, 0.35, 1.0)
-	},
-	"thunder+vortex": {
-		"name": "電磁カタストロフ・ノヴァ",
-		"title_en": "ELECTROMAGNETIC CATASTROPHE",
-		"summary": "放電拘束超特異点",
-		"description": "敵を強力な重力場へ吸い寄せ、高圧電流を連続で流し込んで完全消滅させる究極の電磁兵装。",
-		"color": Color(0.85, 0.8, 1.0)
-	}
-}
 
 func get_fusion_info(trait_a: String, trait_b: String) -> Dictionary:
-	var keys = [trait_a.to_lower(), trait_b.to_lower()]
-	keys.sort()
-	var pair_key = "%s+%s" % [keys[0], keys[1]]
-	
-	if fusion_catalog.has(pair_key):
-		return fusion_catalog[pair_key]
-		
-	# カタログ未登録ペアの動的生成
-	var name_a = analysis_catalog.get(trait_a, {}).get("name", trait_a)
-	var name_b = analysis_catalog.get(trait_b, {}).get("name", trait_b)
+	var a: Dictionary = analysis_catalog.get(trait_a, {})
+	var b: Dictionary = analysis_catalog.get(trait_b, {})
 	return {
-		"name": "複合融合: %s × %s" % [name_a, name_b],
-		"title_en": "DUAL FUSION WEAPON",
-		"summary": "特性融合兵装",
-		"description": "%s と %s の特性を融合したハイブリッド兵装。" % [name_a, name_b],
-		"color": Color.CYAN
+		"name": "%s × %s" % [a.get("name", trait_a), b.get("name", trait_b)],
+		"title_en": "%s + %s" % [trait_a.to_upper(), trait_b.to_upper()],
+		"summary": "主兵装への複合強化",
+		"description": "%s\n%s" % [a.get("description", ""), b.get("description", "")],
+		"color": a.get("color", Color.CYAN).lerp(b.get("color", Color.CYAN), 0.5)
 	}
 
 func get_fusion_name(trait_a: String, trait_b: String) -> String:
@@ -658,6 +246,8 @@ func is_stage_unlocked(stage_num: int) -> bool:
 	return stage_num == 1 or unlocked_stages.has(stage_num)
 
 func unlock_stage(stage_num: int) -> bool:
+	if practice_active:
+		return false
 	if not unlocked_stages.has(stage_num):
 		unlocked_stages.append(stage_num)
 		unlocked_stages.sort()
@@ -675,6 +265,8 @@ func is_stage_cleared(stage_num: int) -> bool:
 	return false
 
 func mark_stage_cleared(stage_num: int) -> bool:
+	if practice_active:
+		return false
 	if not cleared_stages.has(stage_num):
 		cleared_stages.append(stage_num)
 		cleared_stages.sort()
@@ -692,38 +284,8 @@ func get_stage_difficulty_multiplier(stage_num: int) -> float:
 	return pow(1.08, float(exp_step))
 
 # Weapon Dictionary Definition
-var available_weapons: Dictionary = {
-	"machine_gun": {
-		"name": "マシンガン",
-		"description": "標準的な物理連射弾。高速連射と安定した制圧力を持つ主兵装。",
-		"stats": "連射:★★★ | 威力:★★☆ | 弾速:★★☆",
-		"unlocked": true
-	},
-	"burst_rifle": {
-		"name": "ライフル (3点バースト)",
-		"description": "単発火力・射程重視の徹甲3連射ライフル。硬い敵を貫通粉砕する。",
-		"stats": "連射:★★☆ | 威力:★★★ | 弾速:★★★",
-		"unlocked": true
-	},
-	"pulse_gun": {
-		"name": "パルスガン",
-		"description": "扇状に広がるプラズマ波動弾。広範囲の雑魚敵を一網打尽にする。",
-		"stats": "連射:★★★ | 威力:★★☆ | 弾速:★☆☆",
-		"unlocked": true
-	},
-	"plasma_emitter": {
-		"name": "プラズマ放射器",
-		"description": "超高熱のプラズマ球を射出。着弾時に持続放電フィールドを形成する。",
-		"stats": "連射:★★☆ | 威力:★★★ | 弾速:★☆☆",
-		"unlocked": false
-	},
-	"kinetic_tackle": {
-		"name": "キネティックタックル",
-		"description": "機体前方に強力な衝撃破砕波を発生させる超近接・突撃用兵装。",
-		"stats": "連射:★☆☆ | 威力:★★★ | 弾速:★★☆",
-		"unlocked": false
-	}
-}
+var available_weapons: Dictionary = WeaponCatalog.PRIMARY
+
 
 # Player Appearance variables
 var player_color: String = "blue"
@@ -783,6 +345,9 @@ func _ready() -> void:
 	init_sound_pool()
 
 func check_save_game() -> void:
+	if development_debug_active():
+		has_save = true
+		return
 	var config = ConfigFile.new()
 	if config.load(SAVE_PATH) == OK:
 		has_save = true
@@ -797,6 +362,13 @@ var tutorial_flags: Dictionary = {
 }
 
 func save_game(stage_num: int = -1, score: int = -1, weapons: Dictionary = {}) -> void:
+	if practice_active:
+		return
+	if development_debug_active():
+		var debug := get_node("/root/DebugTools")
+		if stage_num > 0: debug.stage_num = stage_num
+		if score >= 0: debug.score = score
+		return
 	var config = ConfigFile.new()
 	var prev_stage = 1
 	var prev_score = 0
@@ -866,6 +438,13 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		"unread_tips": ["tip_move", "tip_shoot"],
 		"tutorial_flags": tutorial_flags
 	}
+	if development_debug_active():
+		var debug := get_node("/root/DebugTools")
+		data["stage_num"] = debug.stage_num
+		data["score"] = debug.score
+		data["unlocked_tips"] = unlocked_tips.duplicate()
+		data["unread_tips"] = unread_tips.duplicate()
+		return data
 	if config.load(SAVE_PATH) == OK:
 		data["stage_num"] = config.get_value("game", "stage_num", 1)
 		data["score"] = config.get_value("game", "score", 0)
@@ -881,7 +460,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 		data["unlocked_stages"] = config.get_value("game", "unlocked_stages", [1])
 		data["cleared_stages"] = config.get_value("game", "cleared_stages", [])
 		data["discovered_analysis_weapons"] = config.get_value("game", "discovered_analysis_weapons", [])
-		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0})
+		data["upgrade_levels"] = config.get_value("game", "upgrade_levels", {"hp": 0, "parry_window": 0, "cooldown": 0, "shot_power": 0, "capture_power": 0})
 		data["shield_radius_upgrades"] = config.get_value("game", "shield_radius_upgrades", {"counter": 0, "gauge": 0, "power": 0})
 		data["just_guard_focus_mode"] = config.get_value("game", "just_guard_focus_mode", 0)
 		data["counter_system_duration_lvl"] = config.get_value("game", "counter_system_duration_lvl", 0)
@@ -899,7 +478,7 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 			"boss_info": false
 		})
 		
-		if sync_globals:
+		if sync_globals and not practice_active:
 			equipped_weapon = data["equipped_weapon"]
 			is_first_launch = data["is_first_launch"]
 			tech_points = data["tech_points"]
@@ -929,7 +508,9 @@ func load_game_data(sync_globals: bool = true) -> Dictionary:
 	return data
 
 func reset_upgrade_levels() -> void:
-	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
+	if not development_debug_active() or practice_active:
+		return
+	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0, "shot_power": 0, "capture_power": 0}
 	shield_radius_upgrades = {"counter": 0, "gauge": 0, "power": 0}
 	just_guard_focus_mode = 0
 	counter_system_duration_lvl = 0
@@ -937,10 +518,14 @@ func reset_upgrade_levels() -> void:
 	save_game()
 
 func reset_tech_points() -> void:
+	if not development_debug_active() or practice_active:
+		return
 	tech_points = 0
 	save_game()
 
 func reset_development_progress() -> void:
+	if not development_debug_active() or practice_active:
+		return
 	discovered_analysis_weapons = []
 	unlocked_weapons = ["machine_gun", "burst_rifle", "pulse_gun"]
 	unlocked_counter_weapons = ["turret", "funnel"]
@@ -966,11 +551,15 @@ func reset_development_progress() -> void:
 	}
 	save_game()
 
-func delete_save_game() -> void:
-	var dir = DirAccess.open("user://")
-	if dir:
-		if dir.file_exists("savegame.cfg"):
-			dir.remove("savegame.cfg")
+func delete_save_game() -> bool:
+	if development_debug_active() or practice_active:
+		return false
+	# A directory or an inaccessible file must never become a successful reset.
+	if DirAccess.dir_exists_absolute(SAVE_PATH):
+		return false
+	if FileAccess.file_exists(SAVE_PATH):
+		if DirAccess.remove_absolute(SAVE_PATH) != OK or FileAccess.file_exists(SAVE_PATH):
+			return false
 	has_save = false
 	is_continue = false
 	equipped_weapon = "machine_gun"
@@ -979,10 +568,12 @@ func delete_save_game() -> void:
 	equipped_shield = "counter"
 	unlocked_shields = ["counter"]
 	unlocked_weapons = ["machine_gun", "burst_rifle", "pulse_gun"]
-	unlocked_counter_weapons = []
+	equipped_counter_weapon = "turret"
+	unlocked_counter_weapons = ["turret", "funnel"]
 	unlocked_stages = [1]
+	cleared_stages = []
 	discovered_analysis_weapons = []
-	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0}
+	upgrade_levels = {"hp": 0, "parry_window": 0, "cooldown": 0, "shot_power": 0, "capture_power": 0}
 	shield_radius_upgrades = {"counter": 0, "gauge": 0, "power": 0}
 	just_guard_focus_mode = 0
 	counter_system_duration_lvl = 0
@@ -990,6 +581,7 @@ func delete_save_game() -> void:
 	stage5_clears_count = 0
 	counter_only_mode_unlocked = false
 	counter_only_mode_enabled = false
+	hard_mode_enabled = false
 	unlocked_tips = ["tip_move", "tip_shoot"]
 	unread_tips = ["tip_move", "tip_shoot"]
 	tutorial_flags = {
@@ -998,10 +590,13 @@ func delete_save_game() -> void:
 		"time_limit": false,
 		"boss_info": false
 	}
+	return true
 
 # --- TIPS 戦術アーカイブ ヘルパー関数 ---
 
 func unlock_next_tip() -> String:
+	if practice_active:
+		return ""
 	for tip in tips_catalog:
 		var tip_id: String = tip["id"]
 		if not unlocked_tips.has(tip_id):
@@ -1012,6 +607,8 @@ func unlock_next_tip() -> String:
 	return ""
 
 func mark_tip_as_read(tip_id: String) -> void:
+	if practice_active:
+		return
 	if unread_tips.has(tip_id):
 		unread_tips.erase(tip_id)
 		save_game()
@@ -1025,6 +622,8 @@ func get_unread_tips_count() -> int:
 var readable_font: Font = null
 
 func get_readable_font() -> Font:
+	if readable_font == null and ResourceLoader.exists("res://game/assets/design/fonts/MPLUS1Code-Variable.ttf"):
+		readable_font = load("res://game/assets/design/fonts/MPLUS1Code-Variable.ttf") as Font
 	if readable_font == null:
 		var sf = SystemFont.new()
 		sf.font_names = PackedStringArray([
@@ -1073,7 +672,7 @@ func get_just_guard_radius(shield_type: String = "") -> float:
 			base_radius = 85.0 + s_lvl * 6.0 + global_window_lvl * 4.0
 		"gauge":
 			# 吸収マトリクス: 広域吸収仕様
-			base_radius = 105.0 + s_lvl * 8.0 + global_window_lvl * 4.0
+			base_radius = 140.0 + s_lvl * 8.0 + global_window_lvl * 4.0
 		"power":
 			# パワーシールド: タイトな集中仕様
 			base_radius = 75.0 + s_lvl * 5.0 + global_window_lvl * 4.0
@@ -1088,7 +687,7 @@ func get_just_guard_radius(shield_type: String = "") -> float:
 	return base_radius * focus_mult
 
 func get_just_guard_damage_multiplier() -> float:
-	# フォーカス設定によるジャストガード反射威力倍率
+	# フォーカス設定によるジャストガード追撃威力倍率
 	match just_guard_focus_mode:
 		0: return 1.00 # 標準
 		1: return 1.20 # 集中: 1.2倍 (+20%)
@@ -1104,7 +703,7 @@ func get_focus_mode_info(mode: int = -1) -> Dictionary:
 				"name": "STANDARD [標準範囲]",
 				"radius_pct": "100%",
 				"dmg_mult": "1.0倍",
-				"description": "安定した標準範囲でのジャストガード。安全な防御重視モード。"
+				"description": "安定した標準範囲でのパリィ。安全な防御重視モード。"
 			}
 		1:
 			return {
@@ -1112,7 +711,7 @@ func get_focus_mode_info(mode: int = -1) -> Dictionary:
 				"name": "FOCUS [集中]",
 				"radius_pct": "75% (-25%)",
 				"dmg_mult": "1.2倍 (+20%)",
-				"description": "有効範囲を25%絞る代わりに、ジャストガード反射弾の威力が1.2倍に強化。"
+				"description": "有効範囲を25%絞る代わりに、捕獲追撃の威力が1.2倍に強化。"
 			}
 		2:
 			return {
@@ -1120,11 +719,13 @@ func get_focus_mode_info(mode: int = -1) -> Dictionary:
 				"name": "PINPOINT [極小高出力]",
 				"radius_pct": "50% (-50%)",
 				"dmg_mult": "1.4倍 (+40%)",
-				"description": "有効範囲が半分になるハイリスク設定。成功時は反射弾が1.4倍の破壊力に跳ね上がる！"
+				"description": "有効範囲が半分になるハイリスク設定。成功時は追撃が1.4倍の破壊力に跳ね上がる！"
 			}
 	return {}
 
 func save_settings() -> void:
+	if practice_active or development_debug_active():
+		return
 	var config = ConfigFile.new()
 	config.set_value("audio", "master_volume", master_volume)
 	config.set_value("audio", "bgm_volume", bgm_volume)
@@ -1147,6 +748,8 @@ func save_settings() -> void:
 	config.save(SETTINGS_PATH)
 
 func load_settings() -> void:
+	if development_debug_active():
+		return
 	var config = ConfigFile.new()
 	if config.load(SETTINGS_PATH) == OK:
 		master_volume = config.get_value("audio", "master_volume", 80.0)
@@ -1547,3 +1150,76 @@ func _create_laser_sound(duration: float = 0.12) -> AudioStreamWAV:
 	wav.stereo = false
 	wav.data = data
 	return wav
+
+func get_primary_power_multiplier() -> float:
+	return 1.0 + clampi(int(upgrade_levels.get("shot_power", 0)), 0, 5) * 0.08
+
+func get_capture_power_multiplier() -> float:
+	return 1.0 + clampi(int(upgrade_levels.get("capture_power", 0)), 0, 5) * 0.12
+
+# Practice configuration survives retry, but no simulator state is persisted.
+var practice_active: bool = false
+var practice_config: Dictionary = {}
+var return_to_options: bool = false
+var _practice_snapshot: Dictionary = {}
+const PRACTICE_STATE_KEYS = ["equipped_weapon", "is_first_launch", "tech_points", "equipped_shield", "equipped_counter_weapon", "unlocked_shields", "unlocked_weapons", "unlocked_counter_weapons", "unlocked_stages", "cleared_stages", "discovered_analysis_weapons", "upgrade_levels", "shield_radius_upgrades", "just_guard_focus_mode", "counter_system_duration_lvl", "counter_system_power_lvl", "stage5_clears_count", "counter_only_mode_unlocked", "counter_only_mode_enabled", "hard_mode_enabled", "unlocked_tips", "unread_tips", "tutorial_flags", "master_volume", "bgm_volume", "sfx_volume", "window_mode", "window_scale", "aspect_ratio", "vsync", "screen_shake", "player_color", "control_move_preset", "key_counter_system", "key_shield", "key_up", "key_down", "key_left", "key_right", "key_weapon_prev", "key_weapon_next", "is_continue", "has_save"]
+
+func begin_practice(config: Dictionary) -> bool:
+	var stage := int(config.get("stage", 1))
+	var kind := str(config.get("kind", ""))
+	if kind == "boss":
+		if stage < 1 or stage > 5 or not is_stage_cleared(stage):
+			return false
+	elif kind == "drone":
+		if not ["straight", "wave", "charge", "irregular", "laser", "beam", "missile", "thunder", "vortex", "blade", "meteor"].has(str(config.get("drone", ""))):
+			return false
+		config["stage"] = 1
+	else:
+		return false
+	if not practice_active:
+		for key in PRACTICE_STATE_KEYS:
+			var value = get(key)
+			_practice_snapshot[key] = value.duplicate(true) if value is Array or value is Dictionary else value
+	practice_config = config.duplicate(true)
+	practice_active = true
+	return true
+
+func end_practice() -> void:
+	if not practice_active:
+		return
+	for key in _practice_snapshot:
+		set(key, _practice_snapshot[key])
+	_practice_snapshot.clear()
+	practice_active = false
+	apply_all_settings()
+
+func practice_infinite_hp() -> bool:
+	return practice_active and bool(practice_config.get("infinite_hp", false))
+
+func apply_body_font(node: Node) -> void:
+	# Preserve short large display titles, use the bundled font for reading.
+	if node is Label and node.label_settings != null:
+		if node.label_settings.font_size < 32:
+			node.label_settings = node.label_settings.duplicate()
+			node.label_settings.font = get_readable_font()
+	elif node is Control:
+		node.add_theme_font_override("font", get_readable_font())
+		if node is RichTextLabel:
+			node.add_theme_font_override("normal_font", get_readable_font())
+	for child in node.get_children():
+		apply_body_font(child)
+
+func development_debug_active() -> bool:
+	var debug := get_node_or_null("/root/DebugTools")
+	return debug != null and debug.is_active()
+
+func debug_infinite_hp() -> bool:
+	var debug := get_node_or_null("/root/DebugTools")
+	return debug != null and debug.has_infinite_hp()
+
+func get_window_scale_choices() -> Array[float]:
+	var choices: Array[float] = [0.5, 0.75, 1.0, 1.25]
+	if not choices.any(func(value): return is_equal_approx(value, window_scale)):
+		choices.append(window_scale)
+		choices.sort()
+	return choices

@@ -14,6 +14,10 @@ var current_alpha: float = 1.0
 
 
 func _ready() -> void:
+	add_to_group("gravity_vortex_fields")
+	var fields := get_tree().get_nodes_in_group("gravity_vortex_fields")
+	if fields.size() > 12:
+		fields[0].queue_free()
 	z_index = 45
 	z_as_relative = false
 	
@@ -49,18 +53,13 @@ func _process(delta: float) -> void:
 
 
 func apply_vortex_force() -> void:
-	var enemies = get_tree().get_nodes_in_group("enemy")
+	var enemies = CombatTargets.in_radius(self, global_position, radius)
 	for e in enemies:
 		if is_instance_valid(e) and e.visible:
-			var d = global_position.distance_to(e.global_position)
-			if d <= radius:
-				var pull_dir = (global_position - e.global_position).normalized()
-				if "position" in e:
-					e.position += pull_dir * 18.0
-				if e.has_method("take_damage"):
-					e.take_damage(damage_per_tick)
-				elif e.has_method("take_damage_on_part"):
-					e.take_damage_on_part("core", damage_per_tick)
+			var pull_dir = (global_position - e.global_position).normalized()
+			if not e.is_in_group("boss") and not e.is_in_group("boss_turrets"):
+				e.position += pull_dir * 18.0
+			CombatTargets.damage(e, damage_per_tick, global_position)
 					
 	# パーティクル
 	var p_scene = load("res://game/bullets/parry_particle.tscn")

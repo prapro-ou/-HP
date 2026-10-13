@@ -4,7 +4,7 @@ class_name BossTrapMine
 ## ボス5用 フィールドトラップマイン
 ## - フィールドのランダムな位置に設置される
 ## - 踏む（接近）か10秒経過で爆発
-## - ジャストガード（パリィ）で起爆・反撃可能（敵弾消滅＋大ダメージ特効ボルト射出）
+## - パリィで解除すると爆発弾を捕獲、通常射撃で解除すると追撃なし
 
 var lifetime: float = 0.0
 const MAX_LIFETIME: float = 10.0
@@ -54,7 +54,7 @@ func _process(delta: float) -> void:
 		if dist <= trigger_radius:
 			if player.is_guarding:
 				# プレイヤーがシールド展開中ならジャストガード成功
-				trigger_just_guard_parry(player)
+				player.check_parry()
 			else:
 				# 踏んでしまった場合は被弾爆発
 				trigger_enemy_explosion()
@@ -73,7 +73,7 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if body.name == "Player" or body.is_in_group("player"):
 		if "is_guarding" in body and body.is_guarding:
-			trigger_just_guard_parry(body)
+			body.check_parry()
 		else:
 			trigger_enemy_explosion()
 
@@ -85,73 +85,14 @@ func _on_area_entered(area: Area2D) -> void:
 		trigger_just_guard_parry(null)
 
 
-func trigger_just_guard_parry(player_ref: Node2D = null) -> void:
-	"""ジャストガード成功時の強力なカウンター起爆"""
+func trigger_just_guard_parry(player: Node2D) -> void:
 	if not is_active or is_parried:
 		return
 	is_active = false
 	is_parried = true
-	
-	Global.play_heavy_hit(1.2)
-	Global.play_explosion(1.4)
-	
-	var parent_node = get_parent()
-	if not parent_node:
-		return
-		
-	# 1. 周囲の敵弾を消滅
-	var bullets = get_tree().get_nodes_in_group("enemy_bullets")
-	for b in bullets:
-		if is_instance_valid(b) and "is_friendly" in b and not b.is_friendly:
-			if global_position.distance_to(b.global_position) <= explosion_radius + 40.0:
-				HitSpark.create_spark(parent_node, b.global_position, "normal", Color(0.3, 1.0, 0.9))
-				if b.has_method("recycle_bullet"):
-					b.recycle_bullet()
-				elif b.has_method("queue_free"):
-					b.queue_free()
-					
-	# 2. ボス及び砲台へ1200の特効ダメージ
-	var targets = get_tree().get_nodes_in_group("boss") + get_tree().get_nodes_in_group("boss_turrets")
-	for t in targets:
-		if is_instance_valid(t) and t.has_method("take_damage"):
-			t.take_damage(1200, global_position, true)
-		elif is_instance_valid(t) and t.has_method("take_damage_on_part"):
-			t.take_damage_on_part("core", 1200, global_position, true)
-			
-	# 3. 8方向へ反射追尾カウンターボルトを射出
-	var pool = get_node_or_null("/root/Main/BulletPool")
-	if pool:
-		for i in range(8):
-			var bullet = pool.get_bullet("boss_laser")
-			if bullet:
-				bullet.global_position = global_position
-				bullet.damage = 120
-				bullet.is_friendly = true
-				bullet.modulate = Color(0.2, 1.0, 0.9)
-				var dir = Vector2.UP.rotated(i * (TAU / 8.0))
-				bullet.set_direction(dir, 850.0)
-				
-	# 4. パリィスパーク＆爆発エフェクト
-	if PARRY_PARTICLE_SCENE:
-		for i in range(12):
-			var p = PARRY_PARTICLE_SCENE.instantiate()
-			p.global_position = global_position + Vector2(randf_range(-25, 25), randf_range(-25, 25))
-			p.scale = Vector2(2.4, 2.4)
-			p.modulate = Color(0.25, 0.95, 1.0)
-			parent_node.add_child(p)
-			
-	# HUDフィードバック
-	var main = get_node_or_null("/root/Main")
-	if main:
-		var manager = main.get_node_or_null("GameManager")
-		if manager and manager.has_method("register_parry"):
-			manager.register_parry()
-			
-	if is_instance_valid(player_ref) and player_ref.has_method("spawn_popup_message"):
-		player_ref.spawn_popup_message("⚡ トラップ パリィ成功！ (1200 DMG) ⚡")
-		
+	if is_instance_valid(player) and not Global.counter_only_mode_enabled:
+		player.capture_volley.store("meteor", 40.0, global_position, Color.ORANGE, player.capture_multiplier(global_position), player.is_precision_capture(global_position))
 	queue_free()
-
 
 func trigger_enemy_explosion() -> void:
 	"""タイムアウトまたはプレイヤー接触時の敵性爆発"""

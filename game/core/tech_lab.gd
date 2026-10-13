@@ -23,6 +23,7 @@ var parry_lvl_lbl: Label
 var parry_cost_btn: Button
 var cd_lvl_lbl: Label
 var cd_cost_btn: Button
+var attack_upgrade_rows: Dictionary = {}
 
 # Focus mode tuning variables
 var focus_mode_btn: Button
@@ -69,6 +70,7 @@ var time_passed: float = 0.0
 
 
 func _ready() -> void:
+	Global.apply_body_font.call_deferred(self)
 	Global.load_settings()
 	Global.load_game_data()
 	
@@ -80,7 +82,7 @@ func _ready() -> void:
 	# Give starting points if none exists for a better first-time demo experience
 	if Global.tech_points == 0 and not Global.has_save:
 		Global.tech_points = 30
-		Global.save_game(1, 0, {})
+		Global.save_game()
 		
 	setup_ui()
 	init_starfield()
@@ -227,7 +229,7 @@ func setup_ui() -> void:
 	back_btn.pressed.connect(_on_back_pressed)
 	
 	demo_btn = Button.new()
-	demo_btn.text = "+50 TP (テスト用)"
+	demo_btn.text = "+50 TP（一時デバッグ）"
 	demo_btn.custom_minimum_size = Vector2(200, 48)
 	demo_btn.add_theme_font_size_override("font_size", 18)
 	footer_hbox.add_child(demo_btn)
@@ -323,7 +325,7 @@ func build_basic_page(parent: VBoxContainer) -> void:
 	
 	var hp_row = create_upgrade_row(
 		"最大HP増加", 
-		"装甲を補強し、最大HPを+50増加。",
+		"装甲を補強し、最大HPを+60増加。",
 		cap_sec
 	)
 	hp_lvl_lbl = hp_row.level_label
@@ -331,8 +333,8 @@ func build_basic_page(parent: VBoxContainer) -> void:
 	hp_cost_btn.pressed.connect(func(): perform_upgrade("hp"))
 	
 	var parry_row = create_upgrade_row(
-		"ジャストガード基本範囲拡大", 
-		"全シールド共通の基本判定範囲を拡張し、ジャストガードを容易にする。",
+		"パリィ基本範囲拡大",
+		"全シールド共通の基本判定範囲を拡張し、パリィを容易にする。",
 		cap_sec
 	)
 	parry_lvl_lbl = parry_row.level_label
@@ -348,18 +350,27 @@ func build_basic_page(parent: VBoxContainer) -> void:
 	cd_cost_btn = cd_row.cost_button
 	cd_cost_btn.pressed.connect(func(): perform_upgrade("cooldown"))
 	
+	for spec in [
+		{"id": "shot_power", "name": "主兵装威力", "desc": "主兵装5種の威力を1段階ごとに8%強化（最大40%）。"},
+		{"id": "capture_power", "name": "捕獲追撃威力", "desc": "捕まえた弾の追撃威力を1段階ごとに12%強化（最大60%）。"}
+	]:
+		var row = create_upgrade_row(spec["name"], spec["desc"], cap_sec)
+		var upgrade_id: String = spec["id"]
+		attack_upgrade_rows[upgrade_id] = row
+		row.cost_button.pressed.connect(func(): perform_upgrade(upgrade_id))
+
 	# SECTION: ジャストガード・フォーカス設定
-	var focus_sec = create_section_vbox("ジャストガード・フォーカス設定 (効果範囲 ⇔ 威力調整)", parent)
+	var focus_sec = create_section_vbox("パリィ・フォーカス設定 (効果範囲 ⇔ 威力調整)", parent)
 	create_focus_tuning_ui(focus_sec)
 
 
 func build_counter_page(parent: VBoxContainer) -> void:
 	# SECTION: COUNTER SYSTEM 強化
-	var cs_sec = create_section_vbox("COUNTER SYSTEM 兵装強化 (Xキー支援砲台部隊)", parent)
+	var cs_sec = create_section_vbox("COUNTER SYSTEM 兵装強化", parent)
 	
 	var dur_row = create_upgrade_row(
-		"支援砲台・展開持続時間",
-		"ボスタレット支援部隊の滞在時間を延長 (10秒 -> 最大20秒)。",
+		"COUNTER・持続倍率",
+		"共通基準10〜20秒（最大2倍）。支援・ファンネル・ミサイル10〜20秒、レーザー6〜12秒、5連鎖1.5〜3秒。巨大弾は画面外で終了します。",
 		cs_sec
 	)
 	cs_dur_lvl_lbl = dur_row.level_label
@@ -367,8 +378,8 @@ func build_counter_page(parent: VBoxContainer) -> void:
 	cs_dur_cost_btn.pressed.connect(func(): perform_counter_system_upgrade("duration"))
 	
 	var pwr_row = create_upgrade_row(
-		"支援砲台・攻撃力倍率",
-		"支援タレットの全弾丸威力を大幅増幅 (1.0倍 -> 最大5.0倍)。",
+		"COUNTER・攻撃力倍率",
+		"全カウンター兵装の攻撃威力を増幅 (1.0倍 -> 最大1.8倍)。",
 		cs_sec
 	)
 	cs_pwr_lvl_lbl = pwr_row.level_label
@@ -390,7 +401,7 @@ func build_tech_page(parent: VBoxContainer) -> void:
 	
 	var gauge_card = create_weapon_research_card(
 		"吸収マトリクス",
-		"敵撃破時に解析エナジーオーブを放出し、自機へ磁力吸引！EXP＆HP修復。",
+		"基本半径140で弾幕をまとめて捕獲。COUNTER充填量1.5倍。再展開は基本3秒。",
 		"コスト: 30 TP",
 		sh_vbox
 	)
@@ -399,7 +410,7 @@ func build_tech_page(parent: VBoxContainer) -> void:
 	
 	var power_card = create_weapon_research_card(
 		"増幅ブースター",
-		"ジャストガード成功時に弾丸を吸収し、主兵装の攻撃力を永続スタック強化。",
+		"捕獲成功時に近距離の敵へ衝撃波。成功後2秒間、主兵装威力を1.25倍にする。",
 		"コスト: 30 TP",
 		sh_vbox
 	)
@@ -415,7 +426,7 @@ func build_tech_page(parent: VBoxContainer) -> void:
 	
 	var plasma_card = create_weapon_research_card(
 		"プラズマ放射器",
-		"持続ダメージを与える熱プラズマを扇状放射。",
+		"低速の重弾を放ち、着弾地点に持続ダメージの熱場を残す。",
 		"コスト: 40 TP",
 		wp_vbox
 	)
@@ -424,7 +435,7 @@ func build_tech_page(parent: VBoxContainer) -> void:
 	
 	var tackle_card = create_weapon_research_card(
 		"タックル",
-		"機体体当たり攻撃。近距離超威力の物理衝撃波。",
+		"前方短射程の貫通衝撃波。接近して高火力の物理衝撃波。",
 		"コスト: 50 TP",
 		wp_vbox
 	)
@@ -655,7 +666,7 @@ func create_focus_tuning_ui(parent: Control) -> void:
 	text_left.add_child(focus_mode_stat_lbl)
 	
 	focus_mode_sub_lbl = Label.new()
-	focus_mode_sub_lbl.text = "範囲: 100% ｜ 反射威力: 1.0倍"
+	focus_mode_sub_lbl.text = "範囲: 100% ｜ 追撃威力: 1.0倍"
 	var sub_set = LabelSettings.new()
 	if PIXEL_FONT:
 		sub_set.font = PIXEL_FONT
@@ -671,7 +682,7 @@ func create_focus_tuning_ui(parent: Control) -> void:
 	style_neon_button(focus_mode_btn, Color(0.3, 0.75, 1.0), Color.CYAN)
 	focus_mode_btn.pressed.connect(func():
 		Global.just_guard_focus_mode = (Global.just_guard_focus_mode + 1) % 3
-		Global.save_game(1, 0, {})
+		Global.save_game()
 		update_lab_hud()
 		play_flash_effect(Color.CYAN)
 		var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -683,7 +694,7 @@ func create_focus_tuning_ui(parent: Control) -> void:
 	focus_mode_desc_lbl = Label.new()
 	focus_mode_desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	focus_mode_desc_lbl.custom_minimum_size = Vector2(0, 40)
-		focus_mode_desc_lbl.text = "標準範囲でパリィする安定型。"
+	focus_mode_desc_lbl.text = "標準範囲でパリィする安定型。"
 	var fd_set = LabelSettings.new()
 	fd_set.font = Global.get_readable_font()
 	fd_set.font_size = 15
@@ -747,7 +758,7 @@ func create_counter_only_mode_ui(parent: Control) -> void:
 				Global.tech_points -= 150
 				Global.counter_only_mode_unlocked = true
 				Global.counter_only_mode_enabled = true
-				Global.save_game(1, 0, {})
+				Global.save_game()
 				update_lab_hud()
 				play_flash_effect(Color.MAGENTA)
 				var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -755,7 +766,7 @@ func create_counter_only_mode_ui(parent: Control) -> void:
 					audio_mgr.play_upgrade_success()
 		else:
 			Global.counter_only_mode_enabled = not Global.counter_only_mode_enabled
-			Global.save_game(1, 0, {})
+			Global.save_game()
 			update_lab_hud()
 			play_flash_effect(Color.MAGENTA)
 			var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -767,7 +778,7 @@ func create_counter_only_mode_ui(parent: Control) -> void:
 	var desc_lbl = Label.new()
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_lbl.custom_minimum_size = Vector2(0, 46)
-	desc_lbl.text = "【解放条件: STAGE 5を5回クリア ＆ 150 TP】\n自機の通常射撃を行わず、4基のボスタレット支援部隊が常時・自動で自機を守護・殲滅する超爽快モード！"
+	desc_lbl.text = "【解放条件: STAGE 5を5回クリア ＆ 150 TP】\n自機の通常射撃を行わず、選択したCOUNTER兵装で戦うモード。パリィで充填し、手動発動します。効果終了後は再充填できます。"
 	var cod_set = LabelSettings.new()
 	cod_set.font = Global.get_readable_font()
 	cod_set.font_size = 15
@@ -777,6 +788,7 @@ func create_counter_only_mode_ui(parent: Control) -> void:
 
 
 func update_lab_hud() -> void:
+	demo_btn.visible = Global.development_debug_active()
 	tech_points_label.text = "所持ポイント: " + str(Global.tech_points) + " TP"
 	
 	# 1. HP Upgrade button state
@@ -818,21 +830,29 @@ func update_lab_hud() -> void:
 			cd_cost_btn.text = "強化\n(" + str(cost) + " TP)"
 			cd_cost_btn.disabled = Global.tech_points < cost
 
+	for upgrade_id in attack_upgrade_rows:
+		var row = attack_upgrade_rows[upgrade_id]
+		var level := int(Global.upgrade_levels.get(upgrade_id, 0))
+		var cost := get_upgrade_cost(upgrade_id, level)
+		row.level_label.text = "MAX" if level >= 5 else "LV. %d" % level
+		row.cost_button.text = "MAX" if level >= 5 else "強化\n(%d TP)" % cost
+		row.cost_button.disabled = level >= 5 or Global.tech_points < cost
+
 	# 4. Focus mode state
 	if is_instance_valid(focus_mode_stat_lbl) and is_instance_valid(focus_mode_desc_lbl):
 		var f_info = Global.get_focus_mode_info()
 		focus_mode_stat_lbl.text = "設定: " + f_info.get("name", "STANDARD")
 		if is_instance_valid(focus_mode_sub_lbl):
-			focus_mode_sub_lbl.text = "範囲: %s ｜ 反射威力: %s" % [f_info.get("radius_pct", "100%"), f_info.get("dmg_mult", "1.0倍")]
+			focus_mode_sub_lbl.text = "範囲: %s ｜ 追撃威力: %s" % [f_info.get("radius_pct", "100%"), f_info.get("dmg_mult", "1.0倍")]
 		focus_mode_desc_lbl.text = f_info.get("description", "")
 
 	# 5. COUNTER SYSTEM Duration state (10s -> 20s)
 	if is_instance_valid(cs_dur_lvl_lbl) and is_instance_valid(cs_dur_cost_btn):
 		var dur_lvl = Global.counter_system_duration_lvl
-		var cur_dur = Global.get_counter_system_duration()
-		cs_dur_lvl_lbl.text = "LV. %d (%.0fs)" % [dur_lvl, cur_dur]
+		var duration_ratio := Global.get_counter_system_duration() / 10.0
+		cs_dur_lvl_lbl.text = "LV. %d (×%.1f)" % [dur_lvl, duration_ratio]
 		if dur_lvl >= 5:
-			cs_dur_lvl_lbl.text = "MAX (20s)"
+			cs_dur_lvl_lbl.text = "MAX (×2.0)"
 			cs_dur_cost_btn.disabled = true
 			cs_dur_cost_btn.text = "MAX"
 		else:
@@ -840,13 +860,13 @@ func update_lab_hud() -> void:
 			cs_dur_cost_btn.text = "強化\n(%d TP)" % cost
 			cs_dur_cost_btn.disabled = Global.tech_points < cost
 
-	# 6. COUNTER SYSTEM Power state (1.0x -> 5.0x)
+	# 6. COUNTER SYSTEM Power state (1.0x -> 1.8x)
 	if is_instance_valid(cs_pwr_lvl_lbl) and is_instance_valid(cs_pwr_cost_btn):
 		var pwr_lvl = Global.counter_system_power_lvl
 		var cur_pwr = Global.get_counter_system_power_multiplier()
 		cs_pwr_lvl_lbl.text = "LV. %d (%.1fx)" % [pwr_lvl, cur_pwr]
 		if pwr_lvl >= 5:
-			cs_pwr_lvl_lbl.text = "MAX (5.0x)"
+			cs_pwr_lvl_lbl.text = "MAX (1.8x)"
 			cs_pwr_cost_btn.disabled = true
 			cs_pwr_cost_btn.text = "MAX"
 		else:
@@ -867,7 +887,7 @@ func update_lab_hud() -> void:
 				counter_only_btn.text = "極秘解放\n(150 TP)"
 		else:
 			if Global.counter_only_mode_enabled:
-				counter_only_status_lbl.text = "COUNTER ONLY 出撃: 【有効 (砲台部隊専任出撃中)】"
+				counter_only_status_lbl.text = "COUNTER ONLY 出撃: 【有効：選択したCOUNTER兵装のみ】"
 				counter_only_btn.disabled = false
 				counter_only_btn.text = "出撃設定:\n【有効 (ON)】"
 			else:
@@ -917,7 +937,7 @@ func perform_counter_system_upgrade(type: String) -> void:
 		if Global.tech_points >= cost and lvl < 5:
 			Global.tech_points -= cost
 			Global.counter_system_duration_lvl += 1
-			Global.save_game(1, 0, {})
+			Global.save_game()
 			update_lab_hud()
 			play_flash_effect(Color.CYAN)
 			var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -929,7 +949,7 @@ func perform_counter_system_upgrade(type: String) -> void:
 		if Global.tech_points >= cost and lvl < 5:
 			Global.tech_points -= cost
 			Global.counter_system_power_lvl += 1
-			Global.save_game(1, 0, {})
+			Global.save_game()
 			update_lab_hud()
 			play_flash_effect(Color.GOLD)
 			var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -945,6 +965,8 @@ func get_upgrade_cost(type: String, current_lvl: int) -> int:
 			return 12 + current_lvl * 10
 		"cooldown":
 			return 15 + current_lvl * 12
+		"shot_power", "capture_power":
+			return 12 + current_lvl * 10
 	return 999
 
 
@@ -955,7 +977,7 @@ func perform_upgrade(type: String) -> void:
 	if Global.tech_points >= cost and lvl < 5:
 		Global.tech_points -= cost
 		Global.upgrade_levels[type] = lvl + 1
-		Global.save_game(1, 0, {})
+		Global.save_game()
 		update_lab_hud()
 		play_flash_effect(Color.CYAN)
 		var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -971,7 +993,7 @@ func unlock_shield(s_id: String, cost: int) -> void:
 	if Global.tech_points >= cost and not Global.unlocked_shields.has(s_id):
 		Global.tech_points -= cost
 		Global.unlocked_shields.append(s_id)
-		Global.save_game(1, 0, {})
+		Global.save_game()
 		update_lab_hud()
 		play_flash_effect(Color.CYAN)
 		var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -987,7 +1009,7 @@ func unlock_weapon(w_id: String, cost: int) -> void:
 	if Global.tech_points >= cost and not Global.unlocked_weapons.has(w_id):
 		Global.tech_points -= cost
 		Global.unlocked_weapons.append(w_id)
-		Global.save_game(1, 0, {})
+		Global.save_game()
 		update_lab_hud()
 		play_flash_effect(Color.GOLD)
 		var audio_mgr = get_node_or_null("/root/AudioManager")
@@ -1016,8 +1038,10 @@ func _on_back_pressed() -> void:
 
 
 func _on_demo_pressed() -> void:
+	if not Global.development_debug_active():
+		return
 	Global.tech_points += 50
-	Global.save_game(1, 0, {})
+	Global.save_game()
 	update_lab_hud()
 	play_flash_effect(Color.GREEN)
 

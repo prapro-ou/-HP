@@ -1,7 +1,11 @@
 extends CanvasLayer
+
+const COMBAT_POPUP_SCENE: PackedScene = preload("res://game/ui/components/combat_popup.tscn")
+const PAUSE_SETTINGS_SCENE: PackedScene = preload("res://game/ui/components/pause_settings_panel.tscn")
+const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
 ## UI 表示スクリプト（CanvasLayerを継承し、シーン ui.tscn のノードとバインド）
 ## - HP バー（Player・Boss）
-## - ガード・パリィ・武器解析率表示
+## - ガード・パリィ・捕獲追撃表示
 ## - ボスエネルギー再配分表示
 ## - 警告演出・フラッシュ演出・ゲームオーバー表示
 
@@ -25,6 +29,9 @@ const FONT_SIZE_WARNING_SUBTITLE: int = 24
 
 @onready var parry_count_label: Label = $ParryCountLabel
 @onready var guard_status_label: Label = $GuardStatusLabel
+@onready var v3_counter_panel: PanelContainer = $V3CounterPanel
+@onready var v3_counter_bar: ProgressBar = $V3CounterPanel/Margin/Stack/Gauge
+@onready var v3_counter_label: Label = $V3CounterPanel/Margin/Stack/Label
 
 # 警告・フラッシュ演出UI
 @onready var warning_title: Label = $WarningTitle
@@ -32,6 +39,9 @@ const FONT_SIZE_WARNING_SUBTITLE: int = 24
 @onready var flash_overlay: ColorRect = $FlashOverlay
 
 var shield_heat_bar: ProgressBar
+var boost_label: Label
+var counter_caption: Label
+var top_cards: ColorRect
 
 
 func _ready() -> void:
@@ -46,10 +56,11 @@ func _ready() -> void:
 	player_hp_bar.custom_minimum_size = Vector2(240, 16)
 	player_hp_bar.size = Vector2(240, 16)
 	
-	setup_label_style(player_hp_label, 18, Color.WHITE, 4)
-	setup_label_style(boss_hp_label, 18, Color.GOLD, 4)
+	setup_label_style(player_hp_label, 22, Color.WHITE, 2)
+	setup_label_style(boss_hp_label, 22, Color.GOLD, 2)
 	setup_label_style(parry_count_label, 16, Color.CYAN, 4)
-	setup_label_style(guard_status_label, 16, Color.GREEN, 4)
+	setup_label_style(guard_status_label, 22, Color.GREEN, 2)
+	setup_label_style(v3_counter_label, 22, Color(0.35, 0.9, 1.0), 2)
 	setup_label_style(warning_title, FONT_SIZE_WARNING_TITLE, Color.RED, 10)
 	setup_label_style(warning_subtitle, FONT_SIZE_WARNING_SUBTITLE, Color.GOLD, 6)
 	
@@ -69,11 +80,71 @@ func _ready() -> void:
 	boss_hp_bar.custom_minimum_size = Vector2(520, 20)
 	boss_hp_bar.size = Vector2(520, 20)
 	
+	boost_label = Label.new()
+	boost_label.name = "BoostLabel"
+	setup_label_style(boost_label, 18, Color.GOLD, 2)
+	add_child(boost_label)
 	create_shield_heat_bar()
-	create_analysis_matrix_ui()
+	create_capture_ui()
 	create_wave_phase_ui()
 	create_top_warning_ui()
+	counter_caption = Label.new()
+	counter_caption.text = "COUNTER"
+	setup_label_style(counter_caption, 18, Color.CYAN, 2)
+	add_child(counter_caption)
+	top_cards = ColorRect.new()
+	top_cards.color = Color(0.02, 0.04, 0.07, 0.85)
+	top_cards.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(top_cards)
+	move_child(top_cards, 1)
+	get_viewport().size_changed.connect(layout_combat_hud)
+	layout_combat_hud()
 
+
+func layout_combat_hud() -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	var width := viewport_size.x
+	var column := (width - 36.0) * 0.5
+	top_cards.position = Vector2(6, 6)
+	top_cards.size = Vector2(width - 12.0, 80)
+	counter_caption.position = Vector2(width - 232.0, viewport_size.y - 108.0)
+	player_hp_label.position = Vector2(12, 12)
+	player_hp_bar.position = Vector2(12, 38)
+	player_hp_bar.custom_minimum_size = Vector2(column, 8)
+	player_hp_bar.size = Vector2(column, 8)
+	guard_status_label.position = Vector2(12, 49)
+	guard_status_label.size = Vector2(column - 105.0, 22)
+	guard_status_label.clip_text = true
+	shield_heat_bar.position = Vector2(12, 74)
+	shield_heat_bar.custom_minimum_size = Vector2(column, 8)
+	shield_heat_bar.size = Vector2(column, 8)
+	boost_label.position = Vector2(12 + column - 101.0, 49)
+	boss_hp_label.position = Vector2(width - column - 12.0, 12)
+	boss_hp_bar.position = Vector2(width - column - 12.0, 52)
+	for node in [boss_hp_bar, boss_hp_label]:
+		node.custom_minimum_size.x = column
+		node.size.x = column
+	parry_count_label.hide()
+	equipped_weapon_label.hide()
+	wave_kills_label.hide()
+	wave_timer_panel.position = Vector2(width - column - 12.0, 12)
+	wave_timer_panel.custom_minimum_size = Vector2(column, 70)
+	wave_timer_panel.size = Vector2(column, 70)
+	v3_counter_panel.offset_left = width - 232.0
+	v3_counter_panel.offset_right = width - 12.0
+	v3_counter_panel.offset_top = -82.0
+	v3_counter_panel.offset_bottom = -12.0
+	v3_counter_bar.custom_minimum_size.y = 8.0
+	var captures := get_node("CapturePanel") as PanelContainer
+	captures.position = Vector2(12, viewport_size.y - 82.0)
+	captures.custom_minimum_size = Vector2(260, 70)
+	captures.size = Vector2(260, 70)
+	top_warning_overlay.offset_left = 12.0
+	top_warning_overlay.offset_right = -12.0
+	top_warning_overlay.offset_top = 88.0
+	top_warning_overlay.offset_bottom = 126.0
+	top_warning_label.offset_top = 4.0
+	top_warning_label.offset_bottom = 34.0
 
 var equipped_weapon_label: Label
 
@@ -91,12 +162,36 @@ func update_equipped_weapon_hud(weapon_id: String) -> void:
 		var w_name = weapon_id
 		if Global.available_weapons.has(weapon_id):
 			w_name = Global.available_weapons[weapon_id].get("name", weapon_id)
-		equipped_weapon_label.text = "WEAPON  %s  [Q/E]" % w_name
+		equipped_weapon_label.text = "主兵装  %s" % w_name
 
+
+func update_v3_counter_gauge(value: float, _ready: bool) -> void:
+	var manager = get_node_or_null("/root/Main/GameManager")
+	if manager:
+		update_v3_counter_status(manager.counter_system.phase, value)
+
+func update_v3_counter_status(phase: CounterSystem.Phase, value: float) -> void:
+	v3_counter_panel.visible = phase != CounterSystem.Phase.DISABLED
+	if is_instance_valid(counter_caption):
+		counter_caption.visible = v3_counter_panel.visible
+	v3_counter_bar.value = value
+	match phase:
+		CounterSystem.Phase.READY:
+			v3_counter_label.text = "READY [%s]" % Global.get_combat_key_name(Global.key_counter_system)
+		CounterSystem.Phase.ACTIVE:
+			var manager = get_node_or_null("/root/Main/GameManager")
+			v3_counter_label.text = "ACTIVE %.1fs" % (manager.counter_system.remaining if manager else 0.0)
+		CounterSystem.Phase.SPENT:
+			v3_counter_label.text = "使用済み"
+		_:
+			v3_counter_label.text = "充填  %d%%" % int(value)
+	v3_counter_label.label_settings.font_color = Color.GOLD if phase == CounterSystem.Phase.READY else Color(0.35, 0.9, 1.0)
 
 var top_warning_overlay: ColorRect
 var top_warning_label: Label
 var top_warning_tween: Tween
+var top_warning_active: bool = false
+var top_warning_generation: int = 0
 
 func create_top_warning_ui() -> void:
 	top_warning_overlay = ColorRect.new()
@@ -119,43 +214,57 @@ func create_top_warning_ui() -> void:
 	top_warning_label.text = "ガード不可 — 回避！"
 	var l_set = LabelSettings.new()
 	if PIXEL_FONT:
-		l_set.font = PIXEL_FONT
-	l_set.font_size = 20
+		l_set.font = Global.get_readable_font()
+	l_set.font_size = 22
 	l_set.font_color = Color(1.0, 0.4, 0.4)
-	l_set.outline_size = 3
+	l_set.outline_size = 2
 	l_set.outline_color = Color(0.1, 0.0, 0.0)
 	top_warning_label.label_settings = l_set
 	top_warning_label.modulate.a = 0.0
 	top_warning_overlay.add_child(top_warning_label)
 
 
+var combat_notice_priority: int = -1
+
+func show_combat_notice(message: String, color: Color = Color.GOLD, duration: float = 1.2, priority: int = 0) -> void:
+	if top_warning_active or priority < combat_notice_priority:
+		return
+	combat_notice_priority = priority
+	top_warning_generation += 1
+	var generation := top_warning_generation
+	if is_instance_valid(top_warning_tween):
+		top_warning_tween.kill()
+	top_warning_label.text = message
+	top_warning_label.label_settings.font_color = color
+	top_warning_label.modulate.a = 1.0
+	top_warning_overlay.color = Color(0.02, 0.04, 0.07, 0.85)
+	get_tree().create_timer(duration, false).timeout.connect(func():
+		if generation == top_warning_generation:
+			combat_notice_priority = -1
+			top_warning_label.modulate.a = 0.0
+			top_warning_overlay.color.a = 0.0
+	)
+
 func show_top_unparryable_warning(duration: float = 2.0, message: String = "") -> void:
 	if not is_instance_valid(top_warning_overlay):
 		return
-	if message != "":
-		top_warning_label.text = message
-	else:
-		top_warning_label.text = "ガード不可 — 回避！"
-		
+	top_warning_active = true
+	combat_notice_priority = 2
+	top_warning_generation += 1
+	var generation := top_warning_generation
 	if is_instance_valid(top_warning_tween):
 		top_warning_tween.kill()
-		
-	top_warning_tween = create_tween().set_parallel(true)
-	# 弾幕の視認性を最優先し、極めて控えめな半透明ティント（alpha 0.08）
-	top_warning_tween.tween_property(top_warning_overlay, "color:a", 0.08, 0.25).set_trans(Tween.TRANS_SINE)
-	top_warning_tween.tween_property(top_warning_label, "modulate:a", 0.75, 0.25)
-	
-	# 控えめな微弱パルス
-	var pulse_loops = max(1, int(duration / 0.4))
-	var pulse_tween = create_tween().set_loops(pulse_loops)
-	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.04, 0.2).set_trans(Tween.TRANS_SINE)
-	pulse_tween.tween_property(top_warning_overlay, "color:a", 0.08, 0.2).set_trans(Tween.TRANS_SINE)
-	
-	get_tree().create_timer(duration).timeout.connect(func():
-		if is_instance_valid(top_warning_overlay):
-			var fade_tween = create_tween().set_parallel(true)
-			fade_tween.tween_property(top_warning_overlay, "color:a", 0.0, 0.4).set_trans(Tween.TRANS_SINE)
-			fade_tween.tween_property(top_warning_label, "modulate:a", 0.0, 0.4).set_trans(Tween.TRANS_SINE)
+	top_warning_label.text = "ガード不可 — 回避！"
+	top_warning_label.tooltip_text = message
+	top_warning_label.label_settings.font_color = Color(1.0, 0.4, 0.4)
+	top_warning_label.modulate.a = 1.0
+	top_warning_overlay.color = Color(0.8, 0.02, 0.04, 0.18)
+	get_tree().create_timer(duration, false).timeout.connect(func():
+		if generation == top_warning_generation:
+			top_warning_active = false
+			combat_notice_priority = -1
+			top_warning_label.modulate.a = 0.0
+			top_warning_overlay.color.a = 0.0
 	)
 
 
@@ -196,7 +305,7 @@ func create_wave_phase_ui() -> void:
 	wave_level_label.text = "WAVE 1"
 	var w_set = LabelSettings.new()
 	if PIXEL_FONT:
-		w_set.font = PIXEL_FONT
+		w_set.font = Global.get_readable_font()
 	w_set.font_size = 18
 	w_set.font_color = Color.GOLD
 	w_set.outline_size = 4
@@ -205,11 +314,11 @@ func create_wave_phase_ui() -> void:
 	hdr.add_child(wave_level_label)
 	
 	wave_countdown_label = Label.new()
-	wave_countdown_label.text = "01:30"
+	wave_countdown_label.text = "上限 01:00"
 	wave_countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var c_set = LabelSettings.new()
 	if PIXEL_FONT:
-		c_set.font = PIXEL_FONT
+		c_set.font = Global.get_readable_font()
 	c_set.font_size = 20
 	c_set.font_color = Color.CYAN
 	c_set.outline_size = 6
@@ -222,7 +331,7 @@ func create_wave_phase_ui() -> void:
 	wave_kills_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var k_set = LabelSettings.new()
 	if PIXEL_FONT:
-		k_set.font = PIXEL_FONT
+		k_set.font = Global.get_readable_font()
 	k_set.font_size = 18
 	k_set.font_color = Color(0.9, 0.9, 0.9)
 	k_set.outline_size = 4
@@ -231,15 +340,15 @@ func create_wave_phase_ui() -> void:
 	vbox.add_child(wave_kills_label)
 
 
-func update_wave_phase_hud(wave_num: int, remaining_time: float, kills: int) -> void:
+func update_wave_phase_hud(wave_num: int, remaining_time: float, kills: int, remaining: int = -1, total_waves: int = 0, transitioning: bool = false) -> void:
 	if is_instance_valid(wave_timer_panel):
 		wave_timer_panel.visible = true
-		wave_level_label.text = "WAVE %d" % wave_num
+		wave_level_label.text = "WAVE %d/%d  %s" % [wave_num, total_waves, "次へ" if transitioning else "残%d" % remaining] if total_waves > 0 else "WAVE %d" % wave_num
 		
 		var total_sec = max(0, int(ceil(remaining_time)))
 		var mins = total_sec / 60
 		var secs = total_sec % 60
-		wave_countdown_label.text = "%02d:%02d" % [mins, secs]
+		wave_countdown_label.text = "上限 %02d:%02d" % [mins, secs]
 		
 		if remaining_time <= 10.0:
 			var flash = int(remaining_time * 6.0) % 2 == 0
@@ -266,213 +375,48 @@ func create_shield_heat_bar() -> void:
 	style_hp_bar(shield_heat_bar, COLOR_SHIELD_HEAT_DEFAULT)
 
 
-var slot_cards: Array = []
-var analysis_panel_title: Label
-var active_analysis_label: Label
-var active_analysis_bar: ProgressBar
-var active_analysis_percent_label: Label
-var last_analysis_progress_val: float = 0.0
+var capture_label: Label
+var capture_detail: Label
 
-func create_analysis_matrix_ui() -> void:
-	var trait_panel = PanelContainer.new()
-	trait_panel.name = "TraitSlotsPanel"
-	trait_panel.position = Vector2(440, 58)
-	trait_panel.custom_minimum_size = Vector2(340, 130)
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.02, 0.04, 0.08, 0.85)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.border_color = Color(0.25, 0.55, 0.85, 0.9)
-	sb.corner_radius_top_left = 6
-	sb.corner_radius_top_right = 6
-	sb.corner_radius_bottom_left = 6
-	sb.corner_radius_bottom_right = 6
-	trait_panel.add_theme_stylebox_override("panel", sb)
-	add_child(trait_panel)
-	
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 6)
-	trait_panel.add_child(vbox)
-	
-	# タイトルヘッダー
-	analysis_panel_title = Label.new()
-	analysis_panel_title.text = "【変異兵装スロット (MAX 2・固定強化)】"
-	var t_set = LabelSettings.new()
-	if PIXEL_FONT:
-		t_set.font = PIXEL_FONT
-	t_set.font_size = 18
-	t_set.font_color = Color.CYAN
-	t_set.outline_size = 3
-	t_set.outline_color = Color.BLACK
-	analysis_panel_title.label_settings = t_set
-	vbox.add_child(analysis_panel_title)
-	
-	# 2つの固定変異スロットボックス（横並び）
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 8)
-	vbox.add_child(hbox)
-	
-	slot_cards.clear()
-	for i in range(2):
-		var card = PanelContainer.new()
-		card.custom_minimum_size = Vector2(158, 52)
-		var c_sb = StyleBoxFlat.new()
-		c_sb.bg_color = Color(0.06, 0.09, 0.14, 0.95)
-		c_sb.border_width_left = 2
-		c_sb.border_width_top = 2
-		c_sb.border_width_right = 2
-		c_sb.border_width_bottom = 2
-		c_sb.border_color = Color(0.2, 0.3, 0.45, 0.85)
-		c_sb.corner_radius_top_left = 4
-		c_sb.corner_radius_top_right = 4
-		c_sb.corner_radius_bottom_left = 4
-		c_sb.corner_radius_bottom_right = 4
-		card.add_theme_stylebox_override("panel", c_sb)
-		
-		var lbl = Label.new()
-		lbl.text = "SLOT %d\n[敵弾解析で固定装備]" % (i + 1)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		var l_set = LabelSettings.new()
-		if PIXEL_FONT:
-			l_set.font = PIXEL_FONT
-		l_set.font_size = 18
-		l_set.font_color = Color(0.45, 0.5, 0.6)
-		l_set.outline_size = 3
-		l_set.outline_color = Color.BLACK
-		lbl.label_settings = l_set
-		card.add_child(lbl)
-		
-		hbox.add_child(card)
-		slot_cards.append({ "panel": card, "style": c_sb, "label": lbl })
-		
-	# 直近の解析・集中強化進行バー (大きく目立つ高輝度バー)
-	var prog_vbox = VBoxContainer.new()
-	prog_vbox.add_theme_constant_override("separation", 3)
-	vbox.add_child(prog_vbox)
-	
-	var prog_header = HBoxContainer.new()
-	prog_header.alignment = BoxContainer.ALIGNMENT_BEGIN
-	prog_vbox.add_child(prog_header)
-	
-	active_analysis_label = Label.new()
-	active_analysis_label.text = "パリィで解析"
-	active_analysis_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var a_set = LabelSettings.new()
-	if PIXEL_FONT:
-		a_set.font = PIXEL_FONT
-	a_set.font_size = 18
-	a_set.font_color = Color.WHITE
-	a_set.outline_size = 3
-	a_set.outline_color = Color.BLACK
-	active_analysis_label.label_settings = a_set
-	prog_header.add_child(active_analysis_label)
-	
-	active_analysis_percent_label = Label.new()
-	active_analysis_percent_label.text = "0%"
-	var p_set = LabelSettings.new()
-	if PIXEL_FONT:
-		p_set.font = PIXEL_FONT
-	p_set.font_size = 18
-	p_set.font_color = Color.GOLD
-	p_set.outline_size = 3
-	p_set.outline_color = Color.BLACK
-	active_analysis_percent_label.label_settings = p_set
-	prog_header.add_child(active_analysis_percent_label)
-	
-	active_analysis_bar = ProgressBar.new()
-	active_analysis_bar.show_percentage = false
-	active_analysis_bar.custom_minimum_size = Vector2(324, 16)
-	active_analysis_bar.max_value = 100
-	active_analysis_bar.value = 0
-	style_analysis_bar(active_analysis_bar, Color.CYAN)
-	prog_vbox.add_child(active_analysis_bar)
+func create_capture_ui() -> void:
+	var panel := PanelContainer.new()
+	panel.name = "CapturePanel"
+	panel.position = Vector2(440, 58)
+	panel.custom_minimum_size = Vector2(260, 58)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.02, 0.06, 0.09, 0.8)
+	style.set_border_width_all(1)
+	style.border_color = Color(0.3, 0.8, 1.0, 0.7)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	panel.add_theme_stylebox_override("panel", style)
+	add_child(panel)
+	var stack := VBoxContainer.new()
+	panel.add_child(stack)
+	capture_label = Label.new()
+	setup_label_style(capture_label, 22, Color.CYAN, 2)
+	stack.add_child(capture_label)
+	capture_detail = Label.new()
+	capture_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_label_style(capture_detail, 18, Color.WHITE, 2)
+	stack.add_child(capture_detail)
+	update_capture_hud([], 0.0)
 
-
-func update_pattern_analysis(patterns: Dictionary, active_traits: Array = []) -> void:
-	if slot_cards.is_empty() or not is_instance_valid(active_analysis_bar):
+func update_capture_hud(shots: Array, _power_remaining: float = 0.0) -> void:
+	if not is_instance_valid(capture_label):
 		return
-		
-	# 0. 2スロット揃っている場合は融合兵装名をヘッダーに表示
-	if active_traits.size() >= 2 and is_instance_valid(analysis_panel_title):
-		var f_info = Global.get_fusion_info(active_traits[0], active_traits[1])
-		analysis_panel_title.text = "【融合: %s】" % f_info.get("name", "複合融合兵装")
-		analysis_panel_title.label_settings.font_color = f_info.get("color", Color.GOLD)
-	elif is_instance_valid(analysis_panel_title):
-		analysis_panel_title.text = "【変異兵装スロット (MAX 2・固定強化)】"
-		analysis_panel_title.label_settings.font_color = Color.CYAN
-		
-	# 1. 2つの固定スロット表示の更新
-	for i in range(min(2, slot_cards.size())):
-		var card = slot_cards[i]
-		if i < active_traits.size():
-			var t_key = active_traits[i]
-			if patterns.has(t_key):
-				var data = patterns[t_key]
-				var lvl = data.get("level", 1)
-				var max_lvl = data.get("max_level", 5)
-				var lvl_str = "Lv.%d (強化融合)" % lvl if lvl < max_lvl else "Lv.MAX (極限)"
-				card["label"].text = "【%s】\n%s" % [data.get("name", "属性"), lvl_str]
-				card["label"].label_settings.font_color = Color(1.0, 0.88, 0.2) if lvl >= 3 else Color.WHITE
-				card["style"].border_color = data.get("color", Color.CYAN)
-				card["style"].bg_color = Color(0.1, 0.16, 0.24, 0.95)
-		else:
-			card["label"].text = "SLOT %d\n[敵弾解析で固定装備]" % (i + 1)
-			card["label"].label_settings.font_color = Color(0.45, 0.5, 0.6)
-			card["style"].border_color = Color(0.2, 0.25, 0.35, 0.8)
-			card["style"].bg_color = Color(0.06, 0.08, 0.1, 0.85)
-			
-	# 2. 現在進行中の解析または集中強化の表示
-	var latest_pattern = null
-	var highest_progress = 0.0
-	
-	# スロット満杯時はスロット装備中の属性から最も進捗の高いものを探す
-	var target_keys = active_traits if active_traits.size() >= 2 else patterns.keys()
-	
-	for key in target_keys:
-		if not patterns.has(key):
-			continue
-		var data = patterns[key]
-		var prog = data.get("progress", 0.0)
-		var lvl = data.get("level", 0)
-		var max_lvl = data.get("max_level", 5)
-		if lvl < max_lvl and prog > highest_progress:
-			highest_progress = prog
-			latest_pattern = data
-			
-	if latest_pattern and highest_progress > 0:
-		var name_str = latest_pattern.get("name", "未知")
-		var is_locked_mode = active_traits.size() >= 2
-		active_analysis_label.text = ("集中強化: [%s]" if is_locked_mode else "解析中: [%s]") % name_str
-		active_analysis_label.label_settings.font_color = latest_pattern.get("color", Color.CYAN)
-		active_analysis_percent_label.text = "%d%%" % int(highest_progress)
-		active_analysis_percent_label.label_settings.font_color = Color.GOLD if highest_progress >= 70.0 else Color.WHITE
-		
-		# バー進行のアニメーション＆発光
-		if highest_progress > last_analysis_progress_val:
-			active_analysis_bar.modulate = Color(1.8, 1.8, 2.0)
-			var t = create_tween()
-			t.tween_property(active_analysis_bar, "modulate", Color.WHITE, 0.25)
-		last_analysis_progress_val = highest_progress
-		
-		active_analysis_bar.value = highest_progress
-		style_analysis_bar(active_analysis_bar, latest_pattern.get("color", Color.CYAN))
-	else:
-		if active_traits.size() >= 2:
-			active_analysis_label.text = "スロット固定 — 強化中"
-			active_analysis_label.label_settings.font_color = Color(1.0, 0.85, 0.3)
-		else:
-			active_analysis_label.text = "パリィで解析"
-			active_analysis_label.label_settings.font_color = Color.GRAY
-		active_analysis_percent_label.text = "0%"
-		active_analysis_bar.value = 0
-		last_analysis_progress_val = 0.0
-
-
-const PIXEL_FONT: Font = preload("res://game/assets/fonts/DotGothic16-Regular.ttf")
+	capture_label.text = "CAPTURE  %d / %d" % [shots.size(), CaptureVolley.CAPACITY]
+	if Global.counter_only_mode_enabled:
+		capture_label.text = "捕獲追撃 OFF"
+	var precision_count := 0
+	for shot in shots:
+		if shot.get("precision", false):
+			precision_count += 1
+	capture_detail.visible = not shots.is_empty()
+	capture_detail.text = "保持中" if precision_count == 0 else "保持中  精密 %d発" % precision_count
 
 func style_hp_bar(bar: ProgressBar, color: Color) -> void:
 	# ドット絵風の角張ったピクセルフレーム (角丸ゼロ・2px枠線)
@@ -731,129 +675,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and (event.keycode == KEY_ESCAPE or event.keycode == KEY_P)):
-		if not has_node("GameOverPanel") and not has_node("AnalysisUnlockModal") and not has_node("TutorialGuideModal"):
+		if not has_node("PracticeEnd") and not has_node("GameOverPanel") and not has_node("AnalysisUnlockModal") and not has_node("TutorialGuideModal"):
 			toggle_pause_menu()
 
 
-func show_analysis_unlock_modal(pattern_key: String, data: Dictionary) -> void:
-	if has_node("AnalysisUnlockModal"):
-		get_node("AnalysisUnlockModal").queue_free()
-		
-	get_tree().paused = true
-	
-	var overlay = ColorRect.new()
-	overlay.name = "AnalysisUnlockModal"
-	overlay.anchor_right = 1.0
-	overlay.anchor_bottom = 1.0
-	overlay.color = Color(0.02, 0.03, 0.06, 0.90)
-	overlay.process_mode = PROCESS_MODE_ALWAYS
-	add_child(overlay)
-	
-	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(500, 480)
-	panel.anchor_left = 0.5
-	panel.anchor_top = 0.5
-	panel.anchor_right = 0.5
-	panel.anchor_bottom = 0.5
-	panel.offset_left = -250
-	panel.offset_top = -240
-	panel.offset_right = 250
-	panel.offset_bottom = 240
-	overlay.add_child(panel)
-	
-	var cat_info = Global.analysis_catalog.get(pattern_key, {})
-	var col = cat_info.get("color", data.get("color", Color.CYAN))
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.07, 0.12, 0.98)
-	sb.border_width_left = 3
-	sb.border_width_top = 3
-	sb.border_width_right = 3
-	sb.border_width_bottom = 3
-	sb.border_color = col
-	sb.shadow_color = Color(col.r, col.g, col.b, 0.35)
-	sb.shadow_size = 18
-	panel.add_theme_stylebox_override("panel", sb)
-	
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 24)
-	margin.add_theme_constant_override("margin_top", 24)
-	margin.add_theme_constant_override("margin_right", 24)
-	margin.add_theme_constant_override("margin_bottom", 24)
-	panel.add_child(margin)
-	
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 14)
-	margin.add_child(vbox)
-	
-	var h_lbl = Label.new()
-	h_lbl.text = "新変異兵装・解析完了！"
-	h_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(h_lbl, 24, Color.GOLD, 6)
-	vbox.add_child(h_lbl)
-	
-	var name_lbl = Label.new()
-	name_lbl.text = "%s 【%s】" % [cat_info.get("icon", data.get("icon", "◈")), cat_info.get("name", data.get("name", "新変異"))]
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(name_lbl, 32, col, 8)
-	vbox.add_child(name_lbl)
-	
-	var src_lbl = Label.new()
-	src_lbl.text = "【解析元】%s（%s）" % [cat_info.get("enemy_color", "敵弾"), cat_info.get("enemy_type", "通常敵")]
-	src_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(src_lbl, 16, Color(0.8, 0.9, 1.0), 4)
-	vbox.add_child(src_lbl)
-	
-	var desc_box = PanelContainer.new()
-	var desc_sb = StyleBoxFlat.new()
-	desc_sb.bg_color = Color(0.03, 0.04, 0.07, 0.9)
-	desc_sb.border_width_left = 1
-	desc_sb.border_width_top = 1
-	desc_sb.border_width_right = 1
-	desc_sb.border_width_bottom = 1
-	desc_sb.border_color = Color(0.2, 0.3, 0.45)
-	desc_box.add_theme_stylebox_override("panel", desc_sb)
-	vbox.add_child(desc_box)
-	
-	var desc_margin = MarginContainer.new()
-	desc_margin.add_theme_constant_override("margin_left", 14)
-	desc_margin.add_theme_constant_override("margin_top", 12)
-	desc_margin.add_theme_constant_override("margin_right", 14)
-	desc_margin.add_theme_constant_override("margin_bottom", 12)
-	desc_box.add_child(desc_margin)
-	
-	var desc_vbox = VBoxContainer.new()
-	desc_vbox.add_theme_constant_override("separation", 8)
-	desc_margin.add_child(desc_vbox)
-	
-	var stat_lbl = Label.new()
-	stat_lbl.text = cat_info.get("stats", "")
-	setup_label_style(stat_lbl, 16, Color.CYAN, 4)
-	desc_vbox.add_child(stat_lbl)
-	
-	var body_lbl = Label.new()
-	body_lbl.text = cat_info.get("description", "") + "\n\n変異スロットに装備しました（最大2枠・上書きなし）。\n以降のパリィでレベルアップします。"
-	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	setup_label_style(body_lbl, 15, Color.WHITE, 4)
-	desc_vbox.add_child(body_lbl)
-	
-	var resume_btn = Button.new()
-	resume_btn.text = "同期完了・戦闘再開 (SPACE / クリック)"
-	resume_btn.custom_minimum_size = Vector2(0, 52)
-	if PIXEL_FONT:
-		resume_btn.add_theme_font_override("font", PIXEL_FONT)
-	resume_btn.add_theme_font_size_override("font_size", 20)
-	style_game_over_button(resume_btn, col)
-	vbox.add_child(resume_btn)
-	
-	var close_fn = func():
-		get_tree().paused = false
-		overlay.queue_free()
-		
-	resume_btn.pressed.connect(close_fn)
-
-
 func show_tutorial_guide_modal(topic: String) -> void:
+	if Global.practice_active:
+		return
 	if has_node("TutorialGuideModal"):
 		get_node("TutorialGuideModal").queue_free()
 		
@@ -915,59 +743,45 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "主兵装射撃",
 					"color": Color(0.4, 1.0, 0.5),
-					"desc": "【常時フルオート自動連射】\n主兵装は常時自動で連射されます。攻撃キーの長押しは不要で、回避とシールド防御に集中できます。"
+					"desc": "【出撃直後から自動射撃】\n予定の敵部隊を倒すと次のウェーブへ。全部隊を撃破すると早くボスへ進みます。道中の上限は60秒です。"
 				},
 				{
 					"title": "ガード ＆ パリィ",
 					"color": Color.GOLD,
-					"desc": "%s / [右クリック]\nシールドを展開。着弾直前ならパリィとなり、敵弾を反射して機体を修復します。" % shield_k_str
+					"desc": "%s / [右クリック]\nシールドを展開。着弾直前ならパリィとなり、敵弾を捕まえ、次の射撃で追撃します。成功5回で機体を修復します。" % shield_k_str
 				},
 				{
-					"title": "COUNTER SYSTEM (必殺支援部隊)",
+					"title": "COUNTER SYSTEM",
 					"color": Color(1.0, 0.45, 0.9),
-					"desc": "%s (設定画面で変更可能)\nボスタレット支援部隊を一斉召喚！全画面が機体色に染まり、圧倒的な高火力援護射撃で敵陣を殲滅！" % cs_k_str
+					"desc": "%s (設定画面で変更可能)\nボス戦のパリィで充填。READYになったら、装備中のカウンター兵装を手動発動します。通常はボス戦で1回だけ使用できます。" % cs_k_str
 				}
 			]
 		"weapon_analysis":
-			title_text = "【敵弾解析 ＆ 変異兵装】"
-			sub_text = "敵の攻撃を解析し、自機の武装へと変換せよ！"
-			border_col = Color(1.0, 0.85, 0.2)
+			title_text = "【捕まえて、撃ち返す】"
+			sub_text = "防いだ弾が、自分の追撃になる"
 			items = [
-				{
-					"title": "敵弾の解析",
-					"color": Color.CYAN,
-					"desc": "敵弾をガードまたはパリィすると、画面左下に解析率が蓄積されます。"
-				},
-				{
-					"title": "変異兵装の解放",
-					"color": Color.GOLD,
-					"desc": "解析度100%で【変異兵装】が解放！全兵装共鳴により、機体の全攻撃力・機動性も底上げされます。"
-				},
-				{
-					"title": "変異スロット固定装備（最大2枠）",
-					"color": Color(0.9, 0.45, 1.0),
-					"desc": "獲得した2つの変異兵装がスロットに固定されます。スロット満杯後は上書きされず、その2つが集中的にLvアップ強化され続けます！"
-				}
+				{"title": "パリィで捕獲", "color": Color.CYAN, "desc": "敵弾がリングに入る瞬間に防御ボタンを押します。捕まえた弾は機体の周りに並びます。"},
+				{"title": "次の射撃で追撃", "color": Color.GOLD, "desc": "短く保持した後、次の自動射撃で放ちます。ミサイルは誘導、拡散弾は3方向、重弾は爆発の追撃になります。"}
 			]
 		"time_limit":
-			title_text = "【防衛フェーズ残り30秒 ＆ ボス接近】"
+			title_text = "【道中突破 ＆ ボス接近】"
 			sub_text = "迫る超巨大要塞ボスとの決戦に備えよ！"
 			border_col = Color(1.0, 0.55, 0.2)
 			items = [
 				{
-					"title": "制限時間（90秒）",
+					"title": "道中の上限（60秒）",
 					"color": Color(1.0, 0.6, 0.2),
-					"desc": "各ステージの通常防衛時間は【90秒間】です（現在1分経過、残り30秒！）。"
+					"desc": "道中全体の上限は60秒。ウェーブ間の待ちも含み、ポーズや操作説明中は止まります。"
 				},
 				{
-					"title": "最終防衛態勢",
+					"title": "撃破で早く突破",
 					"color": Color(0.3, 0.9, 1.0),
-					"desc": "敵の増援が激化します。敵を撃破してテックポイント（TP）を獲得し、変異兵装を解析強化しましょう！"
+					"desc": "予定の出現が終わり、生きている敵を倒すと次へ。全ウェーブを突破すれば、60秒を待たずにボス警告へ進みます。"
 				},
 				{
 					"title": "ボス戦移行",
 					"color": Color(1.0, 0.3, 0.3),
-					"desc": "90秒が経過すると画面が暗転し、巨大な「要塞ボス」が出現・戦闘フェーズに移行します！"
+					"desc": "上限60秒では残敵がいてもボス警告へ。未突破のウェーブの移行報酬は獲得できません。COUNTERはボス戦から充填します。"
 				}
 			]
 		"boss_info":
@@ -983,7 +797,7 @@ func show_tutorial_guide_modal(topic: String) -> void:
 				{
 					"title": "攻略手順",
 					"color": Color(0.3, 0.9, 1.0),
-					"desc": "左右の砲台を先に破壊します。砲台の弾をパリィして、ボスへ反射することもできます。"
+					"desc": "左右の砲台を先に破壊します。砲台の弾をパリィして、次の射撃の追撃にできます。"
 				},
 				{
 					"title": "【ガード不可】真紅の警告",
@@ -1126,36 +940,28 @@ func toggle_pause_menu() -> void:
 	if Global.available_weapons.has(w_name):
 		w_name = Global.available_weapons[w_name].get("name", w_name)
 	var status_lbl = Label.new()
-	status_lbl.text = "装備主兵装: %s [Q/E切替可能] | シールド: %s" % [w_name, Global.equipped_shield]
+	status_lbl.text = "装備主兵装: %s [出撃中固定] | シールド: %s" % [w_name, Global.equipped_shield]
 	status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	setup_label_style(status_lbl, 16, Color.GOLD, 4)
 	vbox.add_child(status_lbl)
 	
-	# Section: 解析変異兵装ステータス
-	var sec_lbl = Label.new()
-	sec_lbl.text = "─── 現在の解析変異スロット (MAX 2・固定集中強化) ───"
-	sec_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_label_style(sec_lbl, 20, Color.WHITE, 6)
-	vbox.add_child(sec_lbl)
-	
-	var player_node = get_node_or_null("../Player")
-	var active_keys = player_node.active_traits if player_node and "active_traits" in player_node else []
-	
-	if active_keys.size() == 0:
-		var empty_lbl = Label.new()
-		empty_lbl.text = "変異兵装なし\n敵弾をパリィし、解析率を100%にすると装備されます（最大2枠）。"
-		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		setup_label_style(empty_lbl, 15, Color.GRAY, 3)
-		vbox.add_child(empty_lbl)
-	else:
-		if active_keys.size() >= 2:
-			var fusion_card = create_pause_fusion_card(active_keys[0], active_keys[1])
-			vbox.add_child(fusion_card)
-			
-		for k in active_keys:
-			var card = create_pause_weapon_card(k, player_node.analysis_patterns.get(k, {}))
-			vbox.add_child(card)
-			
+	var instructions := Label.new()
+	instructions.text = "主兵装は自動射撃。パリィで敵弾を捕まえ、次の射撃でまとめて追撃。\nCOUNTERはボス戦のパリィで充填し、1戦に1回だけ手動発動。"
+	if Global.counter_only_mode_enabled:
+		instructions.text = "COUNTER ONLY: 主兵装と捕獲追撃は停止。\nボス戦のパリィでCOUNTERを再充填し、その都度手動発動。"
+	instructions.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_label_style(instructions, 18, Color.WHITE, 4)
+	vbox.add_child(instructions)
+
+	var settings_title = Label.new()
+	settings_title.text = "─── クイック設定 ───"
+	settings_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(settings_title, 20, Color.WHITE, 6)
+	vbox.add_child(settings_title)
+
+	var pause_settings = PAUSE_SETTINGS_SCENE.instantiate()
+	vbox.add_child(pause_settings)
+
 	# Action buttons
 	var btns_vbox = VBoxContainer.new()
 	btns_vbox.add_theme_constant_override("separation", 10)
@@ -1187,123 +993,33 @@ func toggle_pause_menu() -> void:
 	)
 	
 	var stage_btn = Button.new()
-	stage_btn.text = "作戦エリア選択へ"
+	stage_btn.text = "練習設定へ" if Global.practice_active else "作戦エリア選択へ"
 	stage_btn.custom_minimum_size = Vector2(300, 50)
 	stage_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	style_game_over_button(stage_btn, Color(0.3, 0.75, 0.9))
 	btns_vbox.add_child(stage_btn)
 	stage_btn.pressed.connect(func():
 		get_tree().paused = false
-		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
+		if Global.practice_active:
+			get_node("../GameManager").exit_practice()
+		else:
+			leave_campaign_to_stage_selection()
 	)
 	
 	var menu_btn = Button.new()
-	menu_btn.text = "メインメニューへ"
+	menu_btn.text = "オプションへ戻る" if Global.practice_active else "メインメニューへ"
 	menu_btn.custom_minimum_size = Vector2(300, 50)
 	menu_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	style_game_over_button(menu_btn, Color.GRAY)
 	btns_vbox.add_child(menu_btn)
 	menu_btn.pressed.connect(func():
 		get_tree().paused = false
-		get_tree().change_scene_to_file("res://game/core/main_menu.tscn")
+		if Global.practice_active:
+			get_node("../GameManager").exit_practice(true)
+		else:
+			leave_campaign_to_main_menu()
 	)
-
-
-func create_pause_fusion_card(key_a: String, key_b: String) -> PanelContainer:
-	var card = PanelContainer.new()
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
-	var f_info = Global.get_fusion_info(key_a, key_b)
-	var col = f_info.get("color", Color.GOLD)
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.06, 0.02, 0.95)
-	sb.border_width_left = 3
-	sb.border_width_top = 3
-	sb.border_width_right = 3
-	sb.border_width_bottom = 3
-	sb.border_color = col
-	sb.corner_radius_top_left = 6
-	sb.corner_radius_top_right = 6
-	sb.corner_radius_bottom_left = 6
-	sb.corner_radius_bottom_right = 6
-	card.add_theme_stylebox_override("panel", sb)
-	
-	var m = MarginContainer.new()
-	m.add_theme_constant_override("margin_left", 16)
-	m.add_theme_constant_override("margin_top", 12)
-	m.add_theme_constant_override("margin_right", 16)
-	m.add_theme_constant_override("margin_bottom", 12)
-	card.add_child(m)
-	
-	var v = VBoxContainer.new()
-	v.add_theme_constant_override("separation", 6)
-	m.add_child(v)
-	
-	var title_lbl = Label.new()
-	title_lbl.text = "【融合完成兵装: %s】 (%s)" % [f_info.get("name", "融合兵装"), f_info.get("title_en", "")]
-	setup_label_style(title_lbl, 20, col, 6)
-	v.add_child(title_lbl)
-	
-	var sum_lbl = Label.new()
-	sum_lbl.text = "特性: %s" % f_info.get("summary", "")
-	setup_label_style(sum_lbl, 16, Color(1.0, 0.9, 0.4), 4)
-	v.add_child(sum_lbl)
-	
-	var desc_lbl = Label.new()
-	desc_lbl.text = f_info.get("description", "")
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	setup_label_style(desc_lbl, 14, Color(0.9, 0.95, 1.0), 3)
-	v.add_child(desc_lbl)
-	
-	return card
-
-
-func create_pause_weapon_card(pattern_key: String, p_data: Dictionary) -> PanelContainer:
-	var card = PanelContainer.new()
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
-	var cat_info = Global.analysis_catalog.get(pattern_key, {})
-	var col = cat_info.get("color", p_data.get("color", Color.CYAN))
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.08, 0.12, 0.9)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.border_color = col
-	card.add_theme_stylebox_override("panel", sb)
-	
-	var m = MarginContainer.new()
-	m.add_theme_constant_override("margin_left", 14)
-	m.add_theme_constant_override("margin_top", 10)
-	m.add_theme_constant_override("margin_right", 14)
-	m.add_theme_constant_override("margin_bottom", 10)
-	card.add_child(m)
-	
-	var v = VBoxContainer.new()
-	v.add_theme_constant_override("separation", 4)
-	m.add_child(v)
-	
-	var title_lbl = Label.new()
-	var lvl = p_data.get("level", 1)
-	title_lbl.text = "【%s】 Lv.%d  [解析元: %s敵 (%s)]" % [
-		cat_info.get("name", pattern_key),
-		lvl,
-		cat_info.get("enemy_color", "通常"),
-		cat_info.get("enemy_type", "")
-	]
-	setup_label_style(title_lbl, 17, col, 4)
-	v.add_child(title_lbl)
-	
-	var desc_lbl = Label.new()
-	desc_lbl.text = "%s\n%s" % [cat_info.get("stats", ""), cat_info.get("description", "")]
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	setup_label_style(desc_lbl, 14, Color(0.85, 0.9, 0.95), 3)
-	v.add_child(desc_lbl)
-	
-	return card
+	Global.apply_body_font(panel)
 
 
 func style_game_over_button(btn: Button, border_color: Color) -> void:
@@ -1333,7 +1049,7 @@ func style_game_over_button(btn: Button, border_color: Color) -> void:
 func setup_label_style(label: Label, size: int, color: Color, outline: int = 4) -> void:
 	var settings = LabelSettings.new()
 	if PIXEL_FONT:
-		settings.font = PIXEL_FONT
+		settings.font = PIXEL_FONT if size >= 32 else Global.get_readable_font()
 	settings.font_size = size
 	settings.font_color = color
 	settings.outline_size = outline
@@ -1346,7 +1062,7 @@ func update_player_hp(current: int, max_hp_val: int) -> void:
 		return
 	player_hp_bar.max_value = max_hp_val
 	player_hp_bar.value = current
-	player_hp_label.text = "自機 HP: %d / %d" % [current, max_hp_val]
+	player_hp_label.text = "HP ∞" if Global.practice_infinite_hp() or Global.debug_infinite_hp() else "HP %d / %d" % [current, max_hp_val]
 
 
 func update_boss_hp(current: int, max_hp_val: int) -> void:
@@ -1357,7 +1073,7 @@ func update_boss_hp(current: int, max_hp_val: int) -> void:
 		boss_hp_bar.value = current
 	if is_instance_valid(boss_hp_label):
 		boss_hp_label.visible = true
-		boss_hp_label.text = "【BOSS TARGET】 HP: %d / %d" % [current, max_hp_val]
+		boss_hp_label.text = "BOSS HP ∞ / " + ("激化" if Global.practice_config.get("intense", false) else "通常") if Global.practice_active else "BOSS %d / %d" % [current, max_hp_val]
 
 
 func update_parry_count(count: int) -> void:
@@ -1375,6 +1091,10 @@ func hide_boss_hp() -> void:
 func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overheat_timer: float, is_guarding: bool, shield_type: String = "counter", gauge_timer: float = 0.0, max_gauge_ct: float = 3.0) -> void:
 	if not is_instance_valid(shield_heat_bar) or not is_instance_valid(guard_status_label):
 		return
+	var shield_player := get_node_or_null("/root/Main/Player")
+	var boost_remaining: float = shield_player.power_boost_remaining if is_instance_valid(shield_player) else 0.0
+	boost_label.visible = boost_remaining > 0.0
+	boost_label.text = "BOOST %.1fs" % boost_remaining
 	if shield_type == "gauge":
 		# 吸収マトリクス (3.0s クールダウン表示)
 		shield_heat_bar.max_value = max_gauge_ct
@@ -1391,14 +1111,14 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 				var flash = 0.6 + 0.4 * sin(Time.get_ticks_msec() * 0.015)
 				fg_style.bg_color = Color(0.1, 0.9, 0.5, flash)
 				
-		if gauge_timer > 0.0:
-			guard_status_label.text = "[RECHARGE] ABSORB CT: 冷却中 %.1fs" % gauge_timer
+		if is_guarding:
+			guard_status_label.text = "SHIELD 展開中"
+			guard_status_label.label_settings.font_color = Color.CYAN
+		elif gauge_timer > 0.0:
+			guard_status_label.text = "再展開 %.1fs" % gauge_timer
 			guard_status_label.label_settings.font_color = Color(1.0, 0.7, 0.3)
-		elif is_guarding:
-			guard_status_label.text = "吸収パルス展開中！"
-			guard_status_label.label_settings.font_color = Color(0.2, 1.0, 0.6)
 		else:
-			guard_status_label.text = "吸収パルス準備完了 [Space]"
+			guard_status_label.text = "READY [%s]" % Global.get_combat_key_name(Global.key_shield)
 			guard_status_label.label_settings.font_color = Color(0.3, 1.0, 0.6)
 	else:
 		# 通常・カウンター・パワーシールド (ヒート制)
@@ -1422,13 +1142,16 @@ func update_guard_heat(heat: float, max_heat: float, is_overheated: bool, overhe
 					fg_style.bg_color = COLOR_SHIELD_HEAT_DEFAULT
 
 		if is_overheated:
-			guard_status_label.text = "OVERHEAT! 装甲脆弱(被ダメ1.6倍) %.1fs" % overheat_timer
+			guard_status_label.text = "OVERHEAT  %.1fs" % overheat_timer
 			guard_status_label.label_settings.font_color = Color.RED
 		elif is_guarding:
-			guard_status_label.text = "シールド: 展開中！"
+			guard_status_label.text = "SHIELD 展開中"
 			guard_status_label.label_settings.font_color = Color.CYAN
+		elif heat + (shield_player.heat_per_use if shield_player else 22.0) >= max_heat:
+			guard_status_label.text = "放熱待ち"
+			guard_status_label.label_settings.font_color = Color.ORANGE
 		else:
-			guard_status_label.text = "シールドヒート [Space]"
+			guard_status_label.text = "READY [%s]" % Global.get_combat_key_name(Global.key_shield)
 			guard_status_label.label_settings.font_color = Color.LIGHT_GRAY
 
 
@@ -1685,7 +1408,7 @@ func show_game_over(result: String) -> void:
 	
 	stage_select_btn.pressed.connect(func():
 		get_tree().paused = false
-		get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
+		leave_campaign_to_stage_selection()
 	)
 	
 	var spacer_menu = Control.new()
@@ -1718,90 +1441,24 @@ func show_game_over(result: String) -> void:
 	
 	menu_btn.pressed.connect(func():
 		get_tree().paused = false
-		get_tree().change_scene_to_file("res://game/core/main_menu.tscn")
+		leave_campaign_to_main_menu()
 	)
 	
 	get_tree().paused = true
 
 
 func spawn_damage_popup(pos: Vector2, amount: int, is_finish: bool = false, is_critical: bool = false) -> void:
-	var label = Label.new()
-	label.text = str(amount) + ("!" if is_critical else "")
-	
-	var settings = LabelSettings.new()
-	if PIXEL_FONT:
-		settings.font = PIXEL_FONT
-	if is_finish:
-		settings.font_size = 22
-		settings.font_color = Color(1.0, 0.6, 0.2)
-		settings.outline_size = 3
-		settings.outline_color = Color.BLACK
-	elif is_critical:
-		settings.font_size = 20
-		settings.font_color = Color(1.0, 0.88, 0.15) # 鮮烈なクリティカルゴールド
-		settings.outline_size = 4
-		settings.outline_color = Color(0.35, 0.05, 0.0) # 深紅アウトライン
-	else:
-		settings.font_size = 15
-		if amount > 15:
-			settings.font_color = Color(1.0, 0.9, 0.3)
-		else:
-			settings.font_color = Color(0.9, 0.95, 1.0, 0.9)
-		settings.outline_size = 2
-		settings.outline_color = Color.BLACK
-		
-	label.label_settings = settings
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.pivot_offset = Vector2(40, 15)
-	
-	label.global_position = pos + Vector2(randf_range(-15, 15), randf_range(-15, 5))
-	add_child(label)
-	
-	var start_scale = Vector2(0.8, 0.8) if is_critical else Vector2(0.5, 0.5)
-	var end_scale = Vector2(1.3, 1.3) if is_critical else Vector2(1.0, 1.0)
-	label.scale = start_scale
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(label, "scale", end_scale, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var target_pos = label.global_position + Vector2(randf_range(-15, 15), -45 if is_critical else -35)
-	tween.tween_property(label, "global_position", target_pos, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	
-	var fade_tween = create_tween()
-	fade_tween.tween_interval(0.18)
-	fade_tween.tween_property(label, "modulate:a", 0.0, 0.20)
-	
-	tween.chain().tween_callback(label.queue_free)
+	var popup := COMBAT_POPUP_SCENE.instantiate() as CombatPopup
+	popup.global_position = pos + Vector2(randf_range(-15, 15), randf_range(-15, 5))
+	add_child(popup)
+	popup.show_damage(amount, is_finish, is_critical)
 
 
 func spawn_kill_popup(pos: Vector2, text: String = "撃破！") -> void:
-	var label = Label.new()
-	label.text = text
-	
-	var settings = LabelSettings.new()
-	if PIXEL_FONT:
-		settings.font = PIXEL_FONT
-	settings.font_size = 24
-	settings.font_color = Color(1.0, 0.85, 0.2)
-	settings.outline_size = 3
-	settings.outline_color = Color(0.1, 0.05, 0.0, 1.0)
-	
-	label.label_settings = settings
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.pivot_offset = Vector2(60, 20)
-	label.global_position = pos + Vector2(-60, -20)
-	
-	add_child(label)
-	
-	label.scale = Vector2(0.4, 0.4)
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(label, "global_position", pos + Vector2(-60, -50), 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	
-	var fade = create_tween()
-	fade.tween_interval(0.25)
-	fade.tween_property(label, "modulate:a", 0.0, 0.2)
-	
-	tween.chain().tween_callback(label.queue_free)
+	var popup := COMBAT_POPUP_SCENE.instantiate() as CombatPopup
+	popup.global_position = pos + Vector2(-60, -20)
+	add_child(popup)
+	popup.show_kill(text)
 
 
 func format_score(value: int) -> String:
@@ -1855,7 +1512,7 @@ var counter_system_total_time: float = 10.0
 var counter_system_remaining_time: float = 0.0
 
 func _process(delta: float) -> void:
-	if counter_system_active:
+	if counter_system_active and not get_tree().paused:
 		update_counter_system_ui(delta)
 
 func activate_counter_system_tint(duration: float) -> void:
@@ -1883,18 +1540,9 @@ func activate_counter_system_tint(duration: float) -> void:
 	var tint_tween = create_tween()
 	tint_tween.tween_property(counter_system_tint_rect, "color:a", 0.22, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
-	# 2. 上部カウンターバナーHUDの表示
-	if not counter_system_banner or not is_instance_valid(counter_system_banner):
-		create_counter_system_banner(p_accent)
+	# The lower-right COUNTER card also shows ACTIVE.
+	update_v3_counter_status(CounterSystem.Phase.ACTIVE, 100.0)
 	
-	if is_instance_valid(counter_system_banner):
-		counter_system_banner.visible = true
-		counter_system_banner.modulate.a = 0.0
-		var vp_width = get_viewport().get_visible_rect().size.x if get_viewport() else 800.0
-		counter_system_banner.position = Vector2(vp_width / 2.0 - 150.0, 75.0)
-		var b_tween = create_tween()
-		b_tween.tween_property(counter_system_banner, "modulate:a", 1.0, 0.25)
-		
 	# 3. 画面フラッシュ
 	trigger_flash(Color(p_accent.r, p_accent.g, p_accent.b, 0.45))
 
@@ -1945,17 +1593,21 @@ func create_counter_system_banner(p_accent: Color) -> void:
 	
 	add_child(counter_system_banner)
 
-func update_counter_system_ui(delta: float) -> void:
+func update_counter_system_ui(_delta: float) -> void:
 	if not counter_system_active:
 		return
 		
-	counter_system_remaining_time -= delta
+	var manager = get_node_or_null("/root/Main/GameManager")
+	if not manager:
+		return
+	counter_system_remaining_time = manager.counter_system.remaining
+	update_v3_counter_status(CounterSystem.Phase.ACTIVE, manager.counter_system.gauge)
 	if counter_system_remaining_time <= 0.0:
 		deactivate_counter_system_tint()
 		return
 		
 	if is_instance_valid(counter_system_timer_lbl):
-		counter_system_timer_lbl.text = "支援砲台部隊 展開中: %.1fs" % counter_system_remaining_time
+		counter_system_timer_lbl.text = "%s  %.1fs" % [WeaponCatalog.COUNTER[Global.equipped_counter_weapon]["name"], counter_system_remaining_time]
 		
 	if is_instance_valid(counter_system_progress_bar) and counter_system_total_time > 0.0:
 		counter_system_progress_bar.value = (counter_system_remaining_time / counter_system_total_time) * 100.0
@@ -1993,3 +1645,68 @@ func reset_counter_system_ui() -> void:
 	if is_instance_valid(counter_system_banner):
 		counter_system_banner.visible = false
 		counter_system_banner.modulate.a = 0.0
+
+func update_practice_hud() -> void:
+	wave_timer_panel.show()
+	wave_level_label.text = "SIMULATOR"
+	wave_countdown_label.text = "無限補充" if Global.practice_config.get("repeat", false) else "単発"
+	wave_kills_label.hide()
+
+func show_practice_hint(kind: String) -> void:
+	var hints := {
+		"straight": "早めに展開で通常捕獲。内側まで引きつけると精密捕獲。",
+		"wave": "弾の中心側へ移動してまとめ取り。捕獲後は射手へ追撃。",
+		"charge": "溜め中に倒すか、射線を外して強い弾を捕まえる。"
+	}
+	var label := Label.new()
+	label.name = "PracticeHint"
+	label.position = Vector2(18, 138)
+	label.size = Vector2(get_viewport().get_visible_rect().size.x - 36.0, 68)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_label_style(label, 18, Color.LIGHT_CYAN, 2)
+	label.text = hints.get(kind, "練習中：進行・報酬・保存には反映されません。") + "\n捕獲後に射線を合わせる。ESCで再試行・退出。"
+	add_child(label)
+	var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_STOP)
+	tween.tween_interval(5.0)
+	tween.tween_property(label, "modulate:a", 0.0, 0.4)
+	tween.tween_callback(label.queue_free)
+
+func show_practice_end() -> void:
+	var panel := ColorRect.new()
+	panel.name = "PracticeEnd"
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.color = Color(0.025, 0.04, 0.07, 0.94)
+	panel.process_mode = PROCESS_MODE_ALWAYS
+	add_child(panel)
+	var stack := VBoxContainer.new()
+	stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	stack.alignment = BoxContainer.ALIGNMENT_CENTER
+	stack.add_theme_constant_override("separation", 20)
+	panel.add_child(stack)
+	var title := Label.new()
+	title.text = "練習終了"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_label_style(title, 32, Color.CYAN)
+	stack.add_child(title)
+	var manager := get_node("../GameManager")
+	for action in ["同じ設定で再試行", "練習設定へ", "オプションへ戻る"]:
+		var button := Button.new()
+		button.text = action
+		button.custom_minimum_size = Vector2(320, 56)
+		button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		style_game_over_button(button, Color.CYAN)
+		stack.add_child(button)
+		if action == "同じ設定で再試行":
+			button.pressed.connect(manager.restart)
+		elif action == "練習設定へ":
+			button.pressed.connect(func(): manager.exit_practice())
+		else:
+			button.pressed.connect(func(): manager.exit_practice(true))
+	Global.apply_body_font(panel)
+
+func leave_campaign_to_stage_selection() -> void:
+	get_node("../GameManager").clean_stage_entities()
+	get_tree().change_scene_to_file("res://game/core/stage_selection.tscn")
+func leave_campaign_to_main_menu() -> void:
+	get_node("../GameManager").clean_stage_entities()
+	get_tree().change_scene_to_file("res://game/core/main_menu.tscn")

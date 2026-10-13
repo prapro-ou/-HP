@@ -9,6 +9,10 @@ class WaveSpawnConfig:
 	var pos_ratio_x: float
 	var pos_y: float
 	var is_slow: Variant = null
+	var spawn_delay: float = 0.0
+	var lane_y: float = -1.0
+	var lane_sway: float = 0.0
+	var entry_speed: float = 180.0
 	
 	func _init(p_type: String, p_ratio_x: float, p_y: float = -50.0, p_is_slow: Variant = null) -> void:
 		drone_type = p_type
@@ -21,11 +25,7 @@ class WaveData:
 	var display_title: String
 	var start_message: String
 	var initial_spawns: Array = []
-	var replenish_types: Array = []
-	var min_active_drones: int = 2
-	var drone_speed_override: float = 0.0
-	var drone_shoot_interval_beam: float = 0.0
-	var drone_shoot_interval_missile: float = 0.0
+	var transition_delay: float = 0.65
 
 class InterludeData:
 	var title: String = "警告"
@@ -76,3 +76,39 @@ func get_wave(index: int) -> WaveData:
 	if index >= 0 and index < waves.size():
 		return waves[index]
 	return null
+
+## Campaign-only entry and bounded movement data. Default drone AI is unchanged.
+func lane_spawn(kind: String, x: float, y: float, delay: float, sway: float, entry_speed: float = 180.0) -> WaveSpawnConfig:
+	var config := WaveSpawnConfig.new(kind, x, -60.0, false)
+	config.spawn_delay = delay
+	config.lane_y = y
+	config.lane_sway = sway
+	config.entry_speed = entry_speed
+	return config
+
+func encounter_wave(id: String, title: String, message: String) -> WaveData:
+	var wave := WaveData.new()
+	wave.wave_id = id
+	wave.display_title = title
+	wave.start_message = message
+	return wave
+
+func patrol_wave(kinds: Array, id: String = "patrol") -> WaveData:
+	var wave := encounter_wave(id, "移動哨戒", "横移動で射線を合わせる。敵弾は捕まえて追撃。")
+	for i in kinds.size():
+		wave.initial_spawns.append(lane_spawn(kinds[i], 0.30 if i % 2 == 0 else 0.70, 320.0 + (i % 2) * 40.0, i * 2.4, 48.0))
+	return wave
+
+func column_wave(kinds: Array) -> WaveData:
+	var wave := encounter_wave("column", "縦列部隊", "縦に射線を通す。貫通弾で後方の敵も狙える。")
+	for i in kinds.size():
+		wave.initial_spawns.append(lane_spawn(kinds[i], 0.50, 470.0 - i * 80.0, i * 0.25, 6.0, 210.0))
+	return wave
+
+func spread_cluster_wave(spread: Array, cluster: Array) -> WaveData:
+	var wave := encounter_wave("spread_cluster", "分散・密集部隊", "広角射撃で横を制圧。密集には爆風と熱場。")
+	for i in spread.size():
+		wave.initial_spawns.append(lane_spawn(spread[i], 0.34 + i * 0.16, 330.0, i * 0.15, 5.0))
+	for i in cluster.size():
+		wave.initial_spawns.append(lane_spawn(cluster[i], 0.47 + i * 0.03, 370.0 - i * 18.0, 3.2 + i * 0.12, 6.0, 130.0))
+	return wave

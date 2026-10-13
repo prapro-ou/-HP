@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AnalysisWeapon" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/data/analysis_weapon.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"homing"
+display_name = "HOMING / 誘導"
+description = "紫の追尾弾を解析。主兵装の弾が敵を追尾する。"
+color = Color(0.85, 0.45, 1, 1)
+bullet_types = Array[StringName]([&"missile", &"boss_missile", &"decel_missile", &"homing", &"cluster_bomb"])
+

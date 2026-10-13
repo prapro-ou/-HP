@@ -15,7 +15,7 @@ var counter_weapons: Array[LoadoutItem] = []
 # Selected IDs
 var selected_primary: String = "machine_gun"
 var selected_shield: String = "counter"
-var selected_counter: String = "none"
+var selected_counter: String = "turret"
 
 # UI elements references
 var background_color: ColorRect
@@ -70,120 +70,22 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func init_data() -> void:
-	# 1. Primary Weapons (DESIGN.md 基本武装 5種)
-	var w1 = LoadoutItem.new()
-	w1.id = "machine_gun"
-	w1.name = "マシンガン"
-	w1.description = "物理実弾を高速連射する標準兵装。安定したDPSと高い制圧力を誇る。"
-	w1.stats = "連射:★★★ | 威力:★★☆ | 弾速:★★☆"
-	w1.is_unlocked = Global.unlocked_weapons.has("machine_gun")
-	primary_weapons.append(w1)
-	
-	var w2 = LoadoutItem.new()
-	w2.id = "burst_rifle"
-	w2.name = "ライフル"
-	w2.description = "単発火力と弾速に優れる3点バースト徹甲ライフル。硬い敵を貫通粉砕する。"
-	w2.stats = "連射:★★☆ | 威力:★★★ | 弾速:★★★"
-	w2.is_unlocked = Global.unlocked_weapons.has("burst_rifle")
-	primary_weapons.append(w2)
-	
-	var w3 = LoadoutItem.new()
-	w3.id = "pulse_gun"
-	w3.name = "パルスガン"
-	w3.description = "扇状に広がるプラズマ波動弾。広角に展開し多数の敵を巻き込む。"
-	w3.stats = "連射:★★★ | 威力:★★☆ | 弾速:★☆☆"
-	w3.is_unlocked = Global.unlocked_weapons.has("pulse_gun")
-	primary_weapons.append(w3)
-	
-	var w4 = LoadoutItem.new()
-	w4.id = "plasma_emitter"
-	w4.name = "プラズマ放射器"
-	w4.description = "高熱プラズマ球を前方へ投射。着弾時に持続放電フィールドで大ダメージを与える。"
-	w4.stats = "連射:★★☆ | 威力:★★★ | 弾速:★☆☆"
-	w4.is_unlocked = Global.unlocked_weapons.has("plasma_emitter")
-	primary_weapons.append(w4)
-	
-	var w5 = LoadoutItem.new()
-	w5.id = "kinetic_tackle"
-	w5.name = "タックル"
-	w5.description = "機体前方に強力な衝撃破砕波を放つ超近接直接攻撃兵装。密着時に超絶威力。"
-	w5.stats = "連射:★☆☆ | 威力:★★★ | 弾速:★★☆"
-	w5.is_unlocked = Global.unlocked_weapons.has("kinetic_tackle")
-	primary_weapons.append(w5)
+	primary_weapons.clear()
+	shields.clear()
+	counter_weapons.clear()
+	for group in ["primary", "shield", "counter"]:
+		var catalog: Dictionary = WeaponCatalog.PRIMARY if group == "primary" else (WeaponCatalog.SHIELDS if group == "shield" else WeaponCatalog.COUNTER)
+		var unlocked: Array = Global.unlocked_weapons if group == "primary" else (Global.unlocked_shields if group == "shield" else Global.unlocked_counter_weapons)
+		var items: Array = primary_weapons if group == "primary" else (shields if group == "shield" else counter_weapons)
+		for item_id in catalog:
+			var item := LoadoutItem.new()
+			item.id = item_id
+			item.name = catalog[item_id]["name"]
+			item.description = catalog[item_id]["description"]
+			item.stats = catalog[item_id]["stats"]
+			item.is_unlocked = unlocked.has(item_id)
+			items.append(item)
 
-	# 2. Shields (技研で各30 TPで開発可能)
-	var s1 = LoadoutItem.new()
-	s1.id = "counter"
-	s1.name = "カウンターシールド"
-	s1.description = "ジャストガード反撃の威力を最大化する標準モデル。"
-	s1.stats = "反射:★★★ | 溜め:★★☆ | 強化:★☆☆"
-	s1.is_unlocked = Global.unlocked_shields.has("counter")
-	shields.append(s1)
-	
-	var s2 = LoadoutItem.new()
-	s2.id = "gauge"
-	s2.name = "吸収マトリクス"
-	s2.description = "【ハイリスク・超速解析】1回展開で3秒クールダウン。敵弾を吸収し、通常の4倍の超高速で解析EXPを獲得＆HP修復！"
-	s2.stats = "解析:★★★★★ | CT: 3.0s | ピーキー"
-	s2.is_unlocked = Global.unlocked_shields.has("gauge")
-	shields.append(s2)
-	
-	var s3 = LoadoutItem.new()
-	s3.id = "power"
-	s3.name = "増幅ブースター"
-	s3.description = "ジャストガード成功時に弾丸を吸収し、主兵装の威力を永続スタック強化。"
-	s3.stats = "反射:★★☆ | 溜め:★☆☆ | 強化:★★★"
-	s3.is_unlocked = Global.unlocked_shields.has("power")
-	shields.append(s3)
-
-	# 3. Counter System Weapons (支援兵装部隊)
-	var c0 = LoadoutItem.new()
-	c0.id = "turret"
-	c0.name = "支援砲台部隊"
-	c0.description = "自機の側方にボスタレット支援ポッドを展開。高火力ビーム・ミサイル・プラズマの一斉射撃を行う標準支援部隊。"
-	c0.stats = "火力:★★★★☆ | 殲滅:★★★★☆ | 防衛:★★★☆☆"
-	c0.is_unlocked = Global.unlocked_counter_weapons.has("turret") or true
-	counter_weapons.append(c0)
-	
-	var c_funnel = LoadoutItem.new()
-	c_funnel.id = "funnel"
-	c_funnel.name = "サイバーファンネル"
-	c_funnel.description = "自機の周囲をダイナミックにオールレンジ旋回し、敵陣へ高速貫通レーザーの弾幕を叩き込む遠隔自律攻撃端末。"
-	c_funnel.stats = "機動:★★★★★ | 索敵:★★★★★ | 貫通:★★★★☆"
-	c_funnel.is_unlocked = Global.unlocked_counter_weapons.has("funnel") or true
-	counter_weapons.append(c_funnel)
-	
-	var c_orb = LoadoutItem.new()
-	c_orb.id = "gigantic_orb"
-	c_orb.name = "ギガエネルギー弾"
-	c_orb.description = "【超巨大重力弾】自機の前方にプレイヤーより巨大な低速プラズマ弾を射出。敵弾を消滅させながら前進し、敵陣とボスに超多段ヒット貫通ダメージを与える。"
-	c_orb.stats = "制圧:★★★★★ | 破壊:★★★★★ | 弾消:★★★★★"
-	c_orb.is_unlocked = Global.unlocked_counter_weapons.has("gigantic_orb") or true
-	counter_weapons.append(c_orb)
-	
-	var c_chain = LoadoutItem.new()
-	c_chain.id = "chain_explosions"
-	c_chain.name = "5連鎖スーパノヴァ"
-	c_chain.description = "【5連鎖超爆撃】自機の前方に右から左へ5つの超爆発を連続掃射。爆発はジャストガード判定を持ち、敵弾を通常の3倍の破壊力で跳ね返す。"
-	c_chain.stats = "反射:★★★★★ | 破壊:★★★★★ | 殲滅:★★★★★"
-	c_chain.is_unlocked = Global.unlocked_counter_weapons.has("chain_explosions") or true
-	counter_weapons.append(c_chain)
-	
-	var c1 = LoadoutItem.new()
-	c1.id = "boss_beam"
-	c1.name = "ギガレーザー砲台"
-	c1.description = "敵を貫く極太エネルギービーム支援砲台（ボス兵装モデル）。"
-	c1.stats = "威力:★★★★★ | 範囲:★★☆☆☆"
-	c1.is_unlocked = Global.unlocked_counter_weapons.has("boss_beam")
-	counter_weapons.append(c1)
-	
-	var c2 = LoadoutItem.new()
-	c2.id = "boss_missile"
-	c2.name = "ハイパーミサイル砲台"
-	c2.description = "着弾時に広範囲爆発を起こす誘導ミサイル支援砲台（ボス兵装モデル）。"
-	c2.stats = "威力:★★★★☆ | 範囲:★★★★★"
-	c2.is_unlocked = Global.unlocked_counter_weapons.has("boss_missile")
-	counter_weapons.append(c2)
 
 func setup_ui() -> void:
 	# 1. Base dark background
@@ -239,7 +141,8 @@ func setup_ui() -> void:
 	for w in primary_weapons:
 		var btn = Button.new()
 		btn.text = w.name
-		btn.custom_minimum_size = Vector2(90, 48)
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		btn.custom_minimum_size = Vector2(90, 58)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.add_theme_font_size_override("font_size", 18)
 		p_grid.add_child(btn)
@@ -265,7 +168,8 @@ func setup_ui() -> void:
 	for s in shields:
 		var btn = Button.new()
 		btn.text = s.name
-		btn.custom_minimum_size = Vector2(90, 48)
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		btn.custom_minimum_size = Vector2(90, 58)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.add_theme_font_size_override("font_size", 18)
 		s_grid.add_child(btn)
@@ -286,7 +190,8 @@ func setup_ui() -> void:
 	for c in counter_weapons:
 		var btn = Button.new()
 		btn.text = c.name
-		btn.custom_minimum_size = Vector2(90, 48)
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		btn.custom_minimum_size = Vector2(90, 58)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.add_theme_font_size_override("font_size", 17)
 		c_grid.add_child(btn)
@@ -335,6 +240,8 @@ func setup_ui() -> void:
 	desc_vbox.add_child(desc_hdr)
 	
 	desc_title = Label.new()
+	desc_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var d_title_set = LabelSettings.new()
 	if PIXEL_FONT:
 		d_title_set.font = PIXEL_FONT
@@ -356,6 +263,7 @@ func setup_ui() -> void:
 	desc_hdr.add_child(desc_type)
 	
 	desc_stats = Label.new()
+	desc_stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var d_stats_set = LabelSettings.new()
 	if PIXEL_FONT:
 		d_stats_set.font = PIXEL_FONT
@@ -379,11 +287,18 @@ func setup_ui() -> void:
 	d_body_set.font_color = Color(0.9, 0.95, 1.0, 0.95)
 	desc_body.label_settings = d_body_set
 	desc_vbox.add_child(desc_body)
+	var route_hint := Label.new()
+	route_hint.text = "道中：撃破で突破 / 最大60秒\n全ウェーブ突破で、早くボスへ"
+	route_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	route_hint.add_theme_font_override("font", Global.get_readable_font())
+	route_hint.add_theme_font_size_override("font_size", 18)
+	route_hint.add_theme_color_override("font_color", Color.LIGHT_CYAN)
+	desc_vbox.add_child(route_hint)
 
 	# --- FOOTER BUTTONS ---
 	var footer_hbox = HBoxContainer.new()
 	footer_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	footer_hbox.add_theme_constant_override("separation", 30)
+	footer_hbox.add_theme_constant_override("separation", 12)
 	footer_hbox.anchor_left = 0.04
 	footer_hbox.anchor_right = 0.96
 	footer_hbox.anchor_top = 0.92
@@ -401,7 +316,7 @@ func setup_ui() -> void:
 	back_btn.pressed.connect(_on_back_pressed)
 	
 	hard_mode_btn = Button.new()
-	hard_mode_btn.custom_minimum_size = Vector2(230, 52)
+	hard_mode_btn.custom_minimum_size = Vector2(200, 52)
 	hard_mode_btn.add_theme_font_size_override("font_size", 18)
 	footer_hbox.add_child(hard_mode_btn)
 	update_hard_mode_btn_style()
@@ -415,7 +330,7 @@ func setup_ui() -> void:
 	
 	deploy_btn = Button.new()
 	deploy_btn.text = "出撃開始"
-	deploy_btn.custom_minimum_size = Vector2(220, 52)
+	deploy_btn.custom_minimum_size = Vector2(190, 52)
 	deploy_btn.add_theme_font_size_override("font_size", 22)
 	footer_hbox.add_child(deploy_btn)
 	style_action_btn(deploy_btn, Color.CYAN, Color(0.4, 1.0, 1.0))

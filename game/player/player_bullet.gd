@@ -31,14 +31,24 @@ var vortex_radius: float = 0.0
 var vortex_dmg: int = 0
 var is_blade: bool = false
 var blade_lvl: int = 0
+var laser_level: int = 0
+var heat_radius: float = 0.0
+var heat_damage: int = 0
+var max_distance: float = 0.0
+var travelled: float = 0.0
+var hit_targets: Array[Node2D] = []
+const HEAT_FIELD_SCRIPT = preload("res://game/effects/plasma_heat_field.gd")
 
 
 func _ready() -> void:
 	z_index = 65
 	z_as_relative = false
-	update_visual()
+	# Stats are configured by the emitter before add_child; never reset them here.
 	area_entered.connect(_on_area_entered)
 	
+	if laser_level > 0:
+		scale.y *= 1.0 + laser_level * 0.4
+		modulate = modulate.lerp(Color.CYAN, 0.6)
 	if is_blade:
 		scale = Vector2(1.8 + blade_lvl * 0.4, 1.2 + blade_lvl * 0.3)
 		modulate = Color(0.2, 1.0, 0.85)
@@ -135,234 +145,6 @@ func update_visual() -> void:
 			modulate = Color(1.0, 0.35, 0.2) # 隕石オレンジレッド
 			damage = 55
 			speed = 650.0
-		# --- 固有融合兵装弾 (FUSION WEAPONS) ---
-		"fusion_meteor_cluster":
-			scale = Vector2(2.4, 2.4)
-			modulate = Color(1.0, 0.45, 0.15) # 扇状大爆砕メテオ
-			damage = 48
-			speed = 800.0
-		"fusion_gatling_storm":
-			scale = Vector2(0.7, 1.8)
-			modulate = Color(0.25, 0.95, 0.85) # 超高密度ガトリング
-			damage = 18
-			speed = 1750.0
-		"fusion_swarm":
-			scale = Vector2(1.2, 1.2)
-			modulate = Color(0.75, 0.5, 1.0) # 多目標誘導スウォーム
-			damage = 25
-			speed = 700.0
-		"fusion_cross_penetrator":
-			scale = Vector2(0.9, 3.2)
-			modulate = Color(1.0, 0.68, 0.2) # クロス多重徹甲槍
-			damage = 32
-			speed = 1700.0
-		"fusion_prism_laser":
-			scale = Vector2(1.3, 5.2)
-			modulate = Color(0.35, 0.95, 1.0) # プリズム広角レーザー
-			damage = 28
-			speed = 2300.0
-		"fusion_electric_spread":
-			scale = Vector2(1.4, 1.4)
-			modulate = Color(0.98, 0.95, 0.25) # 連鎖放電ボルト
-			damage = 22
-			speed = 1100.0
-		"fusion_gravity_vortex":
-			scale = Vector2(1.8, 1.8)
-			modulate = Color(0.8, 0.35, 1.0) # 重力特異点弾頭
-			damage = 22
-			speed = 850.0
-		"fusion_tempest_slash":
-			scale = Vector2(3.4, 1.6)
-			modulate = Color(0.2, 1.0, 0.8) # 扇状三日月真空刃
-			damage = 35
-			speed = 1150.0
-		"fusion_spiral_cyclone":
-			scale = Vector2(1.5, 1.5)
-			modulate = Color(1.0, 0.85, 0.25) # 螺旋弾幕チャクラム
-			damage = 26
-			speed = 950.0
-		"fusion_photon_repeater":
-			scale = Vector2(1.4, 4.8)
-			modulate = Color(0.4, 0.95, 1.0) # 超連射フォトン
-			damage = 24
-			speed = 2500.0
-		"fusion_hyper_needler":
-			scale = Vector2(0.6, 3.0)
-			modulate = Color(1.0, 0.72, 0.3) # 高速ニードル徹甲
-			damage = 20
-			speed = 2000.0
-		"fusion_homing_gatling":
-			scale = Vector2(1.0, 1.0)
-			modulate = Color(0.9, 0.45, 1.0) # 高速追尾ロケット
-			damage = 18
-			speed = 900.0
-		"fusion_bomber_vulcan":
-			scale = Vector2(1.4, 1.6)
-			modulate = Color(1.0, 0.45, 0.2) # 連射重爆裂弾
-			damage = 24
-			speed = 1400.0
-		"fusion_megaton_drill":
-			scale = Vector2(2.4, 3.4)
-			modulate = Color(1.0, 0.55, 0.1) # 貫通体内起爆ドリル
-			damage = 60
-			speed = 950.0
-		"fusion_tesla_seeker":
-			scale = Vector2(1.3, 1.3)
-			modulate = Color(0.95, 0.9, 0.3) # 必中放電シーカー
-			damage = 30
-			speed = 750.0
-		"fusion_singularity_missile":
-			scale = Vector2(1.5, 1.5)
-			modulate = Color(0.75, 0.3, 0.95) # 誘導特異点ミサイル
-			damage = 32
-			speed = 700.0
-		"fusion_photon_blade":
-			scale = Vector2(3.6, 4.2)
-			modulate = Color(0.3, 1.0, 0.95) # 光子断絶レーザー刃
-			damage = 52
-			speed = 1700.0
-		"fusion_supernova":
-			scale = Vector2(3.0, 3.0)
-			modulate = Color(1.0, 0.3, 0.65) # 超新星重力爆弾
-			damage = 65
-			speed = 650.0
-		"fusion_twister_slasher":
-			scale = Vector2(3.2, 2.4)
-			modulate = Color(0.35, 1.0, 0.7) # 巨大回転ツイスター刃
-			damage = 42
-			speed = 1000.0
-		"fusion_rail_cannon":
-			scale = Vector2(2.0, 9.0)
-			modulate = Color(0.45, 0.9, 1.0) # 極限貫通レール砲
-			damage = 70
-			speed = 3000.0
-		# --- 新規25種の固有融合兵装弾 ---
-		"fusion_phantom_slasher":
-			scale = Vector2(3.0, 1.6)
-			modulate = Color(0.6, 0.9, 1.0) # 誘導真空刃
-			damage = 32
-			speed = 900.0
-		"fusion_gigant_blade":
-			scale = Vector2(4.2, 2.2)
-			modulate = Color(1.0, 0.45, 0.4) # 重爆巨大真空刃
-			damage = 58
-			speed = 850.0
-		"fusion_grand_saber":
-			scale = Vector2(4.0, 5.0)
-			modulate = Color(0.4, 1.0, 0.7) # 極限破断グランドセイバー
-			damage = 64
-			speed = 1800.0
-		"fusion_flash_slash":
-			scale = Vector2(2.4, 1.2)
-			modulate = Color(0.3, 0.95, 0.9) # 超高速連射真空刃
-			damage = 22
-			speed = 1900.0
-		"fusion_raikiri":
-			scale = Vector2(3.4, 1.8)
-			modulate = Color(0.7, 1.0, 0.3) # 紫電一閃雷撃刃
-			damage = 40
-			speed = 1200.0
-		"fusion_dimension_ripper":
-			scale = Vector2(3.6, 2.0)
-			modulate = Color(0.6, 0.4, 1.0) # 空間裂断重力刃
-			damage = 46
-			speed = 950.0
-		"fusion_spiral_chaser":
-			scale = Vector2(1.3, 1.3)
-			modulate = Color(0.95, 0.65, 0.3) # 螺旋追尾弾
-			damage = 26
-			speed = 850.0
-		"fusion_helical_stream":
-			scale = Vector2(1.6, 6.0)
-			modulate = Color(0.6, 0.9, 1.0) # 螺旋フォトン光線
-			damage = 38
-			speed = 2200.0
-		"fusion_vortex_meteor":
-			scale = Vector2(2.8, 2.8)
-			modulate = Color(1.0, 0.6, 0.2) # 旋回重爆碎弾
-			damage = 54
-			speed = 750.0
-		"fusion_spiral_drill":
-			scale = Vector2(2.2, 4.0)
-			modulate = Color(1.0, 0.8, 0.3) # 超螺旋削岩徹甲弾
-			damage = 50
-			speed = 1300.0
-		"fusion_cyclone_gatling":
-			scale = Vector2(0.9, 1.6)
-			modulate = Color(0.6, 0.9, 0.5) # 超連射旋回弾幕
-			damage = 18
-			speed = 1600.0
-		"fusion_thunder_tempest":
-			scale = Vector2(1.6, 1.6)
-			modulate = Color(1.0, 0.95, 0.2) # 旋回放電プラズマ嵐
-			damage = 30
-			speed = 900.0
-		"fusion_gravity_cyclone":
-			scale = Vector2(2.2, 2.2)
-			modulate = Color(0.85, 0.35, 0.9) # 大回転重力特異点
-			damage = 36
-			speed = 800.0
-		"fusion_smart_photon":
-			scale = Vector2(1.2, 4.5)
-			modulate = Color(0.6, 0.7, 1.0) # 高誘導集束レーザー
-			damage = 32
-			speed = 2000.0
-		"fusion_megaton_rocket":
-			scale = Vector2(2.4, 2.4)
-			modulate = Color(1.0, 0.4, 0.5) # 超重量誘導重爆弾
-			damage = 60
-			speed = 650.0
-		"fusion_smart_needle":
-			scale = Vector2(0.8, 3.2)
-			modulate = Color(0.9, 0.6, 0.8) # 索敵追尾徹甲槍
-			damage = 28
-			speed = 1800.0
-		"fusion_photon_blaster":
-			scale = Vector2(2.2, 7.0)
-			modulate = Color(1.0, 0.55, 0.3) # 爆裂集束フォトン砲
-			damage = 56
-			speed = 2600.0
-		"fusion_plasma_arc":
-			scale = Vector2(1.8, 6.0)
-			modulate = Color(0.5, 1.0, 0.9) # 電磁連鎖レーザー
-			damage = 42
-			speed = 2400.0
-		"fusion_singularity_buster":
-			scale = Vector2(2.0, 6.5)
-			modulate = Color(0.7, 0.5, 1.0) # 重力収束貫通光線
-			damage = 48
-			speed = 2200.0
-		"fusion_thunder_meteor":
-			scale = Vector2(2.6, 2.6)
-			modulate = Color(1.0, 0.7, 0.1) # 爆裂放電重隕石
-			damage = 62
-			speed = 700.0
-		"fusion_bolt_penetrator":
-			scale = Vector2(1.0, 4.0)
-			modulate = Color(0.9, 0.9, 0.3) # 電磁装甲貫通ボルト
-			damage = 36
-			speed = 2200.0
-		"fusion_gravity_bunker":
-			scale = Vector2(1.8, 4.2)
-			modulate = Color(0.85, 0.5, 0.9) # 特異点生成超徹甲杭
-			damage = 52
-			speed = 1600.0
-		"fusion_lightning_vulcan":
-			scale = Vector2(0.8, 1.8)
-			modulate = Color(0.6, 0.95, 0.3) # 超連射放電ボルト
-			damage = 20
-			speed = 1850.0
-		"fusion_rapid_gravity":
-			scale = Vector2(1.2, 1.4)
-			modulate = Color(0.6, 0.6, 1.0) # 高速連射微小重力弾
-			damage = 22
-			speed = 1400.0
-		"fusion_electromagnetic_nova":
-			scale = Vector2(3.2, 3.2)
-			modulate = Color(0.85, 0.8, 1.0) # 放電拘束超特異点
-			damage = 68
-			speed = 600.0
-			
 	# 通常攻撃弾の透明度を上げて少しだけ目立ちにくく調整（ジャストガードと敵弾の視認性を重視）
 	modulate.a = 0.55
 	
@@ -382,7 +164,7 @@ func _process(delta: float) -> void:
 		if is_instance_valid(target):
 			var target_dir = (target.global_position - global_position).normalized()
 			var target_velocity = target_dir * speed
-			velocity = velocity.lerp(target_velocity, delta * steer_rate)
+			velocity = velocity.lerp(target_velocity, minf(delta * steer_rate, 1.0))
 		else:
 			if velocity == Vector2.ZERO:
 				velocity = Vector2.UP * speed
@@ -392,9 +174,9 @@ func _process(delta: float) -> void:
 		
 	# 螺旋波動補正
 	if bullet_type == "cyclone" or wave_amp > 0.0:
-		var amp = 280.0 if bullet_type == "cyclone" else wave_amp
-		var side_wave = sin(life_timer * 14.0) * amp
-		position.x += side_wave * delta
+		var amp = 80.0 if bullet_type == "cyclone" else wave_amp
+		var side_step = (sin(life_timer * 14.0) - sin((life_timer - delta) * 14.0)) * amp
+		position += velocity.normalized().orthogonal() * side_step
 		if bullet_type == "cyclone":
 			rotation += delta * 12.0
 		
@@ -408,7 +190,11 @@ func _process(delta: float) -> void:
 			position.x = vp_rect.size.x - 30.0
 			velocity.x = -abs(velocity.x)
 
+	travelled += velocity.length() * delta
 	position += velocity * delta
+	if max_distance > 0.0 and travelled >= max_distance:
+		queue_free()
+		return
 	
 	# 寿命切れまたは画面外で消去
 	if life_timer >= MAX_LIFE_TIME:
@@ -422,22 +208,21 @@ func _process(delta: float) -> void:
 
 
 func find_closest_target() -> Node2D:
-	var targets = get_tree().get_nodes_in_group("enemy")
 	var closest: Node2D = null
-	var min_dist = 999999.0
-	for t in targets:
-		if is_instance_valid(t) and t.visible:
-			var dist = global_position.distance_to(t.global_position)
-			if dist < min_dist:
-				min_dist = dist
-				closest = t
+	var distance := INF
+	for target in CombatTargets.enemies(get_tree()):
+		var value := global_position.distance_squared_to(target.global_position)
+		if value < distance:
+			distance = value
+			closest = target
 	return closest
-
 
 func _on_area_entered(area: Area2D) -> void:
 	"""他のArea2Dに入った時の処理"""
 	# 真空ブレードの敵弾消滅（斬り払い）処理
-	if is_blade and is_instance_valid(area) and area.is_in_group("enemy_projectiles"):
+	if is_blade and (area.is_in_group("enemy_projectiles") or area.is_in_group("enemy_bullets")):
+		if not area.is_visible_in_tree() or area.get("is_friendly") != false or not CombatTargets.can_parry(area):
+			return
 		if area.has_method("recycle_bullet"):
 			area.recycle_bullet()
 		elif area.has_method("explode_and_free"):
@@ -452,10 +237,17 @@ func _on_area_entered(area: Area2D) -> void:
 	
 	if is_boss_part or is_enemy:
 		var hit_pos = global_position
-		var damage_target = area
-		if not area.has_method("take_damage") and not area.has_method("take_damage_on_part") and area.get_parent() and (area.get_parent().has_method("take_damage") or area.get_parent().has_method("take_damage_on_part")):
-			damage_target = area.get_parent()
-			
+		if is_queued_for_deletion():
+			return
+		var damage_target := CombatTargets.resolve(area)
+		if damage_target == null or hit_targets.has(damage_target):
+			return
+		hit_targets.append(damage_target)
+		if heat_radius > 0.0:
+			var field = HEAT_FIELD_SCRIPT.new()
+			field.setup(hit_pos, heat_radius, heat_damage)
+			get_parent().add_child(field)
+
 		# --- 至近距離ボーナス（Point Blank Bonus）の算出 ---
 		var dist_to_player = 999.0
 		var player = get_node_or_null("/root/Main/Player")
@@ -472,7 +264,9 @@ func _on_area_entered(area: Area2D) -> void:
 			
 		var final_damage = max(1, int(damage * dmg_multiplier))
 			
-		if damage_target.has_method("take_damage"):
+		if area.has_method("take_damage"):
+			area.take_damage(final_damage, hit_pos, is_critical)
+		elif damage_target.has_method("take_damage"):
 			damage_target.take_damage(final_damage, hit_pos, is_critical)
 		elif damage_target.has_method("take_damage_on_part"):
 			damage_target.take_damage_on_part("core", final_damage, hit_pos, is_critical)
@@ -502,18 +296,16 @@ func _on_area_entered(area: Area2D) -> void:
 			spawn_bullet_impact_particles(p_col, 0.45 if is_critical else 0.35)
 			
 		hits_done += 1
-		# 貫通判定 (レーザー、プラズマ、タックル、サイクロン、隕石、ブレード、融合貫通弾、またはpierce_limit残存時は貫通)
-		var is_piercing = (is_blade or pierce_limit >= 90 or bullet_type.contains("laser") or bullet_type.contains("blade") or bullet_type.contains("penetrator") or bullet_type.contains("drill") or bullet_type.contains("rail") or bullet_type.contains("needler") or bullet_type.contains("plasma") or bullet_type.contains("tackle") or bullet_type.contains("cyclone") or bullet_type.contains("meteor"))
-		if not is_piercing:
-			if hits_done > pierce_limit:
-				queue_free()
+		if hits_done > pierce_limit:
+			queue_free()
+
 
 
 const CHAIN_LIGHTNING_SCENE: PackedScene = preload("res://game/effects/chain_lightning.tscn")
 const GRAVITY_VORTEX_SCENE: PackedScene = preload("res://game/effects/gravity_vortex.tscn")
 
 func trigger_chain_lightning(origin_target: Node, count: int, chain_dmg: int) -> void:
-	var enemies = get_tree().get_nodes_in_group("enemy")
+	var enemies = CombatTargets.enemies(get_tree())
 	var hit_targets = [origin_target]
 	var current_origin_pos = global_position
 	var parent_node = get_parent()
@@ -561,13 +353,9 @@ func spawn_gravity_vortex(vortex_pos: Vector2, radius: float, dmg_per_tick: int)
 
 func trigger_explosion(radius: float = 80.0, splash_dmg: int = 10, fx_color: Color = Color.ORANGE, fx_scale: float = 0.6) -> void:
 	# 周囲へのスプラッシュダメージ
-	var targets = get_tree().get_nodes_in_group("enemy")
+	var targets = CombatTargets.in_radius(self, global_position, radius)
 	for t in targets:
-		if is_instance_valid(t) and t != self:
-			var dist = global_position.distance_to(t.global_position)
-			if dist < radius:
-				if t.has_method("take_damage"):
-					t.take_damage(splash_dmg)
+		CombatTargets.damage(t, splash_dmg, global_position)
 					
 	# 控えめな爆発パーティクル
 	spawn_bullet_impact_particles(fx_color, fx_scale)
@@ -581,4 +369,3 @@ func spawn_bullet_impact_particles(color: Color, scale_multiplier: float = 0.4) 
 		particle.modulate = color
 		particle.scale = Vector2(scale_multiplier, scale_multiplier)
 		get_parent().add_child(particle)
-

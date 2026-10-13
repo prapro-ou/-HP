@@ -13,81 +13,28 @@ func _ready_stage() -> void:
 	_setup_rewards()
 
 func _setup_waves() -> void:
-	# Wave 1 (惑星到達前デブリ帯・前哨解析フェーズ)
-	var w1 = WaveData.new()
-	w1.wave_id = "wave1"
-	w1.display_title = "PHASE 1: 惑星外縁・デブリ帯前哨"
-	w1.start_message = "90秒間、生き残れ\n敵弾をパリィして解析せよ"
-	w1.replenish_types = ["straight", "wave", "irregular"]
-	w1.min_active_drones = 4
-	
-	w1.initial_spawns = [
-		WaveSpawnConfig.new("straight", 0.15, -50.0, false),
-		WaveSpawnConfig.new("wave", 0.35, -80.0, true),
-		WaveSpawnConfig.new("straight", 0.65, -50.0, false),
-		WaveSpawnConfig.new("irregular", 0.85, -80.0, true)
+	waves = [
+		patrol_wave(["straight", "straight"]),
+		column_wave(["straight", "wave", "straight"]),
+		spread_cluster_wave(["wave", "straight", "wave"], ["charge", "wave", "charge"])
 	]
-	waves.append(w1)
-	
-	# Wave 2 (重装哨戒部隊・攻撃パターンの多様化)
-	var w2 = WaveData.new()
-	w2.wave_id = "wave2"
-	w2.display_title = "PHASE 2: デブリ帯深部・重装哨戒編隊"
-	w2.start_message = "チャージ弾・レーザー接近\nパリィして解析せよ"
-	w2.replenish_types = ["charge", "laser", "irregular", "straight", "wave"]
-	w2.min_active_drones = 5
-	w2.drone_speed_override = 160.0
-	
-	w2.initial_spawns = [
-		WaveSpawnConfig.new("charge", 0.12, -60.0, false),
-		WaveSpawnConfig.new("laser", 0.32, -90.0, true),
-		WaveSpawnConfig.new("irregular", 0.50, -60.0, false),
-		WaveSpawnConfig.new("charge", 0.68, -90.0, true),
-		WaveSpawnConfig.new("wave", 0.88, -60.0, false)
-	]
-	waves.append(w2)
-
-	# Wave 3 (要塞直衛エリート編隊・フルパワー激突)
-	var w3 = WaveData.new()
-	w3.wave_id = "wave3"
-	w3.display_title = "PHASE 3: 要塞警戒宙域・直衛エリート部隊"
-<<<<<<< HEAD
-	w3.start_message = "[ASSIST AI]: 要塞直衛部隊が全方位展開！\n誘導ミサイルと集中弾幕をパリィし、最大変異Lv.2を覚醒せよ！"
-	w3.replenish_types = ["missile", "charge", "laser", "blade", "irregular", "wave", "straight"]
-=======
-	w3.start_message = "追尾弾が増加\n変異兵装をLv.2へ"
-	w3.replenish_types = ["missile", "charge", "laser", "irregular", "wave", "straight"]
->>>>>>> 7471e7abd9d5fdb0acf20a88e67cfaacbd214234
-	w3.min_active_drones = 6
-	w3.drone_speed_override = 180.0
-	
-	w3.initial_spawns = [
-		WaveSpawnConfig.new("missile", 0.10, -60.0, false),
-		WaveSpawnConfig.new("blade", 0.28, -90.0, true),
-		WaveSpawnConfig.new("laser", 0.46, -60.0, false),
-		WaveSpawnConfig.new("wave", 0.64, -90.0, true),
-		WaveSpawnConfig.new("irregular", 0.80, -60.0, false),
-		WaveSpawnConfig.new("charge", 0.92, -90.0, true)
-	]
-	waves.append(w3)
-
 func _setup_interlude() -> void:
 	interlude.title = "WARNING"
-	interlude.subtitle = "軌道防衛要塞ガーディアン接近！"
+	interlude.subtitle = "捕まえた弾でボスへ追撃せよ"
 	interlude.flash_color = Color(0.2, 0.8, 1.0, 0.5)
 	interlude.secondary_flash_color = Color(1.0, 0.2, 0.2, 0.6)
-	interlude.assist_message = "砲台を先に破壊せよ"
+	interlude.assist_message = "選ばなかった兵装は、この出撃では使用できない"
 	interlude.duration = 5.0
 
 func _setup_boss() -> void:
 	boss_config.name = "軌道防衛要塞ガーディアン"
-	boss_config.laser_hp = 900
-	boss_config.missile_hp = 900
-	boss_config.core_hp = 7500
-	boss_config.max_hp = 7500
+	boss_config.laser_hp = 650
+	boss_config.missile_hp = 650
+	boss_config.core_hp = 4200
+	boss_config.max_hp = 4200
 	boss_config.base_move_speed = 0.0
 	boss_config.enable_support_drones = true
-	boss_config.support_drone_interval = 8.0
+	boss_config.support_drone_interval = 12.0
 
 func _setup_rewards() -> void:
 	reward_config.counter_weapon_unlock = "boss_beam"
