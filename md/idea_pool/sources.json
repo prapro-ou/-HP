@@ -1,0 +1,587 @@
+[
+  {
+    "id": "ikaruga",
+    "title": "Ikaruga",
+    "url": "https://store.steampowered.com/api/appdetails?appids=253750&l=english",
+    "website": "https://www.treasure-inc.co.jp/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "reflex",
+    "title": "RefleX",
+    "url": "https://store.steampowered.com/api/appdetails?appids=281860&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "graze",
+    "title": "Graze Counter GM",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1486440&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "drainus",
+    "title": "DRAINUS",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1975360&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "refrain",
+    "title": "RefRain - prism memories -",
+    "url": "https://store.steampowered.com/api/appdetails?appids=435970&l=english",
+    "website": "http://www.rebrank.org/products/RefRain/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "schildmaid",
+    "title": "Schildmaid MX",
+    "url": "https://store.steampowered.com/api/appdetails?appids=2154760&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "crimzon",
+    "title": "Crimzon Clover World EXplosion",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1718160&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "radiant",
+    "title": "Radiant Silvergun",
+    "url": "https://store.steampowered.com/api/appdetails?appids=2450820&l=english",
+    "website": "https://www.live-wire.co.jp/radiantsilvergun",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "gunvein",
+    "title": "Gunvein",
+    "url": "https://store.steampowered.com/api/appdetails?appids=2025840&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "zeroranger",
+    "title": "ZeroRanger",
+    "url": "https://store.steampowered.com/api/appdetails?appids=809020&l=english",
+    "website": "https://se-made.com/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "danmaku",
+    "title": "Danmaku Unlimited 3",
+    "url": "https://store.steampowered.com/api/appdetails?appids=450950&l=english",
+    "website": "http://doragongames.com/danmaku3/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "mushi",
+    "title": "Mushihimesama",
+    "url": "https://store.steampowered.com/api/appdetails?appids=377860&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "revolver",
+    "title": "REVOLVER360 RE:ACTOR",
+    "url": "https://store.steampowered.com/api/appdetails?appids=313400&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "ddp",
+    "title": "DoDonPachi Resurrection",
+    "url": "https://store.steampowered.com/api/appdetails?appids=464450&l=english",
+    "website": "http://www.caveshmups.com/dodonpachi",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "rtype",
+    "title": "R-Type Final 2",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1442820&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "novadrift",
+    "title": "Nova Drift",
+    "url": "https://store.steampowered.com/api/appdetails?appids=858210&l=english",
+    "website": "http://www.novadrift.io",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "skyforce",
+    "title": "Sky Force Anniversary",
+    "url": "https://store.steampowered.com/api/appdetails?appids=355050&l=english",
+    "website": "http://www.idreams.pl/our-products/show/product/76-Sky-Force-2014",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "gungeon",
+    "title": "Enter the Gungeon",
+    "url": "https://store.steampowered.com/api/appdetails?appids=311690&l=english",
+    "website": "http://www.enterthegungeon.com",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "nuclear",
+    "title": "Nuclear Throne",
+    "url": "https://store.steampowered.com/api/appdetails?appids=242680&l=english",
+    "website": "http://nuclearthrone.com/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "vampire",
+    "title": "Vampire Survivors",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1794680&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "holocure",
+    "title": "HoloCure - Save the Fans!",
+    "url": "https://store.steampowered.com/api/appdetails?appids=2420510&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "brotato",
+    "title": "Brotato",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1942280&l=english",
+    "website": "https://blobfishgames.com/press/brotato/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "dawn",
+    "title": "20 Minutes Till Dawn",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1966900&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "gunfire",
+    "title": "Gunfire Reborn",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1217060&l=english",
+    "website": "https://gfr.yijoys.com/en/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "roboquest",
+    "title": "Roboquest",
+    "url": "https://store.steampowered.com/api/appdetails?appids=692890&l=english",
+    "website": "https://www.roboquest.fr/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "ror",
+    "title": "Risk of Rain 2",
+    "url": "https://store.steampowered.com/api/appdetails?appids=632360&l=english",
+    "website": "https://www.riskofrain.com/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "furi",
+    "title": "Furi",
+    "url": "https://store.steampowered.com/api/appdetails?appids=423230&l=english",
+    "website": "http://www.furigame.com/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "cuphead",
+    "title": "Cuphead",
+    "url": "https://store.steampowered.com/api/appdetails?appids=268910&l=english",
+    "website": "http://www.cupheadgame.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "luna",
+    "title": "Touhou Luna Nights",
+    "url": "https://store.steampowered.com/api/appdetails?appids=851100&l=english",
+    "website": "https://whysoserious.jp/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "ultrakill",
+    "title": "ULTRAKILL",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1229490&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "doom",
+    "title": "DOOM Eternal",
+    "url": "https://store.steampowered.com/api/appdetails?appids=782330&l=english",
+    "website": "https://slayersclub.bethesda.net/en",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "superhot",
+    "title": "SUPERHOT",
+    "url": "https://store.steampowered.com/api/appdetails?appids=322500&l=english",
+    "website": "https://superhotgame.com/?utm_source=steam&amp;utm_medium=store page&amp;utm_campaign=site&amp;utm_content=button",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "downwell",
+    "title": "Downwell",
+    "url": "https://store.steampowered.com/api/appdetails?appids=360740&l=english",
+    "website": "http://downwellgame.com/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "cotton",
+    "title": "COTTON REBOOT!",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1656820&l=english",
+    "website": "https://www.beep-shop.com/sap/cottonreboot/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "hellsinger",
+    "title": "Metal: Hellsinger",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1061910&l=english",
+    "website": "https://www.metalhellsinger.com/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "deathsmiles",
+    "title": "Deathsmiles I・II",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1884300&l=english",
+    "website": "https://city-connection.co.jp/deathsmiles/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "shapes",
+    "title": "Just Shapes & Beats",
+    "url": "https://store.steampowered.com/api/appdetails?appids=531510&l=english",
+    "website": "http://justshapesandbeats.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "cactus",
+    "title": "Assault Android Cactus+",
+    "url": "https://store.steampowered.com/api/appdetails?appids=250110&l=english",
+    "website": "http://www.assaultandroidcactus.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "witches",
+    "title": "Trouble Witches Origin - Episode1 Daughters of Amalgam -",
+    "url": "https://store.steampowered.com/api/appdetails?appids=460630&l=english",
+    "website": "http://studio-siesta.mails.ne.jp/two/web-en/index.html",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "returnal",
+    "title": "Returnal™",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1649240&l=english",
+    "website": "https://www.playstation.com/games/returnal/pc/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "deadspace",
+    "title": "Dead Space",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1693980&l=english",
+    "website": "https://www.ea.com/games/dead-space/dead-space",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "signalis",
+    "title": "SIGNALIS",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1262350&l=english",
+    "website": "http://rose-engine.org/signalis/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "re4",
+    "title": "Resident Evil 4",
+    "url": "https://store.steampowered.com/api/appdetails?appids=2050650&l=english",
+    "website": "https://www.residentevil.com/re4/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "darkwood",
+    "title": "Darkwood",
+    "url": "https://store.steampowered.com/api/appdetails?appids=274520&l=english",
+    "website": "http://www.darkwoodgame.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "dredge",
+    "title": "DREDGE",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1562430&l=english",
+    "website": "https://www.dredge.game/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "inscryption",
+    "title": "Inscryption",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1092790&l=english",
+    "website": "https://www.inscryption-game.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "lethal",
+    "title": "Lethal Company",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1966720&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "duck",
+    "title": "Duck Game",
+    "url": "https://store.steampowered.com/api/appdetails?appids=312530&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "stick",
+    "title": "Stick Fight: The Game",
+    "url": "https://store.steampowered.com/api/appdetails?appids=674940&l=english",
+    "website": "http://landfall.se/stickfightthegame/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "boomerang",
+    "title": "Boomerang Fu",
+    "url": "https://store.steampowered.com/api/appdetails?appids=965680&l=english",
+    "website": "http://www.boomerangfu.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "content",
+    "title": "Content Warning",
+    "url": "https://store.steampowered.com/api/appdetails?appids=2881650&l=english",
+    "website": "http://landfall.se",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "overcooked",
+    "title": "Overcooked! 2",
+    "url": "https://store.steampowered.com/api/appdetails?appids=728880&l=english",
+    "website": "http://www.ghosttowngames.com/overcooked-2/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "chicken",
+    "title": "Ultimate Chicken Horse",
+    "url": "https://store.steampowered.com/api/appdetails?appids=386940&l=english",
+    "website": "http://www.ultimatechickenhorse.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "drg",
+    "title": "Deep Rock Galactic",
+    "url": "https://store.steampowered.com/api/appdetails?appids=548430&l=english",
+    "website": "http://deeprockgalactic.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "moving",
+    "title": "Moving Out 2",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1641700&l=english",
+    "website": "https://www.movingout2.com/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "hollow",
+    "title": "Hollow Knight",
+    "url": "https://store.steampowered.com/api/appdetails?appids=367520&l=english",
+    "website": "http://hollowknight.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "lovers",
+    "title": "Lovers in a Dangerous Spacetime",
+    "url": "https://store.steampowered.com/api/appdetails?appids=252110&l=english",
+    "website": "http://www.loversinadangerousspacetime.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "hades",
+    "title": "Hades",
+    "url": "https://store.steampowered.com/api/appdetails?appids=1145360&l=english",
+    "website": "http://www.supergiantgames.com",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "celeste",
+    "title": "Celeste",
+    "url": "https://store.steampowered.com/api/appdetails?appids=504230&l=english",
+    "website": "http://www.celestegame.com",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "deadcells",
+    "title": "Dead Cells",
+    "url": "https://store.steampowered.com/api/appdetails?appids=588650&l=english",
+    "website": "https://dead-cells.com/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "katana",
+    "title": "Katana ZERO",
+    "url": "https://store.steampowered.com/api/appdetails?appids=460950&l=english",
+    "website": "http://www.katanazero.com/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "breach",
+    "title": "Into the Breach",
+    "url": "https://store.steampowered.com/api/appdetails?appids=590380&l=english",
+    "website": null,
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "balatro",
+    "title": "Balatro",
+    "url": "https://store.steampowered.com/api/appdetails?appids=2379780&l=english",
+    "website": "https://www.playbalatro.com/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "slay",
+    "title": "Slay the Spire",
+    "url": "https://store.steampowered.com/api/appdetails?appids=646570&l=english",
+    "website": "https://www.megacrit.com/",
+    "screenshots": 3,
+    "movies": 1,
+    "verified": "2026-10-07"
+  },
+  {
+    "id": "baba",
+    "title": "Baba Is You",
+    "url": "https://store.steampowered.com/api/appdetails?appids=736260&l=english",
+    "website": "https://www.hempuli.com/Baba/",
+    "screenshots": 3,
+    "movies": 2,
+    "verified": "2026-10-07"
+  }
+]

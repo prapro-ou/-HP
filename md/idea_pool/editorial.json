@@ -1,0 +1,226 @@
+{
+  "articles": [
+    {
+      "id": "furi-try",
+      "game": "furi",
+      "title": "Furi：Try again. Fail again. Fail better",
+      "url": "https://www.thegamebakers.com/try-again/",
+      "type": "開発者記事",
+      "language": "英語",
+      "point": "予告・反応・反撃、少ない操作から生まれるボス戦の深さ。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "furi-intro",
+      "game": "furi",
+      "title": "Furi：企画の考え方と発表映像",
+      "url": "https://www.thegamebakers.com/announcing-furi-our-frenzied-duelling-game-for-ps4-and-pc/",
+      "type": "開発者記事",
+      "language": "英語",
+      "point": "入力に即座に反応する操作と、ボスへ向かう緊張感。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "nova-waves",
+      "game": "novadrift",
+      "title": "Nova Drift：Dynamic Waves",
+      "url": "https://blog.novadrift.io/nova-drift-dev-deep-dive-dynamic-waves/",
+      "type": "開発者記事",
+      "language": "英語",
+      "point": "敵の役割、隊形、出現順の組合せ。数を増やす以外の難度設計。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "nova-enemies",
+      "game": "novadrift",
+      "title": "Nova Drift：Enemy Challenge & Wave Rework",
+      "url": "https://blog.novadrift.io/wave-rework/",
+      "type": "開発者記事",
+      "language": "英語",
+      "point": "敵と配置の多様性を、ビルドの選択肢に結びつける。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "nova-retro",
+      "game": "novadrift",
+      "title": "Nova Drift：正式リリースと制作の振り返り",
+      "url": "https://blog.novadrift.io/novadrift-released/",
+      "type": "開発者記事",
+      "language": "英語",
+      "point": "長いRPGのビルド体験を短いアーケードの挑戦へ翻訳した経緯。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "deadspace-necro",
+      "game": "deadspace",
+      "title": "Inside Dead Space #2：The New Necromorph Nightmare",
+      "url": "https://www.ea.com/able/news/inside-dead-space-2-new-necromorph-nightmare",
+      "type": "開発者記事",
+      "language": "英語",
+      "point": "敵の見た目の変化で、損傷と狙う部位を伝える。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "doom-loop",
+      "game": "doom",
+      "title": "DOOM Eternal：Demon Slaying 101",
+      "url": "https://slayersclub.bethesda.net/en-AU/news/doom-eternal-demon-slaying-101",
+      "type": "公式ガイド",
+      "language": "英語",
+      "point": "体力・弾薬・アーマーを特定の行動で回収する攻撃的な循環。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "returnal-design",
+      "game": "returnal",
+      "title": "Returnal：Everything you need to know",
+      "url": "https://www.playstation.com/en-ca/editorial/everything-you-need-to-know-about-returnal/",
+      "type": "公式解説",
+      "language": "英語",
+      "point": "弾幕、探索、環境、物語をどう結びつけるか。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "schild-dev",
+      "game": "schildmaid",
+      "title": "Schildmaid MX：作者の紹介と開発ログ",
+      "url": "https://hitp-studio.itch.io/schildmaid-mx",
+      "type": "開発者紹介",
+      "language": "英語",
+      "point": "吸収できる時間と危険時間の切替、画像と動画。"
+    },
+    {
+      "id": "schild-update",
+      "game": "schildmaid",
+      "title": "Schildmaid MX：Steam版の公開と更新",
+      "url": "https://hitp-studio.itch.io/schildmaid-mx/devlog/506517/schildmaid-mx-released-on-steam-all-updates-to-come-to-itch-as-well",
+      "type": "開発者記事",
+      "language": "英語",
+      "point": "モード、リプレイ、配色など、遊びを支える機能の追加例。"
+    },
+    {
+      "id": "celeste-feel",
+      "game": "celeste",
+      "title": "Celeste & Forgiveness",
+      "url": "https://www.maddymakesgames.com/articles/celeste_and_forgiveness/index.html",
+      "type": "開発者記事",
+      "language": "英語",
+      "point": "入力猶予や角の補正など、プレイヤーの意図を助ける小さな調整。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "kirby-feel",
+      "game": "kirby",
+      "title": "開発者に訊きました：初の3Dアクションとは思えない",
+      "url": "https://www.nintendo.com/jp/interview/arzga/02.html",
+      "type": "開発者インタビュー",
+      "language": "日本語",
+      "point": "見た目どおりに当たる攻撃、着地の調整、カメラと遊びやすさ。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "kirby-world",
+      "game": "kirby",
+      "title": "開発者に訊きました：ちょっとしたスパイス",
+      "url": "https://www.nintendo.com/jp/interview/arzga/03.html",
+      "type": "開発者インタビュー",
+      "language": "日本語",
+      "point": "キャラクターらしい遊びから世界を考え、廃墟を怖くしすぎない。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "kirby-ui",
+      "game": "kirby",
+      "title": "開発者に訊きました：もっとやんちゃに、自由に",
+      "url": "https://www.nintendo.com/jp/interview/arzga/04.html",
+      "type": "開発者インタビュー",
+      "language": "日本語",
+      "point": "難度選択、必要な文章量、各言語のUIと読みやすさ。",
+      "verified": "2026-10-07"
+    },
+    {
+      "id": "kirby-morph",
+      "game": "kirby",
+      "title": "ほおばりヘンケイと進化するコピー能力",
+      "url": "https://www.nintendo.com/jp/topics/article/eb4b0aa4-fb95-4e38-8b48-eacb989f7004",
+      "type": "公式紹介記事",
+      "language": "日本語",
+      "point": "動画と画像で、姿の変化とできることの変化を一緒に見る。",
+      "verified": "2026-10-07"
+    }
+  ],
+  "verified": "2026-10-07",
+  "policies": [
+    "このチャットでの企画・表現・システムの相談は『桜井政博のゲーム作るには』を主要な参照軸とする。",
+    "桜井さんの動画で扱われる考え方と、この資料の応用提案は分けて書く。各ゲームや試作案を桜井さんが推薦したという意味ではない。",
+    "作品の特徴は公式紹介を参照。参考度、雰囲気タグ、持ち込み案、試作負荷はCOUNTER COREの現行仕様を読んだうえでの編集上の判断。",
+    "既存の作品から遊びの原理を学び、何を感じてほしいかを一文にする。小さく試し、プレイヤーの行動で確認する。",
+    "可愛い・ホラー・パーティ等のタグは重ねて付ける。ジャンルで候補を切り捨てない。",
+    "現行仕様のパリィ解析・主兵装＋性質2枠・部位破壊・手動COUNTERを応用の中心に置く。音楽への同期は必須にしない。"
+  ],
+  "recipes": [
+    {
+      "title": "弾を奪う気持ちよさ",
+      "games": [
+        "ikaruga",
+        "drainus",
+        "graze",
+        "reflex"
+      ],
+      "idea": "接近の理由＋吸収の手応え＋反射が砲台を壊す因果",
+      "test": "初見の人が欲しい弾へ自分から移動したか。"
+    },
+    {
+      "title": "2枠の選択が見た目に出る",
+      "games": [
+        "novadrift",
+        "kirby",
+        "balatro"
+      ],
+      "idea": "発射方式＋性質の相乗効果＋機体や射線の変化",
+      "test": "説明を閉じても選んだ2つの効果を言えるか。"
+    },
+    {
+      "title": "可愛いのに少し不気味",
+      "games": [
+        "cotton",
+        "deathsmiles",
+        "kirby",
+        "dredge"
+      ],
+      "idea": "丸い機体＋不穏な背景＋夜へ近づく緊張",
+      "test": "危険弾を読み間違えず、雰囲気の変化を感じたか。"
+    },
+    {
+      "title": "攻略したことが伝わるボス",
+      "games": [
+        "furi",
+        "deadspace",
+        "breach"
+      ],
+      "idea": "明瞭な予兆＋攻撃を担う部位＋破壊で止まる弾幕",
+      "test": "壊した部位と消えた攻撃の関係を説明できるか。"
+    },
+    {
+      "title": "見ている人にも伝わる決め手",
+      "games": [
+        "crimzon",
+        "smash",
+        "boomerang"
+      ],
+      "idea": "短い溜め＋大きな反撃＋くっきりした結果",
+      "test": "観客がCOUNTERを使った瞬間と結果を指差せるか。"
+    },
+    {
+      "title": "繰り返したくなる短い挑戦",
+      "games": [
+        "celeste",
+        "duck",
+        "skyforce",
+        "hades"
+      ],
+      "idea": "速い再挑戦＋一つの改善目標＋発見の記録",
+      "test": "失敗後に『次はこうする』を自分の言葉で言ったか。"
+    }
+  ]
+}

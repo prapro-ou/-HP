@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>ゲーム・アイデアプール | COUNTER CORE</title>
+<style>
+:root{--paper:#f5f4ef;--surface:#fff;--ink:#21283a;--muted:#606a7c;--line:#dce0e5;--accent:#be412d;--purple:#625393;--green:#236e5c;--radius:13px}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.7 "Yu Gothic UI","Meiryo",system-ui,sans-serif}a{color:#2c588c;text-underline-offset:3px}button,input,select{font:inherit}button,select{cursor:pointer}button{color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:6px 11px}button:hover{border-color:var(--accent)}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #c26538;outline-offset:3px}button[aria-pressed="true"]{background:var(--ink);color:white;border-color:var(--ink)}.shell{max-width:1480px;margin:auto;padding:0 36px}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:18px 0;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.07em}.brand{font-weight:800;letter-spacing:.15em}.toplinks{display:flex;gap:20px;flex-wrap:wrap}.hero{display:grid;grid-template-columns:1fr 300px;gap:36px;padding:42px 0 26px}.eyebrow{color:var(--accent);font-size:12px;letter-spacing:.16em;font-weight:800}.hero h1{font-size:clamp(30px,4vw,46px);line-height:1.3;letter-spacing:.015em;margin:10px 0 16px}.hero p{max-width:800px;color:var(--muted);margin:0}.stats{display:flex;gap:28px;align-items:center;justify-content:flex-end}.stat strong{font-size:38px;display:block;line-height:1.2;color:var(--accent)}.stat span{font-size:12px;white-space:nowrap;color:var(--muted)}.start{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 26px}.start button{border-radius:30px;padding:8px 15px;background:#fff}.start .label{align-self:center;color:var(--muted);font-size:12px;margin-right:8px}.sectionline{display:flex;justify-content:space-between;align-items:baseline;gap:20px;margin-bottom:12px}.sectionline h2{margin:0;font-size:18px}.sectionline p{margin:0;color:var(--muted);font-size:12px}.lenses{background:#eeedf5;border:1px solid #d9d6e6;border-radius:var(--radius);padding:21px 24px;margin-bottom:24px}.lenses summary{font-size:17px;font-weight:700;cursor:pointer}.lensintro{color:var(--muted);font-size:13px;margin:10px 0 15px}.lensgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.lens{background:rgba(255,255,255,.8);border-radius:8px;padding:14px 17px}.lens h3{font-size:14px;margin:0 0 7px}.lens p{font-size:12px;margin:0 0 8px;color:#55576b}.lens a{font-size:12px}.filter{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius);padding:22px 24px;margin-bottom:22px}.searchrow{display:grid;grid-template-columns:1fr 250px 180px;gap:14px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}input[type="search"],select{width:100%;background:#fafaf8;color:var(--ink);border:1px solid #cbd1d9;border-radius:7px;padding:10px 12px;min-height:44px}.filterrow{display:grid;grid-template-columns:112px 1fr;gap:14px;margin-top:17px}.filterlabel{font-size:12px;color:var(--muted);padding-top:5px}.chips{display:flex;flex-wrap:wrap;gap:7px}.chips button{font-size:12px;padding:4px 10px;border-radius:30px}.filterfoot{display:flex;gap:18px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:15px;margin-top:18px;font-size:12px;color:var(--muted)}.check{display:inline-flex;gap:6px;align-items:center}.filterfoot select{width:180px;min-height:34px;padding:3px 8px}.filterfoot button{margin-left:auto;font-size:12px}.resultsbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:18px 0 12px}.resultcount{font-size:20px;font-weight:750}.resultcount small{font-weight:400;font-size:12px;color:var(--muted);margin-left:12px}.activefilters{font-size:12px;color:var(--muted)}.tablewrap{border:1px solid var(--line);border-radius:var(--radius);overflow:auto;background:var(--surface)}table{border-collapse:collapse;width:100%;table-layout:fixed}th{background:#eaece9;padding:12px 16px;font-size:12px;text-align:left;color:#48536b;border-bottom:1px solid var(--line)}th:nth-child(1){width:21%}th:nth-child(2){width:23%}th:nth-child(3){width:28%}th:nth-child(4){width:15%}th:nth-child(5){width:13%}td{padding:20px 16px;vertical-align:top;border-bottom:1px solid var(--line);font-size:13px;line-height:1.8}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#fdfcf8}.titleline{display:flex;gap:10px;align-items:flex-start}.favorite{padding:0;width:28px;height:30px;border:0;background:none;font-size:21px;color:#9a7c49;flex:none}.favorite[aria-pressed="true"]{color:#9a6a10;background:none}.gametitle{font-size:16px;font-weight:750;line-height:1.45}.gametitle a{color:var(--ink);text-decoration:none}.genre{font-size:11px;color:var(--muted);margin:8px 0 6px}.rating{font-size:11px;color:var(--accent)}.effort{color:var(--muted);font-size:11px;margin-top:8px}.taglist{display:flex;gap:5px;flex-wrap:wrap}.tag{font-size:11px;line-height:1.5;background:#f2f2ef;border:1px solid #e1e3df;border-radius:5px;padding:3px 6px}.tag.need{color:var(--green);background:#edf5f1;border-color:#d8e9e0}.sourcebuttons{display:flex;flex-direction:column;align-items:flex-start;gap:7px}.sourcebuttons a{font-size:12px}.rowdetail{margin-top:12px}.rowdetail summary{font-size:12px;cursor:pointer;color:var(--purple);font-weight:650}.rowdetail .body{font-size:12px;min-width:230px;max-width:420px;position:relative;z-index:1;background:#f8f7fc;border:1px solid #dbd7e8;border-radius:7px;padding:14px;box-shadow:0 4px 10px #20273c10;margin-top:10px;transform:translateX(calc(min(0px, 100% - 230px)))}.detail-title{font-weight:700;color:var(--purple);margin:12px 0 4px}.detail-title:first-child{margin-top:0}.body p{margin:0 0 6px}.body ul{padding-left:18px;margin:5px 0}.imagegrid{display:flex;gap:8px;overflow:auto;margin:10px 0}.imagegrid a{min-width:190px;max-width:230px;display:block}.imagegrid img{width:100%;border-radius:6px;display:block}.image-note{font-size:11px;color:var(--muted)}.empty{padding:36px;text-align:center;color:var(--muted)}.recipes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:15px 0 32px}.recipe{padding:21px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}.recipe h3{font-size:16px;margin:0 0 12px}.recipe p{font-size:13px;margin:8px 0}.recipe .examples{font-size:12px;color:var(--muted)}.recipe .test{font-size:12px;border-left:3px solid var(--accent);padding-left:10px}.library{margin-top:34px}.articlegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:15px 0 30px}.article{border-bottom:1px solid var(--line);padding:14px 0}.article a{font-size:14px;font-weight:650}.article p{font-size:12px;color:var(--muted);margin:7px 0}.article small{font-size:11px;color:var(--purple)}.policy{background:#eceee8;border-radius:var(--radius);padding:24px;margin:20px 0 28px}.policy h2{font-size:17px;margin:0 0 12px}.policy p,.policy li{font-size:13px;color:#4f5968}.policy ul{padding-left:20px}.footer{display:flex;justify-content:space-between;gap:20px;padding:20px 0 35px;font-size:12px;color:var(--muted)}.storage-status{font-size:12px;color:var(--muted);min-height:1em}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.anchor{scroll-margin-top:20px}noscript p{background:#fff3d7;padding:18px}.printbutton{font-size:12px}
+@media(min-width:1100px){.rowdetail[open] .body{position:relative;margin-left:-150px;width:285px;min-width:285px;transform:none}}
+@media(max-width:1000px){.shell{padding:0 22px}.hero{grid-template-columns:1fr}.stats{justify-content:flex-start}.lensgrid,.recipes,.articlegrid{grid-template-columns:repeat(2,1fr)}.searchrow{grid-template-columns:1fr 1fr}.field:first-child{grid-column:1/-1}table{min-width:1000px}.filterrow{grid-template-columns:95px 1fr}}
+@media(max-width:640px){.shell{padding:0 15px}.topbar{align-items:flex-start;flex-direction:column;gap:9px}.toplinks{gap:14px}.hero{padding-top:27px;gap:20px}.stats{gap:28px}.stat strong{font-size:30px}.lensgrid,.recipes,.articlegrid{grid-template-columns:1fr}.lenses,.filter{padding:16px}.filterrow{grid-template-columns:1fr;gap:7px}.searchrow{grid-template-columns:1fr}.field:first-child{grid-column:auto}.sectionline{flex-direction:column;gap:6px}.filterfoot{gap:12px}.filterfoot button{margin-left:0}.resultsbar{align-items:flex-start;flex-direction:column}.footer{flex-direction:column}.tablewrap{overflow:visible;border:0;background:none}table{min-width:0;table-layout:auto}thead{display:none}tbody tr{display:block;margin:0 0 15px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:5px 14px}td{display:block;border:0;padding:12px 0}td+td{border-top:1px solid #ecece8}td[data-label]::before{content:attr(data-label);display:block;color:var(--muted);font-size:11px;margin-bottom:5px}.sourcebuttons{flex-direction:row;flex-wrap:wrap;gap:12px}.rowdetail .body{max-width:100%;min-width:0;transform:none}.gametitle{font-size:19px}.activefilters{max-width:100%}}
+@media print{.filter,.start,.favorite,.toplinks,.printbutton,.storage-status{display:none!important}.shell{max-width:none;padding:0}.hero{padding:18px 0}.stats{display:none}.lensgrid,.articlegrid{grid-template-columns:repeat(2,1fr)}.tablewrap{overflow:visible}table{min-width:0}.recipes{grid-template-columns:repeat(2,1fr)}td{font-size:10px;padding:9px;break-inside:avoid}.rowdetail{display:none}.policy{break-inside:avoid}body{background:#fff}.gametitle{font-size:12px}a{color:inherit}}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="topbar" aria-label="資料内ナビゲーション"><span class="brand">COUNTER CORE / REFERENCE LIBRARY</span><div class="toplinks"><a href="#pool">作品を探す</a><a href="#mix">組み合わせ案</a><a href="#reading">記事を読む</a><a href="IDEA_POOL.md">Markdown版</a></div></nav>
+<header class="hero"><div><div class="eyebrow">PLAY → OBSERVE → REMIX</div><h1>ゲーム・アイデアプール</h1><p>敵弾を「奪う」シューティングを中心に、可愛い見た目も、ホラーの緊張も、パーティのわかりやすさも。<br>作品の魅力を分解し、次に試せる小さなアイデアへ。</p></div><div class="stats"><div class="stat"><strong id="total">68</strong><span>参考ゲーム</span></div><div class="stat"><strong>8</strong><span>ジャンル</span></div><div class="stat"><strong>6</strong><span>桜井さんの視点</span></div></div></header>
+<div class="start" aria-label="おすすめの探し方"><span class="label">まず探すなら</span><button data-preset="parry">反撃・パリィ</button><button data-preset="cute">可愛い見た目</button><button data-preset="horror">ホラーの緊張</button><button data-preset="party">パーティの仕組み</button><button data-preset="boss">部位破壊・ボス</button></div>
+<details class="lenses" open><summary>考える土台：「桜井政博のゲーム作るには」</summary><p class="lensintro">公式動画を入口に、参考ゲームをこの6つの視点で読む。下の問いと試作への応用は、この資料の編集提案です。</p><div id="lenses" class="lensgrid"></div></details>
+<main>
+<section id="pool" class="anchor" aria-labelledby="poolheading"><div class="sectionline"><h2 id="poolheading">どんなアイデアが欲しい？</h2><p>参考度は現行仕様との相性。作品自体の評価ではありません。</p></div>
+<div class="filter"><div class="searchrow"><div class="field"><label for="query">タイトル・特徴・取り入れる案から検索</label><input id="query" type="search" placeholder="例：パリィ　砲台 ／ 可愛い　画像 ／ ホラー　システム" autocomplete="off"></div><div class="field"><label for="genre">ジャンル</label><select id="genre"><option value="">すべてのジャンル</option></select></div><div class="field"><label for="sort">並び順</label><select id="sort"><option value="priority">参考度が高い順</option><option value="genre">ジャンル順</option><option value="name">作品名順</option><option value="effort">小さく試せる順</option></select></div></div>
+<div class="filterrow"><div class="filterlabel">雰囲気・モチーフ</div><div id="mood" class="chips" role="group" aria-label="雰囲気とモチーフのタグ"></div></div>
+<div class="filterrow"><div class="filterlabel">欲しいアイデア</div><div id="needs" class="chips" role="group" aria-label="欲しいアイデアのタグ"></div></div>
+<div class="filterrow"><div class="filterlabel">桜井さんの視点</div><div id="principles" class="chips" role="group" aria-label="桜井さんの動画の視点"></div></div>
+<div class="filterfoot"><label for="mode">タグの組合せ</label><select id="mode"><option value="all">各分類ですべて一致</option><option value="any">各分類でどれか一致</option></select><label class="check"><input id="priority" type="checkbox">参考度 ★★★★★ だけ</label><label class="check"><input id="favorites" type="checkbox">お気に入りだけ</label><button id="reset">条件をリセット</button></div></div>
+<div class="resultsbar"><div id="count" class="resultcount" role="status" aria-live="polite"></div><div id="active" class="activefilters"></div></div><p id="storageStatus" class="storage-status"></p>
+<div class="tablewrap"><table aria-label="参考ゲームの一覧"><thead><tr><th scope="col">作品・ジャンル</th><th scope="col">特徴・魅力</th><th scope="col">COUNTER COREに持ち込むなら</th><th scope="col">タグ</th><th scope="col">動画・画像・読む</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty" hidden>条件に合う作品がありません。タグを減らすか、条件をリセットしてください。</div></div>
+<noscript><p>検索を使うにはJavaScriptを有効にしてください。同じ一覧は <a href="IDEA_POOL.md">Markdown版</a> でも読めます。</p></noscript></section>
+<section id="mix" class="library anchor" aria-labelledby="mixheading"><div class="sectionline"><h2 id="mixheading">作品を組み合わせて考える</h2><p>一度の試作では、確かめたいことを一つに絞る。</p></div><div id="recipes" class="recipes"></div></section>
+<section id="reading" class="library anchor" aria-labelledby="readheading"><div class="sectionline"><h2 id="readheading">開発者・公式の記事を読む</h2><p>設計理由を知りたいときの入り口。</p></div><div id="articles" class="articlegrid"></div></section>
+<section class="policy"><h2>このプールの使い方と、今後の方針</h2><ul id="policies"></ul><p>作品の「特徴」は出典に基づく要約。「持ち込む案」「見るポイント」「最小試作」は編集提案です。小さく試す負荷の目安は、作品全体を再現する工数ではありません。</p><p>一覧・タグ検索はオフラインで動きます。画像は詳細を開いたときに公式配信元から読み込みます。動画は公式ストアや公式サイトで再生してください。お気に入りは使っているブラウザ内に保存されます。</p></section>
+</main>
+<footer class="footer"><span>資料更新：2026-10-07 ／ 公式紹介・Steam掲載メディアを参照</span><span><a href="README.md">編集・追加方法</a> · <a href="catalog.json">作品データ</a> · <button class="printbutton" id="print">印刷 / PDF</button></span></footer>
+</div>
+<script id="catalog-data" type="application/json">__CATALOG__</script>
+<script id="editorial-data" type="application/json">__EDITORIAL__</script>
+<script>
+'use strict';
+const catalog = JSON.parse(document.getElementById('catalog-data').textContent);
+const editorial = JSON.parse(document.getElementById('editorial-data').textContent);
+const games = catalog.games;
+const byId = new Map(games.map(g => [g.id, g]));
+const byLens = new Map(catalog.principles.map(p => [p.id, p]));
+const $ = id => document.getElementById(id);
+const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const normalize = s => String(s).normalize('NFKC').toLowerCase().replace(/かわいい|カワイイ|cute/g, '可愛い').replace(/horror/g,'ホラー').replace(/party/g,'パーティ').replace(/system/g,'システム');
+const link = (url, label) => /^https:\/\//.test(url || '') ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>` : '';
+const storageKey = 'counter-core-idea-pool-favorites-v1';
+let saved = new Set();
+let storageWorks = true;
+try { const raw = JSON.parse(localStorage.getItem(storageKey) || '[]'); if (Array.isArray(raw)) saved = new Set(raw.filter(id => byId.has(id))); } catch { storageWorks = false; }
+const state = {mood:new Set(), needs:new Set(), principles:new Set()};
+const genreOrder = [...new Set(games.map(g => g.genre))];
+const searchText = new Map(games.map(g => [g.id, normalize([g.title,g.genre,g.feature,g.idea,g.watch,g.prototype,...g.mood,...g.needs,...g.principles.map(id=>byLens.get(id).title)].join(' '))]));
+function matchesTags(values, selected, mode) { return !selected.size || (mode === 'all' ? [...selected].every(t => values.includes(t)) : [...selected].some(t => values.includes(t))); }
+function filteredGames() {
+  const tokens = normalize($('query').value.trim()).split(/\s+/u).filter(Boolean);
+  const mode = $('mode').value;
+  const result = games.filter(g => (! $('genre').value || g.genre === $('genre').value) && (! $('priority').checked || g.priority === 5) && (! $('favorites').checked || saved.has(g.id)) && matchesTags(g.mood,state.mood,mode) && matchesTags(g.needs,state.needs,mode) && matchesTags(g.principles,state.principles,mode) && tokens.every(t => searchText.get(g.id).includes(t)));
+  const sort = $('sort').value;
+  return result.sort((a,b) => sort === 'name' ? a.title.localeCompare(b.title,'ja') : sort === 'genre' ? genreOrder.indexOf(a.genre)-genreOrder.indexOf(b.genre) || b.priority-a.priority : sort === 'effort' ? ['低','中','高'].indexOf(a.effort)-['低','中','高'].indexOf(b.effort) || b.priority-a.priority : b.priority-a.priority || genreOrder.indexOf(a.genre)-genreOrder.indexOf(b.genre));
+}
+function renderTags(group) {
+  const values = group === 'principles' ? catalog.principles.map(p => p.id) : [...new Set(games.flatMap(g => g[group]))];
+  if (group === 'mood') { const order=['可愛い','ホラー','パーティ','協力','SF','スタイリッシュ','ドット絵','手描き','レトロ','コミカル','カラフル','限定色','メカ','ファンタジー']; values.sort((a,b)=>(order.includes(a)?order.indexOf(a):999)-(order.includes(b)?order.indexOf(b):999)); }
+  $(group).innerHTML = values.map(t => `<button data-group="${group}" data-tag="${esc(t)}" aria-pressed="${state[group].has(t)}">${esc(group === 'principles' ? byLens.get(t).title.replace(/（.*?）/g,'') : t)}</button>`).join('');
+}
+function sources(g) {
+  const image = g.media?.screenshots?.[0]?.full;
+  const article = editorial.articles.find(a => a.game === g.id);
+  const video = g.videos?.[0];
+  return `<div class="sourcebuttons">${video?link(video.url,'動画：公式掲載'):link(g.source,g.appId?'動画：公式ストア':'動画・画像：公式')}${image?link(image,'画像を見る'):''}${link(g.source,'作品紹介')}${article?link(article.url,'開発者記事'):''}</div>`;
+}
+function detail(g) {
+  const articles = editorial.articles.filter(a => a.game === g.id);
+  return `<details class="rowdetail" data-game="${g.id}"><summary>見るポイント・最小試作</summary><div class="body"><div class="detail-title">ここを見る</div><p>${esc(g.watch)}</p><div class="detail-title">まず小さく試す</div><p>${esc(g.prototype)}</p><p class="image-note">試作負荷の目安：${esc(g.effort)}</p><div class="detail-title">桜井さんの視点で考える</div><ul>${g.principles.map(id => `<li>${link(byLens.get(id).url,byLens.get(id).title)}</li>`).join('')}</ul>${articles.length?`<div class="detail-title">もう少し読む</div><ul>${articles.map(a => `<li>${link(a.url,a.title)}</li>`).join('')}</ul>`:''}<div class="media" data-media="${g.id}"></div></div></details>`;
+}
+function render() {
+  const focused = document.activeElement;
+  const focusTag = focused?.dataset.group ? { group:focused.dataset.group, tag:focused.dataset.tag } : null;
+  const focusFavorite = focused?.dataset.favorite;
+  for (const group of Object.keys(state)) renderTags(group);
+  const filtered = filteredGames();
+  $('count').innerHTML = `${filtered.length}<small>/ ${games.length} 作品 · タイトルから公式紹介へ</small>`;
+  const selected = [$('genre').value,...state.mood,...state.needs,...[...state.principles].map(id=>byLens.get(id).title),$('priority').checked?'重点参考':'',$('favorites').checked?'お気に入り':''].filter(Boolean);
+  $('active').textContent = selected.length ? selected.join(' / ') : '全ジャンルから、現行仕様との相性順に';
+  $('empty').hidden = filtered.length > 0;
+  $('storageStatus').textContent = storageWorks ? '☆ を押して候補を保存。「見るポイント・最小試作」を開くと画像も確認できます。' : 'この環境ではお気に入りを保存できません。このページを開いている間は選択できます。';
+  $('rows').innerHTML = filtered.map(g => `<tr id="game-${g.id}"><td><div class="titleline"><button class="favorite" data-favorite="${g.id}" aria-pressed="${saved.has(g.id)}" aria-label="${esc(g.title)}のお気に入りを${saved.has(g.id)?'解除':'登録'}">${saved.has(g.id)?'★':'☆'}</button><div><div class="gametitle">${link(g.source,g.title)}</div><div class="genre">${esc(g.genre)}</div><div class="rating" aria-label="参考度5段階中${g.priority}">${'★'.repeat(g.priority)}${'☆'.repeat(5-g.priority)}</div><div class="effort">小さく試す負荷：${esc(g.effort)}</div></div></div></td><td data-label="特徴・魅力">${esc(g.feature)}</td><td data-label="持ち込むなら">${esc(g.idea)}</td><td data-label="探すタグ"><div class="taglist">${g.needs.map(t=>`<button class="tag need" data-group="needs" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}${g.mood.map(t=>`<button class="tag" data-group="mood" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}</div></td><td data-label="動画・画像・読む">${sources(g)}${detail(g)}</td></tr>`).join('');
+  if (focusTag) [...$(focusTag.group).querySelectorAll('button')].find(b=>b.dataset.tag===focusTag.tag)?.focus({preventScroll:true});
+  if (focusFavorite) [...document.querySelectorAll('[data-favorite]')].find(b=>b.dataset.favorite===focusFavorite)?.focus({preventScroll:true});
+}
+function reset() { for (const tags of Object.values(state)) tags.clear(); $('query').value=''; $('genre').value=''; $('mode').value='all'; $('priority').checked=false; $('favorites').checked=false; $('sort').value='priority'; }
+function loadMedia(details) {
+  if (!details.open || details.dataset.loaded) return;
+  const g = byId.get(details.dataset.game); if (!g) return;
+  details.dataset.loaded='true';
+  const panel = details.querySelector('.media');
+  const images = g.media?.screenshots || [];
+  panel.innerHTML = images.length ? `<div class="detail-title">公式スクリーンショット</div><div class="imagegrid">${images.map((s,i) => `<a href="${esc(s.full)}" target="_blank" rel="noopener noreferrer"><img src="${esc(s.thumbnail)}" alt="${esc(g.title)} 公式スクリーンショット ${i+1}" loading="lazy" referrerpolicy="no-referrer"><span>画像 ${i+1} を大きく見る ↗</span></a>`).join('')}</div><p class="image-note">掲載元：Steam。画像が読めないときは画像リンクや公式ストアを開いてください。</p>` : `<p>${link(g.source,'公式サイトで動画・画像を見る')}</p>`;
+  if (g.media?.movies?.length) panel.innerHTML += `<div class="detail-title">公式ストアの動画</div><ul>${g.media.movies.map(m => `<li>${link(g.source,m.name)}</li>`).join('')}</ul><p class="image-note">動画リンクは公式ストアのプレイヤーへ移動します。</p>`;
+  panel.querySelectorAll('img').forEach(img => img.addEventListener('error', () => { img.alt='画像を読み込めません。リンクから公式画像を開いてください。'; img.style.display='none'; }));
+}
+$('genre').innerHTML += genreOrder.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
+$('total').textContent=games.length;
+$('lenses').innerHTML=catalog.principles.map((p,i)=>`<div class="lens"><h3>0${i+1} / ${esc(p.title.replace(/（.*?）/g,''))}</h3><p>${esc(p.question)}</p>${link(p.url,'公式動画を見る')}</div>`).join('');
+$('recipes').innerHTML=editorial.recipes.map(r=>`<article class="recipe"><h3>${esc(r.title)}</h3><div class="examples">${r.games.map(id=>esc(byId.get(id).title)).join(' × ')}</div><p>${esc(r.idea)}</p><p class="test">確認：${esc(r.test)}</p></article>`).join('');
+$('articles').innerHTML=editorial.articles.map(a=>`<article class="article"><small>${esc(byId.get(a.game).title)} / ${esc(a.type)} / ${esc(a.language)}</small><div>${link(a.url,a.title)}</div><p>${esc(a.point)}</p></article>`).join('');
+$('policies').innerHTML=editorial.policies.map(p=>`<li>${esc(p)}</li>`).join('');
+$('query').addEventListener('input',render);
+for (const id of ['genre','sort','mode','priority','favorites']) $(id).addEventListener('change',render);
+$('reset').addEventListener('click',()=>{reset();render();});
+$('print').addEventListener('click',()=>window.print());
+document.addEventListener('click',event=>{
+  const tag=event.target.closest('[data-group][data-tag]');
+  if(tag){const set=state[tag.dataset.group];set.has(tag.dataset.tag)?set.delete(tag.dataset.tag):set.add(tag.dataset.tag);render();return;}
+  const favorite=event.target.closest('[data-favorite]');
+  if(favorite){const id=favorite.dataset.favorite;saved.has(id)?saved.delete(id):saved.add(id);try{localStorage.setItem(storageKey,JSON.stringify([...saved]));}catch{storageWorks=false;}render();return;}
+  const preset=event.target.closest('[data-preset]');
+  if(preset){reset();const p=preset.dataset.preset;if(p==='parry'){$('genre').value='弾幕・反撃STG';state.needs.add('システム');}if(p==='cute'){state.mood.add('可愛い');state.needs.add('画像');}if(p==='horror'){state.mood.add('ホラー');state.principles.add('risk');}if(p==='party'){state.mood.add('パーティ');state.needs.add('システム');}if(p==='boss'){state.needs.add('ボス');}render();$('pool').scrollIntoView({behavior:'smooth',block:'start'});}
+});
+document.addEventListener('toggle',event=>{if(event.target.matches?.('.rowdetail'))loadMedia(event.target);},true);
+render();
+</script>
+</body>
+</html>
